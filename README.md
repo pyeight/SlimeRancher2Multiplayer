@@ -1,4 +1,4 @@
-# Slime Rancher 2 Multiplayer Mod - [Discord](https://discord.com/invite/a7wfBw5feU)
+# Slime Rancher 2 Multiplayer Mod - <a href="https://discord.com/invite/a7wfBw5feU" target="_blank" rel="noopener noreferrer">Discord</a>
 
 **LEGEND:**
 - 🟩 fully synced
