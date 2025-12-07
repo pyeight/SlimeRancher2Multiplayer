@@ -30,19 +30,19 @@ public class JoinCommand : SR2ECommand
 
 public class Main : SR2EExpansionV2
 {
-    public static class BuildInfo                                                                                       // Adds the Info to the SR2E Mod Menu.
+    public static class BuildInfo
     {
-        public const string Name = "Slime Rancher 2 Multiplayer Mod";                                                   // Name of the Expansion. 
-        public const string Description = "Adds Multiplayer to Slime Rancher 2";                                        // Description for the Expansion.
-        public const string Author = "Shark";                                                                           // Author of the Expansion.
-        public const string CoAuthors = null;                                                                           // CoAuthor(s) of the Expansion.  (optional, set as null if none)
-        public const string Contributors = "Gopher, Artur";                                                             // Contributor(s) of the Expansion.  (optional, set as null if none)
-        public const string Company = null;                                                                             // Company that made the Expansion.  (optional, set as null if none)
-        public const string Version = "1.0.0";                                                                          // Version of the Expansion.
-        public const string DownloadLink = null;                                                                        // Download Link for the Expansion.  (optional, set as null if none)
-        public const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";                         // Source Link for the Expansion.  (optional, set as null if none)
-        public const string Nexus = null;                                                                               // Nexus Link for the Expansion.  (optional, set as null if none)
-        public const bool UsePrism = false;                                                                             // Enable if you use Prism
+        public const string Name = "Slime Rancher 2 Multiplayer Mod";
+        public const string Description = "Adds Multiplayer to Slime Rancher 2";
+        public const string Author = "Shark";
+        public const string CoAuthors = null;
+        public const string Contributors = "Gopher, Artur"; 
+        public const string Company = null;
+        public const string Version = "0.1.0-a";
+        public const string DownloadLink = null;
+        public const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
+        public const string Nexus = null;
+        public const bool UsePrism = false;
     }
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
