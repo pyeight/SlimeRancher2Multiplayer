@@ -17,3 +17,8 @@
 | Buildings         | 🟥     |
 | Gray Labyrinth    | 🟥     |
 | Silos             | 🟥     |
+
+## Acknowledgements
+Special thanks to:
+- [PinkTarr](https://github.com/TheanMcGarity) for code snippets of his [Slime Rancher 2 Multiplayer Mod](https://github.com/TheanMcGarity/NewSR2MP-1.0compat)
+- [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining [SR2E](https://github.com/ThatFinnDev/SR2E)
