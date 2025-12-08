@@ -39,8 +39,8 @@ public class Server
             server = new UdpClient(new IPEndPoint(IPAddress.Any, port));
             running = true;
 
-            SR2MP.Logger.LogSensitive($"[SR2MP] Server started on port {port}");
-            SR2MP.Logger.Log($"[SR2MP] Server started on port {port}");
+            SR2MP.Logger.LogSensitive($"Server started on port {port}");
+            SR2MP.Logger.Log($"Server started on port {port}");
 
             receiverThread = new Thread(ReceiveLoop);
             receiverThread.IsBackground = true;
