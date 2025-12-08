@@ -18,12 +18,12 @@ public class Server
         HeartbeatAck = 9,       // Server -> Client                                                                     Automatically time the Clients out if the Server crashes
     }
     
-    private UdpClient server;
-    private Thread receiverThread;
+    private UdpClient? server;
+    private Thread? receiverThread;
     // volatile necessary for multi-threading
     private volatile bool running;
     // ConcurrentDictionary is a Dictionary but safe for multi-threading
-    private ConcurrentDictionary<string, ClientInfo> clients;
+    private ConcurrentDictionary<string, ClientInfo> clients = new ConcurrentDictionary<string, ClientInfo>();
     
     public void Start(int port)
     {
@@ -48,6 +48,8 @@ public class Server
     
     private void ReceiveLoop()
     {
+        if (server == null) return;
+        
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
         while (running)
@@ -69,6 +71,11 @@ public class Server
                     case PacketType.Heartbeat:
                         // HandleHeartbeat(clientInfo);
                         break;
+                    
+                    default:
+                        SR2MP.Logger.WarnSensitive($"Unknown packet type: {type} from {clientInfo}");
+                        SR2MP.Logger.Warn($"Unknown packet type: {type} from {clientInfo}");
+                        break;
                 }
             }
             catch (SocketException) 
@@ -83,7 +90,35 @@ public class Server
         }
     }
 
-    private void Stop()
+    private void Send(byte[] data, IPEndPoint clientEP)
+    {
+        if (server == null) return;
+        
+        try
+        {
+            server.Send(data, data.Length, clientEP);
+        }
+        catch (Exception ex)
+        {
+            SR2MP.Logger.LogSensitive($"Failed to send data to {clientEP}: {ex}");
+            SR2MP.Logger.Log($"Failed to send data to client: {ex}");
+        }
+    }
+    
+    private void Send(byte[] data, string clientInfo)
+    {
+        if (clients.TryGetValue(clientInfo, out ClientInfo? client))
+        {
+            Send(data, client.EndPoint);
+        }
+        else
+        {
+            SR2MP.Logger.WarnSensitive($"Attempted to send to unknown client: {clientInfo}");
+            SR2MP.Logger.Warn($"Attempted to send to unknown client!");
+        }
+    }
+    
+    public void Close()
     {
         // I will implement this later :3
     }

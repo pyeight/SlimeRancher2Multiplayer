@@ -38,7 +38,7 @@ public class Main : SR2EExpansionV2
         public const string CoAuthors = null;
         public const string Contributors = "Gopher, Artur"; 
         public const string Company = null;
-        public const string Version = "0.1.0-a";
+        public const string Version = "0.1.0";
         public const string DownloadLink = null;
         public const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
         public const string Nexus = null;
