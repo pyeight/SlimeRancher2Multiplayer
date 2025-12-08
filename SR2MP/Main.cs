@@ -24,4 +24,9 @@ public class Main : SR2EExpansionV2
     {
         SrLogger.Log($"test log owo :3 - {sceneName}");
     }
+
+    public override void OnLateInitializeMelon()
+    {
+        
+    }
 }
