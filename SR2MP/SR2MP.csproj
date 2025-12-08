@@ -1,20 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<PlatformTarget>x64</PlatformTarget>
+      <TargetFramework>net6.0</TargetFramework>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+      <Version>0.1.0</Version>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <PlatformTarget>x64</PlatformTarget>
+      <EnableNETAnalyzers>true</EnableNETAnalyzers>
+      <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="MelonLoader">
-        <HintPath>libraries\MelonLoader.dll</HintPath>
-      </Reference>
-      <Reference Include="SR2E">
-        <HintPath>libraries\SR2E.dll</HintPath>
-      </Reference>
-    </ItemGroup>
+      <Reference Include="libraries/*.dll" />
 
+      <PackageReference Include="Roslynator.Analyzers" Version="4.12.11" PrivateAssets="all" ExcludeAssets="runtime" />
+      <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.11" PrivateAssets="all" ExcludeAssets="runtime" />
+      <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.11" PrivateAssets="all" ExcludeAssets="runtime" />
+
+      <EmbeddedResource Include="Resources\*" />
+    </ItemGroup>
 </Project>

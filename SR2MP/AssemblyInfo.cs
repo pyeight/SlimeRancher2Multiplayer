@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using MelonLoader;
 using SR2E.Expansion;
-using Main = SR2MP.Main;
 
 [assembly: AssemblyTitle(Main.BuildInfo.Name)]
 [assembly: AssemblyDescription(Main.BuildInfo.Description)]
@@ -17,11 +16,12 @@ using Main = SR2MP.Main;
 [assembly: MelonColor(255, 77, 149, 203)]
 [assembly: MelonAdditionalDependencies("SR2E")]
 [assembly: MelonPriority(-100)]
-[assembly: VerifyLoaderVersion(0,6,2, true)]
+[assembly: VerifyLoaderVersion(0, 6, 2, true)]
 
-[assembly: AssemblyMetadata("co_authors",Main.BuildInfo.CoAuthors)]
-[assembly: AssemblyMetadata("contributors",Main.BuildInfo.Contributors)]
-[assembly: AssemblyMetadata("source_code",Main.BuildInfo.SourceCode)]
-[assembly: AssemblyMetadata("nexus",Main.BuildInfo.Nexus)]
-[assembly: AssemblyMetadata("discord","https://discord.com/invite/a7wfBw5feU")]
+[assembly: AssemblyMetadata("co_authors", Main.BuildInfo.CoAuthors)]
+[assembly: AssemblyMetadata("contributors", Main.BuildInfo.Contributors)]
+[assembly: AssemblyMetadata("source_code", Main.BuildInfo.SourceCode)]
+[assembly: AssemblyMetadata("nexus", Main.BuildInfo.Nexus)]
+[assembly: AssemblyMetadata("discord", Main.BuildInfo.Discord)]
+
 [assembly: SR2EExpansion(Main.BuildInfo.UsePrism)]
