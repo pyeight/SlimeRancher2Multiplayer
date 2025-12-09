@@ -23,6 +23,7 @@ public sealed class PacketReader : IDisposable
 
     public bool ReadBool() => reader.ReadBoolean();
 
+    // All packet types MUST have a parameter-less constructor! Either make the type a struct (which always has a parameterless constructor), or at least declare a parameterless constructor for classes!
     public T ReadPacket<T>() where T : IPacket, new()
     {
         var result = new T();

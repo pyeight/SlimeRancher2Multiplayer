@@ -2,7 +2,7 @@
 
 namespace SR2MP;
 
-public class Main : SR2EExpansionV2
+public sealed class Main : SR2EExpansionV2
 {
     public static class BuildInfo
     {
@@ -27,6 +27,5 @@ public class Main : SR2EExpansionV2
 
     public override void OnLateInitializeMelon()
     {
-        
     }
 }

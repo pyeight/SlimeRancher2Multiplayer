@@ -2,12 +2,12 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets;
 
-public sealed class ConnectAckPacket : IPacket
+public struct ConnectAckPacket : IPacket
 {
     public byte Type { get; set; }
     public string AssignedPlayerId { get; set; }
 
-    public void Serialise(PacketWriter writer)
+    public readonly void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
         writer.WriteString(AssignedPlayerId);
