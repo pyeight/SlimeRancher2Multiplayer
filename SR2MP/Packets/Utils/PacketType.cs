@@ -1,4 +1,4 @@
-namespace SR2MP.Packets;
+namespace SR2MP.Packets.Utils;
 
 public enum PacketType : byte
 {
