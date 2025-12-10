@@ -45,7 +45,13 @@ public static class Logger
 
     public static void LogSensitive(string message)
     {
-        WriteToFile("[SENSITIVE]", message, true);
+        WriteToFile("[INFO]", message, true);
+    }
+
+    public static void LogBoth(string message, int sr2eSize)
+    {
+        SR2ELogManager.SendMessage($"<size={sr2eSize}%>{message}</size>");
+        WriteToBothFiles("[INFO]", message);
     }
 
     public static void Warn(string message)
@@ -61,6 +67,11 @@ public static class Logger
         WriteToFile("[WARNING]", message, true);
     }
 
+    public static void WarnBoth(string message)
+    {
+        SR2ELogManager.SendWarning(message);
+        WriteToBothFiles("[WARNING]", message);
+    }
 
     public static void Error(string message)
     {
@@ -75,6 +86,11 @@ public static class Logger
         WriteToFile("[ERROR]", message, true);
     }
 
+    public static void ErrorBoth(string message)
+    {
+        SR2ELogManager.SendError(message);
+        WriteToBothFiles("[ERROR]", message);
+    }
     public static void Debug(string message)
     {
         WriteToFile("[DEBUG]", message, false);
@@ -85,12 +101,30 @@ public static class Logger
         WriteToFile("[DEBUG]", message, true);
     }
 
+    public static void DebugBoth(string message)
+    {
+        WriteToBothFiles("[DEBUG]", message);
+    }
+
     private static void WriteToFile(string level, string message, bool sensitive)
     {
         try
         {
             string line = $"{DateTime.Now:HH:mm:ss} {level} {message}";
             File.AppendAllText(sensitive ? sensitiveLogPath : logPath, "\n" + line);
+        }
+        catch (Exception ex)
+        {
+            melonLogger.Error($"Failed to write to log file: {ex}");
+        }
+    }
+    private static void WriteToBothFiles(string level, string message)
+    {
+        try
+        {
+            string line = $"{DateTime.Now:HH:mm:ss} {level} {message}";
+            File.AppendAllText(sensitiveLogPath, "\n" + line);
+            File.AppendAllText(logPath, "\n" + line);
         }
         catch (Exception ex)
         {
