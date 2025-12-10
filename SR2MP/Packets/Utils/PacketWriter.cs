@@ -1,4 +1,5 @@
 using System.Text;
+using UnityEngine;
 
 namespace SR2MP.Packets.Utils;
 
@@ -27,10 +28,54 @@ public class PacketWriter : IDisposable
 
     public void WriteEnum(Enum value) => Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
 
+    public void WriteVector3(Vector3 value)
+    {
+        WriteFloat(value.x);
+        WriteFloat(value.y);
+        WriteFloat(value.z);
+    }
+
+    public void WriteQuaternion(Quaternion value)
+    {
+        WriteFloat(value.x);
+        WriteFloat(value.y);
+        WriteFloat(value.z);
+        WriteFloat(value.w);
+    }
+
+    public void WriteArray<T>(T[] array, Action<PacketWriter, T> writer)
+    {
+        WriteInt(array.Length);
+
+        for (var i = 0; i < array.Length; i++)
+            writer(this, array[i]);
+    }
+
+    public void WriteList<T>(List<T> list, Action<PacketWriter, T> writer)
+    {
+        WriteInt(list.Count);
+
+        for (var i = 0; i < list.Count; i++)
+            writer(this, list[i]);
+    }
+
+    public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
+    {
+        WriteInt(dict.Count);
+
+        foreach (var (key, value) in dict)
+        {
+            keyWriter(this, key);
+            valueWriter(this, value);
+        }
+    }
+
     // Do NOT use this to serialise values! Use concrete methods above!
     private void Write(object value)
     {
-        if (value is byte @byte)
+        if (value is null)
+            throw new ArgumentNullException(nameof(value));
+        else if (value is byte @byte)
             WriteByte(@byte);
         else if (value is int @int)
             WriteInt(@int);
@@ -44,6 +89,10 @@ public class PacketWriter : IDisposable
             WritePacket(packet);
         else if (value is Enum @enum)
             WriteEnum(@enum);
+        else if (value is Vector3 vector3)
+            WriteVector3(vector3);
+        else if (value is Quaternion quaternion)
+            WriteQuaternion(quaternion);
     }
 
     public byte[] ToArray() => stream.ToArray();

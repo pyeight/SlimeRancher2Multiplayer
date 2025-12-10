@@ -1,3 +1,4 @@
+using UnityEngine;
 using System.Text;
 
 namespace SR2MP.Packets.Utils;
@@ -23,6 +24,40 @@ public sealed class PacketReader : IDisposable
 
     public bool ReadBool() => reader.ReadBoolean();
 
+    public Vector3 ReadVector3() => new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+
+    public Quaternion ReadQuaternion() => new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+
+    public T[] ReadArray<T>(Func<PacketReader, T> reader)
+    {
+        var array = new T[this.reader.ReadInt32()];
+
+        for (var i = 0; i < array.Length; i++)
+            array[i] = reader(this);
+
+        return array;
+    }
+
+    public List<T> ReadList<T>(Func<PacketReader, T> reader)
+    {
+        var list = new List<T>(this.reader.ReadInt32());
+
+        for (var i = 0; i < list.Count; i++)
+            list[i] = reader(this);
+
+        return list;
+    }
+
+    public Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader) where TKey : notnull
+    {
+        var dict = new Dictionary<TKey, TValue>(reader.ReadInt32());
+
+        for (var i = 0; i < dict.Count; i++)
+            dict[keyReader(this)] = valueReader(this);
+
+        return dict;
+    }
+
     // All packet types MUST have a parameter-less constructor! Either make the type a struct (which always has a parameterless constructor), or at least declare a parameterless constructor for classes!
     public T ReadPacket<T>() where T : IPacket, new()
     {
@@ -45,6 +80,8 @@ public sealed class PacketReader : IDisposable
         _ when type == typeof(int) => ReadInt(),
         _ when type == typeof(float) => ReadFloat(),
         _ when type == typeof(string) => ReadString(),
+        _ when type == typeof(Vector3) => ReadVector3(),
+        _ when type == typeof(Quaternion) => ReadQuaternion(),
         _ when type.IsAssignableTo(typeof(Enum)) => ReadEnum(type),
         _ when type.IsAssignableTo(typeof(IPacket)) => ReadPacket(type),
         _ => throw new NotSupportedException($"Unable to read a value associated with {type.Name}!")
