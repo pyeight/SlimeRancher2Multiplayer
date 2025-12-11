@@ -38,15 +38,13 @@ public sealed class ClientManager
 
         if (clients.TryAdd(clientInfo, client))
         {
-            SrLogger.LogMessageSensitive($"Client added: {clientInfo} (PlayerId: {playerId})");
-            SrLogger.LogMessage($"Client added! (PlayerId: {playerId})");
+            Logger.LogMessage($"Client added! (PlayerId: {playerId})", $"Client added: {clientInfo} (PlayerId: {playerId})");
             OnClientAdded?.Invoke(client);
             return client;
         }
         else
         {
-            SrLogger.LogWarningSensitive($"Client already exists: {clientInfo}");
-            SrLogger.LogWarning($"Client already exists! (PlayerId: {playerId})");
+            Logger.LogWarning($"Client already exists! (PlayerId: {playerId})", $"Client already exists: {clientInfo}");
             return clients[clientInfo];
         }
     }
@@ -56,8 +54,7 @@ public sealed class ClientManager
         if (!clients.TryRemove(clientInfo, out var client))
             return false;
 
-        SrLogger.LogMessageSensitive($"Client removed: {clientInfo}");
-        SrLogger.LogMessage($"Client removed!");
+        Logger.LogMessage($"Client removed!", $"Client removed: {clientInfo}");
         OnClientRemoved?.Invoke(client);
         return true;
     }
@@ -90,8 +87,7 @@ public sealed class ClientManager
 
     public void RemoveTimedOutClients()
     {
-        var timedOut = GetTimedOutClients();
-        foreach (var client in timedOut)
+        foreach (var client in GetTimedOutClients())
         {
             RemoveClient(client.GetClientInfo());
         }
@@ -107,6 +103,6 @@ public sealed class ClientManager
             OnClientRemoved?.Invoke(client);
         }
 
-        SrLogger.LogMessageBoth("All clients cleared");
+        Logger.LogMessage("All clients cleared", Logger.LogTarget.Both);
     }
 }

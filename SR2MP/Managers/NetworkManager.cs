@@ -6,8 +6,9 @@ namespace SR2MP.Managers;
 public sealed class NetworkManager
 {
     private UdpClient? udpClient;
-    private volatile bool isRunning;
     private Thread? receiveThread;
+
+    private volatile bool isRunning;
 
     public event Action<byte[], IPEndPoint>? OnDataReceived;
 
@@ -17,7 +18,7 @@ public sealed class NetworkManager
     {
         if (isRunning)
         {
-            SrLogger.LogMessageBoth("Server is already running!");
+            Logger.LogMessage("Server is already running!", Logger.LogTarget.Both);
             return;
         }
 
@@ -26,15 +27,14 @@ public sealed class NetworkManager
             udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
             isRunning = true;
 
-            SrLogger.LogMessageBoth($"Server started on port: {port}");
+            Logger.LogMessage($"Server started on port: {port}", Logger.LogTarget.Both);
 
-            receiveThread = new Thread(ReceiveLoop);
-            receiveThread.IsBackground = true;
+            receiveThread = new Thread(ReceiveLoop) { IsBackground = true };
             receiveThread.Start();
         }
         catch (Exception ex)
         {
-            SrLogger.LogErrorBoth($"Failed to start Server: {ex}");
+            Logger.LogError($"Failed to start Server: {ex}", Logger.LogTarget.Both);
             throw;
         }
     }
@@ -43,7 +43,7 @@ public sealed class NetworkManager
     {
         if (udpClient == null)
         {
-            SrLogger.LogErrorBoth("Server is null in ReceiveLoop!");
+            Logger.LogError("Server is null in ReceiveLoop!", Logger.LogTarget.Both);
             return;
         }
 
@@ -67,7 +67,7 @@ public sealed class NetworkManager
             }
             catch (Exception ex)
             {
-                SrLogger.LogErrorBoth($"ReceiveLoop error: {ex}");
+                Logger.LogError($"ReceiveLoop error: {ex}", Logger.LogTarget.Both);
             }
         }
     }
@@ -76,7 +76,7 @@ public sealed class NetworkManager
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogErrorBoth("Cannot send data: Server not running!");
+            Logger.LogError("Cannot send data: Server not running!", Logger.LogTarget.Both);
             return;
         }
 
@@ -86,8 +86,7 @@ public sealed class NetworkManager
         }
         catch (Exception ex)
         {
-            SrLogger.LogErrorSensitive($"Failed to send data to {endPoint}: {ex}");
-            SrLogger.LogError($"Failed to send data to Client: {ex}");
+            Logger.LogError($"Failed to send data to Client: {ex}", $"Failed to send data to {endPoint}: {ex}");
         }
     }
 
@@ -104,14 +103,14 @@ public sealed class NetworkManager
 
             if (receiveThread?.IsAlive == true && !receiveThread.Join(TimeSpan.FromSeconds(2)))
             {
-                SrLogger.LogWarningBoth("Receive thread did not stop gracefully");
+                Logger.LogWarning("Receive thread did not stop gracefully", Logger.LogTarget.Both);
             }
 
-            SrLogger.LogMessageBoth("Server stopped");
+            Logger.LogMessage("Server stopped", Logger.LogTarget.Both);
         }
         catch (Exception ex)
         {
-            SrLogger.LogErrorBoth($"Error stopping Server: {ex}");
+            Logger.LogError($"Error stopping Server: {ex}", Logger.LogTarget.Both);
         }
     }
 }

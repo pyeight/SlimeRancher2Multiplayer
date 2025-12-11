@@ -1,3 +1,4 @@
+using System.Text;
 using MelonLoader;
 using MelonLoader.Utils;
 using SR2E.Managers;
@@ -14,128 +15,125 @@ public static class Logger
         Error
     }
 
-    private static readonly MelonLogger.Instance melonLogger;
-    private static readonly LogHandler log;
-    private static readonly LogHandler sensitiveLog;
+    [Flags]
+    public enum LogTarget : byte
+    {
+        Neither = 0, // Required to follow the standard but PLEASE don't use this value!
+        Main = 1 << 0,
+        Sensitive = 1 << 1,
+        Both = Main | Sensitive
+    }
+
+    private static readonly MelonLogger.Instance _melonLogger;
+    private static readonly LogHandler _logHandler;
+    private static readonly LogHandler _sensitiveLogHandler;
 
     static Logger()
     {
-        melonLogger = new MelonLogger.Instance("SR2MP");
+        _melonLogger = new MelonLogger.Instance("SR2MP");
 
-        string folderPath = Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP");
+        var folderPath = Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP");
 
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
-        log = new LogHandler(false, Path.Combine(folderPath, "latest.log"));
-        sensitiveLog = new LogHandler(false, Path.Combine(folderPath, "sensitive.log"));
-
-        log.WriteToFile("Log Initialized!", LogLevel.Message);
-        sensitiveLog.WriteToFile("Sensitive Log Initialized!", LogLevel.Message);
+        _logHandler = new LogHandler(Path.Combine(folderPath, "latest.log"));
+        _sensitiveLogHandler = new LogHandler(Path.Combine(folderPath, "sensitive.log"));
     }
 
-    public static void LogMessage(object message) => log.Log(message, LogLevel.Message, SR2ELogManager.SendMessage, melonLogger.Msg, WriteToFile);
+    public static void LogMessage(object? message, LogTarget target = LogTarget.Main)
+        => LogInternal(message, LogLevel.Message, target, SR2ELogManager.SendMessage, _melonLogger.Msg);
 
-    public static void LogMessageSensitive(object message) => sensitiveLog.Log(message, LogLevel.Message, SR2ELogManager.SendMessage, melonLogger.Msg, WriteToFile);
+    public static void LogWarning(object? message, LogTarget target = LogTarget.Main)
+        => LogInternal(message, LogLevel.Warning, target, SR2ELogManager.SendWarning, _melonLogger.Warning);
 
-    public static void LogMessageBoth(object message)
+    public static void LogError(object? message, LogTarget target = LogTarget.Main)
+        => LogInternal(message, LogLevel.Error, target, SR2ELogManager.SendError, _melonLogger.Error);
+
+    public static void LogDebug(object? message, LogTarget target = LogTarget.Main)
+        => LogInternal(message, LogLevel.Debug, target, null, null);
+
+    private static void LogInternal(object? message, LogLevel level, LogTarget target, Action<string>? sr2eAction, Action<string>? melonAction)
     {
-        LogMessage(message);
-        LogMessageSensitive(message);
+        var msgString = message?.ToString() ?? "message was null!";
+        var formattedLine = Format(msgString, level);
+
+        if (target.HasFlag(LogTarget.Main))
+            _logHandler.Write(formattedLine);
+
+        if (target.HasFlag(LogTarget.Sensitive))
+            _sensitiveLogHandler.Write(formattedLine);
+
+        if (target == LogTarget.Sensitive)
+            message = $"A sensitive [{level}] message was logged!";
+
+        sr2eAction?.Invoke(msgString);
+        melonAction?.Invoke(msgString);
     }
 
-    public static void LogWarning(object message) => log.Log(message, LogLevel.Warning, SR2ELogManager.SendWarning, melonLogger.Warning, WriteToFile);
+    public static void LogMessage(object? publicMsg, object? sensitiveMsg)
+        => LogSplit(publicMsg, sensitiveMsg, LogLevel.Message, SR2ELogManager.SendMessage, _melonLogger.Msg);
 
-    public static void LogWarningSensitive(object message) => sensitiveLog.Log(message, LogLevel.Warning, SR2ELogManager.SendWarning, melonLogger.Warning, WriteToFile);
+    public static void LogWarning(object? publicMsg, object? sensitiveMsg)
+        => LogSplit(publicMsg, sensitiveMsg, LogLevel.Warning, SR2ELogManager.SendWarning, _melonLogger.Warning);
 
-    public static void LogWarningBoth(object message)
+    public static void LogError(object? publicMsg, object? sensitiveMsg)
+        => LogSplit(publicMsg, sensitiveMsg, LogLevel.Error, SR2ELogManager.SendError, _melonLogger.Error);
+
+    public static void LogDebug(object? publicMsg, object? sensitiveMsg)
+        => LogSplit(publicMsg, sensitiveMsg, LogLevel.Debug, null, null);
+
+    private static void LogSplit(object? publicMsg, object? sensitiveMsg, LogLevel level, Action<string>? sr2eAction, Action<string>? melonAction)
     {
-        LogWarning(message);
-        LogWarningSensitive(message);
+        var publicStr = publicMsg?.ToString() ?? "public message was null!";
+        var sensitiveStr = sensitiveMsg?.ToString() ?? "sensitive message was null!";
+
+        _logHandler.Write(Format(publicStr, level));
+        _sensitiveLogHandler.Write(Format(sensitiveStr, level));
+
+        sr2eAction?.Invoke(publicStr);
+        melonAction?.Invoke(publicStr);
     }
 
-    public static void LogError(object message) => log.Log(message, LogLevel.Error, SR2ELogManager.SendError, melonLogger.Error, WriteToFile);
-
-    public static void LogErrorSensitive(object message) => sensitiveLog.Log(message, LogLevel.Error, SR2ELogManager.SendError, melonLogger.Error, WriteToFile);
-
-    public static void LogErrorBoth(object message)
+    private static string Format(string message, LogLevel level)
     {
-        LogError(message);
-        LogErrorSensitive(message);
+        return message.StartsWith('[')
+            ? message // Assumed that the message is already formatted
+            : $"[{DateTime.Now:HH:mm:ss}] [{level.ToString().ToUpperInvariant()}] {message}";
     }
 
-    public static void LogDebug(object message) => log.Log(message, LogLevel.Debug, null!, null!, WriteToFile);
-
-    public static void LogDebugSensitive(object message) => sensitiveLog.Log(message, LogLevel.Debug, null!, null!, WriteToFile);
-
-    public static void LogDebugBoth(object message)
+    private sealed class LogHandler : IDisposable
     {
-        LogDebug(message);
-        LogDebugSensitive(message);
-    }
+        private readonly StreamWriter? _writer;
+        private readonly object _lock = new();
 
-    private static void WriteToFile(object message, LogLevel level, bool sensitive)
-    {
-        try
-        {
-            string line = Format(message, level);
-            (sensitive ? sensitiveLog : log).AddToFile(line, level);
-        }
-        catch (Exception ex)
-        {
-            melonLogger.Error($"Failed to write to log file: {ex}");
-        }
-    }
-
-    private static void WriteToBothFiles(LogLevel level, object message)
-    {
-        try
-        {
-            string line = Format(message, level);
-            log.AddToFile(line, level);
-            sensitiveLog.AddToFile(line, level);
-        }
-        catch (Exception ex)
-        {
-            melonLogger.Error($"Failed to write to log file: {ex}");
-        }
-    }
-
-    private static string Format(object message, LogLevel level)
-    {
-        var str = message.ToString()!;
-        return str.StartsWith('[')
-            ? str // Assumes the message is already formatted as needed
-            : $"[{DateTime.Now:HH:mm:ss}] [{level.ToString().ToUpperInvariant()}] {str}";
-    }
-
-    private sealed class LogHandler(bool isSensitive, string logsPath)
-    {
-        private bool sensitive = isSensitive;
-        private string logPath = logsPath;
-
-        public void AddToFile(object message, LogLevel level) => ModifyFile(message, level, File.AppendAllText, true);
-
-        public void WriteToFile(object message, LogLevel level) => ModifyFile(message, level, File.WriteAllText, false);
-
-        private void ModifyFile(object message, LogLevel level, Action<string, string> write, bool adding)
+        public LogHandler(string path)
         {
             try
             {
-                write(logPath, (adding ? "\n" : string.Empty) + Format(message, level));
+                _writer = new StreamWriter(path, false, Encoding.UTF8) { AutoFlush = true };
             }
             catch (Exception ex)
             {
-                melonLogger.Error($"Failed to write to {(sensitive ? "sensitive " : string.Empty)}log file: {ex}");
+                MelonLogger.Error($"Failed to initialize log file at {path}: {ex.Message}");
             }
         }
 
-        public void Log(object message, LogLevel level, Action<string> sr2e, Action<string> melon, Action<object, LogLevel, bool> write)
+        public void Write(string line)
         {
-            var str = message.ToString()!;
-            sr2e?.Invoke(str);
-            melon?.Invoke(str);
-            write(str, level, sensitive);
+            if (_writer == null)
+                return;
+
+            lock (_lock)
+            {
+                try
+                {
+                    _writer.WriteLine(line);
+                }
+                catch {}
+            }
         }
+
+        public void Dispose() => _writer?.Dispose();
     }
 }

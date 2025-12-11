@@ -28,7 +28,7 @@ public sealed class Server
     {
         if (networkManager.IsRunning)
         {
-            SrLogger.LogMessageBoth("Server is already running!");
+            Logger.LogMessage("Server is already running!", Logger.LogTarget.Both);
             return;
         }
 
@@ -39,11 +39,11 @@ public sealed class Server
 
             timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
 
-            SrLogger.LogMessageBoth($"Server started successfully on port {port}");
+            Logger.LogMessage($"Server started successfully on port {port}", Logger.LogTarget.Both);
         }
         catch (Exception ex)
         {
-            SrLogger.LogErrorBoth($"Failed to start server: {ex}");
+            Logger.LogError($"Failed to start server: {ex}", Logger.LogTarget.Both);
         }
     }
 
@@ -74,7 +74,7 @@ public sealed class Server
             networkManager.Send(data, otherClient.EndPoint);
         }
 
-        SrLogger.LogMessageBoth($"Player left broadcast sent for: {client.PlayerId}");
+        Logger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", Logger.LogTarget.Both);
     }
 
     private void CheckTimeouts(object? state)
@@ -85,7 +85,7 @@ public sealed class Server
         }
         catch (Exception ex)
         {
-            SrLogger.LogErrorBoth($"Error checking timeouts: {ex}");
+            Logger.LogError($"Error checking timeouts: {ex}", Logger.LogTarget.Both);
         }
     }
 
@@ -117,19 +117,18 @@ public sealed class Server
                 }
                 catch (Exception ex)
                 {
-                    SrLogger.LogWarningSensitive($"Failed to send close packet to client: {client.GetClientInfo()}: {ex}");
-                    SrLogger.LogWarning($"Failed to notify specific client of server shutdown: {ex}");
+                    Logger.LogWarning($"Failed to notify specific client of server shutdown: {ex}", $"Failed to send close packet to client: {client.GetClientInfo()}: {ex}");
                 }
             }
 
             clientManager.Clear();
             networkManager.Stop();
 
-            SrLogger.LogMessageBoth("Server closed");
+            Logger.LogMessage("Server closed", Logger.LogTarget.Both);
         }
         catch (Exception ex)
         {
-            SrLogger.LogErrorBoth($"Error during server shutdown: {ex}");
+            Logger.LogError($"Error during server shutdown: {ex}", Logger.LogTarget.Both);
         }
     }
 }

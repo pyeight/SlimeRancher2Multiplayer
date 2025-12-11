@@ -34,23 +34,23 @@ public sealed class PacketManager
                 if (Activator.CreateInstance(type, networkManager, clientManager) is IPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
-                    SrLogger.LogMessageBoth($"Registered handler: {type.Name} for packet type {attribute.PacketType}");
+                    Logger.LogMessage($"Registered handler: {type.Name} for packet type {attribute.PacketType}", Logger.LogTarget.Both);
                 }
             }
             catch (Exception ex)
             {
-                SrLogger.LogErrorBoth($"Failed to register handler {type.Name}: {ex}");
+                Logger.LogError($"Failed to register handler {type.Name}: {ex}", Logger.LogTarget.Both);
             }
         }
 
-        SrLogger.LogMessageBoth($"Total handlers registered: {handlers.Count}");
+        Logger.LogMessage($"Total handlers registered: {handlers.Count}", Logger.LogTarget.Both);
     }
 
     public void HandlePacket(byte[] data, IPEndPoint clientEP)
     {
         if (data.Length < 1)
         {
-            SrLogger.LogWarningBoth("Received empty packet");
+            Logger.LogWarning("Received empty packet", Logger.LogTarget.Both);
             return;
         }
 
@@ -64,12 +64,12 @@ public sealed class PacketManager
             }
             catch (Exception ex)
             {
-                SrLogger.LogErrorBoth($"Error handling packet type {packetType}: {ex}");
+                Logger.LogError($"Error handling packet type {packetType}: {ex}", Logger.LogTarget.Both);
             }
         }
         else
         {
-            SrLogger.LogWarningBoth($"No handler found for packet type: {packetType}");
+            Logger.LogWarning($"No handler found for packet type: {packetType}", Logger.LogTarget.Both);
         }
     }
 }
