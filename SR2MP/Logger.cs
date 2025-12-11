@@ -65,7 +65,7 @@ public static class Logger
             _sensitiveLogHandler.Write(formattedLine);
 
         if (target == LogTarget.Sensitive)
-            message = $"A sensitive [{level}] message was logged!";
+            msgString = $"A sensitive [{level}] message was logged!";
 
         sr2eAction?.Invoke(msgString);
         melonAction?.Invoke(msgString);
@@ -88,11 +88,16 @@ public static class Logger
         var publicStr = publicMsg?.ToString() ?? "public message was null!";
         var sensitiveStr = sensitiveMsg?.ToString() ?? "sensitive message was null!";
 
-        _logHandler.Write(Format(publicStr, level));
-        _sensitiveLogHandler.Write(Format(sensitiveStr, level));
+        var timestamp = DateTime.Now.ToString("HH:mm:ss");
+        var levelStr = level.ToString().ToUpperInvariant();
+
+        _logHandler.Write(FormatLocal(publicStr));
+        _sensitiveLogHandler.Write(FormatLocal(sensitiveStr));
 
         sr2eAction?.Invoke(publicStr);
         melonAction?.Invoke(publicStr);
+
+        string FormatLocal(string msg) => msg.StartsWith('[') ? msg : $"[{timestamp}] [{levelStr}] {msg}";
     }
 
     private static string Format(string message, LogLevel level)
