@@ -4,12 +4,13 @@ using SR2MP.Models;
 
 namespace SR2MP.Managers;
 
-public class ClientManager
+public sealed class ClientManager
 {
     private readonly ConcurrentDictionary<string, ClientInfo> clients = new();
 
     public event Action<ClientInfo>? OnClientAdded;
     public event Action<ClientInfo>? OnClientRemoved;
+
     public int ClientCount => clients.Count;
 
     public bool TryGetClient(string clientInfo, out ClientInfo? client)
@@ -37,29 +38,28 @@ public class ClientManager
 
         if (clients.TryAdd(clientInfo, client))
         {
-            SrLogger.LogSensitive($"Client added: {clientInfo} (PlayerId: {playerId})");
-            SrLogger.Log($"Client added! (PlayerId: {playerId})");
+            SrLogger.LogMessageSensitive($"Client added: {clientInfo} (PlayerId: {playerId})");
+            SrLogger.LogMessage($"Client added! (PlayerId: {playerId})");
             OnClientAdded?.Invoke(client);
             return client;
         }
         else
         {
-            SrLogger.WarnSensitive($"Client already exists: {clientInfo}");
-            SrLogger.Warn($"Client already exists! (PlayerId: {playerId})");
+            SrLogger.LogWarningSensitive($"Client already exists: {clientInfo}");
+            SrLogger.LogWarning($"Client already exists! (PlayerId: {playerId})");
             return clients[clientInfo];
         }
     }
 
     public bool RemoveClient(string clientInfo)
     {
-        if (clients.TryRemove(clientInfo, out var client))
-        {
-            SrLogger.LogSensitive($"Client removed: {clientInfo}");
-            SrLogger.Log($"Client removed!");
-            OnClientRemoved?.Invoke(client);
-            return true;
-        }
-        return false;
+        if (!clients.TryRemove(clientInfo, out var client))
+            return false;
+
+        SrLogger.LogMessageSensitive($"Client removed: {clientInfo}");
+        SrLogger.LogMessage($"Client removed!");
+        OnClientRemoved?.Invoke(client);
+        return true;
     }
 
     public bool RemoveClient(IPEndPoint endPoint)
@@ -107,7 +107,6 @@ public class ClientManager
             OnClientRemoved?.Invoke(client);
         }
 
-        SrLogger.LogSensitive("All clients cleared");
-        SrLogger.Log("All clients cleared");
+        SrLogger.LogMessageBoth("All clients cleared");
     }
 }

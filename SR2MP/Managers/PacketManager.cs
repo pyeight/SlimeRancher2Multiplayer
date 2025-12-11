@@ -4,7 +4,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Managers;
 
-public class PacketManager
+public sealed class PacketManager
 {
     private readonly Dictionary<byte, IPacketHandler> handlers = new();
     private readonly NetworkManager networkManager;
@@ -21,8 +21,8 @@ public class PacketManager
         var assembly = Assembly.GetExecutingAssembly();
         var handlerTypes = assembly.GetTypes()
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                     && typeof(IPacketHandler).IsAssignableFrom(type)
-                     && !type.IsAbstract);
+                    && typeof(IPacketHandler).IsAssignableFrom(type)
+                    && !type.IsAbstract);
 
         foreach (var type in handlerTypes)
         {
@@ -31,32 +31,26 @@ public class PacketManager
 
             try
             {
-                var handler = Activator.CreateInstance(type, networkManager, clientManager) as IPacketHandler;
-
-                if (handler != null)
+                if (Activator.CreateInstance(type, networkManager, clientManager) is IPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
-                    SrLogger.LogSensitive($"Registered handler: {type.Name} for packet type {attribute.PacketType}");
-                    SrLogger.Log($"Registered handler: {type.Name} for packet type {attribute.PacketType}");
+                    SrLogger.LogMessageBoth($"Registered handler: {type.Name} for packet type {attribute.PacketType}");
                 }
             }
             catch (Exception ex)
             {
-                SrLogger.ErrorSensitive($"Failed to register handler {type.Name}: {ex}");
-                SrLogger.Error($"Failed to register handler {type.Name}: {ex}");
+                SrLogger.LogErrorBoth($"Failed to register handler {type.Name}: {ex}");
             }
         }
 
-        SrLogger.LogSensitive($"Total handlers registered: {handlers.Count}");
-        SrLogger.Log($"Total handlers registered: {handlers.Count}");
+        SrLogger.LogMessageBoth($"Total handlers registered: {handlers.Count}");
     }
 
     public void HandlePacket(byte[] data, IPEndPoint clientEP)
     {
         if (data.Length < 1)
         {
-            SrLogger.WarnSensitive("Received empty packet");
-            SrLogger.Warn("Received empty packet");
+            SrLogger.LogWarningBoth("Received empty packet");
             return;
         }
 
@@ -70,14 +64,12 @@ public class PacketManager
             }
             catch (Exception ex)
             {
-                SrLogger.ErrorSensitive($"Error handling packet type {packetType}: {ex}");
-                SrLogger.Error($"Error handling packet type {packetType}: {ex}");
+                SrLogger.LogErrorBoth($"Error handling packet type {packetType}: {ex}");
             }
         }
         else
         {
-            SrLogger.WarnSensitive($"No handler found for packet type: {packetType}");
-            SrLogger.Warn($"No handler found for packet type: {packetType}");
+            SrLogger.LogWarningBoth($"No handler found for packet type: {packetType}");
         }
     }
 }

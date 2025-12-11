@@ -22,7 +22,7 @@ public sealed class Main : SR2EExpansionV2
 
     public override void OnSceneWasLoaded(int _, string sceneName)
     {
-        SrLogger.Log($"test log owo :3 - {sceneName}");
+        SrLogger.LogMessage($"test log owo :3 - {sceneName}");
     }
 
     public override void OnLateInitializeMelon()
