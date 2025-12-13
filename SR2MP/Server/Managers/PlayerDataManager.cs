@@ -37,6 +37,7 @@ public class PlayerDataManager
     {
         try
         {
+            // this works for linux too
             string systemInfo = $"{Environment.MachineName}" +
                                 $"{Environment.UserName}";
 
@@ -80,6 +81,8 @@ public class PlayerDataManager
         return newData;
     }
 
+    // every time the player updates something qwq
+    // ex. inventory, position + rotation, health + energy
     public void UpdatePlayerData(string playerId, Action<PlayerData> updateAction)
     {
         if (playerDataCache.TryGetValue(playerId, out var data))
@@ -122,6 +125,7 @@ public class PlayerDataManager
         }
     }
 
+    // on Server start
     private void LoadAllPlayerData()
     {
         try
