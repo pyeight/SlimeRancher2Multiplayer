@@ -187,7 +187,7 @@ public sealed class Client
             packet.Serialise(writer);
             byte[] data = writer.ToArray();
 
-            udpClient.Send(data, data.Length, serverEndPoint);
+            udpClient.Send(data, data.Length);
         }
         catch (Exception ex)
         {
