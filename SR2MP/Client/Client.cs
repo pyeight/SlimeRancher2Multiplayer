@@ -89,6 +89,7 @@ public sealed class Client
             SrLogger.LogError("UDP client is null in ReceiveLoop!", SrLogger.LogTarget.Both);
             return;
         }
+        SrLogger.LogMessage("Client ReceiveLoop started!", SrLogger.LogTarget.Both);
 
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 

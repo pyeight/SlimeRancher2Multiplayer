@@ -26,7 +26,8 @@ public class NetworkManager
             udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
             isRunning = true;
 
-            SrLogger.LogMessage($"Server started on port: {port}", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage($"Server started on port: {port}",
+                $"Server started {IPAddress.Any}: {port}");
 
             receiveThread = new Thread(ReceiveLoop);
             receiveThread.IsBackground = true;
@@ -46,6 +47,7 @@ public class NetworkManager
             SrLogger.LogError("Server is null in ReceiveLoop!", SrLogger.LogTarget.Both);
             return;
         }
+        SrLogger.LogMessage("Server ReceiveLoop started!", SrLogger.LogTarget.Both);
 
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
