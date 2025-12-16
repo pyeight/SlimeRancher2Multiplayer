@@ -16,7 +16,7 @@ public class HostCommand : SR2ECommand
 
     public override bool Execute(string[] args)
     {
-        server = new Server.Server();
+        server = Main.Server;
         server.Start(args.Length == 1 ? int.Parse(args[0]) : 1919);
         return true;
     }
