@@ -25,7 +25,6 @@ public class NetworkManager
         try
         {
             udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-            // This was the fucking issue
             udpClient.Client.ReceiveTimeout = 0;
 
             isRunning = true;

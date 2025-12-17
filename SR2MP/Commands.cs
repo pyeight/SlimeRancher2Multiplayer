@@ -1,5 +1,6 @@
 using Microsoft.VisualBasic;
 using SR2E;
+using SR2E.Utils;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP;
@@ -16,6 +17,7 @@ public class HostCommand : SR2ECommand
 
     public override bool Execute(string[] args)
     {
+        MenuEUtil.CloseOpenMenu();
         server = Main.Server;
         server.Start(args.Length == 1 ? int.Parse(args[0]) : 1919);
         return true;
@@ -26,6 +28,7 @@ public class JoinCommand : SR2ECommand
 {
     public override bool Execute(string[] args)
     {
+        MenuEUtil.CloseOpenMenu();
         Main.Client.Connect(args[0],int.Parse(args[1]));
         return true;
     }
