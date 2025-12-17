@@ -1,5 +1,6 @@
 using System.Text;
 using MelonLoader;
+using MelonLoader.Logging;
 using MelonLoader.Utils;
 using SR2E.Managers;
 
@@ -30,7 +31,7 @@ public static class Logger
 
     static Logger()
     {
-        _melonLogger = new MelonLogger.Instance("SR2MP");
+        _melonLogger = new MelonLogger.Instance("SR2MP", ColorARGB.FromArgb(77, 149, 203));
 
         var folderPath = Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP");
 

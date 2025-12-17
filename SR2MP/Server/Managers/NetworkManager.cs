@@ -25,8 +25,8 @@ public class NetworkManager
         try
         {
             udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-            // This is completely fine, THIS DOES NOT DELAY OR DROP PACKETS!!!
-            udpClient.Client.ReceiveTimeout = 2000;
+            // This was the fucking issue
+            udpClient.Client.ReceiveTimeout = 0;
 
             isRunning = true;
 
@@ -52,10 +52,8 @@ public class NetworkManager
             return;
         }
 
-        // this gets logged to Sensitive and SR2MP Latest but not MelonLoader Latest
         SrLogger.LogMessage("Server ReceiveLoop started!", SrLogger.LogTarget.Both);
 
-        // this is the crash point!
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
         while (isRunning)

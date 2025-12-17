@@ -9,6 +9,9 @@
       <EnableNETAnalyzers>true</EnableNETAnalyzers>
       <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DebugType>embedded</DebugType>
+    </PropertyGroup>
 
     <ItemGroup>
       <Reference Include="libraries/*.dll" />
