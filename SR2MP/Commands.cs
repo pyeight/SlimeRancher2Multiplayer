@@ -19,7 +19,7 @@ public class HostCommand : SR2ECommand
     {
         MenuEUtil.CloseOpenMenu();
         server = Main.Server;
-        server.Start(args.Length == 1 ? int.Parse(args[0]) : 1919);
+        server.Start(int.Parse(args[0]), true);
         return true;
     }
 }

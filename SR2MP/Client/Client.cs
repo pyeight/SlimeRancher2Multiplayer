@@ -50,12 +50,28 @@ public sealed class Client
 
         try
         {
-            udpClient = new UdpClient();
-            serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), port);
+            IPAddress parsedIp = IPAddress.Parse(serverIp);
+
+            if (parsedIp.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                if (!Socket.OSSupportsIPv6)
+                {
+                    SrLogger.LogError("IPv6 is not supported on this machine! Please enable IPv6 or use an IPv4 address.", SrLogger.LogTarget.Both);
+                    throw new NotSupportedException("IPv6 is not available on this system");
+                }
+                udpClient = new UdpClient(AddressFamily.InterNetworkV6);
+                SrLogger.LogMessage("Using IPv6 connection", SrLogger.LogTarget.Both);
+            }
+            else
+            {
+                udpClient = new UdpClient(AddressFamily.InterNetwork);
+                SrLogger.LogMessage("Using IPv4 connection", SrLogger.LogTarget.Both);
+            }
+
+            serverEndPoint = new IPEndPoint(parsedIp, port);
             udpClient.Connect(serverEndPoint);
 
             OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
-            SrLogger.LogMessage($"Generated PlayerID: {OwnPlayerId}", SrLogger.LogTarget.Both);
 
             packetManager.RegisterHandlers();
 
@@ -93,7 +109,7 @@ public sealed class Client
         }
         SrLogger.LogMessage("Client ReceiveLoop started!", SrLogger.LogTarget.Both);
 
-        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+        IPEndPoint remoteEP = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         while (isConnected)
         {

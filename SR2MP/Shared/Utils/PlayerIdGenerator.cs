@@ -23,7 +23,7 @@ public static class PlayerIdGenerator
 
                 string playerId = $"PLAYER_{hash}";
 
-                SrLogger.LogMessage($"Generated persistent player ID: {playerId}");
+                SrLogger.LogMessage($"Generated persistent player ID: {playerId}", SrLogger.LogTarget.Both);
                 return playerId;
             }
         }

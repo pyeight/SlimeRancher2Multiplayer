@@ -14,7 +14,8 @@ public class NetworkManager
 
     public bool IsRunning => isRunning;
 
-    public void Start(int port)
+    // Overload to allow IPv6 configuration
+    public void Start(int port, bool enableIPv6 = true)
     {
         if (isRunning)
         {
@@ -24,13 +25,24 @@ public class NetworkManager
 
         try
         {
-            udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+            if (enableIPv6)
+            {
+                // IPv6 with IPv4 fallback
+                udpClient = new UdpClient(AddressFamily.InterNetworkV6);
+                udpClient.Client.DualMode = true;
+                udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}", SrLogger.LogTarget.Both);
+            }
+            else
+            {
+                // IPv4 only
+                udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+                SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogger.LogTarget.Both);
+            }
+
             udpClient.Client.ReceiveTimeout = 0;
 
             isRunning = true;
-
-            SrLogger.LogMessage($"Server started on port: {port}",
-                $"Server started {IPAddress.Any}:{port}");
 
             receiveThread = new Thread(ReceiveLoop);
             receiveThread.IsBackground = true;
@@ -53,7 +65,7 @@ public class NetworkManager
 
         SrLogger.LogMessage("Server ReceiveLoop started!", SrLogger.LogTarget.Both);
 
-        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+        IPEndPoint remoteEP = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         while (isRunning)
         {
@@ -72,8 +84,7 @@ public class NetworkManager
             }
             catch (SocketException)
             {
-                // will never get called
-                SrLogger.LogMessage("No Data received!", SrLogger.LogTarget.Both);
+                // never happens, no timeout set
             }
             catch (Exception ex)
             {

@@ -1,7 +1,6 @@
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Packets.S2C;
-using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
@@ -24,7 +23,7 @@ public sealed class Server
         clientManager.OnClientRemoved += OnClientRemoved;
     }
 
-    public void Start(int port)
+    public void Start(int port, bool enableIPv6)
     {
         if (networkManager.IsRunning)
         {
@@ -35,7 +34,7 @@ public sealed class Server
         try
         {
             packetManager.RegisterHandlers();
-            networkManager.Start(port);
+            networkManager.Start(port, enableIPv6);
 
             timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
         }
