@@ -8,11 +8,20 @@ public class RemotePlayer
     public Vector3 Position { get; set; }
     public Quaternion Rotation { get; set; }
     public DateTime LastUpdate { get; set; }
+
+    // Animation stuff
+    public int AirborneState { get; set; }
+    public bool Moving { get; set; }
+    public float Yaw { get; set; }
+    public float HorizontalMovement { get; set; }
+    public float ForwardMovement { get; set; }
+    public float HorizontalSpeed { get; set; }
+    public float ForwardSpeed { get; set; }
+    public bool Sprinting { get; set; }
+
     public RemotePlayer(string playerId)
     {
         PlayerId = playerId;
-        Position = Vector3.zero;
-        Rotation = Quaternion.identity;
         LastUpdate = DateTime.UtcNow;
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using SR2MP.Client.Models;
+using UnityEngine;
 
 namespace SR2MP.Client.Managers;
 
@@ -47,14 +48,32 @@ public class RemotePlayerManager
         return false;
     }
 
-    public void UpdatePlayer(string playerId, UnityEngine.Vector3 position, UnityEngine.Quaternion rotation)
+    public void UpdatePlayerFull(
+        string playerId,
+        Vector3 position,
+        Quaternion rotation,
+        float horizontalMovement,
+        float forwardMovement,
+        float yaw,
+        int airborneState,
+        bool moving,
+        float horizontalSpeed,
+        float forwardSpeed,
+        bool sprinting)
     {
         if (players.TryGetValue(playerId, out var player))
         {
             player.Position = position;
             player.Rotation = rotation;
+            player.HorizontalMovement = horizontalMovement;
+            player.ForwardMovement = forwardMovement;
+            player.Yaw = yaw;
+            player.AirborneState = airborneState;
+            player.Moving = moving;
+            player.HorizontalSpeed = horizontalSpeed;
+            player.ForwardSpeed = forwardSpeed;
+            player.Sprinting = sprinting;
             player.LastUpdate = DateTime.UtcNow;
-
             OnPlayerUpdated?.Invoke(playerId, player);
         }
     }

@@ -136,7 +136,17 @@ public sealed class Client
         }
     }
 
-    public void SendPlayerUpdate(UnityEngine.Vector3 position, UnityEngine.Quaternion rotation)
+    public void SendPlayerUpdate(
+        UnityEngine.Vector3 position,
+        UnityEngine.Quaternion rotation,
+        float horizontalMovement = 0f,
+        float forwardMovement = 0f,
+        float yaw = 0f,
+        int airborneState = 0,
+        bool moving = false,
+        float horizontalSpeed = 0f,
+        float forwardSpeed = 0f,
+        bool sprinting = false)
     {
         if (!isConnected || string.IsNullOrEmpty(OwnPlayerId))
             return;
@@ -146,7 +156,15 @@ public sealed class Client
             Type = (byte)PacketType.PlayerUpdate,
             PlayerId = OwnPlayerId,
             Position = position,
-            Rotation = rotation
+            Rotation = rotation,
+            HorizontalMovement = horizontalMovement,
+            ForwardMovement = forwardMovement,
+            Yaw = yaw,
+            AirborneState = airborneState,
+            Moving = moving,
+            HorizontalSpeed = horizontalSpeed,
+            ForwardSpeed = forwardSpeed,
+            Sprinting = sprinting
         };
 
         SendPacket(updatePacket);

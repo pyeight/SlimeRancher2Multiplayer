@@ -17,10 +17,22 @@ public class PlayerUpdateHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerUpdatePacket>();
 
-        // this should not even happen but just in case
+        // Don't update our own player
         if (packet.PlayerId == Client.OwnPlayerId)
             return;
 
-        PlayerManager.UpdatePlayer(packet.PlayerId, packet.Position, packet.Rotation);
+        PlayerManager.UpdatePlayerFull(
+            packet.PlayerId,
+            packet.Position,
+            packet.Rotation,
+            packet.HorizontalMovement,
+            packet.ForwardMovement,
+            packet.Yaw,
+            packet.AirborneState,
+            packet.Moving,
+            packet.HorizontalSpeed,
+            packet.ForwardSpeed,
+            packet.Sprinting
+        );
     }
 }
