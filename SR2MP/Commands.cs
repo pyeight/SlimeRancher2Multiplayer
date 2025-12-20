@@ -47,5 +47,5 @@ public class JoinCommand : SR2ECommand
     }
 
     public override string ID => "join";
-    public override string Usage => "join <code>";
+    public override string Usage => "join <ip> <port>";
 }
