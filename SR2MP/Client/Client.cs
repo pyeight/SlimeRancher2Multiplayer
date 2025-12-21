@@ -13,7 +13,7 @@ public sealed class Client
 {
     private UdpClient? udpClient;
     private IPEndPoint? serverEndPoint;
-    private Thread? receiveThread;
+    private Il2CppSystem.Threading.Thread? receiveThread;
     private Timer? heartbeatTimer;
     private volatile bool isConnected;
 
@@ -77,7 +77,7 @@ public sealed class Client
 
             isConnected = true;
 
-            receiveThread = new Thread(ReceiveLoop);
+            receiveThread = new  Il2CppSystem.Threading.Thread(new Action(ReceiveLoop));
             receiveThread.IsBackground = true;
             receiveThread.Start();
 
@@ -136,39 +136,7 @@ public sealed class Client
         }
     }
 
-    public void SendPlayerUpdate(
-        UnityEngine.Vector3 position,
-        UnityEngine.Quaternion rotation,
-        float horizontalMovement = 0f,
-        float forwardMovement = 0f,
-        float yaw = 0f,
-        int airborneState = 0,
-        bool moving = false,
-        float horizontalSpeed = 0f,
-        float forwardSpeed = 0f,
-        bool sprinting = false)
-    {
-        if (!isConnected || string.IsNullOrEmpty(OwnPlayerId))
-            return;
-
-        var updatePacket = new PlayerUpdatePacket
-        {
-            Type = (byte)PacketType.PlayerUpdate,
-            PlayerId = OwnPlayerId,
-            Position = position,
-            Rotation = rotation,
-            HorizontalMovement = horizontalMovement,
-            ForwardMovement = forwardMovement,
-            Yaw = yaw,
-            AirborneState = airborneState,
-            Moving = moving,
-            HorizontalSpeed = horizontalSpeed,
-            ForwardSpeed = forwardSpeed,
-            Sprinting = sprinting
-        };
-
-        SendPacket(updatePacket);
-    }
+    
 
     public void SendChatMessage(string message)
     {
@@ -196,7 +164,8 @@ public sealed class Client
 
     internal void StartHeartbeat()
     {
-        heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+        // Removed this temporarily because there are no Handlers and the Client will get timeouted
+        // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
     private void SendHeartbeat(object? state)
@@ -226,6 +195,7 @@ public sealed class Client
             packet.Serialise(writer);
             byte[] data = writer.ToArray();
 
+            SrLogger.LogMessage($"Sending {data.Length} bytes to Server...", SrLogger.LogTarget.Both);
             udpClient.Send(data, data.Length);
             SrLogger.LogMessage($"Sent {data.Length} bytes to Server.", SrLogger.LogTarget.Both);
         }
@@ -258,10 +228,7 @@ public sealed class Client
 
             if (receiveThread != null && receiveThread.IsAlive)
             {
-                if (!receiveThread.Join(TimeSpan.FromSeconds(2)))
-                {
-                    SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogger.LogTarget.Both);
-                }
+                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogger.LogTarget.Both);
             }
 
             playerManager.Clear();
