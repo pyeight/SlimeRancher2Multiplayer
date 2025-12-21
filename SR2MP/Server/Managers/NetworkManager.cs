@@ -8,7 +8,7 @@ public class NetworkManager
 {
     private UdpClient? udpClient;
     private volatile bool isRunning;
-    private Thread? receiveThread;
+    private Il2CppSystem.Threading.Thread? receiveThread;
 
     public event Action<byte[], IPEndPoint>? OnDataReceived;
 
@@ -44,7 +44,7 @@ public class NetworkManager
 
             isRunning = true;
 
-            receiveThread = new Thread(ReceiveLoop);
+            receiveThread = new Il2CppSystem.Threading.Thread(new Action(ReceiveLoop));
             receiveThread.IsBackground = true;
             receiveThread.Start();
         }
@@ -103,7 +103,11 @@ public class NetworkManager
 
         try
         {
+            SrLogger.LogMessage($"Sending {data.Length} bytes to client..",
+                $"Sending {data.Length} bytes to {endPoint}..");
             udpClient.Send(data, data.Length, endPoint);
+            SrLogger.LogMessage($"Sent {data.Length} bytes to client.",
+                $"Sent {data.Length} bytes to {endPoint}.");
         }
         catch (Exception ex)
         {
@@ -125,10 +129,7 @@ public class NetworkManager
 
             if (receiveThread != null && receiveThread.IsAlive)
             {
-                if (!receiveThread.Join(TimeSpan.FromSeconds(2)))
-                {
-                    SrLogger.LogWarning("Reveive thread did not stop gracefully", SrLogger.LogTarget.Both);
-                }
+                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogger.LogTarget.Both);
             }
 
             SrLogger.LogMessage("Server stopped", SrLogger.LogTarget.Both);
