@@ -9,8 +9,7 @@ public static class PlayerIdGenerator
     {
         try
         {
-            string systemInfo = $"{Environment.MachineName}" +
-                                $"{Environment.UserName}";
+            string systemInfo = $"{Environment.MachineName}{Environment.UserName}";
 
             using (SHA256 sha256 = SHA256.Create())
             {
