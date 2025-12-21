@@ -1,5 +1,6 @@
 using System.Reflection;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Client.Managers;
 
@@ -61,7 +62,7 @@ public class ClientPacketManager
         {
             try
             {
-                handler.Handle(data);
+                MainThreadDispatcher.Enqueue(() => handler.Handle(data));
             }
             catch (Exception ex)
             {
