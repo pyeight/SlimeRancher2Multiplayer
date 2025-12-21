@@ -8,13 +8,8 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.PlayerLeave)]
 public class PlayerLeaveHandler : BasePacketHandler
 {
-    private readonly ClientManager clientManager;
-
     public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager)
-    {
-        this.clientManager = clientManager;
-    }
+        : base(networkManager, clientManager) { }
 
     public override void Handle(byte[] data, IPEndPoint senderEndPoint)
     {

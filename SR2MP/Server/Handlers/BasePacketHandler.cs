@@ -7,13 +7,13 @@ namespace SR2MP.Server.Handlers;
 
 public abstract class BasePacketHandler : IPacketHandler
 {
-    private readonly NetworkManager NetworkManager;
-    private readonly ClientManager ClientManager;
+    protected readonly NetworkManager networkManager;
+    protected readonly ClientManager clientManager;
 
     protected BasePacketHandler(NetworkManager networkManager, ClientManager clientManager)
     {
-        NetworkManager = networkManager;
-        ClientManager = clientManager;
+        this.networkManager = networkManager;
+        this.clientManager = clientManager;
     }
 
     public abstract void Handle(byte[] data, IPEndPoint senderEndPoint);
@@ -22,7 +22,7 @@ public abstract class BasePacketHandler : IPacketHandler
     {
         using var writer = new PacketWriter();
         packet.Serialise(writer);
-        NetworkManager.Send(writer.ToArray(), endPoint);
+        networkManager.Send(writer.ToArray(), endPoint);
     }
 
     protected void SendToClient(IPacket packet, ClientInfo client)
@@ -36,9 +36,9 @@ public abstract class BasePacketHandler : IPacketHandler
         packet.Serialise(writer);
         byte[] data = writer.ToArray();
 
-        foreach (var client in ClientManager.GetAllClients())
+        foreach (var client in clientManager.GetAllClients())
         {
-            NetworkManager.Send(data, client.EndPoint);
+            networkManager.Send(data, client.EndPoint);
         }
     }
 
@@ -48,11 +48,11 @@ public abstract class BasePacketHandler : IPacketHandler
         packet.Serialise(writer);
         byte[] data = writer.ToArray();
 
-        foreach (var client in ClientManager.GetAllClients())
+        foreach (var client in clientManager.GetAllClients())
         {
             if (client.GetClientInfo() != excludedClientInfo)
             {
-                NetworkManager.Send(data, client.EndPoint);
+                networkManager.Send(data, client.EndPoint);
             }
         }
     }
