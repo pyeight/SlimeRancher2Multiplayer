@@ -1,5 +1,5 @@
 using SR2MP.Client.Managers;
-using SR2MP.Packets.S2C;
+using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Client.Handlers;
@@ -8,9 +8,7 @@ namespace SR2MP.Client.Handlers;
 public class ChatMessageHandler : BaseClientPacketHandler
 {
     public ChatMessageHandler(Client client, RemotePlayerManager playerManager)
-        : base(client, playerManager)
-    {
-    }
+        : base(client, playerManager) { }
 
     public override void Handle(byte[] data)
     {

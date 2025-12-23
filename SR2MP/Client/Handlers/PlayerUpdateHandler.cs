@@ -1,5 +1,4 @@
-using SR2MP.Client.Managers;
-using SR2MP.Packets.C2S;
+using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Client.Handlers;
@@ -8,9 +7,7 @@ namespace SR2MP.Client.Handlers;
 public class PlayerUpdateHandler : BaseClientPacketHandler
 {
     public PlayerUpdateHandler(Client client, RemotePlayerManager playerManager)
-        : base(client, playerManager)
-    {
-    }
+        : base(client, playerManager) { }
 
     public override void Handle(byte[] data)
     {
@@ -32,7 +29,8 @@ public class PlayerUpdateHandler : BaseClientPacketHandler
             packet.Moving,
             packet.HorizontalSpeed,
             packet.ForwardSpeed,
-            packet.Sprinting
+            packet.Sprinting,
+            packet.LookY
         );
     }
 }

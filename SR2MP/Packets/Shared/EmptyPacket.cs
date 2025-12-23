@@ -1,8 +1,8 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.C2S;
+namespace SR2MP.Packets.Shared;
 
-public struct HeartbeatPacket : IPacket
+public struct EmptyPacket : IPacket
 {
     public byte Type { get; set; }
 

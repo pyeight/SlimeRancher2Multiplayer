@@ -1,6 +1,5 @@
 using System.Net;
 using SR2MP.Server.Managers;
-using SR2MP.Packets.S2C;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
@@ -25,13 +24,13 @@ public class PlayerLeaveHandler : BasePacketHandler
 
         if (clientManager.RemoveClient(clientInfo))
         {
-            var leavePacket = new BroadcastPlayerLeavePacket
+            var leavePacket = new PlayerLeavePacket
             {
                 Type = (byte)PacketType.BroadcastPlayerLeave,
                 PlayerId = playerId
             };
 
-            BroadcastToAll(leavePacket);
+            Main.Server.SendToAll(leavePacket);
 
             SrLogger.LogMessage($"Player {playerId} left the server",
                 $"Player {playerId} left from {clientInfo}");

@@ -1,10 +1,9 @@
 using System.Collections.Concurrent;
 using SR2MP.Client.Models;
-using SR2MP.Packets.C2S;
 using SR2MP.Packets.Utils;
 using UnityEngine;
 
-namespace SR2MP.Client.Managers;
+namespace SR2MP.Shared.Managers;
 
 public class RemotePlayerManager
 {
@@ -51,7 +50,7 @@ public class RemotePlayerManager
     }
     public void SendPlayerUpdate(
         UnityEngine.Vector3 position,
-        UnityEngine.Quaternion rotation,
+        float rotation,
         float horizontalMovement = 0f,
         float forwardMovement = 0f,
         float yaw = 0f,
@@ -59,7 +58,8 @@ public class RemotePlayerManager
         bool moving = false,
         float horizontalSpeed = 0f,
         float forwardSpeed = 0f,
-        bool sprinting = false)
+        bool sprinting = false,
+        float lookY = 0f)
     {
         // I dont know.
         var playerId = Main.Client.IsConnected ? Main.Client.OwnPlayerId : Main.Server.IsRunning() ? "HOST" : "INVALID";
@@ -76,22 +76,16 @@ public class RemotePlayerManager
             Moving = moving,
             HorizontalSpeed = horizontalSpeed,
             ForwardSpeed = forwardSpeed,
-            Sprinting = sprinting
+            Sprinting = sprinting,
+            LookY = lookY
         };
-        if (Main.Client.IsConnected)
-        {
-            Main.Client.SendPacket(updatePacket);
-        }
-        else if (Main.Server.IsRunning())
-        {
-            Main.Server.SendToAll(updatePacket);
-        }
+        Main.SendToAllOrServer(updatePacket);
     }
     
     public void UpdatePlayer(
         string playerId,
         Vector3 position,
-        Quaternion rotation,
+        float rotation,
         float horizontalMovement,
         float forwardMovement,
         float yaw,
@@ -99,7 +93,8 @@ public class RemotePlayerManager
         bool moving,
         float horizontalSpeed,
         float forwardSpeed,
-        bool sprinting)
+        bool sprinting,
+        float lookY)
     {
         if (players.TryGetValue(playerId, out var player))
         {
@@ -113,6 +108,8 @@ public class RemotePlayerManager
             player.HorizontalSpeed = horizontalSpeed;
             player.ForwardSpeed = forwardSpeed;
             player.Sprinting = sprinting;
+            player.LastLookY = player.LookY;
+            player.LookY = lookY;
             player.LastUpdate = DateTime.UtcNow;
             OnPlayerUpdated?.Invoke(playerId, player);
         }

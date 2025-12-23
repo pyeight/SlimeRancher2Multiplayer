@@ -1,9 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Client.Managers;
+using SR2MP.Shared.Managers;
 using SR2MP.Client.Models;
-using SR2MP.Packets.C2S;
-using SR2MP.Packets.S2C;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 
@@ -31,7 +30,6 @@ public sealed class Client
 
     public Client()
     {
-        playerManager = new RemotePlayerManager();
         packetManager = new ClientPacketManager(this, playerManager);
 
         playerManager.OnPlayerAdded += (playerId) => OnPlayerJoined?.Invoke(playerId);
@@ -119,7 +117,7 @@ public sealed class Client
                 if (data.Length > 0)
                 {
                     packetManager.HandlePacket(data);
-                    SrLogger.LogMessage($"Received {data.Length} bytes",
+                    SrLogger.LogPacketSize($"Received {data.Length} bytes",
                         $"Received {data.Length} bytes from {remoteEP}");
                 }
             }
@@ -170,7 +168,7 @@ public sealed class Client
         if (!isConnected)
             return;
 
-        var heartbeatPacket = new HeartbeatPacket
+        var heartbeatPacket = new EmptyPacket
         {
             Type = (byte)PacketType.Heartbeat
         };
@@ -192,9 +190,9 @@ public sealed class Client
             packet.Serialise(writer);
             byte[] data = writer.ToArray();
 
-            SrLogger.LogMessage($"Sending {data.Length} bytes to Server...", SrLogger.LogTarget.Both);
+            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogger.LogTarget.Both);
             udpClient.Send(data, data.Length);
-            SrLogger.LogMessage($"Sent {data.Length} bytes to Server.", SrLogger.LogTarget.Both);
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server.", SrLogger.LogTarget.Both);
         }
         catch (Exception ex)
         {
@@ -221,6 +219,7 @@ public sealed class Client
             heartbeatTimer = null;
 
             isConnected = false;
+            // todo: fix this (?)
             udpClient?.Close();
 
             if (receiveThread != null && receiveThread.IsAlive)

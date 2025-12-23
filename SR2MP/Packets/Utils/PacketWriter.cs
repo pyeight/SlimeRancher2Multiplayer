@@ -20,6 +20,8 @@ public class PacketWriter : IDisposable
     public void WriteLong(long value) => writer.Write(value);
 
     public void WriteFloat(float value) => writer.Write(value);
+    
+    public void WriteDouble(double value) => writer.Write(value);
 
     public void WriteString(string value) => writer.Write(value);
 
@@ -84,6 +86,8 @@ public class PacketWriter : IDisposable
             WriteLong(@long);
         else if (value is float @float)
             WriteFloat(@float);
+        else if (value is double @double)
+            WriteDouble(@double);
         else if (value is string @string)
             WriteString(@string);
         else if (value is bool @bool)

@@ -31,7 +31,6 @@ public class MainThreadDispatcher : MonoBehaviour
             try
             {
                 action?.Invoke();
-                SrLogger.LogMessage($"Received some action: {action}", SrLogger.LogTarget.Both);
             }
             catch (Exception ex)
             {
@@ -43,7 +42,6 @@ public class MainThreadDispatcher : MonoBehaviour
     public static void Enqueue(Action action)
     {
         actionQueue.Enqueue(action);
-        SrLogger.LogMessage($"Enqueued some action: {action}");
     }
 
 #pragma warning disable CA1822 // Mark members as static

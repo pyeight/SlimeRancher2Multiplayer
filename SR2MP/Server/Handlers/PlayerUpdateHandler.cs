@@ -1,6 +1,4 @@
 using System.Net;
-using SR2MP.Client.Managers;
-using SR2MP.Packets.C2S;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
 
@@ -32,9 +30,10 @@ public class PlayerUpdateHandler : BasePacketHandler
             packet.Moving,
             packet.HorizontalSpeed,
             packet.ForwardSpeed,
-            packet.Sprinting
+            packet.Sprinting,
+            packet.LookY
         );
         
-        BroadcastToAllExcept(packet, senderEndPoint);
+        Main.Server.SendToAllExcept(packet, senderEndPoint);
     }
 }

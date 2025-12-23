@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
@@ -76,10 +75,8 @@ public class NetworkManager
                 if (data.Length > 0)
                 {
                     OnDataReceived?.Invoke(data, remoteEP);
-                    SrLogger.LogMessage(
-                        $"Received {data.Length} bytes",
-                        $"Received {data.Length} bytes from {remoteEP}"
-                    );
+                    SrLogger.LogPacketSize($"Received {data.Length} bytes",
+                        $"Received {data.Length} bytes from {remoteEP}");
                 }
             }
             catch (SocketException)
@@ -103,10 +100,10 @@ public class NetworkManager
 
         try
         {
-            SrLogger.LogMessage($"Sending {data.Length} bytes to client..",
+            SrLogger.LogPacketSize($"Sending {data.Length} bytes to client..",
                 $"Sending {data.Length} bytes to {endPoint}..");
             udpClient.Send(data, data.Length, endPoint);
-            SrLogger.LogMessage($"Sent {data.Length} bytes to client.",
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to client.",
                 $"Sent {data.Length} bytes to {endPoint}.");
         }
         catch (Exception ex)

@@ -1,7 +1,6 @@
 using System.Net;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
-using SR2MP.Packets.S2C;
 using SR2MP.Server.Models;
 
 namespace SR2MP.Server;
@@ -14,7 +13,9 @@ public sealed class Server
     private Timer? timeoutTimer;
     public int GetClientCount() => clientManager.ClientCount;
     public bool IsRunning() => networkManager.IsRunning;
-
+    
+    public event Action? OnServerStarted;
+    
     public Server()
     {
         networkManager = new NetworkManager();
@@ -39,6 +40,7 @@ public sealed class Server
             networkManager.Start(port, enableIPv6);
             // Commented because there is no real Heartbeat stuff
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            OnServerStarted?.Invoke();
         }
         catch (Exception ex)
         {
@@ -48,7 +50,7 @@ public sealed class Server
 
     private void OnDataReceived(byte[] data, System.Net.IPEndPoint clientEP)
     {
-        SrLogger.LogMessage($"Received {data.Length} bytes from Client!",
+        SrLogger.LogPacketSize($"Received {data.Length} bytes from Client!",
             $"Received {data.Length} bytes from {clientEP}.");
 
         try
@@ -63,7 +65,7 @@ public sealed class Server
 
     private void OnClientRemoved(Models.ClientInfo client)
     {
-        var leavePacket = new BroadcastPlayerLeavePacket
+        var leavePacket = new PlayerLeavePacket
         {
             Type = (byte)PacketType.BroadcastPlayerLeave,
             PlayerId = client.PlayerId

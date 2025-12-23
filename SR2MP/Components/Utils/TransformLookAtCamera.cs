@@ -1,8 +1,9 @@
+using Il2Cpp;
 using Il2CppTMPro;
 using MelonLoader;
 using UnityEngine;
 
-namespace SR2MP.Components;
+namespace SR2MP.Components.Utils;
 
 [RegisterTypeInIl2Cpp(false)]
 public class TransformLookAtCamera : MonoBehaviour
@@ -11,10 +12,20 @@ public class TransformLookAtCamera : MonoBehaviour
 
     private bool isText;
 
+    private Camera playerCamera;
+
     void Start() => isText = targetTransform.GetComponent<TextMeshPro>();
     void Update()
     {
-        targetTransform.LookAt(Camera.main.transform);
+        if (!playerCamera)
+        {
+            playerCamera = SceneContext.Instance?.Camera.GetComponent<Camera>()!;
+            return;
+        }
+        if (!targetTransform)
+            return;
+        
+        targetTransform.LookAt(playerCamera.transform);
 
         if (isText)
         {

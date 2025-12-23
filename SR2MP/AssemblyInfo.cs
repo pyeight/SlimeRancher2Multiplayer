@@ -47,7 +47,7 @@ internal static class BuildInfo
     internal const string CoAuthors = "";
     internal const string Contributors = "Artur, AlchlcSystm";
     internal const string Company = "";
-    internal const string Version = "0.1.1";
+    internal const string Version = "0.0.1";
     internal const string DownloadLink = "";
     internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
     internal const string Nexus = "";

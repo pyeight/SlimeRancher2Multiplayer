@@ -6,7 +6,7 @@ public class RemotePlayer
 {
     public string PlayerId { get; set; }
     public Vector3 Position { get; set; }
-    public Quaternion Rotation { get; set; }
+    public float Rotation { get; set; }
     public DateTime LastUpdate { get; set; }
 
     // Animation stuff
@@ -18,6 +18,9 @@ public class RemotePlayer
     public float HorizontalSpeed { get; set; }
     public float ForwardSpeed { get; set; }
     public bool Sprinting { get; set; }
+    
+    public float LookY { get; set; }
+    public float LastLookY { get; set; }
 
     public RemotePlayer(string playerId)
     {

@@ -1,9 +1,5 @@
-using System.Net;
-using Il2Cpp;
-using SR2MP.Client.Managers;
-using SR2MP.Components;
-using SR2MP.Server.Managers;
-using SR2MP.Packets.S2C;
+using SR2MP.Shared.Managers;
+using SR2MP.Components.Player;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Client.Handlers;

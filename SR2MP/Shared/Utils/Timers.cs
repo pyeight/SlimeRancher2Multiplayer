@@ -1,8 +1,9 @@
 namespace SR2MP.Shared.Utils;
 
 public static class Timers
-{
-    private static float timeSyncTimer = 1f;
+{   // Time Sync is set to a lower value than 1 to prevent
+    // time reverting on high ping
+    private static float timeSyncTimer = 0.85f;
     private static float actorSyncTimer = 0.275f;
     private static float playerSyncTimer = 0.275f;
     private static float weatherSyncTimer = 1.0f;

@@ -20,6 +20,8 @@ public sealed class PacketReader : IDisposable
     public long ReadLong() => reader.ReadInt64();
 
     public float ReadFloat() => reader.ReadSingle();
+    
+    public double ReadDouble() => reader.ReadDouble();
 
     public string ReadString() => reader.ReadString();
 
@@ -81,6 +83,7 @@ public sealed class PacketReader : IDisposable
         _ when type == typeof(int) => ReadInt(),
         _ when type == typeof(long) => ReadLong(),
         _ when type == typeof(float) => ReadFloat(),
+        _ when type == typeof(double) => ReadDouble(),
         _ when type == typeof(string) => ReadString(),
         _ when type == typeof(Vector3) => ReadVector3(),
         _ when type == typeof(Quaternion) => ReadQuaternion(),

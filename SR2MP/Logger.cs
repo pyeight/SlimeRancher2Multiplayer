@@ -54,6 +54,13 @@ public static class Logger
     public static void LogDebug(object? message, LogTarget target = LogTarget.Main)
         => LogInternal(message, LogLevel.Debug, target, null, null);
 
+    public static void LogPacketSize(object? message, LogTarget target = LogTarget.Main)
+    {
+        if (Main.PacketSizeLogging)
+            LogInternal(message, LogLevel.Message, target, null, _melonLogger.Msg);
+    }
+
+
     private static void LogInternal(object? message, LogLevel level, LogTarget target, Action<string>? sr2eAction, Action<string>? melonAction)
     {
         var msgString = message?.ToString() ?? "message was null!";
@@ -84,6 +91,12 @@ public static class Logger
     public static void LogDebug(object? publicMsg, object? sensitiveMsg)
         => LogSplit(publicMsg, sensitiveMsg, LogLevel.Debug, null, null);
 
+    public static void LogPacketSize(object? publicMsg, object? sensitiveMsg)
+    {
+        if (Main.PacketSizeLogging)
+            LogSplit(publicMsg, sensitiveMsg, LogLevel.Message, null, _melonLogger.Msg);
+    }
+    
     private static void LogSplit(object? publicMsg, object? sensitiveMsg, LogLevel level, Action<string>? sr2eAction, Action<string>? melonAction)
     {
         var publicStr = publicMsg?.ToString() ?? "public message was null!";
@@ -107,7 +120,7 @@ public static class Logger
             ? message // Assumed that the message is already formatted
             : $"[{DateTime.Now:HH:mm:ss}] [{level.ToString().ToUpperInvariant()}] {message}";
     }
-
+    
     private sealed class LogHandler : IDisposable
     {
         private readonly StreamWriter? _writer;

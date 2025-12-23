@@ -1,7 +1,5 @@
 using System.Net;
 using SR2MP.Server.Managers;
-using SR2MP.Packets.C2S;
-using SR2MP.Packets.S2C;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
@@ -32,6 +30,6 @@ public class ChatMessageHandler : BasePacketHandler
 
         // Broadcast to self for confirmation (if a GUI will exist later qwq)
         // If necessary, not sure how we should do it
-        BroadcastToAll(broadcastPacket);
+        Main.Server.SendToAll(broadcastPacket);
     }
 }

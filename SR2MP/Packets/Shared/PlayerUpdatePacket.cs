@@ -1,14 +1,14 @@
 using SR2MP.Packets.Utils;
 using UnityEngine;
 
-namespace SR2MP.Packets.C2S;
+namespace SR2MP.Packets.Shared;
 
 public struct PlayerUpdatePacket : IPacket
 {
     public byte Type { get; set; }
     public string PlayerId { get; set; }
     public Vector3 Position { get; set; }
-    public Quaternion Rotation { get; set; }
+    public float Rotation { get; set; }
     public int AirborneState {get; set;}
     public bool Moving { get; set; }
     public float Yaw { get; set; }
@@ -17,6 +17,7 @@ public struct PlayerUpdatePacket : IPacket
     public float HorizontalSpeed { get; set; }
     public float ForwardSpeed { get; set; }
     public bool Sprinting { get; set; }
+    public float LookY { get; set; }
 
     public readonly void Serialise(PacketWriter writer)
     {
@@ -24,7 +25,7 @@ public struct PlayerUpdatePacket : IPacket
         writer.WriteString(PlayerId);
 
         writer.WriteVector3(Position);
-        writer.WriteQuaternion(Rotation);
+        writer.WriteFloat(Rotation);
 
         writer.WriteInt(AirborneState);
         writer.WriteBool(Moving);
@@ -34,6 +35,8 @@ public struct PlayerUpdatePacket : IPacket
         writer.WriteFloat(HorizontalSpeed);
         writer.WriteFloat(ForwardSpeed);
         writer.WriteBool(Sprinting);
+        
+        writer.WriteFloat(LookY);
     }
 
     public void Deserialise(PacketReader reader)
@@ -42,7 +45,7 @@ public struct PlayerUpdatePacket : IPacket
         PlayerId = reader.ReadString();
 
         Position = reader.ReadVector3();
-        Rotation = reader.ReadQuaternion();
+        Rotation = reader.ReadFloat();
 
         AirborneState = reader.ReadInt();
         Moving = reader.ReadBool();
@@ -52,5 +55,7 @@ public struct PlayerUpdatePacket : IPacket
         HorizontalSpeed = reader.ReadFloat();
         ForwardSpeed = reader.ReadFloat();
         Sprinting = reader.ReadBool();
+        
+        LookY = reader.ReadFloat();
     }
 }

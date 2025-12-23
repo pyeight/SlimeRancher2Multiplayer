@@ -1,8 +1,6 @@
 using System.Net;
-using Il2Cpp;
-using SR2MP.Components;
+using SR2MP.Components.Player;
 using SR2MP.Server.Managers;
-using SR2MP.Packets.S2C;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
@@ -16,9 +14,10 @@ public class PlayerJoinHandler : BasePacketHandler
     public override void Handle(byte[] data, IPEndPoint senderEndPoint)
     {
         using var reader = new PacketReader(data);
-        reader.Skip(1);
+        var packet = reader.ReadPacket<PlayerJoinPacket>();
 
-        string playerId = reader.ReadString();
+
+        string playerId = packet.PlayerId;
 
         string address = $"{senderEndPoint.Address}:{senderEndPoint.Port}";
 
@@ -32,12 +31,13 @@ public class PlayerJoinHandler : BasePacketHandler
         playerObjects.Add(playerId, playerObject.gameObject);
         Object.DontDestroyOnLoad(playerObject);
 
-        var joinPacket = new BroadcastPlayerJoinPacket
+        var joinPacket = new PlayerJoinPacket
         {
             Type = (byte)PacketType.BroadcastPlayerJoin,
-            PlayerId = playerId
+            PlayerId = playerId,
+            PlayerName = packet.PlayerName
         };
 
-        BroadcastToAll(joinPacket);
+        Main.Server.SendToAll(joinPacket);
     }
 }

@@ -1,19 +1,20 @@
-using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
+using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppTMPro;
 using MelonLoader;
-using SR2MP.Client.Managers;
+using SR2E.Utils;
 using SR2MP.Client.Models;
+using SR2MP.Components.FX;
+using SR2MP.Components.Utils;
 using UnityEngine;
-using UnityEngine.Animations;
 using static SR2E.ContextShortcuts;
 using static SR2MP.Shared.Utils.Timers;
 
-namespace SR2MP.Components
+namespace SR2MP.Components.Player
 {
     // todo: Fix the detachment issue qwq 3:
     [RegisterTypeInIl2Cpp(false)]
-    public class NetworkPlayer : MonoBehaviour
+    public partial class NetworkPlayer : MonoBehaviour
     {
         private MeshRenderer[] renderers;
         private Collider collider;
@@ -21,8 +22,8 @@ namespace SR2MP.Components
         internal Vector3 previousPosition;
         internal Vector3 nextPosition;
 
-        internal Quaternion previousRotation;
-        internal Quaternion nextRotation;
+        internal Vector2 previousRotation;
+        internal Vector2 nextRotation;
 
         private float interpolationStart;
         private float interpolationEnd;
@@ -30,18 +31,20 @@ namespace SR2MP.Components
         public TextMeshPro usernamePanel;
 
         private float transformTimer = PlayerTimer;
-        private float interpolationTimer = 0;
 
         private Animator animator;
         private bool hasAnimationController = false;
 
         internal RemotePlayer model;
+        
+        internal Transform camera;
 
         public string ID { get; internal set; }
 
         public bool IsLocal { get; internal set; } = false;
 
-        private TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName);
+        
+        private TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
         public void SetUsername(string username)
         {
             usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
@@ -74,6 +77,12 @@ namespace SR2MP.Components
 
         void Start()
         {
+            if (IsLocal)
+            {
+                camera = GetComponent<SRCharacterController>()._cameraController.transform;
+                GetComponent<PlayerItemController>()._vacuumItem.AddComponent<NetworkPlayerSound>();
+            }
+            
             usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
 
             if (usernamePanel)
@@ -84,10 +93,15 @@ namespace SR2MP.Components
                 SetUsername(gameObject.name);
             }
 
+            SetupRenderersAndCollision();
+        }
+
+        void SetupRenderersAndCollision()
+        {
             if (IsLocal)
             {
                 var modelRenderers = GetComponentsInChildren<MeshRenderer>();
-                var cameraRenderers = GetComponent<SRCharacterController>()._cameraController.GetComponentsInChildren<MeshRenderer>();
+                var cameraRenderers = camera.GetComponentsInChildren<MeshRenderer>();
                 var allRenderers = new MeshRenderer[modelRenderers.Length + cameraRenderers.Length];
                 
                 modelRenderers.CopyTo(allRenderers, 0);
@@ -96,34 +110,28 @@ namespace SR2MP.Components
                 renderers = allRenderers;
             }
             else { renderers = GetComponentsInChildren<MeshRenderer>(); }
-
+            
             collider = GetComponentInChildren<Collider>();
         }
-
+        
         public void Update()
         {
             if (model == null)
             {
-                model = playerManager.GetPlayer(ID);
-                // If there was never a model to begin with
-                if (model == null)
-                {
-                    model = playerManager.AddPlayer(ID);
-                }
-
+                model = playerManager.GetPlayer(ID) ?? playerManager.AddPlayer(ID);
                 return;
             }
 
-            transformTimer -= Time.unscaledDeltaTime;
+            transformTimer -= UnityEngine.Time.unscaledDeltaTime;
             if (!IsLocal)
             {
-                float timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, Time.unscaledTime);
+                float timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
                 timer = Mathf.Clamp01(timer);
 
                 transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
-                transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
-                // Not sure if its necessary
-                transform.hasChanged = true;
+                
+                receivedLookY = Mathf.LerpAngle(previousRotation.y, nextRotation.y, timer);
+                transform.eulerAngles = new Vector3(0,  Mathf.Lerp(previousRotation.x, nextRotation.x, timer), 0);
             }
 
             ReloadMeshTransform();
@@ -135,7 +143,7 @@ namespace SR2MP.Components
                 {
                     playerManager.SendPlayerUpdate(
                         position: transform.position,
-                        rotation: transform.rotation,
+                        rotation: transform.eulerAngles.y,
                         horizontalMovement: animator.GetFloat("HorizontalMovement"),
                         forwardMovement: animator.GetFloat("ForwardMovement"),
                         yaw: animator.GetFloat("Yaw"),
@@ -143,28 +151,33 @@ namespace SR2MP.Components
                         moving: animator.GetBool("Moving"),
                         horizontalSpeed: animator.GetFloat("HorizontalSpeed"),
                         forwardSpeed: animator.GetFloat("ForwardSpeed"),
-                        sprinting: animator.GetBool("Sprinting")
+                        sprinting: animator.GetBool("Sprinting"),
+                        lookY: camera.eulerAngles.x
                     );
                 }
                 else
                 {
                     if (!hasAnimationController)
                     {
-                        animator.runtimeAnimatorController =
-                            sceneContext.player?.GetComponent<Animator>().runtimeAnimatorController;
-                        animator.avatar = sceneContext.player?.GetComponent<Animator>().avatar;
-
+                        var playerAnimatorController = sceneContext.player?.GetComponent<Animator>().runtimeAnimatorController;
+                        
                         if (animator.runtimeAnimatorController != null)
+                        {
                             hasAnimationController = true;
+                            animator.runtimeAnimatorController =
+                                Object.Instantiate(playerAnimatorController);
+                            animator.avatar = sceneContext.player?.GetComponent<Animator>().avatar;
+                            SetupAnimations();
+                        }
                     }
 
                     nextPosition = model.Position;
                     previousPosition = transform.position;
-                    nextRotation = model.Rotation;
-                    previousRotation = transform.rotation;
+                    nextRotation = new Vector2(model.Rotation, model.LookY);
+                    previousRotation = new Vector2(transform.eulerAngles.y, model.LastLookY);
 
-                    interpolationStart = Time.unscaledTime;
-                    interpolationEnd = Time.unscaledTime + PlayerTimer;
+                    interpolationStart = UnityEngine.Time.unscaledTime;
+                    interpolationEnd = UnityEngine.Time.unscaledTime + PlayerTimer;
 
                     animator.SetFloat("HorizontalMovement", model.HorizontalMovement);
                     animator.SetFloat("ForwardMovement", model.ForwardMovement);
@@ -193,6 +206,11 @@ namespace SR2MP.Components
                 collider.enabled = false;
                 collider.enabled = true;
             }
+        }
+
+        void LateUpdate()
+        {
+            AnimateArmY();
         }
     }
 }
