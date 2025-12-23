@@ -34,9 +34,6 @@ public class NetworkPlayerSound : MonoBehaviour
         
         SendPacket();
     }
-
-    
-    
     
     void SendPacket()
     {
@@ -52,6 +49,6 @@ public class NetworkPlayerSound : MonoBehaviour
             FX = fxType,
             Player = LocalID
         };
-        
+        Main.SendToAllOrServer(packet);
     }
 }

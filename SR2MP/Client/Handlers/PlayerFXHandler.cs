@@ -24,7 +24,7 @@ public class PlayerFXHandler : BaseClientPacketHandler
             var fxPrefab = fxManager.playerFXMap[packet.FX];
 
             handlingPacket = true;
-            var fxObject = FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
+            FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
             handlingPacket = false;
         }
         else
