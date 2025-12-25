@@ -78,6 +78,8 @@ public sealed class Client
             receiveThread.IsBackground = true;
             receiveThread.Start();
 
+            Application.quitting += new System.Action(Disconnect);
+            
             var connectPacket = new ConnectPacket
             {
                 Type = (byte)PacketType.Connect,
@@ -125,6 +127,8 @@ public sealed class Client
             {
                 if (!isConnected)
                     return;
+                
+                SrLogger.LogError("ReceiveLoop error: Socket Exception");
             }
             catch (Exception ex)
             {
@@ -191,8 +195,15 @@ public sealed class Client
             byte[] data = writer.ToArray();
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogger.LogTarget.Both);
-            udpClient.Send(data, data.Length);
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server.", SrLogger.LogTarget.Both);
+
+            var split = PacketChunkManager.SplitPacket(data);
+            foreach (var chunk in split)
+            {
+                udpClient.Send(chunk, chunk.Length);
+            }
+
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {split.Length} chunk(s).",
+                SrLogger.LogTarget.Both);
         }
         catch (Exception ex)
         {
@@ -219,7 +230,6 @@ public sealed class Client
             heartbeatTimer = null;
 
             isConnected = false;
-            // todo: fix this (?)
             udpClient?.Close();
 
             if (receiveThread != null && receiveThread.IsAlive)

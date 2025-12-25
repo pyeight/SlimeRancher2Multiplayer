@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Managers;
 
@@ -94,7 +95,7 @@ public class NetworkManager
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogWarning("Cannot send data: Server not running!",  SrLogger.LogTarget.Both);
+            SrLogger.LogWarning("Cannot send data: Server not running!", SrLogger.LogTarget.Both);
             return;
         }
 
@@ -102,9 +103,15 @@ public class NetworkManager
         {
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to client..",
                 $"Sending {data.Length} bytes to {endPoint}..");
-            udpClient.Send(data, data.Length, endPoint);
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to client.",
-                $"Sent {data.Length} bytes to {endPoint}.");
+
+            var splitData = PacketChunkManager.SplitPacket(data);
+            foreach (var chunk in splitData)
+            {
+                udpClient?.Send(chunk, chunk.Length, endPoint);
+            }
+
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to client in {splitData.Length} chunk(s).",
+                $"Sent {data.Length} bytes to {endPoint} in {splitData.Length} chunk(s).");
         }
         catch (Exception ex)
         {

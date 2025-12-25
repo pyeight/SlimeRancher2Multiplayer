@@ -8,5 +8,7 @@ global using SR2MP.Packets.S2C;
 
 global using PlayerFXType = SR2MP.Packets.Shared.PlayerFXPacket.PlayerFXType;
 
+global using UnityEngine;
+
 global using static SR2MP.Shared.Utils.FXConstants;
 global using static SR2MP.GlobalVariables;

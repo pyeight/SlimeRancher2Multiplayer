@@ -1,7 +1,6 @@
 using Il2Cpp;
 using Il2CppTMPro;
 using MelonLoader;
-using UnityEngine;
 
 namespace SR2MP.Components.Utils;
 

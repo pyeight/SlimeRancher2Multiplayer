@@ -10,7 +10,6 @@ using SR2MP.Components.Player;
 using SR2MP.Components.Time;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
-using UnityEngine;
 
 namespace SR2MP;
 
@@ -76,7 +75,6 @@ public sealed class Main : SR2EExpansionV3
                 {
                     transform = { parent = playerPrefab.transform, localPosition = Vector3.up * 3 }
                 };
-
                 
                 var textComponent = name.AddComponent<TextMeshPro>();
 
@@ -88,5 +86,10 @@ public sealed class Main : SR2EExpansionV3
                 Object.DontDestroyOnLoad(playerPrefab);
                 break;
         }
+    }
+
+    public override void AfterGameContext(GameContext gameContext)
+    {
+        actorManager.Initialize(gameContext);
     }
 }

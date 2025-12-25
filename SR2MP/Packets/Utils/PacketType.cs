@@ -21,4 +21,11 @@ public enum PacketType : byte
     PlayerFX = 21,                // Both Ways                                                                          On Player FX Play
     MovementSound = 22,           // Both Ways                                                                          On Movement SoundPlay
     CurrencyAdjust = 23,          // Both Ways                                                                          On Plort sell
+    ActorDestroy = 24,            // Both Ways                                                                          On Actor Destroy
+    ActorSpawn = 25,              // Both Ways                                                                          On Actor Spawn
+    ActorUpdate = 26,             // Both Ways                                                                          On Actor Update
+    ActorTransfer = 27,           // Both Ways                                                                          On Actor Transfer
+    InitialActors = 28,           // Server -> Client                                                                   Actors on Load
+    LandPlotUpdate = 29,          // Both Ways                                                                          Land plot updates (upgrade or set)
+    InitialPlots = 30,            // Server -> Client                                                                   Plots on Load
 }

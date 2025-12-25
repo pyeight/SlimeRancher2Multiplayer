@@ -4,7 +4,6 @@ using Il2CppTMPro;
 using MelonLoader;
 using SR2E;
 using SR2E.Expansion;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;

@@ -58,7 +58,14 @@ public class ClientPacketManager
         }
 
         byte packetType = data[0];
+        byte chunkIndex = data[1];
+        byte totalChunks = data[2];
 
+        byte[] chunkData = new byte[data.Length - 3];
+        Buffer.BlockCopy(data, 3, chunkData, 0, data.Length - 3);
+        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, totalChunks, out data))
+            return;
+        
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try

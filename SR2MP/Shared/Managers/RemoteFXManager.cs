@@ -1,7 +1,6 @@
 using Il2Cpp;
 using SR2E.Utils;
 using SR2MP.Components.FX;
-using UnityEngine;
 
 namespace SR2MP.Shared.Managers
 {
@@ -27,7 +26,8 @@ namespace SR2MP.Shared.Managers
             allCues.Clear();
             foreach (var cue in Resources.FindObjectsOfTypeAll<SECTR_AudioCue>())
             {
-                cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
+                if (cue.Spatialization != SECTR_AudioCue.Spatializations.Simple2D)
+                    cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
                 
                 var cueName = cue.name.Replace(' ', '_');
                 allCues.TryAdd(cueName, cue);
@@ -64,6 +64,11 @@ namespace SR2MP.Shared.Managers
             }
             
             footstepFX = allFX["FX_Footstep"];
+
+            foreach (var cue in playerAudioCueMap)
+            {
+                cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
+            }
             
             SrLogger.LogMessage("RemoteFXManager initialized", SrLogger.LogTarget.Both);
         }

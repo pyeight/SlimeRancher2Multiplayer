@@ -1,5 +1,4 @@
 using SR2MP.Shared.Managers;
-using UnityEngine;
 
 namespace SR2MP;
 
@@ -12,9 +11,13 @@ public static class GlobalVariables
     public static RemotePlayerManager playerManager = new RemotePlayerManager();
     
     public static RemoteFXManager fxManager = new RemoteFXManager();
+    
+    public static NetworkActorManager actorManager = new NetworkActorManager();
 
+    public static Dictionary<string, GameObject> landPlotObjects = new();
+    
     // To prevent stuff from being stuck in 
-    // an infinite sending loop qwq
+    // an infinite sending loop
     public static bool handlingPacket = false;
 
     // I love this indenting

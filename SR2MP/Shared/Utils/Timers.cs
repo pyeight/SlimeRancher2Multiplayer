@@ -4,15 +4,11 @@ public static class Timers
 {   // Time Sync is set to a lower value than 1 to prevent
     // time reverting on high ping
     private static float timeSyncTimer = 0.85f;
-    private static float actorSyncTimer = 0.275f;
-    private static float playerSyncTimer = 0.275f;
-    private static float weatherSyncTimer = 1.0f;
-    private static float playerInventorySyncTimer = 5.0f;
+    private static float actorSyncTimer = 0.125f;
+    private static float playerSyncTimer = 0.125f;
+    private static float weatherSyncTimer = 1f;
+    private static float playerInventorySyncTimer = 5f;
     private static float planterSyncTimer = 2.5f;
-
-    // not sure if we should use those
-    private static float actorLoadRadius = 200f;
-    private static float actorUnloadRadius = 250f;
 
     public static float WeatherTimer => weatherSyncTimer;
     public static float ActorTimer => actorSyncTimer;
@@ -20,9 +16,6 @@ public static class Timers
     public static float TimeSyncTimer => timeSyncTimer;
     public static float PlayerInventoryTimer => playerInventorySyncTimer;
     public static float PlanterTimer => planterSyncTimer;
-
-    public static float ActorLoadRadius => actorLoadRadius;
-    public static float ActorUnloadRadius => actorUnloadRadius;
 
     public enum SyncTimerType
     {

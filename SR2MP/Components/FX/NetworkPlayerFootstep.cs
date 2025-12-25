@@ -1,5 +1,4 @@
 using MelonLoader;
-using UnityEngine;
 
 namespace SR2MP.Components.FX
 {
@@ -74,7 +73,6 @@ namespace SR2MP.Components.FX
             
             if (isGrounded != playerGrounded)
             {
-                SrLogger.LogMessage($"Player grounded state changed: Now grounded: {isGrounded}, Player: {gameObject.name}");
                 playerGrounded = isGrounded;
                 UpdateFXState();
             }

@@ -2,6 +2,7 @@ using System.Net;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server;
 
@@ -37,8 +38,9 @@ public sealed class Server
         try
         {
             packetManager.RegisterHandlers();
+            Application.quitting += new System.Action(Close);
             networkManager.Start(port, enableIPv6);
-            // Commented because there is no real Heartbeat stuff
+            // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();
         }

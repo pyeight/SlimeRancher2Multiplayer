@@ -2,8 +2,6 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Shared;
 
-// We should make the PlayerId come from the endpoint of the sender, if possible
-
 public struct PlayerJoinPacket : IPacket
 {
     public byte Type { get; set; }

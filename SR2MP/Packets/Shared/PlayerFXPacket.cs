@@ -1,5 +1,4 @@
 using SR2MP.Packets.Utils;
-using UnityEngine;
 
 namespace SR2MP.Packets.Shared;
 
@@ -21,16 +20,12 @@ public struct PlayerFXPacket : IPacket
         VacRunningEnd,
         VacShootSound,
     }
-
-    
     
     public byte Type { get; set; }
     public PlayerFXType FX { get; set; }
     
-    // For visual stuff
     public Vector3 Position { get; set; }
     
-    // For sound only
     public string Player { get; set; }
     
     public readonly void Serialise(PacketWriter writer)

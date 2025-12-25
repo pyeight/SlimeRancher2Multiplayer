@@ -1,7 +1,6 @@
 using Il2Cpp;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
-using UnityEngine;
 
 namespace SR2MP.Client.Handlers;
 
@@ -15,12 +14,9 @@ public class PlayerFXHandler : BaseClientPacketHandler
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerFXPacket>();
-        
-        SrLogger.LogMessage($"Received FX: {packet.FX}");
 
         if (!IsPlayerSoundDictionary[packet.FX])
         {
-            SrLogger.LogMessage($"at {packet.Position}");
             var fxPrefab = fxManager.playerFXMap[packet.FX];
 
             handlingPacket = true;
@@ -29,7 +25,6 @@ public class PlayerFXHandler : BaseClientPacketHandler
         }
         else
         {
-            SrLogger.LogMessage($"from {packet.Player}");
             var cue = fxManager.playerAudioCueMap[packet.FX];
             if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
             {

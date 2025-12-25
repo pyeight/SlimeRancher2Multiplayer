@@ -6,13 +6,11 @@ using SR2E.Utils;
 using SR2MP.Client.Models;
 using SR2MP.Components.FX;
 using SR2MP.Components.Utils;
-using UnityEngine;
 using static SR2E.ContextShortcuts;
 using static SR2MP.Shared.Utils.Timers;
 
 namespace SR2MP.Components.Player
 {
-    // todo: Fix the detachment issue qwq 3:
     [RegisterTypeInIl2Cpp(false)]
     public partial class NetworkPlayer : MonoBehaviour
     {
@@ -131,7 +129,7 @@ namespace SR2MP.Components.Player
                 transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
                 
                 receivedLookY = Mathf.LerpAngle(previousRotation.y, nextRotation.y, timer);
-                transform.eulerAngles = new Vector3(0,  Mathf.Lerp(previousRotation.x, nextRotation.x, timer), 0);
+                transform.eulerAngles = new Vector3(0,  Mathf.LerpAngle(previousRotation.x, nextRotation.x, timer), 0);
             }
 
             ReloadMeshTransform();
