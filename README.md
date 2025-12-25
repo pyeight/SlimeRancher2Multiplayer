@@ -13,8 +13,8 @@
 | Player Sound FX   | 🟨     | Water splash sound + Plot buy/upgrade sound missing  |
 | Player Visual FX  | 🟨     | Water splash particle + Vac suction trail missing    |
 | Player Inventory  | 🟥     | Not implemented                                      |
-| Initial Save load | 🟩     | Functional for everything ___currently___ synchronised|
-| Slimes            | 🟩     | Fully functional                                     |
+| Initial Save load | 🟨     | Landplots are not loaded on connection (bug)         |
+| Slimes            | 🟨     | Emotion synchronisation not implemented (hunger, sleepiness)|
 | Items             | 🟩     | Fully functional                                     |
 | Landplots         | 🟨     | Gardens and Silos missing functionality              |
 | Landplot upgrades | 🟩     | Fully functional                                     |
