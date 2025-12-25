@@ -11,11 +11,11 @@
 |:-----------------:|:------:|
 | Player Movement   | 🟩    |
 | Player Animations | 🟩     |
-| Player Sound FX   | 🟩     |
-| Player Visual FX  | 🟨🟪  |
+| Player Sound FX   | 🟨     |
+| Player Visual FX  | 🟨     |
 | Slimes            | 🟩     |
 | Plorts            | 🟩     |
-| Plots             | 🟥     |
+| Plots             | 🟨     |
 | Money             | 🟩     |
 | Time              | 🟩     |
 | Decorations       | 🟥     |
