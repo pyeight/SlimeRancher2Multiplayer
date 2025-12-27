@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text;
+using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
@@ -24,7 +25,7 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteDouble(double value) => _writer.Write(value);
 
-    public void WriteString(string value) => _writer.Write(value);
+    public void WriteString(string value) => _writer.Write(value ?? string.Empty);
 
     public void WriteBool(bool value) => _writer.Write(value);
 
@@ -38,6 +39,14 @@ public sealed class PacketWriter : IDisposable
     }
 
     public void WriteQuaternion(Quaternion value)
+    {
+        _writer.Write(value.x);
+        _writer.Write(value.y);
+        _writer.Write(value.z);
+        _writer.Write(value.w);
+    }
+
+    public void WriteFloat4(float4 value)
     {
         _writer.Write(value.x);
         _writer.Write(value.y);
@@ -59,6 +68,30 @@ public sealed class PacketWriter : IDisposable
 
         for (var i = 0; i < list.Count; i++)
             writer(this, list[i]);
+    }
+
+    public void WriteSet<T>(HashSet<T> set, Action<PacketWriter, T> writer)
+    {
+        _writer.Write(set.Count);
+
+        foreach (var item in set)
+            writer(this, item);
+    }
+
+    public void WriteCppList<T>(CppCollections.List<T> list, Action<PacketWriter, T> writer)
+    {
+        _writer.Write(list.Count);
+
+        for (var i = 0; i < list.Count; i++)
+            writer(this, list[i]);
+    }
+
+    public void WriteCppSet<T>(CppCollections.HashSet<T> set, Action<PacketWriter, T> writer)
+    {
+        _writer.Write(set.Count);
+
+        foreach (var item in set)
+            writer(this, item);
     }
 
     public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull

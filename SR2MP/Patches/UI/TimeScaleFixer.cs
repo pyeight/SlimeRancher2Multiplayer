@@ -7,7 +7,7 @@ namespace SR2MP.Patches.UI;
 [HarmonyPatch(typeof(PauseMenuDirector), nameof(PauseMenuDirector.PauseGame))]
 public static class TimeScaleFixer
 {
-    public static bool Prefix(PauseMenuDirector __instance)
+    public static bool Prefix()
     {
         return !GameContext.Instance.InputDirector._paused.Map.enabled;
     }

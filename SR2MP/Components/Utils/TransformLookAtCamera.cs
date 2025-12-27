@@ -14,6 +14,7 @@ public sealed class TransformLookAtCamera : MonoBehaviour
     private Camera playerCamera;
 
     void Start() => isText = targetTransform.GetComponent<TextMeshPro>();
+
     void Update()
     {
         if (!playerCamera)

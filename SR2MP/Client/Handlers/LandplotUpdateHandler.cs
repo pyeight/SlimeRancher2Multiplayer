@@ -5,9 +5,9 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.LandPlotUpdate)]
-public sealed class LandplotUpdateHandler : BaseClientPacketHandler
+public sealed class LandPlotUpdateHandler : BaseClientPacketHandler
 {
-    public LandplotUpdateHandler(Client client, RemotePlayerManager playerManager)
+    public LandPlotUpdateHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
     public override void Handle(byte[] data)

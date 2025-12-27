@@ -21,11 +21,7 @@ public struct ActorUpdatePacket : IPacket
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
         writer.WriteVector3(Velocity);
-
-        writer.WriteFloat(Emotions.x);
-        writer.WriteFloat(Emotions.y);
-        writer.WriteFloat(Emotions.z);
-        writer.WriteFloat(Emotions.w);
+        writer.WriteFloat4(Emotions);
     }
 
     public void Deserialise(PacketReader reader)
@@ -35,12 +31,6 @@ public struct ActorUpdatePacket : IPacket
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();
         Velocity = reader.ReadVector3();
-
-        var x = reader.ReadFloat();
-        var y = reader.ReadFloat();
-        var z = reader.ReadFloat();
-        var w = reader.ReadFloat();
-
-        Emotions = new float4(x, y, z, w);
+        Emotions = reader.ReadFloat4();
     }
 }

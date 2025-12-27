@@ -4,12 +4,13 @@ namespace SR2MP.Shared.Managers;
 
 public static class PacketChunkManager
 {
-    internal class IncompletePacket
+    internal sealed class IncompletePacket
     {
         public byte[][] chunks;
         public byte chunkIndex;
         public byte totalChunks;
     }
+
     internal static Dictionary<PacketType, IncompletePacket> incompletePackets = new();
 
     internal const int MaxChunkBytes = 250;
@@ -17,7 +18,7 @@ public static class PacketChunkManager
     internal static bool TryMergePacket(PacketType packetType, byte[] data, byte chunkIndex, byte totalChunks, out byte[] fullData)
     {
         fullData = null!;
-        
+
         if (!incompletePackets.TryGetValue(packetType, out var packet))
         {
             packet = new IncompletePacket
@@ -28,11 +29,10 @@ public static class PacketChunkManager
             };
             incompletePackets[packetType] = packet;
         }
-        
+
         packet.chunks[chunkIndex] = data;
         packet.chunkIndex++;
         SrLogger.LogPacketSize($"New chunk: type: {packetType}, index: {chunkIndex}, total: {totalChunks}");
-        
 
         if (chunkIndex + 1 >= packet.totalChunks)
         {
@@ -43,9 +43,9 @@ public static class PacketChunkManager
             }
 
             incompletePackets.Remove(packetType);
-            
+
             SrLogger.LogPacketSize($"Fully finished merge: type={packetType}");
-            
+
             fullData = completeData.ToArray();
             return true;
         }
@@ -63,7 +63,7 @@ public static class PacketChunkManager
         {
             var offset = index * MaxChunkBytes;
             var chunkSize = Math.Min(MaxChunkBytes, data.Length - offset);
-            
+
             var buffer = new byte[3 + chunkSize];
             buffer[0] = packetType;
             buffer[1] = index;

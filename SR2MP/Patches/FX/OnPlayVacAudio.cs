@@ -7,8 +7,9 @@ namespace SR2MP.Patches.FX;
 
 [HarmonyPatch(typeof(VacuumItem), nameof(VacuumItem.PlayTransientAudio))]
 public static class OnPlayVacAudio
-{   //                                                  dont rename 'cue', breaks everything
-    public static void Postfix(VacuumItem __instance, SECTR_AudioCue cue, float volume = 1f) // cant change volume either
+{
+    // Note: You CAN rename cue by using [HarmonyArgument(0)] SECTR_AudioCue youNewName - Az
+    public static void Postfix(SECTR_AudioCue cue)
     {
         SendPacket(cue);
     }
@@ -19,14 +20,14 @@ public static class OnPlayVacAudio
         {
             return;
         }
-        
+
         var packet = new PlayerFXPacket()
         {
             Type = (byte)PacketType.PlayerFX,
             FX = fxType,
             Player = LocalID
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

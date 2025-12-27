@@ -15,8 +15,7 @@ public static class PlayerIdGenerator
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
 
             string hash = BitConverter.ToString(hashBytes)
-                .Replace("-", "")
-                .Substring(0, 9)
+                .Replace("-", string.Empty)[..9]
                 .ToUpper();
 
             string playerId = $"PLAYER_{hash}";

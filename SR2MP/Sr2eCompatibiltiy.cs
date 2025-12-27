@@ -14,7 +14,7 @@ using System.Collections;
 // This was made for SR2EExpansionV3
 // This is MLEntrypoint V1
 #pragma warning disable RCS1110 // Declare type inside namespace
-internal class MLEntrypoint : MelonMod
+internal sealed class MLEntrypoint : MelonMod
 #pragma warning restore RCS1110 // Declare type inside namespace
 {
     private static readonly ColorBlock buttonColorBlock = new()

@@ -23,8 +23,8 @@ public sealed class PacketManager
         var assembly = Assembly.GetExecutingAssembly();
         var handlerTypes = assembly.GetTypes()
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                           && typeof(IPacketHandler).IsAssignableFrom(type)
-                           && !type.IsAbstract);
+                            && typeof(IPacketHandler).IsAssignableFrom(type)
+                            && !type.IsAbstract);
 
         foreach (var type in handlerTypes)
         {
@@ -33,9 +33,7 @@ public sealed class PacketManager
 
             try
             {
-                var handler = Activator.CreateInstance(type, networkManager, clientManager) as IPacketHandler;
-
-                if (handler != null)
+                if (Activator.CreateInstance(type, networkManager, clientManager) is IPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
                     SrLogger.LogMessage($"Registered handler: {type.Name} for packet type {attribute.PacketType}", SrLogger.LogTarget.Both);

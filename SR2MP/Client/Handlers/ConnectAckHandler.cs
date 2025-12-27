@@ -41,7 +41,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
         }
     }
 
-    private void SpawnPlayer(string id)
+    private static void SpawnPlayer(string id)
     {
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);

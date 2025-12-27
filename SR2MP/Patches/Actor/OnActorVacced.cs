@@ -8,7 +8,7 @@ namespace SR2MP.Patches.Actor;
 [HarmonyPatch(typeof(Vacuumable), nameof(Vacuumable.Capture))]
 public static class OnActorVacced
 {
-    public static void Postfix(Vacuumable __instance, Joint toJoint)
+    public static void Postfix(Vacuumable __instance)
     {
         var networkActor = __instance.GetComponent<NetworkActor>();
         if (!networkActor)

@@ -22,23 +22,23 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler
             handlingPacket = true;
             FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
             handlingPacket = false;
+            return;
+        }
+
+        var cue = fxManager.playerAudioCueMap[packet.FX];
+
+        if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
+        {
+            fxManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position);
         }
         else
         {
-            var cue = fxManager.playerAudioCueMap[packet.FX];
-            if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
-            {
-                fxManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position);
-            }
-            else
-            {
-                var playerAudio = playerObjects[packet.Player].GetComponent<SECTR_PointSource>();
+            var playerAudio = playerObjects[packet.Player].GetComponent<SECTR_PointSource>();
 
-                playerAudio.Cue = cue;
-                playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
-                playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
-                playerAudio.Play();
-            }
+            playerAudio.Cue = cue;
+            playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
+            playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
+            playerAudio.Play();
         }
     }
 }

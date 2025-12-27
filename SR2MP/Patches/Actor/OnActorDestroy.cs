@@ -7,10 +7,10 @@ namespace SR2MP.Patches.Actor;
 [HarmonyPatch(typeof(Destroyer), nameof(Destroyer.DestroyActor), typeof(GameObject), typeof(string), typeof(bool))]
 public static class OnActorDestroy
 {
-    public static bool Prefix(GameObject actorObj, string source, bool okIfNonActor)
+    public static bool Prefix(GameObject actorObj, string source)
     {
         if (SystemContext.Instance.SceneLoader.IsSceneLoadInProgress) return true;
-        
+
         try
         {
             if (Main.Server.IsRunning() || Main.Client.IsConnected)

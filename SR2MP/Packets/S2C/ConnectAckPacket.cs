@@ -15,7 +15,7 @@ public sealed class ConnectAckPacket : IPacket
     {
         writer.WriteByte(Type);
         writer.WriteString(PlayerId);
-        writer.WriteArray(OtherPlayers, (writer, val) => { writer.WriteString(val); });
+        writer.WriteArray(OtherPlayers, (writer, val) => writer.WriteString(val));
 
         writer.WriteInt(Money);
         writer.WriteInt(RainbowMoney);

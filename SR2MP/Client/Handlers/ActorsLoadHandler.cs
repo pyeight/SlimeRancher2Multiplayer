@@ -19,9 +19,9 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
 
         actorManager.Actors.Clear();
 
-        var toRemove = new Il2CppSystem.Collections.Generic.Dictionary<ActorId, IdentifiableModel>(
+        var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             SceneContext.Instance.GameModel.identifiables
-                .Cast<Il2CppSystem.Collections.Generic.IDictionary<ActorId, IdentifiableModel>>());
+                .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
         foreach (var actor in toRemove)
         {
@@ -47,22 +47,23 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
                     actor.Rotation)
                 .TryCast<ActorModel>();
 
-            if (model != null)
-            {
-                handlingPacket = true;
-                var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
-                handlingPacket = false;
-                if (actorObject)
-                {
-                    var networkComponent = actorObject.AddComponent<NetworkActor>();
-                    networkComponent.previousPosition = actor.Position;
-                    networkComponent.nextPosition = actor.Position;
-                    networkComponent.previousRotation = actor.Rotation;
-                    networkComponent.nextRotation = actor.Rotation;
-                    actorObject.transform.position = actor.Position;
-                    actorManager.Actors.Add(actor.ActorId, model);
-                }
-            }
+            if (model == null)
+                continue;
+
+            handlingPacket = true;
+            var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
+            handlingPacket = false;
+
+            if (!actorObject)
+                continue;
+
+            var networkComponent = actorObject.AddComponent<NetworkActor>();
+            networkComponent.previousPosition = actor.Position;
+            networkComponent.nextPosition = actor.Position;
+            networkComponent.previousRotation = actor.Rotation;
+            networkComponent.nextRotation = actor.Rotation;
+            actorObject.transform.position = actor.Position;
+            actorManager.Actors.Add(actor.ActorId, model);
         }
     }
 }

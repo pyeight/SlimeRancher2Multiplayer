@@ -5,40 +5,24 @@ namespace SR2MP.Packets.S2C;
 
 public sealed class LandPlotsPacket : IPacket
 {
-    public struct Plot : IPacket
+    public sealed class Plot : IPacket
     {
         public string ID { get; set; }
         public LandPlot.Id Type { get; set; }
+        public CppCollections.HashSet<LandPlot.Upgrade> Upgrades { get; set; }
 
-        internal Il2CppSystem.Collections.Generic.List<LandPlot.Upgrade> UpgradesList { get; set; }
-        private Il2CppSystem.Collections.Generic.HashSet<LandPlot.Upgrade> UpgradesSet { get; set; }
-        public readonly Il2CppSystem.Collections.Generic.HashSet<LandPlot.Upgrade> Upgrades => UpgradesSet;
-
-        public readonly void Serialise(PacketWriter writer)
+        public void Serialise(PacketWriter writer)
         {
             writer.WriteString(ID);
             writer.WriteEnum(Type);
-
-            writer.WriteInt(UpgradesList.Count);
-            foreach (var upgrade in UpgradesList)
-                writer.WriteByte((byte)upgrade);
+            writer.WriteCppSet(Upgrades, (writer, value) => writer.WriteEnum(value));
         }
 
         public void Deserialise(PacketReader reader)
         {
             ID = reader.ReadString();
             Type = reader.ReadEnum<LandPlot.Id>();
-
-            UpgradesList = new Il2CppSystem.Collections.Generic.List<LandPlot.Upgrade>();
-            UpgradesSet  = new Il2CppSystem.Collections.Generic.HashSet<LandPlot.Upgrade>();
-
-            int count = reader.ReadInt();
-            for (int i = 0; i < count; i++)
-            {
-                var upgrade = (LandPlot.Upgrade)reader.ReadByte();
-                UpgradesList.Add(upgrade);
-                UpgradesSet.Add(upgrade);
-            }
+            Upgrades = reader.ReadCppSet(reader => reader.ReadEnum<LandPlot.Upgrade>());
         }
     }
 

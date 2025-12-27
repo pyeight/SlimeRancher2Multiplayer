@@ -41,7 +41,9 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var joinPacket = new PlayerJoinPacket
         {
-            Type = (byte)PacketType.PlayerJoin, PlayerId = playerId, PlayerName = Main.Username
+            Type = (byte)PacketType.PlayerJoin,
+            PlayerId = playerId,
+            PlayerName = Main.Username
         };
 
         Main.Server.SendToAllExcept(joinPacket, senderEndPoint);
@@ -53,7 +55,7 @@ public sealed class ConnectHandler : BasePacketHandler
             $"Player {playerId} successfully connected from {senderEndPoint}");
     }
 
-    void SendActorsPacket(IPEndPoint client)
+    private static void SendActorsPacket(IPEndPoint client)
     {
         var actorsList = new List<ActorsPacket.Actor>();
 
@@ -79,7 +81,8 @@ public sealed class ConnectHandler : BasePacketHandler
 
         Main.Server.SendToClient(actorsPacket, client);
     }
-    void SendPlotsPacket(IPEndPoint client)
+
+    private static void SendPlotsPacket(IPEndPoint client)
     {
         var plotsList = new List<LandPlotsPacket.Plot>();
 
@@ -88,17 +91,11 @@ public sealed class ConnectHandler : BasePacketHandler
             var plot = plotKeyValuePair.Value;
             var id = plotKeyValuePair.Key;
 
-            var upgradesList = new Il2CppSystem.Collections.Generic.List<LandPlot.Upgrade>();
-            foreach (var upgrade in plot.upgrades)
-            {
-                upgradesList.Add(upgrade);
-            }
-
             plotsList.Add(new LandPlotsPacket.Plot()
             {
                 ID = id,
                 Type = plot.typeId,
-                UpgradesList = upgradesList,
+                Upgrades = plot.upgrades,
             });
         }
 

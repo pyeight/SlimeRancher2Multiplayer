@@ -15,6 +15,6 @@ public static class Extensions
             return false;
         }
 
-        return gameObject.TryGetComponent<NetworkActor>(out component);
+        return gameObject.TryGetComponent(out component);
     }
 }

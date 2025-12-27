@@ -37,16 +37,9 @@ public sealed class NetworkActor : MonoBehaviour
     private float interpolationStart;
     private float interpolationEnd;
 
-    private float4 EmotionsFloat
-    {
-        get
-        {
-            var value = emotions
-                ? emotions._model.Emotions
-                : new float4(0, 0, 0, 0);
-            return value;
-        }
-    }
+    private float4 EmotionsFloat => emotions
+                                    ? emotions._model.Emotions
+                                    : new float4(0, 0, 0, 0);
 
     void Start()
     {
@@ -151,10 +144,12 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void SetRigidbodyState(bool enabled)
     {
-        if (rigidbody)
-            rigidbody.constraints =
-                enabled
-                    ? RigidbodyConstraints.None
-                    : RigidbodyConstraints.FreezeAll;
+        if (!rigidbody)
+            return;
+
+        rigidbody.constraints =
+            enabled
+                ? RigidbodyConstraints.None
+                : RigidbodyConstraints.FreezeAll;
     }
 }

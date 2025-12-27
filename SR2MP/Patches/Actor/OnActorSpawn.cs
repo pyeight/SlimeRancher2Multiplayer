@@ -72,12 +72,7 @@ public static class OnActorSpawn
     public static void Postfix(
         GameObject __result,
         GameObject original,
-        SceneGroup sceneGroup,
-        Vector3 position,
-        Quaternion rotation,
-        bool nonActorOk = false,
-        SlimeAppearance.AppearanceSaveSet appearance = SlimeAppearance.AppearanceSaveSet.NONE,
-        SlimeAppearance.AppearanceSaveSet secondAppearance = SlimeAppearance.AppearanceSaveSet.NONE)
+        SceneGroup sceneGroup)
     {
         if (handlingPacket) return;
         __result.AddComponent<NetworkActor>().LocallyOwned = true;

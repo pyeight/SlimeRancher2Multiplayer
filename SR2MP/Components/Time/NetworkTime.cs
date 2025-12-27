@@ -21,16 +21,17 @@ public sealed class NetworkTime : MonoBehaviour
     {
         sendTimer += UnityEngine.Time.deltaTime;
 
-        if (sendTimer >= Timers.TimeSyncTimer)
+        if (sendTimer < Timers.TimeSyncTimer)
+            return;
+
+        sendTimer = 0;
+
+        var packet = new WorldTimePacket()
         {
-            sendTimer = 0;
+            Type = (byte)PacketType.WorldTime,
+            Time = timeDirector._worldModel.worldTime
+        };
 
-            var packet = new WorldTimePacket()
-            {
-                Type = (byte)PacketType.WorldTime, Time = timeDirector._worldModel.worldTime
-            };
-
-            Main.Server.SendToAll(packet);
-        }
+        Main.Server.SendToAll(packet);
     }
 }

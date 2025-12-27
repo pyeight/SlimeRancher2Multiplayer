@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text;
+using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
@@ -32,6 +33,8 @@ public sealed class PacketReader : IDisposable
 
     public Quaternion ReadQuaternion() => new Quaternion(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
 
+    public float4 ReadFloat4() => new float4(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
+
     public T[] ReadArray<T>(Func<PacketReader, T> reader)
     {
         var array = new T[_reader.ReadInt32()];
@@ -46,6 +49,39 @@ public sealed class PacketReader : IDisposable
     {
         var count = _reader.ReadInt32();
         var list = new List<T>(count);
+
+        for (var i = 0; i < count; i++)
+            list.Add(reader(this));
+
+        return list;
+    }
+
+    public HashSet<T> ReadSet<T>(Func<PacketReader, T> reader)
+    {
+        var count = _reader.ReadInt32();
+        var list = new HashSet<T>(count);
+
+        for (var i = 0; i < count; i++)
+            list.Add(reader(this));
+
+        return list;
+    }
+
+    public CppCollections.List<T> ReadCppList<T>(Func<PacketReader, T> reader)
+    {
+        var count = _reader.ReadInt32();
+        var list = new CppCollections.List<T>(count);
+
+        for (var i = 0; i < count; i++)
+            list.Add(reader(this));
+
+        return list;
+    }
+
+    public CppCollections.HashSet<T> ReadCppSet<T>(Func<PacketReader, T> reader)
+    {
+        var count = _reader.ReadInt32();
+        var list = new CppCollections.HashSet<T>();
 
         for (var i = 0; i < count; i++)
             list.Add(reader(this));

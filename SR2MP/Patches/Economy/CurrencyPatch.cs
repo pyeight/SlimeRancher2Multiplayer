@@ -12,14 +12,12 @@ public static class CurrencyPatch
     [HarmonyPostfix]
     [HarmonyPatch(nameof(PlayerState.AddCurrency))]
     public static void AddCurrency(
-        PlayerState __instance,
         ICurrency currencyDefinition,
         int adjust,
-        bool showUiNotification = true,
-        IUIDisplayData sourceOfChange = null!)
+        bool showUiNotification = true)
     {
         if (handlingPacket) return;
-        
+
         var currency = currencyDefinition.PersistenceId;
 
         var packet = new CurrencyPacket
@@ -29,16 +27,14 @@ public static class CurrencyPatch
             CurrencyType = (byte)currency,
             ShowUINotification = showUiNotification,
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
     [HarmonyPostfix]
     [HarmonyPatch(nameof(PlayerState.SpendCurrency))]
     public static void SpendCurrency(
-        PlayerState __instance,
         ICurrency currency,
-        int adjust,
-        IUIDisplayData sourceOfChange = null!)
+        int adjust)
     {
         if (handlingPacket) return;
 
@@ -51,7 +47,7 @@ public static class CurrencyPatch
             CurrencyType = (byte)currencyId,
             ShowUINotification = true,
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

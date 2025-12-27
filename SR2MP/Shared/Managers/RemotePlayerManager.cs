@@ -48,7 +48,7 @@ public sealed class RemotePlayerManager
         return false;
     }
     public void SendPlayerUpdate(
-        UnityEngine.Vector3 position,
+        Vector3 position,
         float rotation,
         float horizontalMovement = 0f,
         float forwardMovement = 0f,
