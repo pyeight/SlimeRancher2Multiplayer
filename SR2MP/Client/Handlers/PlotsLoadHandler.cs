@@ -1,4 +1,3 @@
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
 using SR2MP.Shared.Managers;
@@ -29,7 +28,7 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler
                 location.Replace(landPlotComponent, GameContext.Instance.LookupDirector._plotPrefabDict[plot.Type]);
 
                 var landPlotComponent2 = model.gameObj.GetComponentInChildren<LandPlot>();
-                landPlotComponent2.ApplyUpgrades(plot.Upgrades.Cast<Il2CppSystem.Collections.Generic.IEnumerable<LandPlot.Upgrade>>(), false);
+                landPlotComponent2.ApplyUpgrades(plot.Upgrades.Cast<CppCollections.IEnumerable<LandPlot.Upgrade>>(), false);
                 handlingPacket = false;
             }
 

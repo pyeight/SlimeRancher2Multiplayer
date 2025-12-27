@@ -1,5 +1,4 @@
 using System.Net;
-using Il2Cpp;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 

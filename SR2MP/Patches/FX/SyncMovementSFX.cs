@@ -1,5 +1,4 @@
 using HarmonyLib;
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using SR2MP.Packets.Utils;
 

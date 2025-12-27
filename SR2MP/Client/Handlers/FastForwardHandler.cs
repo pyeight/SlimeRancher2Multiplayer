@@ -1,4 +1,3 @@
-using Il2Cpp;
 using SR2MP.Client.Managers;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;

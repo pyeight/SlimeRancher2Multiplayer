@@ -1,10 +1,9 @@
-using Il2Cpp;
 using SR2E.Utils;
 using SR2MP.Components.FX;
 
 namespace SR2MP.Shared.Managers
 {
-    public sealed class RemoteFXManager
+    public class RemoteFXManager
     {
         public readonly Dictionary<string, GameObject> allFX = new();
         public readonly Dictionary<string, SECTR_AudioCue> allCues = new();
@@ -12,15 +11,19 @@ namespace SR2MP.Shared.Managers
         public Dictionary<PlayerFXType, GameObject> playerFXMap = new();
         public Dictionary<PlayerFXType, SECTR_AudioCue> playerAudioCueMap = new();
 
-        public GameObject footstepFX;
+        public Dictionary<WorldFXType, GameObject> worldFXMap = new();
+        public Dictionary<WorldFXType, SECTR_AudioCue> worldAudioCueMap = new();
 
+        public GameObject footstepFX;
+        public GameObject sellFX;
+        
         internal void Initialize()
         {
             allFX.Clear();
             foreach (var particle in Resources.FindObjectsOfTypeAll<ParticleSystemRenderer>())
             {
                 var particleName = particle.gameObject.name.Replace(' ', '_');
-
+                
                 allFX.TryAdd(particleName, particle.gameObject);
             }
             allCues.Clear();
@@ -28,14 +31,14 @@ namespace SR2MP.Shared.Managers
             {
                 if (cue.Spatialization != SECTR_AudioCue.Spatializations.Simple2D)
                     cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
-
+                
                 var cueName = cue.name.Replace(' ', '_');
                 allCues.TryAdd(cueName, cue);
             }
             playerFXMap = new Dictionary<PlayerFXType, GameObject>
             {
                 { PlayerFXType.None, null! },
-                { PlayerFXType.VacReject, allFX["FX_vacReject"] },
+                { PlayerFXType.VacReject, allFX["FX_vacReject"] }, 
                 { PlayerFXType.VacAccept, allFX["FX_vacAcquire"] },
                 { PlayerFXType.VacShoot, allFX["FX_VacpackShoot"] }
             };
@@ -48,6 +51,18 @@ namespace SR2MP.Shared.Managers
                 { PlayerFXType.VacRunningStart, allCues["VacStart"]},
                 { PlayerFXType.VacRunningEnd, allCues["VacEnd"]},
                 { PlayerFXType.VacShootSound, allCues["VacShoot"]},
+            };
+            worldFXMap = new Dictionary<WorldFXType, GameObject>
+            {
+                { WorldFXType.None, null! },
+                { WorldFXType.SellPlort, sellFX ?? allFX["FX_Stars"] },
+            };
+            worldAudioCueMap = new Dictionary<WorldFXType, SECTR_AudioCue>
+            {
+                { WorldFXType.BuyPlot, allCues["PurchaseRanchTechBase"]},
+                { WorldFXType.UpgradePlot, allCues["PurchaseRanchTechUpgrade"]},
+                { WorldFXType.SellPlortSound, allCues["SiloReward"]},
+                { WorldFXType.SellPlortDroneSound, allCues["SiloRewardDrone"]},
             };
             foreach (var playerFX in playerFXMap)
             {
@@ -62,36 +77,71 @@ namespace SR2MP.Shared.Managers
                     }
                 }
             }
-
+            
+            foreach (var worldFX in worldFXMap)
+            {
+                if (worldFX.Value)
+                {
+                    foreach (var particle in Resources.FindObjectsOfTypeAll<ParticleSystemRenderer>()
+                                 .Where(x => x.name.Contains(worldFX.Value.name)))
+                    {
+                        if (!particle.GetComponent<NetworkWorldFX>())
+                            particle.AddComponent<NetworkWorldFX>().fxType = worldFX.Key;
+                    }
+                }
+            }
+            
             footstepFX = allFX["FX_Footstep"];
 
             foreach (var cue in playerAudioCueMap)
             {
                 cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
             }
-
+            foreach (var cue in worldAudioCueMap)
+            {
+                cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
+            }
+            
             SrLogger.LogMessage("RemoteFXManager initialized", SrLogger.LogTarget.Both);
         }
-
+        
         public bool TryGetFXType(SECTR_AudioCue cue, out PlayerFXType fxType)
         {
             var gotFx = false;
             fxType = PlayerFXType.None;
-
+        
             foreach (var pair in playerAudioCueMap)
             {
                 if (pair.Value == cue)
                 {
                     fxType = pair.Key;
                     gotFx = true;
-
+                
                     break;
                 }
             }
-
+        
             return gotFx;
         }
-
+        public bool TryGetFXType(SECTR_AudioCue cue, out WorldFXType fxType)
+        {
+            var gotFx = false;
+            fxType = WorldFXType.None;
+        
+            foreach (var pair in worldAudioCueMap)
+            {
+                if (pair.Value == cue)
+                {
+                    fxType = pair.Key;
+                    gotFx = true;
+                
+                    break;
+                }
+            }
+        
+            return gotFx;
+        }
+        
         public void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, bool loop = false)
         {
             SECTR_AudioSystem.Play(cue, position, loop);

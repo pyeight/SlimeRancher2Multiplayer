@@ -1,4 +1,3 @@
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
 using SR2MP.Shared.Managers;
@@ -19,9 +18,9 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
 
         actorManager.Actors.Clear();
 
-        var toRemove = new Il2CppSystem.Collections.Generic.Dictionary<ActorId, IdentifiableModel>(
+        var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             SceneContext.Instance.GameModel.identifiables
-                .Cast<Il2CppSystem.Collections.Generic.IDictionary<ActorId, IdentifiableModel>>());
+                .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
         foreach (var actor in toRemove)
         {

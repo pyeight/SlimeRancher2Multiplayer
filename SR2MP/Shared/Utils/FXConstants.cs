@@ -4,6 +4,7 @@ namespace SR2MP.Shared.Utils;
 
 public static class FXConstants
 {
+    #region Player FX
     public static readonly ReadOnlyDictionary<PlayerFXType, bool> IsPlayerSoundDictionary = new(new Dictionary<PlayerFXType, bool>()
     {
         { PlayerFXType.None, false },
@@ -51,4 +52,41 @@ public static class FXConstants
         { PlayerFXType.VacSlotChange, true },
         { PlayerFXType.VacShootSound, true },
     });
+
+    #endregion
+
+    #region World FX
+    public static readonly ReadOnlyDictionary<WorldFXType, bool> IsWorldSoundDictionary = new(new Dictionary<WorldFXType, bool>()
+    {
+        { WorldFXType.None, false },
+        { WorldFXType.SellPlort, false },
+        
+        { WorldFXType.BuyPlot, true },
+        { WorldFXType.UpgradePlot, true },
+        { WorldFXType.SellPlortSound, true },
+        { WorldFXType.SellPlortDroneSound, true },
+    });
+    public static readonly ReadOnlyDictionary<WorldFXType, bool> DoesWorldSoundLoopDictionary = new(new Dictionary<WorldFXType, bool>()
+    {
+        { WorldFXType.BuyPlot, false },
+        { WorldFXType.UpgradePlot, false },
+        { WorldFXType.SellPlortSound, false },
+        { WorldFXType.SellPlortDroneSound, false },
+    });
+    public static readonly ReadOnlyDictionary<WorldFXType, float> WorldSoundVolumeDictionary = new(new Dictionary<WorldFXType, float>()
+    {
+        { WorldFXType.BuyPlot, 0.5f },
+        { WorldFXType.UpgradePlot, 0.5f },
+        { WorldFXType.SellPlortSound, 0.5f },
+        { WorldFXType.SellPlortDroneSound, 0.5f },
+    });
+    public static readonly ReadOnlyDictionary<WorldFXType, bool> ShouldWorldSoundBeTransientDictionary = new(new Dictionary<WorldFXType, bool>()
+    {
+        { WorldFXType.BuyPlot, true },
+        { WorldFXType.UpgradePlot, true },
+        { WorldFXType.SellPlortSound, true },
+        { WorldFXType.SellPlortDroneSound, true },
+    });
+
+    #endregion
 }

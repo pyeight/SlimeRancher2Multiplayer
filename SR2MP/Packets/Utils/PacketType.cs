@@ -28,5 +28,7 @@ public enum PacketType : byte
     InitialActors = 28,           // Server -> Client                                                                   Actors on Load
     LandPlotUpdate = 29,          // Both Ways                                                                          Land plot updates (upgrade or set)
     InitialPlots = 30,            // Server -> Client                                                                   Plots on Load
-    InitialPlayerUpgrades = 31    // Server -> Client                                                                   Player Upgrades on Load
+    WorldFX = 31,                 // Both Ways                                                                          On World FX Play
+    InitialPlayerUpgrades = 32,   // Server -> Client                                                                   Player Upgrades on Load
+    InitialPediaEntries = 32      // Server -> Client                                                                   Pedia Entries on Load
 }

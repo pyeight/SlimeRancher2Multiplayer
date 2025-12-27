@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Net;
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
+using Il2CppMonomiPark.SlimeRancher.Pedia;
 using MelonLoader;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -43,7 +43,7 @@ public sealed class ConnectHandler : BasePacketHandler
             RainbowMoney = rainbowMoney
         };
 
-        Main.Server.SendToClient(ackPacket, client);
+        Main.Server.SendToClient(ackPacket, senderEndPoint);
 
         var joinPacket = new PlayerJoinPacket
         {
@@ -55,6 +55,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SendPlotsPacket(senderEndPoint);
         SendActorsPacket(senderEndPoint);
         SendUpgradesPacket(senderEndPoint);
+        SendPediaPacket(senderEndPoint);
 
         SrLogger.LogMessage($"Player {playerId} successfully connected",
             $"Player {playerId} successfully connected from {senderEndPoint}");
@@ -71,9 +72,27 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var upgradesPacket = new UpgradesPacket()
         {
-            Type = (byte)PacketType.InitialPlayerUpgrades, Upgrades = upgrades,
+            Type = (byte)PacketType.InitialPlayerUpgrades,
+            Upgrades = upgrades,
         };
         Main.Server.SendToClient(upgradesPacket, client);
+    } 
+    void SendPediaPacket(IPEndPoint client)
+    {
+        var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
+
+        var unlockedArray = Il2CppSystem.Linq.Enumerable
+            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>())
+            .ToArray(); // ToArray on an il2cpp array makes it mono
+
+        var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId);
+        
+        var pediasPacket = new PediasPacket()
+        {
+            Type = (byte)PacketType.InitialPediaEntries,
+            Entries = unlockedIDs.ToList()
+        };
+        Main.Server.SendToClient(pediasPacket, client);
     }
 
     void SendActorsPacket(IPEndPoint client)
@@ -112,7 +131,7 @@ public sealed class ConnectHandler : BasePacketHandler
             var plot = plotKeyValuePair.Value;
             var id = plotKeyValuePair.Key;
             
-            var upgradesList = new Il2CppSystem.Collections.Generic.List<LandPlot.Upgrade>();
+            var upgradesList = new CppCollections.List<LandPlot.Upgrade>();
             foreach (var upgrade in plot.upgrades)
             {
                 upgradesList.Add(upgrade);

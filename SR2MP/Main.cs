@@ -1,5 +1,4 @@
-﻿using Il2Cpp;
-using Il2CppTMPro;
+﻿using Il2CppTMPro;
 using MelonLoader;
 using SR2E.Expansion;
 using SR2MP.Components.FX;
