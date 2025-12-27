@@ -15,7 +15,7 @@ public static class UpgradeLandPlot
         if (!__instance)
             return;
 
-        var packet = new LandPlotUpdatePacket()
+        var packet = new LandPlotUpdatePacket
         {
             Type = (byte)PacketType.LandPlotUpdate,
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id,

@@ -17,16 +17,15 @@ public static class OnGameLoadPatch
 
                 var transform = actor.value.Transform;
 
-                if (transform)
-                {
-                    var networkComponent = transform.GetComponent<NetworkActor>();
+                if (!transform)
+                    continue;
+                var networkComponent = transform.GetComponent<NetworkActor>();
 
-                    if (networkComponent) continue;
+                if (networkComponent) continue;
 
-                    transform.gameObject.AddComponent<NetworkActor>().LocallyOwned = true;
+                transform.gameObject.AddComponent<NetworkActor>().LocallyOwned = true;
 
-                    actorManager.Actors.Add(transform.GetComponent<Identifiable>().GetActorId().Value, actor.value);
-                }
+                actorManager.Actors.Add(transform.GetComponent<Identifiable>().GetActorId().Value, actor.value);
             }
         };
     }

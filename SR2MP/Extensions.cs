@@ -9,12 +9,10 @@ public static class Extensions
     {
         var gameObject = actor.GetGameObject();
 
-        if (gameObject == null)
-        {
-            component = null!;
-            return false;
-        }
+        if (gameObject)
+            return gameObject.TryGetComponent(out component);
 
-        return gameObject.TryGetComponent(out component);
+        component = null!;
+        return false;
     }
 }

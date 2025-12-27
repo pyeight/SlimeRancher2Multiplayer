@@ -14,10 +14,8 @@ public sealed class ActorDestroyHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorDestroyPacket>();
 
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
+        if (!actorManager.Actors.Remove(packet.ActorId.Value, out var actor))
             return;
-
-        actorManager.Actors.Remove(packet.ActorId.Value);
 
         SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor);
 

@@ -13,12 +13,12 @@ public struct WorldFXPacket : IPacket
         SellPlortSound,
         SellPlortDroneSound,
     }
-    
+
     public byte Type { get; set; }
     public WorldFXType FX { get; set; }
-    
+
     public Vector3 Position { get; set; }
-    
+
     public readonly void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);

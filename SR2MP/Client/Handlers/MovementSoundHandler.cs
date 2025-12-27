@@ -14,6 +14,6 @@ public sealed class MovementSoundHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<MovementSoundPacket>();
 
-        fxManager.PlayTransientAudio(fxManager.allCues[packet.CueName], packet.Position);
+        RemoteFXManager.PlayTransientAudio(fxManager.allCues[packet.CueName], packet.Position);
     }
 }

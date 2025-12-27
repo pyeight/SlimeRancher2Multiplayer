@@ -42,19 +42,16 @@ public sealed class ClientManager
             OnClientAdded?.Invoke(client);
             return client;
         }
-        else
-        {
-            SrLogger.LogWarning($"Client already exists! (PlayerId: {playerId})",
-                $"Client already exists: {clientInfo} (PlayerId: {playerId})");
-            return clients[clientInfo];
-        }
+        SrLogger.LogWarning($"Client already exists! (PlayerId: {playerId})",
+            $"Client already exists: {clientInfo} (PlayerId: {playerId})");
+        return clients[clientInfo];
     }
 
     public bool RemoveClient(string clientInfo)
     {
         if (clients.TryRemove(clientInfo, out var client))
         {
-            SrLogger.LogMessage($"Client removed!",
+            SrLogger.LogMessage("Client removed!",
                 $"Client removed: {clientInfo}");
             OnClientRemoved?.Invoke(client);
             return true;

@@ -10,7 +10,7 @@ public sealed class FastForwardHandler : BasePacketHandler
     public FastForwardHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<WorldTimePacket>();
@@ -19,10 +19,9 @@ public sealed class FastForwardHandler : BasePacketHandler
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(new WorldTimePacket()
+        Main.Server.SendToAllExcept(packet with
         {
-            Type = (byte)PacketType.BroadcastFastForward,
-            Time = packet.Time
-        }, senderEndPoint);
+            Type = (byte)PacketType.BroadcastFastForward
+        }, clientEp);
     }
 }

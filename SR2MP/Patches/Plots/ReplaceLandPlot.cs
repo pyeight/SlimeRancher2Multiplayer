@@ -12,7 +12,7 @@ public static class ReplaceLandPlot
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
 
-        var packet = new LandPlotUpdatePacket()
+        var packet = new LandPlotUpdatePacket
         {
             Type = (byte)PacketType.LandPlotUpdate,
             ID = __instance._id,

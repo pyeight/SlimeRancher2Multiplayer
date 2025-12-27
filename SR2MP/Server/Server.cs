@@ -52,18 +52,18 @@ public sealed class Server
         }
     }
 
-    private void OnDataReceived(byte[] data, IPEndPoint clientEP)
+    private void OnDataReceived(byte[] data, IPEndPoint clientEp)
     {
         SrLogger.LogPacketSize($"Received {data.Length} bytes from Client!",
-            $"Received {data.Length} bytes from {clientEP}.");
+            $"Received {data.Length} bytes from {clientEp}.");
 
         try
         {
-            packetManager.HandlePacket(data, clientEP);
+            packetManager.HandlePacket(data, clientEp);
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error handling packet from {clientEP}: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}", SrLogger.LogTarget.Both);
         }
     }
 
@@ -87,17 +87,17 @@ public sealed class Server
         SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogger.LogTarget.Both);
     }
 
-    private void CheckTimeouts(object? state)
-    {
-        try
-        {
-            clientManager.RemoveTimedOutClients();
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogError($"Error checking timeouts: {ex}");
-        }
-    }
+    // private void CheckTimeouts(object? state)
+    // {
+    //     try
+    //     {
+    //         clientManager.RemoveTimedOutClients();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         SrLogger.LogError($"Error checking timeouts: {ex}");
+    //     }
+    // }
 
     public void Close()
     {

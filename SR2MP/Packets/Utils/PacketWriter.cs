@@ -6,13 +6,13 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketWriter : IDisposable
 {
-    private readonly MemoryStream stream;
+    private readonly MemoryStream _stream;
     private readonly BinaryWriter _writer;
 
     public PacketWriter()
     {
-        stream = new MemoryStream();
-        _writer = new BinaryWriter(stream, Encoding.UTF8);
+        _stream = new MemoryStream();
+        _writer = new BinaryWriter(_stream, Encoding.UTF8);
     }
 
     public void WriteByte(byte value) => _writer.Write(value);
@@ -27,7 +27,7 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteDouble(double value) => _writer.Write(value);
 
-    public void WriteString(string value) => _writer.Write(value ?? string.Empty);
+    public void WriteString(string? value) => _writer.Write(value ?? string.Empty);
 
     public void WriteBool(bool value) => _writer.Write(value);
 
@@ -130,12 +130,12 @@ public sealed class PacketWriter : IDisposable
         }
     }
 
-    public byte[] ToArray() => stream.ToArray();
+    public byte[] ToArray() => _stream.ToArray();
 
     public void Dispose()
     {
         _writer?.Dispose();
-        stream?.Dispose();
+        _stream?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

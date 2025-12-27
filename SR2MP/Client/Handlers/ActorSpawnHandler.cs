@@ -24,21 +24,21 @@ public sealed class ActorSpawnHandler : BaseClientPacketHandler
             packet.Rotation)
             .TryCast<ActorModel>();
 
-        if (model != null)
-        {
-            handlingPacket = true;
-            var actor = InstantiationHelpers.InstantiateActorFromModel(model);
-            handlingPacket = false;
-            if (actor)
-            {
-                var networkComponent = actor.AddComponent<NetworkActor>();
-                networkComponent.previousPosition = packet.Position;
-                networkComponent.nextPosition = packet.Position;
-                networkComponent.previousRotation = packet.Rotation;
-                networkComponent.nextRotation = packet.Rotation;
-                actor.transform.position = packet.Position;
-                actorManager.Actors.Add(packet.ActorId.Value, model);
-            }
-        }
+        if (model == null)
+            return;
+
+        handlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model);
+        handlingPacket = false;
+
+        if (!actor)
+            return;
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.previousPosition = packet.Position;
+        networkComponent.nextPosition = packet.Position;
+        networkComponent.previousRotation = packet.Rotation;
+        networkComponent.nextRotation = packet.Rotation;
+        actor.transform.position = packet.Position;
+        actorManager.Actors.Add(packet.ActorId.Value, model);
     }
 }

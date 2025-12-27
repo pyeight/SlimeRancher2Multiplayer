@@ -14,11 +14,7 @@ public static class OnActorDestroy
         {
             if (Main.Server.IsRunning() || Main.Client.IsConnected)
             {
-                if (source.Equals("ResourceCycle.RegistryUpdate#1"))
-                {
-                    return false;
-                }
-                if (source.Equals("SlimeFeral.Awake"))
+                if (source is "ResourceCycle.RegistryUpdate#1" or "SlimeFeral.Awake")
                 {
                     return false;
                 }
@@ -26,25 +22,25 @@ public static class OnActorDestroy
         }
         catch { }
 
-        if ((Main.Server.IsRunning() || Main.Client.IsConnected) && !handlingPacket && actorObj)
+        if ((!Main.Server.IsRunning() && !Main.Client.IsConnected) || handlingPacket || !actorObj)
+            return true;
+
+        var actor = actorObj.GetComponent<IdentifiableActor>();
+        if (!actor)
+            return true;
+
+        try
         {
-            var actor = actorObj.GetComponent<IdentifiableActor>();
-            if (actor)
+            var packet = new ActorDestroyPacket
             {
-                try
-                {
-                    var packet = new ActorDestroyPacket()
-                    {
-                        Type = (byte)PacketType.ActorDestroy,
-                        ActorId = actor.GetActorId(),
-                    };
-                    Main.SendToAllOrServer(packet);
-                }
-                catch (Exception ex)
-                {
-                    SrLogger.LogError($"Failed to send ActorDestroy packet: {ex.Message}");
-                }
-            }
+                Type = (byte)PacketType.ActorDestroy,
+                ActorId = actor.GetActorId(),
+            };
+            Main.SendToAllOrServer(packet);
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Failed to send ActorDestroy packet: {ex.Message}");
         }
         return true;
     }

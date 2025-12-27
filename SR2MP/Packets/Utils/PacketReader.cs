@@ -6,13 +6,13 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketReader : IDisposable
 {
-    private readonly MemoryStream stream;
+    private readonly MemoryStream _stream;
     private readonly BinaryReader _reader;
 
     public PacketReader(byte[] data)
     {
-        stream = new MemoryStream(data);
-        _reader = new BinaryReader(stream, Encoding.UTF8);
+        _stream = new MemoryStream(data);
+        _reader = new BinaryReader(_stream, Encoding.UTF8);
     }
 
     public byte ReadByte() => _reader.ReadByte();
@@ -133,12 +133,12 @@ public sealed class PacketReader : IDisposable
         }
     }
 
-    public void Skip(int count) => stream.Position += count;
+    public void Skip(int count) => _stream.Position += count;
 
     public void Dispose()
     {
         _reader?.Dispose();
-        stream?.Dispose();
+        _stream?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

@@ -34,23 +34,21 @@ public static class PacketChunkManager
         packet.chunkIndex++;
         SrLogger.LogPacketSize($"New chunk: type: {packetType}, index: {chunkIndex}, total: {totalChunks}");
 
-        if (chunkIndex + 1 >= packet.totalChunks)
-        {
-            var completeData = new List<byte>();
-            foreach (var chunk in packet.chunks)
-            {
-                completeData.AddRange(chunk);
-            }
-
-            incompletePackets.Remove(packetType);
-
-            SrLogger.LogPacketSize($"Fully finished merge: type={packetType}");
-
-            fullData = completeData.ToArray();
-            return true;
-        }
-        else
+        if (chunkIndex + 1 < packet.totalChunks)
             return false;
+
+        var completeData = new List<byte>();
+        foreach (var chunk in packet.chunks)
+        {
+            completeData.AddRange(chunk);
+        }
+
+        incompletePackets.Remove(packetType);
+
+        SrLogger.LogPacketSize($"Fully finished merge: type={packetType}");
+
+        fullData = completeData.ToArray();
+        return true;
     }
 
     internal static byte[][] SplitPacket(byte[] data)

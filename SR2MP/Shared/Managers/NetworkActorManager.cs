@@ -8,7 +8,7 @@ public sealed class NetworkActorManager
 
     public readonly Dictionary<int, IdentifiableType> ActorTypes = new Dictionary<int, IdentifiableType>();
 
-    public int GetPersistentID(IdentifiableType type)
+    public static int GetPersistentID(IdentifiableType type)
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation.GetPersistenceId(type);
 
     internal void Initialize(GameContext context)

@@ -38,9 +38,6 @@ public static class PlayerIdGenerator
         if (!playerId.StartsWith("PLAYER_"))
             return false;
 
-        if (playerId.Length != 16)
-            return false;
-
-        return true;
+        return playerId.Length == 16;
     }
 }

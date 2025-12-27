@@ -30,16 +30,13 @@ public sealed class RemotePlayerManager
             OnPlayerAdded?.Invoke(playerId);
             return player;
         }
-        else
-        {
-            SrLogger.LogWarning($"Remote player already exists: {playerId}", SrLogger.LogTarget.Both);
-            return players[playerId];
-        }
+        SrLogger.LogWarning($"Remote player already exists: {playerId}", SrLogger.LogTarget.Both);
+        return players[playerId];
     }
 
     public bool RemovePlayer(string playerId)
     {
-        if (players.TryRemove(playerId, out var player))
+        if (players.TryRemove(playerId, out _))
         {
             SrLogger.LogMessage($"Remote player removed: {playerId}", SrLogger.LogTarget.Both);
             OnPlayerRemoved?.Invoke(playerId);
@@ -47,7 +44,7 @@ public sealed class RemotePlayerManager
         }
         return false;
     }
-    public void SendPlayerUpdate(
+    public static void SendPlayerUpdate(
         Vector3 position,
         float rotation,
         float horizontalMovement = 0f,
@@ -95,23 +92,22 @@ public sealed class RemotePlayerManager
         bool sprinting,
         float lookY)
     {
-        if (players.TryGetValue(playerId, out var player))
-        {
-            player.Position = position;
-            player.Rotation = rotation;
-            player.HorizontalMovement = horizontalMovement;
-            player.ForwardMovement = forwardMovement;
-            player.Yaw = yaw;
-            player.AirborneState = airborneState;
-            player.Moving = moving;
-            player.HorizontalSpeed = horizontalSpeed;
-            player.ForwardSpeed = forwardSpeed;
-            player.Sprinting = sprinting;
-            player.LastLookY = player.LookY;
-            player.LookY = lookY;
-            player.LastUpdate = DateTime.UtcNow;
-            OnPlayerUpdated?.Invoke(playerId, player);
-        }
+        if (!players.TryGetValue(playerId, out var player))
+            return;
+        player.Position = position;
+        player.Rotation = rotation;
+        player.HorizontalMovement = horizontalMovement;
+        player.ForwardMovement = forwardMovement;
+        player.Yaw = yaw;
+        player.AirborneState = airborneState;
+        player.Moving = moving;
+        player.HorizontalSpeed = horizontalSpeed;
+        player.ForwardSpeed = forwardSpeed;
+        player.Sprinting = sprinting;
+        player.LastLookY = player.LookY;
+        player.LookY = lookY;
+        player.LastUpdate = DateTime.UtcNow;
+        OnPlayerUpdated?.Invoke(playerId, player);
     }
 
     public List<RemotePlayer> GetAllPlayers()

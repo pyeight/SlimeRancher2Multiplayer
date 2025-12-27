@@ -7,8 +7,8 @@ namespace SR2MP.Patches.Time;
 [HarmonyPatch(typeof(SceneContext), nameof(SceneContext.Start))]
 public static class OnTimeDirectorStarted
 {
-    private static bool injectedToServer = false; 
-    
+    private static bool injectedToServer;
+
     public static void Postfix(SceneContext __instance)
     {
         // This is temporary until we have a proper GUI (we should not host in the menu)

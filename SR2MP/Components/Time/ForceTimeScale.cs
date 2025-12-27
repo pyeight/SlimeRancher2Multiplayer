@@ -9,20 +9,19 @@ public sealed class ForceTimeScale : MonoBehaviour
 
     private void Update()
     {
-        if (Main.Server.IsRunning() || Main.Client.IsConnected)
+        if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+            return;
+        if (GameContext.Instance.InputDirector._paused.Map.enabled)
         {
-            if (GameContext.Instance.InputDirector._paused.Map.enabled)
-            {
-                Cursor.visible = true;
-                Cursor.lockState = CursorLockMode.None;
-            }
-            else
-            {
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
-            }
-
-            UnityEngine.Time.timeScale = timeScale;
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
+        else
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        UnityEngine.Time.timeScale = timeScale;
     }
 }

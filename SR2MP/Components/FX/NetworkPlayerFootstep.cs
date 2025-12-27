@@ -42,23 +42,22 @@ public sealed class NetworkPlayerFootstep : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (collider.CompareTag("Water") || collider.gameObject.layer == LayerMask.NameToLayer("Water"))
-        {
-            playerInWater = true;
-            footstepParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-        }
+        if (!collider.CompareTag("Water") && collider.gameObject.layer != LayerMask.NameToLayer("Water"))
+            return;
+        playerInWater = true;
+        footstepParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
     private void OnTriggerExit(Collider collider)
     {
-        if (collider.CompareTag("Water") || collider.gameObject.layer == LayerMask.NameToLayer("Water"))
-        {
-            playerInWater = false;
+        if (!collider.CompareTag("Water") && collider.gameObject.layer != LayerMask.NameToLayer("Water"))
+            return;
 
-            if (playerGrounded)
-            {
-                footstepParticles.Play(true);
-            }
+        playerInWater = false;
+
+        if (playerGrounded)
+        {
+            footstepParticles.Play(true);
         }
     }
 
@@ -70,10 +69,9 @@ public sealed class NetworkPlayerFootstep : MonoBehaviour
         // "Magic number that breaks everything if you change it"
         var isGrounded = CheckGrounded(-1728543467);
 
-        if (isGrounded != playerGrounded)
-        {
-            playerGrounded = isGrounded;
-            UpdateFXState();
-        }
+        if (isGrounded == playerGrounded)
+            return;
+        playerGrounded = isGrounded;
+        UpdateFXState();
     }
 }

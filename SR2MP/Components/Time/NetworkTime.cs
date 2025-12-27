@@ -25,7 +25,7 @@ public sealed class NetworkTime : MonoBehaviour
 
         sendTimer = 0;
 
-        var packet = new WorldTimePacket()
+        var packet = new WorldTimePacket
         {
             Type = (byte)PacketType.WorldTime,
             Time = timeDirector._worldModel.worldTime

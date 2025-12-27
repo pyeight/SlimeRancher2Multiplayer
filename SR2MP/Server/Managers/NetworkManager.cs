@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Shared.Managers;
+using Thread = Il2CppSystem.Threading.Thread;
 
 namespace SR2MP.Server.Managers;
 
@@ -8,7 +9,7 @@ public sealed class NetworkManager
 {
     private UdpClient? udpClient;
     private volatile bool isRunning;
-    private Il2CppSystem.Threading.Thread? receiveThread;
+    private Thread? receiveThread;
 
     public event Action<byte[], IPEndPoint>? OnDataReceived;
 
@@ -44,7 +45,7 @@ public sealed class NetworkManager
 
             isRunning = true;
 
-            receiveThread = new Il2CppSystem.Threading.Thread(new Action(ReceiveLoop));
+            receiveThread = new Thread(new Action(ReceiveLoop));
             receiveThread.IsBackground = true;
             receiveThread.Start();
         }
@@ -65,20 +66,20 @@ public sealed class NetworkManager
 
         SrLogger.LogMessage("Server ReceiveLoop started!", SrLogger.LogTarget.Both);
 
-        IPEndPoint remoteEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+        IPEndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         while (isRunning)
         {
             try
             {
-                byte[] data = udpClient.Receive(ref remoteEP);
+                byte[] data = udpClient.Receive(ref remoteEp);
 
-                if (data.Length > 0)
-                {
-                    OnDataReceived?.Invoke(data, remoteEP);
-                    SrLogger.LogPacketSize($"Received {data.Length} bytes",
-                        $"Received {data.Length} bytes from {remoteEP}");
-                }
+                if (data.Length == 0)
+                    continue;
+
+                OnDataReceived?.Invoke(data, remoteEp);
+                SrLogger.LogPacketSize($"Received {data.Length} bytes",
+                    $"Received {data.Length} bytes from {remoteEp}");
             }
             catch (SocketException)
             {
@@ -131,7 +132,7 @@ public sealed class NetworkManager
         {
             udpClient?.Close();
 
-            if (receiveThread != null && receiveThread.IsAlive)
+            if (receiveThread is { IsAlive: true })
             {
                 SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogger.LogTarget.Both);
             }

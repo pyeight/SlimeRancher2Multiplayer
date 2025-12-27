@@ -14,14 +14,14 @@ public sealed class LandPlotsPacket : IPacket
         {
             writer.WriteString(ID);
             writer.WriteEnum(Type);
-            writer.WriteCppSet(Upgrades, (writer, value) => writer.WriteEnum(value));
+            writer.WriteCppSet(Upgrades, (writer2, value) => writer2.WriteEnum(value));
         }
 
         public void Deserialise(PacketReader reader)
         {
             ID = reader.ReadString();
             Type = reader.ReadEnum<LandPlot.Id>();
-            Upgrades = reader.ReadCppSet(reader => reader.ReadEnum<LandPlot.Upgrade>());
+            Upgrades = reader.ReadCppSet(reader2 => reader2.ReadEnum<LandPlot.Upgrade>());
         }
     }
 
@@ -31,12 +31,12 @@ public sealed class LandPlotsPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
-        writer.WriteList(Plots, (writer, value) => value.Serialise(writer));
+        writer.WriteList(Plots, (writer2, value) => value.Serialise(writer2));
     }
 
     public void Deserialise(PacketReader reader)
     {
         Type = reader.ReadByte();
-        Plots = reader.ReadList(reader => reader.ReadPacket<Plot>());
+        Plots = reader.ReadList(reader2 => reader2.ReadPacket<Plot>());
     }
 }

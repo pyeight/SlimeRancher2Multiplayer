@@ -10,7 +10,7 @@ public sealed class PlayerUpdateHandler : BasePacketHandler
     public PlayerUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerUpdatePacket>();
@@ -34,6 +34,6 @@ public sealed class PlayerUpdateHandler : BasePacketHandler
             packet.LookY
         );
 
-        Main.Server.SendToAllExcept(packet, senderEndPoint);
+        Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

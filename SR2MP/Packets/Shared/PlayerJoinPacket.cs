@@ -6,7 +6,7 @@ public sealed class PlayerJoinPacket : IPacket
 {
     public byte Type { get; set; }
     public string PlayerId { get; set; }
-    public string PlayerName { get; set; }
+    public string? PlayerName { get; set; }
 
     public void Serialise(PacketWriter writer)
     {

@@ -17,7 +17,7 @@ public sealed class NetworkWorldFX : MonoBehaviour
     {
         if (handlingPacket) return;
 
-        var packet = new WorldFXPacket()
+        var packet = new WorldFXPacket
         {
             Type = (byte)PacketType.WorldFX,
             FX = fxType,

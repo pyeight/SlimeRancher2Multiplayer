@@ -28,7 +28,7 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler
 
         if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
         {
-            fxManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position);
+            RemoteFXManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position);
         }
         else
         {

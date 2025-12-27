@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Il2CppTMPro;
@@ -14,6 +15,7 @@ using System.Collections;
 // This was made for SR2EExpansionV3
 // This is MLEntrypoint V1
 #pragma warning disable RCS1110 // Declare type inside namespace
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 internal sealed class MLEntrypoint : MelonMod
 #pragma warning restore RCS1110 // Declare type inside namespace
 {
@@ -29,23 +31,23 @@ internal sealed class MLEntrypoint : MelonMod
     };
 
     private SR2EExpansionV3 expansion;
-    private bool isCorrectSR2EInstalled = false;
+    private bool isCorrectSR2EInstalled;
     private string installedSR2Ver = string.Empty;
 
     public override void OnInitializeMelon()
     {
         foreach (var melonBase in MelonBase.RegisteredMelons)
         {
-            if (melonBase.Info.Name == "SR2E")
-            {
-                isCorrectSR2EInstalled = true;
-                installedSR2Ver = melonBase.Info.Version;
-            }
+            if (melonBase.Info.Name != "SR2E")
+                continue;
+
+            isCorrectSR2EInstalled = true;
+            installedSR2Ver = melonBase.Info.Version;
         }
 
         if (isCorrectSR2EInstalled)
         {
-            if (IsSameOrNewer(BuildInfo.MinSR2EVersion, installedSR2Ver))
+            if (IsSameOrNewer(BuildInfo.MinSr2EVersion, installedSR2Ver))
             {
                 OnSR2EInstalled();
                 return;
@@ -63,7 +65,7 @@ internal sealed class MLEntrypoint : MelonMod
 
         try
         {
-            RegisterBrokenInSR2E("Requires SR2E " + BuildInfo.MinSR2EVersion + " or newer!");
+            RegisterBrokenInSR2E("Requires SR2E " + BuildInfo.MinSr2EVersion + " or newer!");
         }
         catch { }
 
@@ -86,11 +88,11 @@ internal sealed class MLEntrypoint : MelonMod
         {
             var scene = SceneManager.GetSceneAt(i);
 
-            if (scene.name.Contains("MainMenu") && scene.isLoaded)
-            {
-                hasMainMenuUI = true;
-                break;
-            }
+            if (!scene.name.Contains("MainMenu") || !scene.isLoaded)
+                continue;
+
+            hasMainMenuUI = true;
+            break;
         }
 
         if (hasMainMenuUI)
@@ -114,7 +116,7 @@ internal sealed class MLEntrypoint : MelonMod
         canvas.sortingOrder = 20000;
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-        var superBG = CreateBackground("SuperBackground", canvasObj, new Color(0.1059f, 0.1059f, 0.1137f, 1f), 1f);
+        CreateBackground("SuperBackground", canvasObj, new Color(0.1059f, 0.1059f, 0.1137f, 1f), 1f);
         var background = CreateBackground("Background", canvasObj, new Color(0.1882f, 0.2196f, 0.2745f, 1f), 1.23f);
 
         var titleObj = new GameObject("TitleText");
@@ -199,34 +201,35 @@ internal sealed class MLEntrypoint : MelonMod
 
         msgTMP.text = "An error occurred with the mod <b>'" + BuildInfo.Name + "'</b>!\n\n";
 
-        if (message == 0)
+        switch (message)
         {
-            msgTMP.text += "In order to run the mod '" + BuildInfo.Name + "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via Nexusmods, GitHub or the SR2E website.";
-            btn.onClick.AddListener((Action)Application.Quit);
-            tmp.text = "Quit";
-        }
-        else if (message == 1)
-        {
-            msgTMP.text += "In order to run the mod '" + BuildInfo.Name + $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSR2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via Nexusmods, GitHub or the SR2E website.";
-            btn.onClick.AddListener((Action)(() =>
-            {
-                var fixTime = true;
-
-                foreach (var obj in GameObject.FindGameObjectsWithTag("Finish"))
+            case 0:
+                msgTMP.text += "In order to run the mod '" + BuildInfo.Name + "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via Nexusmods, GitHub or the SR2E website.";
+                btn.onClick.AddListener((Action)Application.Quit);
+                tmp.text = "Quit";
+                break;
+            case 1:
+                msgTMP.text += "In order to run the mod '" + BuildInfo.Name + $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via Nexusmods, GitHub or the SR2E website.";
+                btn.onClick.AddListener((Action)(() =>
                 {
-                    if (!obj.name.Contains("SR2EExpansionIC") || obj == canvasObj)
-                        continue;
+                    var fixTime = true;
 
-                    fixTime = false;
-                    break;
-                }
+                    foreach (var obj in GameObject.FindGameObjectsWithTag("Finish"))
+                    {
+                        if (!obj.name.Contains("SR2EExpansionIC") || obj == canvasObj)
+                            continue;
 
-                if (fixTime)
-                    Time.timeScale = 1f;
+                        fixTime = false;
+                        break;
+                    }
 
-                Object.Destroy(canvasObj);
-            }));
-            tmp.text = "Continue without this mod";
+                    if (fixTime)
+                        Time.timeScale = 1f;
+
+                    Object.Destroy(canvasObj);
+                }));
+                tmp.text = "Continue without this mod";
+                break;
         }
     }
 

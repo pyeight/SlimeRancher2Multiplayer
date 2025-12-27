@@ -8,7 +8,8 @@ public sealed class MainThreadDispatcher : MonoBehaviour
 {
     public static MainThreadDispatcher Instance { get; private set; }
 
-    private static readonly ConcurrentQueue<Action> actionQueue = new();
+    // ReSharper disable once InconsistentNaming
+    private static readonly ConcurrentQueue<Action?> actionQueue = new();
 
     public static void Initialize()
     {
@@ -38,7 +39,7 @@ public sealed class MainThreadDispatcher : MonoBehaviour
         }
     }
 
-    public static void Enqueue(Action action)
+    public static void Enqueue(Action? action)
     {
         actionQueue.Enqueue(action);
     }

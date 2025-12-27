@@ -48,7 +48,7 @@ public sealed class PacketManager
         SrLogger.LogMessage($"Total handlers registered: {handlers.Count}", SrLogger.LogTarget.Both);
     }
 
-    public void HandlePacket(byte[] data, IPEndPoint clientEP)
+    public void HandlePacket(byte[] data, IPEndPoint clientEp)
     {
         if (data.Length < 1)
         {
@@ -69,7 +69,7 @@ public sealed class PacketManager
         {
             try
             {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEP));
+                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEp));
             }
             catch (Exception ex)
             {

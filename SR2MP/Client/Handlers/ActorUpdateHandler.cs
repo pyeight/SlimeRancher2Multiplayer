@@ -28,14 +28,14 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler
         var slime = actor.TryCast<SlimeModel>();
         if (slime != null)
             slime.Emotions = packet.Emotions;
-        if (actor.TryGetNetworkComponent(out var networkComponent))
-        {
-            networkComponent.SavedVelocity = packet.Velocity;
-            networkComponent.nextPosition = packet.Position;
-            networkComponent.nextRotation = packet.Rotation;
+        if (!actor.TryGetNetworkComponent(out var networkComponent))
+            return;
 
-            if (slime != null)
-                networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
-        }
+        networkComponent.SavedVelocity = packet.Velocity;
+        networkComponent.nextPosition = packet.Position;
+        networkComponent.nextRotation = packet.Rotation;
+
+        if (slime != null)
+            networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
     }
 }

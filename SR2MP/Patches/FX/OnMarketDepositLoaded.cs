@@ -1,6 +1,4 @@
 using HarmonyLib;
-using SR2E.Utils;
-using SR2MP.Components.FX;
 
 namespace SR2MP.Patches.FX;
 

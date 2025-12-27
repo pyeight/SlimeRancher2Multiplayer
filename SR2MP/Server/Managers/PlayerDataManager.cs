@@ -103,15 +103,14 @@ public sealed class PlayerDataManager
             var json = File.ReadAllText(SavePath);
             var playerList = JsonConvert.DeserializeObject<List<PlayerData>>(json);
 
-            if (playerList != null)
+            if (playerList == null)
+                return;
+            foreach (var data in playerList)
             {
-                foreach (var data in playerList)
-                {
-                    playerDataCache[data.PlayerId] = data;
-                }
-
-                SrLogger.LogMessage($"Loaded data for {playerDataCache.Count} players", SrLogger.LogTarget.Both);
+                playerDataCache[data.PlayerId] = data;
             }
+
+            SrLogger.LogMessage($"Loaded data for {playerDataCache.Count} players", SrLogger.LogTarget.Both);
         }
         catch (Exception ex)
         {
@@ -121,7 +120,7 @@ public sealed class PlayerDataManager
 
     public PlayerData? GetPlayerData(string playerId)
     {
-        return playerDataCache.TryGetValue(playerId, out var data) ? data : null;
+        return playerDataCache.GetValueOrDefault(playerId);
     }
 
     public bool HasPlayerData(string playerId)
@@ -136,12 +135,10 @@ public sealed class PlayerDataManager
 
     public bool DeletePlayerData(string playerId)
     {
-        if (playerDataCache.Remove(playerId))
-        {
-            SaveAllPlayerData();
-            SrLogger.LogMessage($"Deleted player data: {playerId}", SrLogger.LogTarget.Both);
-            return true;
-        }
-        return false;
+        if (!playerDataCache.Remove(playerId))
+            return false;
+        SaveAllPlayerData();
+        SrLogger.LogMessage($"Deleted player data: {playerId}", SrLogger.LogTarget.Both);
+        return true;
     }
 }

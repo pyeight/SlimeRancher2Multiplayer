@@ -6,8 +6,8 @@ using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 using Unity.Mathematics;
-
 using Delegate = Il2CppSystem.Delegate;
+using Type = Il2CppSystem.Type;
 
 namespace SR2MP.Components.Actor;
 
@@ -51,7 +51,7 @@ public sealed class NetworkActor : MonoBehaviour
         regionMember = GetComponent<RegionMember>();
 
         regionMember.add_BeforeHibernationChanged(
-            Delegate.CreateDelegate(Il2CppSystem.Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
+            Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
                     .GetEvent("BeforeHibernationChanged").EventHandlerType,
                 this.Cast<Il2CppSystem.Object>(),
                 nameof(HibernationChanged),
@@ -120,13 +120,13 @@ public sealed class NetworkActor : MonoBehaviour
             nextPosition = transform.position;
             nextRotation = transform.rotation;
 
-            var packet = new ActorUpdatePacket()
+            var packet = new ActorUpdatePacket
             {
                 Type = (byte)PacketType.ActorUpdate,
                 ActorId = ActorId,
                 Position = transform.position,
                 Rotation = transform.rotation,
-                Velocity = rigidbody?.velocity ?? Vector3.zero,
+                Velocity = rigidbody ? rigidbody.velocity : Vector3.zero,
                 Emotions = EmotionsFloat
             };
 
@@ -142,13 +142,13 @@ public sealed class NetworkActor : MonoBehaviour
         }
     }
 
-    private void SetRigidbodyState(bool enabled)
+    private void SetRigidbodyState(bool enableConstraints)
     {
         if (!rigidbody)
             return;
 
         rigidbody.constraints =
-            enabled
+            enableConstraints
                 ? RigidbodyConstraints.None
                 : RigidbodyConstraints.FreezeAll;
     }

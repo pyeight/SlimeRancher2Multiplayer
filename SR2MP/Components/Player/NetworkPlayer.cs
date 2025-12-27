@@ -6,6 +6,7 @@ using SR2E.Utils;
 using SR2MP.Client.Models;
 using SR2MP.Components.FX;
 using SR2MP.Components.Utils;
+using SR2MP.Shared.Managers;
 using static SR2E.ContextShortcuts;
 using static SR2MP.Shared.Utils.Timers;
 
@@ -14,6 +15,15 @@ namespace SR2MP.Components.Player;
 [RegisterTypeInIl2Cpp(false)]
 public partial class NetworkPlayer : MonoBehaviour
 {
+    private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
+    private static readonly int ForwardMovement = Animator.StringToHash("ForwardMovement");
+    private static readonly int Yaw = Animator.StringToHash("Yaw");
+    private static readonly int AirborneState = Animator.StringToHash("AirborneState");
+    private static readonly int Moving = Animator.StringToHash("Moving");
+    private static readonly int HorizontalSpeed = Animator.StringToHash("HorizontalSpeed");
+    private static readonly int ForwardSpeed = Animator.StringToHash("ForwardSpeed");
+    private static readonly int Sprinting = Animator.StringToHash("Sprinting");
+
     private MeshRenderer[] renderers;
     private Collider collider;
 
@@ -31,9 +41,9 @@ public partial class NetworkPlayer : MonoBehaviour
     private float transformTimer = PlayerTimer;
 
     private Animator animator;
-    private bool hasAnimationController = false;
+    private bool hasAnimationController;
 
-    internal RemotePlayer model;
+    internal RemotePlayer? model;
 
     internal Transform camera;
 
@@ -41,7 +51,7 @@ public partial class NetworkPlayer : MonoBehaviour
 
     public bool IsLocal { get; internal set; }
 
-    private TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
+    private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
     public void SetUsername(string username)
     {
         usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
@@ -132,77 +142,76 @@ public partial class NetworkPlayer : MonoBehaviour
         }
 
         ReloadMeshTransform();
-        if (transformTimer < 0)
+        if (transformTimer >= 0f)
+            return;
+        transformTimer = PlayerTimer;
+
+        if (IsLocal)
         {
-            transformTimer = PlayerTimer;
+            RemotePlayerManager.SendPlayerUpdate(
+                position: transform.position,
+                rotation: transform.eulerAngles.y,
+                horizontalMovement: animator.GetFloat(HorizontalMovement),
+                forwardMovement: animator.GetFloat(ForwardMovement),
+                yaw: animator.GetFloat(Yaw),
+                airborneState: animator.GetInteger(AirborneState),
+                moving: animator.GetBool(Moving),
+                horizontalSpeed: animator.GetFloat(HorizontalSpeed),
+                forwardSpeed: animator.GetFloat(ForwardSpeed),
+                sprinting: animator.GetBool(Sprinting),
+                lookY: camera.eulerAngles.x
+            );
+        }
+        else
+        {
+            if (!hasAnimationController)
+            {
+                var playerAnimatorController = sceneContext.player?.GetComponent<Animator>().runtimeAnimatorController;
 
-            if (IsLocal)
-            {
-                playerManager.SendPlayerUpdate(
-                    position: transform.position,
-                    rotation: transform.eulerAngles.y,
-                    horizontalMovement: animator.GetFloat("HorizontalMovement"),
-                    forwardMovement: animator.GetFloat("ForwardMovement"),
-                    yaw: animator.GetFloat("Yaw"),
-                    airborneState: animator.GetInteger("AirborneState"),
-                    moving: animator.GetBool("Moving"),
-                    horizontalSpeed: animator.GetFloat("HorizontalSpeed"),
-                    forwardSpeed: animator.GetFloat("ForwardSpeed"),
-                    sprinting: animator.GetBool("Sprinting"),
-                    lookY: camera.eulerAngles.x
-                );
-            }
-            else
-            {
-                if (!hasAnimationController)
+                if (animator.runtimeAnimatorController != null)
                 {
-                    var playerAnimatorController = sceneContext.player?.GetComponent<Animator>().runtimeAnimatorController;
-
-                    if (animator.runtimeAnimatorController != null)
-                    {
-                        hasAnimationController = true;
-                        animator.runtimeAnimatorController =
-                            Object.Instantiate(playerAnimatorController);
-                        animator.avatar = sceneContext.player?.GetComponent<Animator>().avatar;
-                        SetupAnimations();
-                    }
+                    hasAnimationController = true;
+                    animator.runtimeAnimatorController =
+                        Instantiate(playerAnimatorController);
+                    animator.avatar = sceneContext.player?.GetComponent<Animator>().avatar;
+                    SetupAnimations();
                 }
-
-                nextPosition = model.Position;
-                previousPosition = transform.position;
-                nextRotation = new Vector2(model.Rotation, model.LookY);
-                previousRotation = new Vector2(transform.eulerAngles.y, model.LastLookY);
-
-                interpolationStart = UnityEngine.Time.unscaledTime;
-                interpolationEnd = UnityEngine.Time.unscaledTime + PlayerTimer;
-
-                animator.SetFloat("HorizontalMovement", model.HorizontalMovement);
-                animator.SetFloat("ForwardMovement", model.ForwardMovement);
-                animator.SetFloat("Yaw", model.Yaw);
-                animator.SetInteger("AirborneState", model.AirborneState);
-                animator.SetBool("Moving", model.Moving);
-                animator.SetFloat("HorizontalSpeed", model.HorizontalSpeed);
-                animator.SetFloat("ForwardSpeed", model.ForwardSpeed);
-                animator.SetBool("Sprinting", model.Sprinting);
             }
+
+            nextPosition = model.Position;
+            previousPosition = transform.position;
+            nextRotation = new Vector2(model.Rotation, model.LookY);
+            previousRotation = new Vector2(transform.eulerAngles.y, model.LastLookY);
+
+            interpolationStart = UnityEngine.Time.unscaledTime;
+            interpolationEnd = UnityEngine.Time.unscaledTime + PlayerTimer;
+
+            animator.SetFloat(HorizontalMovement, model.HorizontalMovement);
+            animator.SetFloat(ForwardMovement, model.ForwardMovement);
+            animator.SetFloat(Yaw, model.Yaw);
+            animator.SetInteger(AirborneState, model.AirborneState);
+            animator.SetBool(Moving, model.Moving);
+            animator.SetFloat(HorizontalSpeed, model.HorizontalSpeed);
+            animator.SetFloat(ForwardSpeed, model.ForwardSpeed);
+            animator.SetBool(Sprinting, model.Sprinting);
         }
     }
 
     void ReloadMeshTransform()
     {
-        foreach (var renderer in renderers)
-        {
-            // This is for the getter to refresh the render position stuff qwq
-            var bounds = renderer.bounds;
-            var localBounds = renderer.localBounds;
-        }
+        // foreach (var renderer in renderers)
+        // {
+        //     // This is for the getter to refresh the render position stuff qwq
+        //     var bounds = renderer.bounds;
+        //     var localBounds = renderer.localBounds;
+        // }
 
-        if (!IsLocal)
-        {
-            // This is for the
-            collider.enabled = false;
-            collider.enabled = true;
-        }
+        if (IsLocal)
+            return;
+
+        // This is for the
+        collider.enabled = false;
+        collider.enabled = true;
     }
 
     void LateUpdate()

@@ -10,14 +10,14 @@ public sealed class PlayerLeaveHandler : BasePacketHandler
     public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         reader.Skip(1);
 
         string playerId = reader.ReadString();
 
-        string clientInfo = $"{senderEndPoint.Address}:{senderEndPoint.Port}";
+        string clientInfo = $"{clientEp.Address}:{clientEp.Port}";
 
         SrLogger.LogMessage($"Player leave request received (PlayerId: {playerId})",
             $"Player leave request from {clientInfo} (PlayerId: {playerId})");

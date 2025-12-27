@@ -60,7 +60,7 @@ public static class Logger
             LogInternal(message, LogLevel.Message, target, null, _melonLogger.Msg);
     }
 
-    private static void LogInternal(object? message, LogLevel level, LogTarget target, Action<string>? sr2eAction, Action<string>? melonAction)
+    private static void LogInternal(object? message, LogLevel level, LogTarget target, Action<string>? sr2EAction, Action<string>? melonAction)
     {
         var msgString = message?.ToString() ?? "message was null!";
         var formattedLine = Format(msgString, level);
@@ -74,7 +74,7 @@ public static class Logger
         if (target == LogTarget.Sensitive)
             msgString = $"A sensitive [{level}] message was logged!";
 
-        sr2eAction?.Invoke(msgString);
+        sr2EAction?.Invoke(msgString);
         melonAction?.Invoke(msgString);
     }
 
@@ -96,7 +96,7 @@ public static class Logger
             LogSplit(publicMsg, sensitiveMsg, LogLevel.Message, null, _melonLogger.Msg);
     }
 
-    private static void LogSplit(object? publicMsg, object? sensitiveMsg, LogLevel level, Action<string>? sr2eAction, Action<string>? melonAction)
+    private static void LogSplit(object? publicMsg, object? sensitiveMsg, LogLevel level, Action<string>? sr2EAction, Action<string>? melonAction)
     {
         var publicStr = publicMsg?.ToString() ?? "public message was null!";
         var sensitiveStr = sensitiveMsg?.ToString() ?? "sensitive message was null!";
@@ -107,7 +107,7 @@ public static class Logger
         _logHandler.Write(FormatLocal(publicStr));
         _sensitiveLogHandler.Write(FormatLocal(sensitiveStr));
 
-        sr2eAction?.Invoke(publicStr);
+        sr2EAction?.Invoke(publicStr);
         melonAction?.Invoke(publicStr);
 
         string FormatLocal(string msg) => msg.StartsWith('[') ? msg : $"[{timestamp}] [{levelStr}] {msg}";

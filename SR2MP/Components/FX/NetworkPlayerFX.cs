@@ -17,7 +17,7 @@ public sealed class NetworkPlayerFX : MonoBehaviour
     {
         if (handlingPacket) return;
 
-        var packet = new PlayerFXPacket()
+        var packet = new PlayerFXPacket
         {
             Type = (byte)PacketType.PlayerFX,
             FX = fxType,
