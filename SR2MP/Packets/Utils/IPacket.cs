@@ -2,7 +2,7 @@ namespace SR2MP.Packets.Utils;
 
 public interface IPacket
 {
-    public void Serialise(PacketWriter writer);
+    void Serialise(PacketWriter writer);
 
-    public void Deserialise(PacketReader reader);
+    void Deserialise(PacketReader reader);
 }

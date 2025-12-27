@@ -2,7 +2,7 @@ using System.Text;
 
 namespace SR2MP.Packets.Utils;
 
-public class PacketWriter : IDisposable
+public sealed class PacketWriter : IDisposable
 {
     private readonly MemoryStream stream;
     private readonly BinaryWriter writer;
@@ -14,19 +14,20 @@ public class PacketWriter : IDisposable
     }
 
     public void WriteByte(byte value) => writer.Write(value);
+    public void WriteSByte(sbyte value) => writer.Write(value);
 
     public void WriteInt(int value) => writer.Write(value);
     public void WriteLong(long value) => writer.Write(value);
 
     public void WriteFloat(float value) => writer.Write(value);
-    
+
     public void WriteDouble(double value) => writer.Write(value);
 
     public void WriteString(string value) => writer.Write(value);
 
     public void WriteBool(bool value) => writer.Write(value);
 
-    public void WritePacket(IPacket value) => value.Serialise(this);
+    public void WritePacket<T>(T value) where T : IPacket => value.Serialise(this);
 
     public void WriteEnum(Enum value) => Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
 
@@ -79,6 +80,8 @@ public class PacketWriter : IDisposable
             throw new ArgumentNullException(nameof(value));
         else if (value is byte @byte)
             WriteByte(@byte);
+        else if (value is sbyte @sbyte)
+            WriteSByte(@sbyte);
         else if (value is int @int)
             WriteInt(@int);
         else if (value is long @long)

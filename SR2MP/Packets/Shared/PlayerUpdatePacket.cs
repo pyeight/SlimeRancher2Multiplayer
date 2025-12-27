@@ -34,7 +34,7 @@ public struct PlayerUpdatePacket : IPacket
         writer.WriteFloat(HorizontalSpeed);
         writer.WriteFloat(ForwardSpeed);
         writer.WriteBool(Sprinting);
-        
+
         writer.WriteFloat(LookY);
     }
 
@@ -54,7 +54,7 @@ public struct PlayerUpdatePacket : IPacket
         HorizontalSpeed = reader.ReadFloat();
         ForwardSpeed = reader.ReadFloat();
         Sprinting = reader.ReadBool();
-        
+
         LookY = reader.ReadFloat();
     }
 }

@@ -4,7 +4,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public class RemotePlayerManager
+public sealed class RemotePlayerManager
 {
     private readonly ConcurrentDictionary<string, RemotePlayer> players = new();
 
@@ -80,7 +80,7 @@ public class RemotePlayerManager
         };
         Main.SendToAllOrServer(updatePacket);
     }
-    
+
     public void UpdatePlayer(
         string playerId,
         Vector3 position,

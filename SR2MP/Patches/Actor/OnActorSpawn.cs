@@ -1,6 +1,5 @@
 using System.Collections;
 using HarmonyLib;
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2MP.Components.Actor;
@@ -58,7 +57,7 @@ public static class OnActorSpawn
 
         Main.SendToAllOrServer(packet);
     }
-
+    
     public static void Prefix()
     {
         var nextId = SceneContext.Instance.GameModel._actorIdProvider._nextActorId;

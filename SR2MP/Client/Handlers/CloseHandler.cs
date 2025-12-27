@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.Close)]
-public class CloseHandler : BaseClientPacketHandler
+public sealed class CloseHandler : BaseClientPacketHandler
 {
     public CloseHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }

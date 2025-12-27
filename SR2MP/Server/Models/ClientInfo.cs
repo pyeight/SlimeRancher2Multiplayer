@@ -2,7 +2,7 @@ using System.Net;
 
 namespace SR2MP.Server.Models;
 
-public class ClientInfo
+public sealed class ClientInfo
 {
     public IPEndPoint EndPoint { get; set; }
     private DateTime LastHeartbeat { get; set; }

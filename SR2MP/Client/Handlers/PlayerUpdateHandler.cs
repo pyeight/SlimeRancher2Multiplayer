@@ -4,7 +4,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerUpdate)]
-public class PlayerUpdateHandler : BaseClientPacketHandler
+public sealed class PlayerUpdateHandler : BaseClientPacketHandler
 {
     public PlayerUpdateHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }

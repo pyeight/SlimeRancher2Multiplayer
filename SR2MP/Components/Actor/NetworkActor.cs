@@ -1,5 +1,4 @@
 using System.Collections;
-using Il2Cpp;
 using Il2CppFebucci.UI.Core;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Injection;
@@ -17,13 +16,13 @@ using Delegate = Il2CppSystem.Delegate;
 namespace SR2MP.Components.Actor;
 
 [RegisterTypeInIl2Cpp(false)]
-public class NetworkActor : MonoBehaviour
+public sealed class NetworkActor : MonoBehaviour
 {
     private RegionMember regionMember;
     private IdentifiableActor identifiableActor;
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
-    
+
     private float syncTimer = Timers.ActorTimer;
     public Vector3 SavedVelocity { get; internal set; }
     private ActorId ActorId => identifiableActor._model.actorId;
@@ -35,10 +34,10 @@ public class NetworkActor : MonoBehaviour
 
     internal Quaternion previousRotation;
     internal Quaternion nextRotation;
-    
+
     private Vector3 previousSentPosition;
     private const float MinimumPositionDifference = 0.15f;
-    
+
     private float interpolationStart;
     private float interpolationEnd;
 
@@ -46,13 +45,13 @@ public class NetworkActor : MonoBehaviour
     {
         get
         {
-            var value = emotions 
-                ? emotions._model.Emotions 
+            var value = emotions
+                ? emotions._model.Emotions
                 : new float4(0, 0, 0, 0);
             return value;
         }
     }
-    
+
     void Start()
     {
         emotions = GetComponent<SlimeEmotions>();
@@ -74,11 +73,11 @@ public class NetworkActor : MonoBehaviour
     IEnumerator WaitOneFrameOnHibernationChange(bool value)
     {
         yield return null;
-        
+
         if (!value) yield break;
-        
+
         LocallyOwned = true;
-        
+
         var packet = new ActorTransferPacket
         {
             Type = (byte)PacketType.ActorTransfer,
@@ -87,7 +86,7 @@ public class NetworkActor : MonoBehaviour
         };
         Main.SendToAllOrServer(packet);
     }
-    
+
     public void HibernationChanged(bool value)
     {
         MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
@@ -96,20 +95,20 @@ public class NetworkActor : MonoBehaviour
     void UpdateInterpolation()
     {
         if (LocallyOwned) return;
-        
+
         var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
         timer = Mathf.Clamp01(timer);
-        
+
         transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
         transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
     }
-    
+
     void Update()
     {
         if (cachedLocallyOwned != LocallyOwned)
         {
             SetRigidbodyState(LocallyOwned);
-            
+
             if (LocallyOwned && rigidbody)
                 rigidbody.velocity = SavedVelocity;
         }
@@ -120,18 +119,18 @@ public class NetworkActor : MonoBehaviour
         UpdateInterpolation();
 
         if (syncTimer >= 0) return;
-        
+
         if (LocallyOwned)
         {
             syncTimer = Timers.ActorTimer;
-            
+
             previousSentPosition = transform.position;
-            
+
             previousPosition = transform.position;
             previousRotation = transform.rotation;
             nextPosition = transform.position;
             nextRotation = transform.rotation;
-            
+
             var packet = new ActorUpdatePacket()
             {
                 Type = (byte)PacketType.ActorUpdate,
@@ -148,7 +147,7 @@ public class NetworkActor : MonoBehaviour
         {
             previousPosition = transform.position;
             previousRotation = transform.rotation;
-                
+
             interpolationStart = UnityEngine.Time.unscaledTime;
             interpolationEnd = UnityEngine.Time.unscaledTime + Timers.ActorTimer;
         }
@@ -158,8 +157,8 @@ public class NetworkActor : MonoBehaviour
     {
         if (rigidbody)
             rigidbody.constraints =
-                enabled 
-                    ? RigidbodyConstraints.None 
+                enabled
+                    ? RigidbodyConstraints.None
                     : RigidbodyConstraints.FreezeAll;
     }
 }

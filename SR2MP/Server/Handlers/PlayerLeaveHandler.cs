@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerLeave)]
-public class PlayerLeaveHandler : BasePacketHandler
+public sealed class PlayerLeaveHandler : BasePacketHandler
 {
     public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }

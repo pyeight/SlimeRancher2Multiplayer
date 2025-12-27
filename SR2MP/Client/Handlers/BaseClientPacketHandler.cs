@@ -1,4 +1,3 @@
-using SR2MP.Client.Managers;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
@@ -17,7 +16,7 @@ public abstract class BaseClientPacketHandler : IClientPacketHandler
 
     public abstract void Handle(byte[] data);
 
-    protected void SendPacket(IPacket packet)
+    protected void SendPacket<T>(T packet) where T : IPacket
     {
         Client.SendPacket(packet);
     }

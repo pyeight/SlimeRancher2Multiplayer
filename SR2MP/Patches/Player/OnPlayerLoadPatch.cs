@@ -26,6 +26,9 @@ public static class OnPlayerLoadPatch
         {
             Main.Client.OnConnected += (id) =>
             {
+                if (!__instance)
+                    return;
+                
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
                 networkPlayer.ID = id;
                 networkPlayer.IsLocal = true;
@@ -33,6 +36,9 @@ public static class OnPlayerLoadPatch
 
             Main.Server.OnServerStarted += () =>
             {
+                if (!__instance)
+                    return;
+                
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
                 networkPlayer.ID = "HOST";
                 networkPlayer.IsLocal = true;

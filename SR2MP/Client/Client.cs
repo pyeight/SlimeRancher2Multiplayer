@@ -79,7 +79,7 @@ public sealed class Client
             receiveThread.Start();
 
             Application.quitting += new System.Action(Disconnect);
-            
+
             var connectPacket = new ConnectPacket
             {
                 Type = (byte)PacketType.Connect,
@@ -127,7 +127,7 @@ public sealed class Client
             {
                 if (!isConnected)
                     return;
-                
+
                 SrLogger.LogError("ReceiveLoop error: Socket Exception");
             }
             catch (Exception ex)
@@ -180,7 +180,7 @@ public sealed class Client
         SendPacket(heartbeatPacket);
     }
 
-    internal void SendPacket(IPacket packet)
+    internal void SendPacket<T>(T packet) where T : IPacket
     {
         if (udpClient == null || serverEndPoint == null || !isConnected)
         {

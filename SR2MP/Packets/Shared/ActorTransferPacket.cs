@@ -6,7 +6,7 @@ namespace SR2MP.Packets.Shared;
 public struct ActorTransferPacket : IPacket
 {
     public byte Type { get; set; }
-    
+
     public ActorId ActorId { get; set; }
     public string OwnerPlayer { get; set; }
 

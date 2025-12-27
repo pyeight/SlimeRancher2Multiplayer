@@ -1,12 +1,11 @@
 using System.Net;
-using Il2Cpp;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerFX)]
-public class PlayerFXHandler : BasePacketHandler
+public sealed class PlayerFXHandler : BasePacketHandler
 {
     public PlayerFXHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
@@ -37,12 +36,12 @@ public class PlayerFXHandler : BasePacketHandler
 
                 playerAudio.Cue = cue;
                 playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
-              
+
                 playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
                 playerAudio.Play();
             }
         }
-        
+
         Main.Server.SendToAllExcept(packet, senderEndPoint);
     }
 }

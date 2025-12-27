@@ -9,7 +9,7 @@ using SR2MP.Server.Models;
 
 namespace SR2MP.Server.Managers;
 
-public class PlayerDataManager
+public sealed class PlayerDataManager
 {
     private readonly Dictionary<string, PlayerData> playerDataCache = new();
     private readonly string saveDirectory;

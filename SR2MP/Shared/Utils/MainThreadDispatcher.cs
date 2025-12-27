@@ -5,7 +5,7 @@ using MelonLoader;
 namespace SR2MP.Shared.Utils;
 
 [RegisterTypeInIl2Cpp(false)]
-public class MainThreadDispatcher : MonoBehaviour
+public sealed class MainThreadDispatcher : MonoBehaviour
 {
     public static MainThreadDispatcher Instance { get; private set; }
 

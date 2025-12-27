@@ -19,7 +19,7 @@ public struct ActorsPacket : IPacket
     public readonly void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
-        
+
         writer.WriteInt(Actors.Count);
         foreach (var actor in Actors)
         {
@@ -33,7 +33,7 @@ public struct ActorsPacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         Type = reader.ReadByte();
-        
+
         var actorCount = reader.ReadInt();
         Actors = new List<Actor>(actorCount);
 

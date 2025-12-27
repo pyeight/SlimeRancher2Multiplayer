@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ActorUpdate)]
-public class ActorUpdateHandler : BasePacketHandler
+public sealed class ActorUpdateHandler : BasePacketHandler
 {
     public ActorUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
@@ -22,7 +22,7 @@ public class ActorUpdateHandler : BasePacketHandler
             return;
         }
         var actor = model.Cast<ActorModel>();
-        
+
         actor.lastPosition = packet.Position;
         actor.lastRotation = packet.Rotation;
 
@@ -34,11 +34,11 @@ public class ActorUpdateHandler : BasePacketHandler
             networkComponent.SavedVelocity = packet.Velocity;
             networkComponent.nextPosition = packet.Position;
             networkComponent.nextRotation = packet.Rotation;
-            
+
             if (slime != null)
                 networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
         }
-        
+
         Main.Server.SendToAllExcept(packet, senderEndPoint);
     }
 }

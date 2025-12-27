@@ -4,7 +4,7 @@ using SR2MP.Server.Models;
 
 namespace SR2MP.Server.Managers;
 
-public class ClientManager
+public sealed class ClientManager
 {
     private readonly ConcurrentDictionary<string, ClientInfo> clients = new();
 

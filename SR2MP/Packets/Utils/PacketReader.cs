@@ -15,12 +15,13 @@ public sealed class PacketReader : IDisposable
     }
 
     public byte ReadByte() => reader.ReadByte();
+    public sbyte ReadSByte() => reader.ReadSByte();
 
     public int ReadInt() => reader.ReadInt32();
     public long ReadLong() => reader.ReadInt64();
 
     public float ReadFloat() => reader.ReadSingle();
-    
+
     public double ReadDouble() => reader.ReadDouble();
 
     public string ReadString() => reader.ReadString();
@@ -79,6 +80,7 @@ public sealed class PacketReader : IDisposable
     {
         null => throw new NullReferenceException(nameof(type)),
         _ when type == typeof(byte) => ReadByte(),
+        _ when type == typeof(sbyte) => ReadSByte(),
         _ when type == typeof(bool) => ReadBool(),
         _ when type == typeof(int) => ReadInt(),
         _ when type == typeof(long) => ReadLong(),

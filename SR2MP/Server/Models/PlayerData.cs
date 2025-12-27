@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace SR2MP.Server.Models;
 
-public class PlayerData
+public sealed class PlayerData
 {
     public string PlayerId { get; set; }
     public string PlayerName { get; set; }

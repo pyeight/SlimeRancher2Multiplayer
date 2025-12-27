@@ -5,7 +5,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Client.Managers;
 
-public class ClientPacketManager
+public sealed class ClientPacketManager
 {
     private readonly Dictionary<byte, IClientPacketHandler> handlers = new();
     private readonly Client client;
@@ -65,7 +65,7 @@ public class ClientPacketManager
         Buffer.BlockCopy(data, 3, chunkData, 0, data.Length - 3);
         if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, totalChunks, out data))
             return;
-        
+
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try

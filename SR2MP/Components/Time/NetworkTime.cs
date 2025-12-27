@@ -1,4 +1,3 @@
-using Il2Cpp;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
@@ -6,17 +5,17 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Components.Time;
 
 [RegisterTypeInIl2Cpp(false)]
-public class NetworkTime : MonoBehaviour
+public sealed class NetworkTime : MonoBehaviour
 {
     private TimeDirector timeDirector;
-    
+
     private float sendTimer;
 
     void Awake()
     {
         timeDirector = GetComponent<TimeDirector>();
     }
-    
+
     void Update()
     {
         sendTimer += UnityEngine.Time.deltaTime;
@@ -29,7 +28,7 @@ public class NetworkTime : MonoBehaviour
             {
                 Type = (byte)PacketType.WorldTime, Time = timeDirector._worldModel.worldTime
             };
-            
+
             Main.Server.SendToAll(packet);
         }
     }

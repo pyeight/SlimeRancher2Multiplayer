@@ -1,4 +1,3 @@
-using Il2Cpp;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.S2C
@@ -10,9 +9,9 @@ namespace SR2MP.Packets.S2C
             public string ID { get; set; }
             public LandPlot.Id Type { get; set; }
 
-            internal Il2CppSystem.Collections.Generic.List<LandPlot.Upgrade> UpgradesList { get; set; }
-            private Il2CppSystem.Collections.Generic.HashSet<LandPlot.Upgrade> UpgradesSet { get; set; }
-            public Il2CppSystem.Collections.Generic.HashSet<LandPlot.Upgrade> Upgrades => UpgradesSet;
+            internal CppCollections.List<LandPlot.Upgrade> UpgradesList { get; set; }
+            private CppCollections.HashSet<LandPlot.Upgrade> UpgradesSet { get; set; }
+            public CppCollections.HashSet<LandPlot.Upgrade> Upgrades => UpgradesSet;
 
             public readonly void Serialize(PacketWriter writer)
             {
@@ -29,8 +28,8 @@ namespace SR2MP.Packets.S2C
                 ID = reader.ReadString();
                 Type = reader.ReadEnum<LandPlot.Id>();
 
-                UpgradesList = new Il2CppSystem.Collections.Generic.List<LandPlot.Upgrade>();
-                UpgradesSet  = new Il2CppSystem.Collections.Generic.HashSet<LandPlot.Upgrade>();
+                UpgradesList = new CppCollections.List<LandPlot.Upgrade>();
+                UpgradesSet  = new CppCollections.HashSet<LandPlot.Upgrade>();
 
                 int count = reader.ReadInt();
                 for (int i = 0; i < count; i++)

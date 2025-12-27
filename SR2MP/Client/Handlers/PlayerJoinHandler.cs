@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.BroadcastPlayerJoin)]
-public class PlayerJoinHandler : BaseClientPacketHandler
+public sealed class PlayerJoinHandler : BaseClientPacketHandler
 {
     public PlayerJoinHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
@@ -18,7 +18,7 @@ public class PlayerJoinHandler : BaseClientPacketHandler
         string playerId = reader.ReadString();
 
         playerManager.AddPlayer(playerId);
-        
+
         if (playerId.Equals(Client.OwnPlayerId))
         {
             SrLogger.LogMessage("Player join request accepted!", SrLogger.LogTarget.Both);
@@ -26,7 +26,7 @@ public class PlayerJoinHandler : BaseClientPacketHandler
         }
 
         SrLogger.LogMessage($"New Player joined! (PlayerId: {playerId})", SrLogger.LogTarget.Both);
-        
+
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);
         playerObject.ID = playerId;

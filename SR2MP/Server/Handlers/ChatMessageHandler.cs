@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ChatMessage)]
-public class ChatMessageHandler : BasePacketHandler
+public sealed class ChatMessageHandler : BasePacketHandler
 {
     public ChatMessageHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager)

@@ -2,7 +2,7 @@ using System;
 
 namespace SR2MP.Client.Models;
 
-public class ChatMessage
+public sealed class ChatMessage
 {
     public string PlayerId { get; set; }
     public string Message { get; set; }

@@ -1,12 +1,11 @@
 using System.Net;
-using Il2Cpp;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.LandPlotUpdate)]
-public class LandplotUpdateHandler : BasePacketHandler
+public sealed class LandplotUpdateHandler : BasePacketHandler
 {
     public LandplotUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
@@ -19,13 +18,13 @@ public class LandplotUpdateHandler : BasePacketHandler
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 
         Main.Server.SendToAllExcept(packet, senderEndPoint);
-        
+
         if (!packet.IsUpgrade)
         {
             model.typeId = packet.PlotType;
 
             if (!model.gameObj) return;
-            
+
             var location = model.gameObj.GetComponent<LandPlotLocation>();
             var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
 

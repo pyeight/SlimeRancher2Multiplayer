@@ -6,7 +6,7 @@ namespace SR2MP.Packets.Shared;
 public struct ActorDestroyPacket : IPacket
 {
     public byte Type { get; set; }
-    
+
     public ActorId ActorId { get; set; }
 
     public readonly void Serialise(PacketWriter writer)

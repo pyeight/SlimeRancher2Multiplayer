@@ -14,9 +14,9 @@ public sealed class Server
     private Timer? timeoutTimer;
     public int GetClientCount() => clientManager.ClientCount;
     public bool IsRunning() => networkManager.IsRunning;
-    
+
     public event Action? OnServerStarted;
-    
+
     public Server()
     {
         networkManager = new NetworkManager();
@@ -138,21 +138,21 @@ public sealed class Server
             SrLogger.LogError($"Error during server shutdown: {ex}", SrLogger.LogTarget.Both);
         }
     }
-    
-    
-    public void SendToClient(IPacket packet, IPEndPoint endPoint)
+
+
+    public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
     {
         using var writer = new PacketWriter();
         packet.Serialise(writer);
         networkManager.Send(writer.ToArray(), endPoint);
     }
 
-    public void SendToClient(IPacket packet, ClientInfo client)
+    public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
     {
         SendToClient(packet, client.EndPoint);
     }
 
-    public void SendToAll(IPacket packet)
+    public void SendToAll<T>(T packet) where T : IPacket
     {
         using var writer = new PacketWriter();
         packet.Serialise(writer);
@@ -164,7 +164,7 @@ public sealed class Server
         }
     }
 
-    public void SendToAllExcept(IPacket packet, string excludedClientInfo)
+    public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
     {
         using var writer = new PacketWriter();
         packet.Serialise(writer);
@@ -179,7 +179,7 @@ public sealed class Server
         }
     }
 
-    public void SendToAllExcept(IPacket packet, IPEndPoint excludeEndPoint)
+    public void SendToAllExcept<T>(T packet, IPEndPoint excludeEndPoint) where T : IPacket
     {
         string clientInfo = $"{excludeEndPoint.Address}:{excludeEndPoint.Port}";
         SendToAllExcept(packet, clientInfo);

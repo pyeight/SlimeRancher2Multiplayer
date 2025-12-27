@@ -1,7 +1,7 @@
 namespace SR2MP.Packets.Utils;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class PacketHandlerAttribute : Attribute
+public sealed class PacketHandlerAttribute : Attribute
 {
     public byte PacketType { get; }
 

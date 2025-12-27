@@ -5,7 +5,7 @@ using SR2MP.Server.Managers;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerUpdate)]
-public class PlayerUpdateHandler : BasePacketHandler
+public sealed class PlayerUpdateHandler : BasePacketHandler
 {
     public PlayerUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
@@ -33,7 +33,7 @@ public class PlayerUpdateHandler : BasePacketHandler
             packet.Sprinting,
             packet.LookY
         );
-        
+
         Main.Server.SendToAllExcept(packet, senderEndPoint);
     }
 }

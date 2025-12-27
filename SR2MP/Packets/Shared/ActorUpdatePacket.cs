@@ -7,7 +7,7 @@ namespace SR2MP.Packets.Shared;
 public struct ActorUpdatePacket : IPacket
 {
     public byte Type { get; set; }
-    
+
     public ActorId ActorId { get; set; }
     public Vector3 Position { get; set; }
     public Quaternion Rotation { get; set; }
@@ -21,7 +21,7 @@ public struct ActorUpdatePacket : IPacket
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
         writer.WriteVector3(Velocity);
-        
+
         writer.WriteFloat(Emotions.x);
         writer.WriteFloat(Emotions.y);
         writer.WriteFloat(Emotions.z);
@@ -40,7 +40,7 @@ public struct ActorUpdatePacket : IPacket
         var y = reader.ReadFloat();
         var z = reader.ReadFloat();
         var w = reader.ReadFloat();
-        
+
         Emotions = new float4(x, y, z, w);
     }
 }

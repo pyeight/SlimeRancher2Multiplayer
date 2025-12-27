@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.MovementSound)]
-public class MovementSoundHandler : BasePacketHandler
+public sealed class MovementSoundHandler : BasePacketHandler
 {
     public MovementSoundHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
@@ -16,7 +16,7 @@ public class MovementSoundHandler : BasePacketHandler
         var packet = reader.ReadPacket<MovementSoundPacket>();
 
         fxManager.PlayTransientAudio(fxManager.allCues[packet.CueName], packet.Position);
-        
+
         Main.Server.SendToAllExcept(packet, senderEndPoint);
     }
 }

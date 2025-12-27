@@ -4,7 +4,7 @@ using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Managers;
 
-public class NetworkManager
+public sealed class NetworkManager
 {
     private UdpClient? udpClient;
     private volatile bool isRunning;

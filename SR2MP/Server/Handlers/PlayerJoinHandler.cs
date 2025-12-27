@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerJoin)]
-public class PlayerJoinHandler : BasePacketHandler
+public sealed class PlayerJoinHandler : BasePacketHandler
 {
     public PlayerJoinHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
