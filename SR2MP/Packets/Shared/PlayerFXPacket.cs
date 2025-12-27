@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Shared;
 
-public struct PlayerFXPacket : IPacket
+public sealed class PlayerFXPacket : IPacket
 {
     public enum PlayerFXType : byte
     {
@@ -28,7 +28,7 @@ public struct PlayerFXPacket : IPacket
 
     public string Player { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
+    public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
         writer.WriteEnum(FX);

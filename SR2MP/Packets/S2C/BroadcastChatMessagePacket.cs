@@ -2,14 +2,14 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.S2C;
 
-public struct BroadcastChatMessagePacket : IPacket
+public sealed class BroadcastChatMessagePacket : IPacket
 {
     public byte Type { get; set; }
     public string PlayerId { get; set; }
     public string Message { get; set; }
     public long Timestamp { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
+    public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
         writer.WriteString(PlayerId);

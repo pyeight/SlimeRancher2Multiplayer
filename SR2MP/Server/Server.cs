@@ -2,7 +2,6 @@ using System.Net;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
-using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server;
 
@@ -11,9 +10,8 @@ public sealed class Server
     private readonly NetworkManager networkManager;
     private readonly ClientManager clientManager;
     private readonly PacketManager packetManager;
+
     private Timer? timeoutTimer;
-    public int GetClientCount() => clientManager.ClientCount;
-    public bool IsRunning() => networkManager.IsRunning;
 
     public event Action? OnServerStarted;
 
@@ -27,6 +25,10 @@ public sealed class Server
         clientManager.OnClientRemoved += OnClientRemoved;
     }
 
+    public int GetClientCount() => clientManager.ClientCount;
+
+    public bool IsRunning() => networkManager.IsRunning;
+
     public void Start(int port, bool enableIPv6)
     {
         if (networkManager.IsRunning)
@@ -38,7 +40,7 @@ public sealed class Server
         try
         {
             packetManager.RegisterHandlers();
-            Application.quitting += new System.Action(Close);
+            Application.quitting += new Action(Close);
             networkManager.Start(port, enableIPv6);
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
@@ -50,7 +52,7 @@ public sealed class Server
         }
     }
 
-    private void OnDataReceived(byte[] data, System.Net.IPEndPoint clientEP)
+    private void OnDataReceived(byte[] data, IPEndPoint clientEP)
     {
         SrLogger.LogPacketSize($"Received {data.Length} bytes from Client!",
             $"Received {data.Length} bytes from {clientEP}.");
@@ -65,7 +67,7 @@ public sealed class Server
         }
     }
 
-    private void OnClientRemoved(Models.ClientInfo client)
+    private void OnClientRemoved(ClientInfo client)
     {
         var leavePacket = new PlayerLeavePacket
         {
@@ -138,7 +140,6 @@ public sealed class Server
             SrLogger.LogError($"Error during server shutdown: {ex}", SrLogger.LogTarget.Both);
         }
     }
-
 
     public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
     {

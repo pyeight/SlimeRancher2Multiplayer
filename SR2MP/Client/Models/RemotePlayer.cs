@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace SR2MP.Client.Models;
 
 public sealed class RemotePlayer

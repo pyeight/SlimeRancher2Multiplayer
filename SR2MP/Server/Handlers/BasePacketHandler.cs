@@ -1,6 +1,5 @@
 using System.Net;
 using SR2MP.Server.Managers;
-using SR2MP.Server.Models;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;

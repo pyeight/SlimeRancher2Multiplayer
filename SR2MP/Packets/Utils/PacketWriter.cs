@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace SR2MP.Packets.Utils;
@@ -5,49 +6,48 @@ namespace SR2MP.Packets.Utils;
 public sealed class PacketWriter : IDisposable
 {
     private readonly MemoryStream stream;
-    private readonly BinaryWriter writer;
+    private readonly BinaryWriter _writer;
 
     public PacketWriter()
     {
         stream = new MemoryStream();
-        writer = new BinaryWriter(stream, Encoding.UTF8);
+        _writer = new BinaryWriter(stream, Encoding.UTF8);
     }
 
-    public void WriteByte(byte value) => writer.Write(value);
+    public void WriteByte(byte value) => _writer.Write(value);
 
-    public void WriteInt(int value) => writer.Write(value);
-    public void WriteLong(long value) => writer.Write(value);
+    public void WriteInt(int value) => _writer.Write(value);
 
-    public void WriteFloat(float value) => writer.Write(value);
+    public void WriteLong(long value) => _writer.Write(value);
 
-    public void WriteDouble(double value) => writer.Write(value);
+    public void WriteFloat(float value) => _writer.Write(value);
 
-    public void WriteString(string value) => writer.Write(value);
+    public void WriteDouble(double value) => _writer.Write(value);
 
-    public void WriteBool(bool value) => writer.Write(value);
+    public void WriteString(string value) => _writer.Write(value);
+
+    public void WriteBool(bool value) => _writer.Write(value);
 
     public void WritePacket<T>(T value) where T : IPacket => value.Serialise(this);
 
-    public void WriteEnum(Enum value) => Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
-
     public void WriteVector3(Vector3 value)
     {
-        WriteFloat(value.x);
-        WriteFloat(value.y);
-        WriteFloat(value.z);
+        _writer.Write(value.x);
+        _writer.Write(value.y);
+        _writer.Write(value.z);
     }
 
     public void WriteQuaternion(Quaternion value)
     {
-        WriteFloat(value.x);
-        WriteFloat(value.y);
-        WriteFloat(value.z);
-        WriteFloat(value.w);
+        _writer.Write(value.x);
+        _writer.Write(value.y);
+        _writer.Write(value.z);
+        _writer.Write(value.w);
     }
 
     public void WriteArray<T>(T[] array, Action<PacketWriter, T> writer)
     {
-        WriteInt(array.Length);
+        _writer.Write(array.Length);
 
         for (var i = 0; i < array.Length; i++)
             writer(this, array[i]);
@@ -55,7 +55,7 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteList<T>(List<T> list, Action<PacketWriter, T> writer)
     {
-        WriteInt(list.Count);
+        _writer.Write(list.Count);
 
         for (var i = 0; i < list.Count; i++)
             writer(this, list[i]);
@@ -63,7 +63,7 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
     {
-        WriteInt(dict.Count);
+        _writer.Write(dict.Count);
 
         foreach (var (key, value) in dict)
         {
@@ -72,40 +72,34 @@ public sealed class PacketWriter : IDisposable
         }
     }
 
-    // Do NOT use this to serialise values! Use concrete methods above!
-    private void Write(object value)
+    public void WriteEnum<T>(T value) where T : struct, Enum
     {
-        if (value is null)
-            throw new ArgumentNullException(nameof(value));
-        else if (value is byte @byte)
-            WriteByte(@byte);
-        else if (value is int @int)
-            WriteInt(@int);
-        else if (value is long @long)
-            WriteLong(@long);
-        else if (value is float @float)
-            WriteFloat(@float);
-        else if (value is double @double)
-            WriteDouble(@double);
-        else if (value is string @string)
-            WriteString(@string);
-        else if (value is bool @bool)
-            WriteBool(@bool);
-        else if (value is IPacket packet)
-            WritePacket(packet);
-        else if (value is Enum @enum)
-            WriteEnum(@enum);
-        else if (value is Vector3 vector3)
-            WriteVector3(vector3);
-        else if (value is Quaternion quaternion)
-            WriteQuaternion(quaternion);
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+                _writer.Write(Unsafe.As<T, byte>(ref value));
+                break;
+            case 2:
+                _writer.Write(Unsafe.As<T, ushort>(ref value));
+                break;
+            case 4:
+                _writer.Write(Unsafe.As<T, uint>(ref value));
+                break;
+            case 8:
+                _writer.Write(Unsafe.As<T, ulong>(ref value));
+                break;
+            default:
+                throw new ArgumentException($"Enum size {size} not supported");
+        }
     }
 
     public byte[] ToArray() => stream.ToArray();
 
     public void Dispose()
     {
-        writer?.Dispose();
+        _writer?.Dispose();
         stream?.Dispose();
         GC.SuppressFinalize(this);
     }

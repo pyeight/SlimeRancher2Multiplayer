@@ -1,9 +1,7 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher;
-using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Utils;
-using UnityEngine.SocialPlatforms;
 
 namespace SR2MP.Patches.Actor;
 
@@ -17,14 +15,14 @@ public static class OnActorVacced
             return;
 
         networkActor.LocallyOwned = true;
-        
+
         var packet = new ActorTransferPacket
         {
             Type = (byte)PacketType.ActorTransfer,
             ActorId = __instance._identifiable.GetActorId(),
             OwnerPlayer = LocalID,
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

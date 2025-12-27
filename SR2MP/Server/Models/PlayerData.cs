@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace SR2MP.Server.Models;
 
 public sealed class PlayerData

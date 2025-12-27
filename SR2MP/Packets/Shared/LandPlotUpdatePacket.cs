@@ -3,7 +3,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Shared;
 
-public struct LandPlotUpdatePacket : IPacket
+public sealed class LandPlotUpdatePacket : IPacket
 {
     public byte Type { get; set; }
     public bool IsUpgrade { get; set; }
@@ -11,7 +11,7 @@ public struct LandPlotUpdatePacket : IPacket
     public LandPlot.Id PlotType { get; set; }
     public LandPlot.Upgrade PlotUpgrade { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
+    public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
         writer.WriteString(ID);

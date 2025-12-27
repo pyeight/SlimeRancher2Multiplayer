@@ -14,6 +14,7 @@ public sealed class Client
     private IPEndPoint? serverEndPoint;
     private Il2CppSystem.Threading.Thread? receiveThread;
     private Timer? heartbeatTimer;
+
     private volatile bool isConnected;
 
     private readonly ClientPacketManager packetManager;
@@ -74,11 +75,13 @@ public sealed class Client
 
             isConnected = true;
 
-            receiveThread = new  Il2CppSystem.Threading.Thread(new Action(ReceiveLoop));
-            receiveThread.IsBackground = true;
+            receiveThread = new Il2CppSystem.Threading.Thread(new Action(ReceiveLoop))
+            {
+                IsBackground = true
+            };
             receiveThread.Start();
 
-            Application.quitting += new System.Action(Disconnect);
+            Application.quitting += new Action(Disconnect);
 
             var connectPacket = new ConnectPacket
             {
@@ -106,6 +109,7 @@ public sealed class Client
             SrLogger.LogError("UDP client is null in ReceiveLoop!", SrLogger.LogTarget.Both);
             return;
         }
+
         SrLogger.LogMessage("Client ReceiveLoop started!", SrLogger.LogTarget.Both);
 
         IPEndPoint remoteEP = new IPEndPoint(IPAddress.IPv6Any, 0);
