@@ -26,7 +26,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SrLogger.LogMessage($"Connect request received with PlayerId: {playerId}",
             $"Connect request from {senderEndPoint} with PlayerId: {playerId}");
 
-        var client = clientManager.AddClient(senderEndPoint, playerId);
+        clientManager.AddClient(senderEndPoint, playerId);
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0]
             .Cast<ICurrency>());
@@ -82,8 +82,7 @@ public sealed class ConnectHandler : BasePacketHandler
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
 
         var unlockedArray = Il2CppSystem.Linq.Enumerable
-            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>())
-            .ToArray(); // ToArray on an il2cpp array makes it mono
+            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId);
         
