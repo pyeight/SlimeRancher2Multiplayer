@@ -16,7 +16,7 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler
 
         if (!IsPlayerSoundDictionary[packet.FX])
         {
-            var fxPrefab = fxManager.playerFXMap[packet.FX];
+            var fxPrefab = fxManager.PlayerFXMap[packet.FX];
 
             handlingPacket = true;
             FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
@@ -24,7 +24,7 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler
             return;
         }
 
-        var cue = fxManager.playerAudioCueMap[packet.FX];
+        var cue = fxManager.PlayerAudioCueMap[packet.FX];
 
         if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
         {

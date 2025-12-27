@@ -35,12 +35,12 @@ public sealed class ActorsPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
-        writer.WriteList(Actors, (writer2, value) => value.Serialise(writer2));
+        writer.WriteList(Actors, PacketWriterDels.Packet<Actor>.Func);
     }
 
     public void Deserialise(PacketReader reader)
     {
         Type = reader.ReadByte();
-        Actors = reader.ReadList(reader2 => reader2.ReadPacket<Actor>());
+        Actors = reader.ReadList(PacketReaderDels.Packet<Actor>.Func);
     }
 }

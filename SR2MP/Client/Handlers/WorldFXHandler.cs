@@ -16,7 +16,7 @@ public sealed class WorldFXHandler : BaseClientPacketHandler
 
         if (!IsWorldSoundDictionary[packet.FX])
         {
-            var fxPrefab = fxManager.worldFXMap[packet.FX];
+            var fxPrefab = fxManager.WorldFXMap[packet.FX];
 
             handlingPacket = true;
             FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
@@ -24,7 +24,7 @@ public sealed class WorldFXHandler : BaseClientPacketHandler
         }
         else
         {
-            var cue = fxManager.worldAudioCueMap[packet.FX];
+            var cue = fxManager.WorldAudioCueMap[packet.FX];
 
             RemoteFXManager.PlayTransientAudio(cue, packet.Position);
         }

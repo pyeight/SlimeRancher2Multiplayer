@@ -7,6 +7,6 @@ public static class OnMarketDepositLoaded
 {
     public static void Postfix(ScorePlort __instance)
     {
-        fxManager.sellFX = __instance.ExplosionFX;
+        fxManager.SellFX = __instance.ExplosionFX;
     }
 }

@@ -5,70 +5,71 @@ namespace SR2MP.Shared.Managers;
 
 public sealed class RemoteFXManager
 {
-    public readonly Dictionary<string, GameObject> allFX = new();
-    public readonly Dictionary<string, SECTR_AudioCue> allCues = new();
+    // ReSharper disable once MemberCanBePrivate.Global
+    public readonly Dictionary<string, GameObject> AllFX = new();
+    public readonly Dictionary<string, SECTR_AudioCue> AllCues = new();
 
-    public Dictionary<PlayerFXType, GameObject> playerFXMap;
-    public Dictionary<PlayerFXType, SECTR_AudioCue> playerAudioCueMap;
+    public Dictionary<PlayerFXType, GameObject> PlayerFXMap;
+    public Dictionary<PlayerFXType, SECTR_AudioCue> PlayerAudioCueMap;
 
-    public Dictionary<WorldFXType, GameObject> worldFXMap;
-    public Dictionary<WorldFXType, SECTR_AudioCue> worldAudioCueMap;
+    public Dictionary<WorldFXType, GameObject> WorldFXMap;
+    public Dictionary<WorldFXType, SECTR_AudioCue> WorldAudioCueMap;
 
-    public GameObject footstepFX;
-    public GameObject? sellFX;
+    public GameObject FootstepFX;
+    public GameObject? SellFX;
 
     internal void Initialize()
     {
-        allFX.Clear();
+        AllFX.Clear();
         var resources = Resources.FindObjectsOfTypeAll<ParticleSystemRenderer>();
         foreach (var particle in resources)
         {
             var particleName = particle.gameObject.name.Replace(' ', '_');
 
-            allFX.TryAdd(particleName, particle.gameObject);
+            AllFX.TryAdd(particleName, particle.gameObject);
         }
-        allCues.Clear();
+        AllCues.Clear();
         foreach (var cue in Resources.FindObjectsOfTypeAll<SECTR_AudioCue>())
         {
             if (cue.Spatialization != SECTR_AudioCue.Spatializations.Simple2D)
                 cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
 
             var cueName = cue.name.Replace(' ', '_');
-            allCues.TryAdd(cueName, cue);
+            AllCues.TryAdd(cueName, cue);
         }
-        playerFXMap = new Dictionary<PlayerFXType, GameObject>
+        PlayerFXMap = new Dictionary<PlayerFXType, GameObject>
         {
             { PlayerFXType.None, null! },
-            { PlayerFXType.VacReject, allFX["FX_vacReject"] },
-            { PlayerFXType.VacAccept, allFX["FX_vacAcquire"] },
-            { PlayerFXType.VacShoot, allFX["FX_VacpackShoot"] }
+            { PlayerFXType.VacReject, AllFX["FX_vacReject"] },
+            { PlayerFXType.VacAccept, AllFX["FX_vacAcquire"] },
+            { PlayerFXType.VacShoot, AllFX["FX_VacpackShoot"] }
         };
-        playerAudioCueMap = new Dictionary<PlayerFXType, SECTR_AudioCue>
+        PlayerAudioCueMap = new Dictionary<PlayerFXType, SECTR_AudioCue>
         {
             { PlayerFXType.None, null! },
-            { PlayerFXType.VacShootEmpty, allCues["VacShootEmpty"]},
-            { PlayerFXType.VacHold, allCues["VacClogged"]},
-            { PlayerFXType.VacSlotChange, allCues["VacAmmoSelect"]},
-            { PlayerFXType.VacRunning, allCues["VacRun"]},
-            { PlayerFXType.VacRunningStart, allCues["VacStart"]},
-            { PlayerFXType.VacRunningEnd, allCues["VacEnd"]},
-            { PlayerFXType.VacShootSound, allCues["VacShoot"]},
+            { PlayerFXType.VacShootEmpty, AllCues["VacShootEmpty"]},
+            { PlayerFXType.VacHold, AllCues["VacClogged"]},
+            { PlayerFXType.VacSlotChange, AllCues["VacAmmoSelect"]},
+            { PlayerFXType.VacRunning, AllCues["VacRun"]},
+            { PlayerFXType.VacRunningStart, AllCues["VacStart"]},
+            { PlayerFXType.VacRunningEnd, AllCues["VacEnd"]},
+            { PlayerFXType.VacShootSound, AllCues["VacShoot"]},
         };
-        worldFXMap = new Dictionary<WorldFXType, GameObject>
+        WorldFXMap = new Dictionary<WorldFXType, GameObject>
         {
             { WorldFXType.None, null! },
-            { WorldFXType.SellPlort, sellFX ?? allFX["FX_Stars"] },
+            { WorldFXType.SellPlort, SellFX ?? AllFX["FX_Stars"] },
         };
-        worldAudioCueMap = new Dictionary<WorldFXType, SECTR_AudioCue>
+        WorldAudioCueMap = new Dictionary<WorldFXType, SECTR_AudioCue>
         {
             { WorldFXType.None, null! },
-            { WorldFXType.BuyPlot, allCues["PurchaseRanchTechBase"]},
-            { WorldFXType.UpgradePlot, allCues["PurchaseRanchTechUpgrade"]},
-            { WorldFXType.SellPlortSound, allCues["SiloReward"]},
-            { WorldFXType.SellPlortDroneSound, allCues["SiloRewardDrone"]},
+            { WorldFXType.BuyPlot, AllCues["PurchaseRanchTechBase"]},
+            { WorldFXType.UpgradePlot, AllCues["PurchaseRanchTechUpgrade"]},
+            { WorldFXType.SellPlortSound, AllCues["SiloReward"]},
+            { WorldFXType.SellPlortDroneSound, AllCues["SiloRewardDrone"]},
         };
 
-        foreach (var (playerFX, obj) in playerFXMap)
+        foreach (var (playerFX, obj) in PlayerFXMap)
         {
             if (!obj)
                 continue;
@@ -82,7 +83,7 @@ public sealed class RemoteFXManager
             }
         }
 
-        foreach (var (worldFX, obj) in worldFXMap)
+        foreach (var (worldFX, obj) in WorldFXMap)
         {
             if (!obj)
                 continue;
@@ -94,13 +95,13 @@ public sealed class RemoteFXManager
             }
         }
 
-        footstepFX = allFX["FX_Footstep"];
+        FootstepFX = AllFX["FX_Footstep"];
 
-        foreach (var cue in playerAudioCueMap)
+        foreach (var cue in PlayerAudioCueMap)
         {
             cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
         }
-        foreach (var cue in worldAudioCueMap)
+        foreach (var cue in WorldAudioCueMap)
         {
             cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
         }
@@ -108,9 +109,9 @@ public sealed class RemoteFXManager
         SrLogger.LogMessage("RemoteFXManager initialized", SrLogger.LogTarget.Both);
     }
 
-    public bool TryGetFXType(SECTR_AudioCue cue, out PlayerFXType fxType) => TryGetFXType(cue, playerAudioCueMap, out fxType);
+    public bool TryGetFXType(SECTR_AudioCue cue, out PlayerFXType fxType) => TryGetFXType(cue, PlayerAudioCueMap, out fxType);
 
-    public bool TryGetFXType(SECTR_AudioCue cue, out WorldFXType fxType) => TryGetFXType(cue, worldAudioCueMap, out fxType);
+    public bool TryGetFXType(SECTR_AudioCue cue, out WorldFXType fxType) => TryGetFXType(cue, WorldAudioCueMap, out fxType);
 
     private static bool TryGetFXType<T>(SECTR_AudioCue cue, Dictionary<T, SECTR_AudioCue> cueMap, out T fxType) where T : struct, Enum
     {

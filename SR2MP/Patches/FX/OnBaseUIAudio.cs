@@ -19,7 +19,7 @@ public static class OnPlayUIAudio
 
         SendPacket(fxType, SceneContext.Instance.player.transform.position);
 
-        RemoteFXManager.PlayTransientAudio(fxManager.worldAudioCueMap[fxType], SceneContext.Instance.player.transform.position);
+        RemoteFXManager.PlayTransientAudio(fxManager.WorldAudioCueMap[fxType], SceneContext.Instance.player.transform.position);
 
         return false;
     }

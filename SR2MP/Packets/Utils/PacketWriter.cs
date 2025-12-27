@@ -4,6 +4,8 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
+// There is a TON of copy paste at the moment
+// TODO: Figure out a way to reduce the level of copy paste here
 public sealed class PacketWriter : IDisposable
 {
     private readonly MemoryStream _stream;
@@ -60,16 +62,98 @@ public sealed class PacketWriter : IDisposable
     {
         _writer.Write(array.Length);
 
-        for (var i = 0; i < array.Length; i++)
-            writer(this, array[i]);
+        foreach (var item in array)
+            writer(this, item);
     }
 
     public void WriteList<T>(List<T> list, Action<PacketWriter, T> writer)
     {
         _writer.Write(list.Count);
 
-        for (var i = 0; i < list.Count; i++)
-            writer(this, list[i]);
+        foreach (var item in list)
+            writer(this, item);
+    }
+
+    public void WriteEnumList<T>(List<T> list) where T : struct, Enum
+    {
+        _writer.Write(list.Count);
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 2:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 4:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 8:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            default:
+                throw new ArgumentException($"Enum size {size} not supported");
+        }
+    }
+
+    public void WriteEnumSet<T>(HashSet<T> set) where T : struct, Enum
+    {
+        _writer.Write(set.Count);
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 2:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 4:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 8:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            default:
+                throw new ArgumentException($"Enum size {size} not supported");
+        }
     }
 
     public void WriteSet<T>(HashSet<T> set, Action<PacketWriter, T> writer)
@@ -84,8 +168,49 @@ public sealed class PacketWriter : IDisposable
     {
         _writer.Write(list.Count);
 
-        for (var i = 0; i < list.Count; i++)
-            writer(this, list[i]);
+        foreach (var item in list)
+            writer(this, item);
+    }
+
+    public void WriteCppEnumList<T>(CppCollections.List<T> list) where T : struct, Enum
+    {
+        _writer.Write(list.Count);
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 2:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 4:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 8:
+            {
+                foreach (var item in list)
+                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            default:
+                throw new ArgumentException($"Enum size {size} not supported");
+        }
     }
 
     public void WriteCppSet<T>(CppCollections.HashSet<T> set, Action<PacketWriter, T> writer)
@@ -94,6 +219,47 @@ public sealed class PacketWriter : IDisposable
 
         foreach (var item in set)
             writer(this, item);
+    }
+
+    public void WriteCppEnumSet<T>(CppCollections.HashSet<T> set) where T : struct, Enum
+    {
+        _writer.Write(set.Count);
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 2:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 4:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            case 8:
+            {
+                foreach (var item in set)
+                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
+
+                break;
+            }
+            default:
+                throw new ArgumentException($"Enum size {size} not supported");
+        }
     }
 
     public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
@@ -134,8 +300,21 @@ public sealed class PacketWriter : IDisposable
 
     public void Dispose()
     {
-        _writer?.Dispose();
-        _stream?.Dispose();
+        _writer.Dispose();
+        _stream.Dispose();
+        // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
         GC.SuppressFinalize(this);
+    }
+}
+
+public static class PacketWriterDels
+{
+    public static readonly Action<PacketWriter, byte> Byte = (writer, value) => writer.WriteByte(value);
+    public static readonly Action<PacketWriter, sbyte> SByte = (writer, value) => writer.WriteSByte(value);
+    public static readonly Action<PacketWriter, string> String = (writer, value) => writer.WriteString(value);
+
+    public static class Packet<T> where T : IPacket
+    {
+        public static readonly Action<PacketWriter, T> Func = (writer, value) => value.Serialise(writer);
     }
 }

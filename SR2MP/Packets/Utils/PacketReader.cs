@@ -58,6 +58,214 @@ public sealed class PacketReader : IDisposable
         return list;
     }
 
+    public List<T> ReadEnumList<T>() where T : struct, Enum
+    {
+        var count = _reader.ReadInt32();
+        var list = new List<T>(count);
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var b = _reader.ReadByte();
+                    list.Add(Unsafe.As<byte, T>(ref b));
+                }
+                break;
+            }
+            case 2:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var s = _reader.ReadUInt16();
+                    list.Add(Unsafe.As<ushort, T>(ref s));
+                }
+                break;
+            }
+            case 4:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var i = _reader.ReadUInt32();
+                    list.Add(Unsafe.As<uint, T>(ref i));
+                }
+                break;
+            }
+            case 8:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var l = _reader.ReadUInt64();
+                    list.Add(Unsafe.As<ulong, T>(ref l));
+                }
+                break;
+            }
+            default:
+                throw new NotSupportedException($"Enum size {size} not supported");
+        }
+
+        return list;
+    }
+
+    public HashSet<T> ReadEnumSet<T>() where T : struct, Enum
+    {
+        var count = _reader.ReadInt32();
+        var set = new HashSet<T>(count);
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var b = _reader.ReadByte();
+                    set.Add(Unsafe.As<byte, T>(ref b));
+                }
+                break;
+            }
+            case 2:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var s = _reader.ReadUInt16();
+                    set.Add(Unsafe.As<ushort, T>(ref s));
+                }
+                break;
+            }
+            case 4:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var i = _reader.ReadUInt32();
+                    set.Add(Unsafe.As<uint, T>(ref i));
+                }
+                break;
+            }
+            case 8:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var l = _reader.ReadUInt64();
+                    set.Add(Unsafe.As<ulong, T>(ref l));
+                }
+                break;
+            }
+            default:
+                throw new NotSupportedException($"Enum size {size} not supported");
+        }
+
+        return set;
+    }
+
+    public CppCollections.List<T> ReadCppEnumList<T>() where T : struct, Enum
+    {
+        var count = _reader.ReadInt32();
+        var list = new CppCollections.List<T>(count);
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var b = _reader.ReadByte();
+                    list.Add(Unsafe.As<byte, T>(ref b));
+                }
+                break;
+            }
+            case 2:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var s = _reader.ReadUInt16();
+                    list.Add(Unsafe.As<ushort, T>(ref s));
+                }
+                break;
+            }
+            case 4:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var i = _reader.ReadUInt32();
+                    list.Add(Unsafe.As<uint, T>(ref i));
+                }
+                break;
+            }
+            case 8:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var l = _reader.ReadUInt64();
+                    list.Add(Unsafe.As<ulong, T>(ref l));
+                }
+                break;
+            }
+            default:
+                throw new NotSupportedException($"Enum size {size} not supported");
+        }
+
+        return list;
+    }
+
+    public CppCollections.HashSet<T> ReadCppEnumSet<T>() where T : struct, Enum
+    {
+        var count = _reader.ReadInt32();
+        var list = new CppCollections.HashSet<T>();
+
+        var size = Unsafe.SizeOf<T>();
+
+        switch (size)
+        {
+            case 1:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var b = _reader.ReadByte();
+                    list.Add(Unsafe.As<byte, T>(ref b));
+                }
+                break;
+            }
+            case 2:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var s = _reader.ReadUInt16();
+                    list.Add(Unsafe.As<ushort, T>(ref s));
+                }
+                break;
+            }
+            case 4:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var i = _reader.ReadUInt32();
+                    list.Add(Unsafe.As<uint, T>(ref i));
+                }
+                break;
+            }
+            case 8:
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    var l = _reader.ReadUInt64();
+                    list.Add(Unsafe.As<ulong, T>(ref l));
+                }
+                break;
+            }
+            default:
+                throw new NotSupportedException($"Enum size {size} not supported");
+        }
+
+        return list;
+    }
+
     public HashSet<T> ReadSet<T>(Func<PacketReader, T> reader)
     {
         var count = _reader.ReadInt32();
@@ -102,7 +310,6 @@ public sealed class PacketReader : IDisposable
         return dict;
     }
 
-    // All packet types MUST have a parameter-less constructor! Either make the type a struct (which always has a parameterless constructor), or at least declare a parameterless constructor for classes!
     public T ReadPacket<T>() where T : IPacket, new()
     {
         var result = new T();
@@ -137,8 +344,21 @@ public sealed class PacketReader : IDisposable
 
     public void Dispose()
     {
-        _reader?.Dispose();
-        _stream?.Dispose();
+        _reader.Dispose();
+        _stream.Dispose();
+        // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
         GC.SuppressFinalize(this);
+    }
+}
+
+public static class PacketReaderDels
+{
+    public static readonly Func<PacketReader, byte> Byte = reader => reader.ReadByte();
+    public static readonly Func<PacketReader, sbyte> SByte = reader => reader.ReadSByte();
+    public static readonly Func<PacketReader, string> String = reader => reader.ReadString();
+
+    public static class Packet<T> where T : IPacket, new()
+    {
+        public static readonly Func<PacketReader, T> Func = reader => reader.ReadPacket<T>();
     }
 }

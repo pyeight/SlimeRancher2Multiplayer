@@ -11,12 +11,12 @@ public sealed class PediasPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
-        writer.WriteList(Entries, (writer2, value) => writer2.WriteString(value));
+        writer.WriteList(Entries, PacketWriterDels.String);
     }
 
     public void Deserialise(PacketReader reader)
     {
         Type = reader.ReadByte();
-        Entries = reader.ReadList(reader2 => reader2.ReadString());
+        Entries = reader.ReadList(PacketReaderDels.String);
     }
 }
