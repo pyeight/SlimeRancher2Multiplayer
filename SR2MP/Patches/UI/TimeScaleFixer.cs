@@ -1,5 +1,4 @@
 using HarmonyLib;
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.Script.UI.Pause;
 
 namespace SR2MP.Patches.UI;

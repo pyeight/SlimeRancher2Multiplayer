@@ -17,6 +17,8 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteByte(byte value) => _writer.Write(value);
 
+    public void WriteSByte(sbyte value) => _writer.Write(value);
+
     public void WriteInt(int value) => _writer.Write(value);
 
     public void WriteLong(long value) => _writer.Write(value);

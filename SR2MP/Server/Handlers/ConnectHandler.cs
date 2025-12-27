@@ -1,9 +1,9 @@
 using System.Net;
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using Il2CppMonomiPark.SlimeRancher.Pedia;
 
 namespace SR2MP.Server.Handlers;
 
@@ -25,8 +25,11 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var client = clientManager.AddClient(senderEndPoint, playerId);
 
-        var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
-        var rainbowMoney = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>());
+        var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0]
+            .Cast<ICurrency>());
+        var rainbowMoney =
+            SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[1]
+                .Cast<ICurrency>());
 
         var ackPacket = new ConnectAckPacket
         {
@@ -37,7 +40,7 @@ public sealed class ConnectHandler : BasePacketHandler
             RainbowMoney = rainbowMoney
         };
 
-        Main.Server.SendToClient(ackPacket, client);
+        Main.Server.SendToClient(ackPacket, senderEndPoint);
 
         var joinPacket = new PlayerJoinPacket
         {
@@ -50,9 +53,46 @@ public sealed class ConnectHandler : BasePacketHandler
 
         SendPlotsPacket(senderEndPoint);
         SendActorsPacket(senderEndPoint);
+        SendUpgradesPacket(senderEndPoint);
+        SendPediaPacket(senderEndPoint);
 
         SrLogger.LogMessage($"Player {playerId} successfully connected",
             $"Player {playerId} successfully connected from {senderEndPoint}");
+    }
+
+    private static void SendUpgradesPacket(IPEndPoint client)
+    {
+        var upgrades = new Dictionary<byte, sbyte>();
+
+        foreach (var upgrade in GameContext.Instance.LookupDirector._upgradeDefinitions.items)
+        {
+            upgrades.Add((byte)upgrade._uniqueId, (sbyte)SceneContext.Instance.PlayerState._model.upgradeModel.GetUpgradeLevel(upgrade));
+        }
+
+        var upgradesPacket = new UpgradesPacket()
+        {
+            Type = (byte)PacketType.InitialPlayerUpgrades,
+            Upgrades = upgrades,
+        };
+        Main.Server.SendToClient(upgradesPacket, client);
+    }
+
+    private static void SendPediaPacket(IPEndPoint client)
+    {
+        var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
+
+        var unlockedArray = Il2CppSystem.Linq.Enumerable
+            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>())
+            .ToArray(); // ToArray on an il2cpp array makes it mono
+
+        var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId);
+
+        var pediasPacket = new PediasPacket()
+        {
+            Type = (byte)PacketType.InitialPediaEntries,
+            Entries = unlockedIDs.ToList()
+        };
+        Main.Server.SendToClient(pediasPacket, client);
     }
 
     private static void SendActorsPacket(IPEndPoint client)

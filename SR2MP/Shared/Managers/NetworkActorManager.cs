@@ -1,4 +1,3 @@
-using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 
 namespace SR2MP.Shared.Managers;

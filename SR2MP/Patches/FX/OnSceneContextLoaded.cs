@@ -1,6 +1,5 @@
 using System.Collections;
 using HarmonyLib;
-using Il2Cpp;
 using MelonLoader;
 
 namespace SR2MP.Patches.FX;

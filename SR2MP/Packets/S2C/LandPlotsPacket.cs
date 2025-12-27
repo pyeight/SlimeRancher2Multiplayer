@@ -1,4 +1,3 @@
-using Il2Cpp;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.S2C;

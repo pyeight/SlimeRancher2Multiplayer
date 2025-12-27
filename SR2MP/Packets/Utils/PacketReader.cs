@@ -17,6 +17,8 @@ public sealed class PacketReader : IDisposable
 
     public byte ReadByte() => _reader.ReadByte();
 
+    public sbyte ReadSByte() => _reader.ReadSByte();
+
     public int ReadInt() => _reader.ReadInt32();
 
     public long ReadLong() => _reader.ReadInt64();
