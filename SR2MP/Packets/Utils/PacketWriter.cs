@@ -4,8 +4,6 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
-// There is a TON of copy paste at the moment
-// TODO: Figure out a way to reduce the level of copy paste here
 public sealed class PacketWriter : IDisposable
 {
     private readonly MemoryStream _stream;
@@ -17,24 +15,46 @@ public sealed class PacketWriter : IDisposable
         _writer = new BinaryWriter(_stream, Encoding.UTF8);
     }
 
-    public void WriteByte(byte value) => _writer.Write(value);
-
-    public void WriteSByte(sbyte value) => _writer.Write(value);
-
-    public void WriteInt(int value) => _writer.Write(value);
-
-    public void WriteLong(long value) => _writer.Write(value);
-
-    public void WriteFloat(float value) => _writer.Write(value);
-
-    public void WriteDouble(double value) => _writer.Write(value);
-
-    public void WriteString(string? value) => _writer.Write(value ?? string.Empty);
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteBool(bool value) => _writer.Write(value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSByte(sbyte value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteByte(byte value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUShort(ushort value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteInt(int value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUInt(uint value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteLong(long value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteULong(ulong value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteFloat(float value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteDouble(double value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteString(string? value) => _writer.Write(value ?? string.Empty);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePacket<T>(T value) where T : IPacket => value.Serialise(this);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector3(Vector3 value)
     {
         _writer.Write(value.x);
@@ -42,6 +62,7 @@ public sealed class PacketWriter : IDisposable
         _writer.Write(value.z);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteQuaternion(Quaternion value)
     {
         _writer.Write(value.x);
@@ -50,6 +71,7 @@ public sealed class PacketWriter : IDisposable
         _writer.Write(value.w);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat4(float4 value)
     {
         _writer.Write(value.x);
@@ -74,88 +96,6 @@ public sealed class PacketWriter : IDisposable
             writer(this, item);
     }
 
-    public void WriteEnumList<T>(List<T> list) where T : struct, Enum
-    {
-        _writer.Write(list.Count);
-
-        var size = Unsafe.SizeOf<T>();
-
-        switch (size)
-        {
-            case 1:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 2:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 4:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 8:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            default:
-                throw new ArgumentException($"Enum size {size} not supported");
-        }
-    }
-
-    public void WriteEnumSet<T>(HashSet<T> set) where T : struct, Enum
-    {
-        _writer.Write(set.Count);
-
-        var size = Unsafe.SizeOf<T>();
-
-        switch (size)
-        {
-            case 1:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 2:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 4:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 8:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            default:
-                throw new ArgumentException($"Enum size {size} not supported");
-        }
-    }
-
     public void WriteSet<T>(HashSet<T> set, Action<PacketWriter, T> writer)
     {
         _writer.Write(set.Count);
@@ -172,94 +112,12 @@ public sealed class PacketWriter : IDisposable
             writer(this, item);
     }
 
-    public void WriteCppEnumList<T>(CppCollections.List<T> list) where T : struct, Enum
-    {
-        _writer.Write(list.Count);
-
-        var size = Unsafe.SizeOf<T>();
-
-        switch (size)
-        {
-            case 1:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 2:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 4:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 8:
-            {
-                foreach (var item in list)
-                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            default:
-                throw new ArgumentException($"Enum size {size} not supported");
-        }
-    }
-
     public void WriteCppSet<T>(CppCollections.HashSet<T> set, Action<PacketWriter, T> writer)
     {
         _writer.Write(set.Count);
 
         foreach (var item in set)
             writer(this, item);
-    }
-
-    public void WriteCppEnumSet<T>(CppCollections.HashSet<T> set) where T : struct, Enum
-    {
-        _writer.Write(set.Count);
-
-        var size = Unsafe.SizeOf<T>();
-
-        switch (size)
-        {
-            case 1:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, byte>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 2:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, ushort>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 4:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, uint>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            case 8:
-            {
-                foreach (var item in set)
-                    _writer.Write(Unsafe.As<T, ulong>(ref Unsafe.AsRef(in item)));
-
-                break;
-            }
-            default:
-                throw new ArgumentException($"Enum size {size} not supported");
-        }
     }
 
     public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
@@ -270,29 +128,6 @@ public sealed class PacketWriter : IDisposable
         {
             keyWriter(this, key);
             valueWriter(this, value);
-        }
-    }
-
-    public void WriteEnum<T>(T value) where T : struct, Enum
-    {
-        var size = Unsafe.SizeOf<T>();
-
-        switch (size)
-        {
-            case 1:
-                _writer.Write(Unsafe.As<T, byte>(ref value));
-                break;
-            case 2:
-                _writer.Write(Unsafe.As<T, ushort>(ref value));
-                break;
-            case 4:
-                _writer.Write(Unsafe.As<T, uint>(ref value));
-                break;
-            case 8:
-                _writer.Write(Unsafe.As<T, ulong>(ref value));
-                break;
-            default:
-                throw new ArgumentException($"Enum size {size} not supported");
         }
     }
 
@@ -316,5 +151,23 @@ public static class PacketWriterDels
     public static class Packet<T> where T : IPacket
     {
         public static readonly Action<PacketWriter, T> Func = (writer, value) => value.Serialise(writer);
+    }
+
+    public static class Enum<T> where T : struct, Enum
+    {
+        public static readonly Action<PacketWriter, T> Func = CreateWriter();
+
+        private static Action<PacketWriter, T> CreateWriter()
+        {
+            var size = Unsafe.SizeOf<T>();
+            return size switch
+            {
+                1 => (w, v) => w.WriteByte(Unsafe.As<T, byte>(ref v)),
+                2 => (w, v) => w.WriteUShort(Unsafe.As<T, ushort>(ref v)),
+                4 => (w, v) => w.WriteUInt(Unsafe.As<T, uint>(ref v)),
+                8 => (w, v) => w.WriteULong(Unsafe.As<T, ulong>(ref v)),
+                _ => throw new ArgumentException($"Enum size {size} not supported")
+            };
+        }
     }
 }

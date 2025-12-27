@@ -14,14 +14,14 @@ public sealed class LandPlotsPacket : IPacket
         {
             writer.WriteString(ID);
             writer.WriteEnum(Type);
-            writer.WriteCppEnumSet(Upgrades);
+            writer.WriteCppSet(Upgrades, PacketWriterDels.Enum<LandPlot.Upgrade>.Func);
         }
 
         public void Deserialise(PacketReader reader)
         {
             ID = reader.ReadString();
             Type = reader.ReadEnum<LandPlot.Id>();
-            Upgrades = reader.ReadCppEnumSet<LandPlot.Upgrade>();
+            Upgrades = reader.ReadCppSet(PacketReaderDels.Enum<LandPlot.Upgrade>.Func);
         }
     }
 
