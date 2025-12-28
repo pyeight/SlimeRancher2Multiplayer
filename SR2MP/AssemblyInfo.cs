@@ -49,9 +49,9 @@ internal static class BuildInfo
     internal const string Description = "Adds Multiplayer to Slime Rancher 2";
     internal const string Author = "Shark";
     internal const string CoAuthors = "";
-    internal const string Contributors = "shizophrenicgopher, AlchlcSystm";
+    internal const string Contributors = "AlchlcSystm, shizophrenicgopher, PinkTarr";
     internal const string Company = "";
-    internal const string Version = "0.1.0";
+    internal const string Version = "0.1.1";
     internal const string DownloadLink = "https://discord.com/invite/a7wfBw5feU";
     internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
     internal const string Nexus = "";

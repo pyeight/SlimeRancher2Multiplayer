@@ -6,11 +6,13 @@ namespace SR2MP.Components.Time;
 public sealed class ForceTimeScale : MonoBehaviour
 {
     public float timeScale = 1f;
+    public float loadingTimeScale = 0f;
 
     private void Update()
     {
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
             return;
+
         if (GameContext.Instance.InputDirector._paused.Map.enabled)
         {
             Cursor.visible = true;
@@ -22,6 +24,8 @@ public sealed class ForceTimeScale : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
         }
 
-        UnityEngine.Time.timeScale = timeScale;
+        var loading = SystemContext.Instance.SceneLoader.IsSceneLoadInProgress;
+
+        UnityEngine.Time.timeScale = loading ? loadingTimeScale : timeScale;
     }
 }

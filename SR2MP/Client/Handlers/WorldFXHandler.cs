@@ -26,7 +26,7 @@ public sealed class WorldFXHandler : BaseClientPacketHandler
         {
             var cue = fxManager.WorldAudioCueMap[packet.FX];
 
-            RemoteFXManager.PlayTransientAudio(cue, packet.Position);
+            RemoteFXManager.PlayTransientAudio(cue, packet.Position, WorldSoundVolumeDictionary[packet.FX]);
         }
     }
 }

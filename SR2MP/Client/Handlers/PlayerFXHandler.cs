@@ -28,18 +28,17 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler
 
         if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
         {
-            RemoteFXManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position);
+            RemoteFXManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position, PlayerSoundVolumeDictionary[packet.FX]);
         }
         else
         {
             var playerAudio = playerObjects[packet.Player].GetComponent<SECTR_PointSource>();
 
-            handlingPacket = true;
             playerAudio.Cue = cue;
             playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
+
             playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
             playerAudio.Play();
-            handlingPacket = false;
         }
     }
 }

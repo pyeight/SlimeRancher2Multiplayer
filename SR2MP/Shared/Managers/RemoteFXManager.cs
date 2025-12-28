@@ -133,4 +133,11 @@ public sealed class RemoteFXManager
     {
         SECTR_AudioSystem.Play(cue, position, loop);
     }
+
+    public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, float volume, bool loop = false)
+    {
+        var played = SECTR_AudioSystem.Play(cue, position, loop);
+
+        played.Volume = volume;
+    }
 }

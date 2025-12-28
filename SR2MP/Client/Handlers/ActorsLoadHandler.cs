@@ -47,22 +47,32 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
                 .TryCast<ActorModel>();
 
             if (model == null)
-                continue;
+                return;
 
             handlingPacket = true;
-            var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
+            try
+            {
+                var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
+
+                if (!actorObject)
+                    return;
+
+                var networkComponent = actorObject.AddComponent<NetworkActor>();
+                networkComponent.previousPosition = actor.Position;
+                networkComponent.nextPosition = actor.Position;
+                networkComponent.previousRotation = actor.Rotation;
+                networkComponent.nextRotation = actor.Rotation;
+                actorObject.transform.position = actor.Position;
+                actorManager.Actors.Add(actor.ActorId, model);
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogError(
+                    $"Error while loading actor with ID {actor.ActorId}\nActor Information: Type={type.name}\nError: {ex}",
+                    SrLogger.LogTarget.Both);
+            }
+
             handlingPacket = false;
-
-            if (!actorObject)
-                continue;
-
-            var networkComponent = actorObject.AddComponent<NetworkActor>();
-            networkComponent.previousPosition = actor.Position;
-            networkComponent.nextPosition = actor.Position;
-            networkComponent.previousRotation = actor.Rotation;
-            networkComponent.nextRotation = actor.Rotation;
-            actorObject.transform.position = actor.Position;
-            actorManager.Actors.Add(actor.ActorId, model);
         }
     }
 }

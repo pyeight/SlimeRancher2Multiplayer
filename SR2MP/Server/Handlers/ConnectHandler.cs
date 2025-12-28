@@ -83,18 +83,24 @@ public sealed class ConnectHandler : BasePacketHandler
     {
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
 
-        var unlockedArray = Enumerable
-            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>())
-            .ToArray(); // ToArray on an il2cpp array makes it mono
+        var unlockedArray = Il2CppSystem.Linq.Enumerable
+            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
-        var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId);
+        SrLogger.LogMessage($"Found {unlockedArray.Length} pedia entries");
+
+        var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
+
+        SrLogger.LogMessage($"Sent {unlockedIDs.Count} pedia entries");
 
         var pediasPacket = new PediasPacket
         {
             Type = (byte)PacketType.InitialPediaEntries,
-            Entries = unlockedIDs.ToList()
+            Entries = unlockedIDs
         };
+
         Main.Server.SendToClient(pediasPacket, client);
+
+        SrLogger.LogMessage("InitialPediaEntries packet sent");
     }
 
     private static void SendActorsPacket(IPEndPoint client)

@@ -6,7 +6,6 @@ public sealed class UpgradesPacket : IPacket
 {
     public byte Type { get; set; }
 
-    // I really dislike the idea, but I'd rather send a List of integers to the Client than a (shorter) list of strings of string ~ Artur
     public Dictionary<byte, sbyte> Upgrades { get; set; }
 
     public void Serialise(PacketWriter writer)
