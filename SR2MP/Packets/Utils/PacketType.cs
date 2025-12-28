@@ -10,9 +10,8 @@ public enum PacketType : byte
     PlayerLeave = 5,              // Client -> Server                                                                   Remove Player
     BroadcastPlayerLeave = 6,     // Server -> All Clients                        (except client that left)             Remove Player on other Clients
     PlayerUpdate = 7,             // Client -> Server                                                                   Update Player
-    BroadcastPlayerUpdate = 8,    // Server -> All Clients                        (except client that updates)          Update Player on other Clients
-    ChatMessage = 9,              // Client -> Server                                                                   Chat message
-    BroadcastChatMessage = 10,    // Server -> All Clients                                                              Chat message on other Clients
+    ChatMessage = 8,              // Client -> Server                                                                   Chat message
+    BroadcastChatMessage = 9,     // Server -> All Clients                                                              Chat message on other Clients
     Heartbeat = 16,               // Client -> Server                                                                   Check if Clients are alive
     HeartbeatAck = 17,            // Server -> Client                                                                   Automatically time the Clients out if the Server crashes
     WorldTime = 18,               // Server -> All Clients                                                              Updates Time
