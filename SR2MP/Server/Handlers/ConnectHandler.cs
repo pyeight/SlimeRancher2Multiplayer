@@ -26,7 +26,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SrLogger.LogMessage($"Connect request received with PlayerId: {playerId}",
             $"Connect request from {senderEndPoint} with PlayerId: {playerId}");
 
-        var client = clientManager.AddClient(senderEndPoint, playerId);
+        clientManager.AddClient(senderEndPoint, playerId);
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0]
             .Cast<ICurrency>());
@@ -80,19 +80,25 @@ public sealed class ConnectHandler : BasePacketHandler
     void SendPediaPacket(IPEndPoint client)
     {
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
-
-        var unlockedArray = Il2CppSystem.Linq.Enumerable
-            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>())
-            .ToArray(); // ToArray on an il2cpp array makes it mono
-
-        var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId);
         
+        var unlockedArray = Il2CppSystem.Linq.Enumerable
+            .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
+
+        SrLogger.LogMessage($"Found {unlockedArray.Length} pedia entries");
+        
+        var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
+
+        SrLogger.LogMessage($"Sent {unlockedIDs.Count} pedia entries");
+
         var pediasPacket = new PediasPacket()
         {
             Type = (byte)PacketType.InitialPediaEntries,
-            Entries = unlockedIDs.ToList()
+            Entries = unlockedIDs
         };
+
         Main.Server.SendToClient(pediasPacket, client);
+
+        SrLogger.LogMessage("InitialPediaEntries packet sent");
     }
 
     void SendActorsPacket(IPEndPoint client)

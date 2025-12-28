@@ -43,8 +43,6 @@ public static class OnActorSpawn
 
         var id = actor.GetComponent<IdentifiableActor>().GetActorId();
 
-        actorManager.Actors.Add(id.Value, actor.GetComponent<IdentifiableActor>()._model);
-
         var packet = new ActorSpawnPacket()
         {
             Type = (byte)PacketType.ActorSpawn,
@@ -56,6 +54,8 @@ public static class OnActorSpawn
         };
 
         Main.SendToAllOrServer(packet);
+
+        actorManager.Actors.Add(id.Value, actor.GetComponent<IdentifiableActor>()._model);
     }
     
     public static void Prefix()

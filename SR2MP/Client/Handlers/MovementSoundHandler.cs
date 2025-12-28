@@ -12,8 +12,8 @@ public sealed class MovementSoundHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<MovementSoundPacket>();
+        var packet = reader.ReadPacket<MovementSoundPacket>();;
 
-        fxManager.PlayTransientAudio(fxManager.allCues[packet.CueName], packet.Position);
+        fxManager.PlayTransientAudio(fxManager.allCues[packet.CueName], packet.Position, 0.8f);
     }
 }

@@ -16,7 +16,6 @@ public sealed class PlayerJoinHandler : BasePacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerJoinPacket>();
 
-
         string playerId = packet.PlayerId;
 
         string address = $"{senderEndPoint.Address}:{senderEndPoint.Port}";

@@ -19,7 +19,7 @@ public static class OnPlayUIAudio
         
         SendPacket(fxType, SceneContext.Instance.player.transform.position);
         
-        fxManager.PlayTransientAudio(fxManager.worldAudioCueMap[fxType], SceneContext.Instance.player.transform.position);
+        fxManager.PlayTransientAudio(fxManager.worldAudioCueMap[fxType], SceneContext.Instance.player.transform.position, 1f);
 
         return false;
     }

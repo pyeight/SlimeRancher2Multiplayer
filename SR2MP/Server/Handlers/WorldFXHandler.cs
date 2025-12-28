@@ -27,7 +27,7 @@ public class WorldFXHandler : BasePacketHandler
         {
             var cue = fxManager.worldAudioCueMap[packet.FX];
 
-            fxManager.PlayTransientAudio(cue, packet.Position);
+            fxManager.PlayTransientAudio(cue, packet.Position, WorldSoundVolumeDictionary[packet.FX]);
         }
         
         Main.Server.SendToAllExcept(packet, senderEndPoint);

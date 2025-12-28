@@ -77,8 +77,8 @@ public static class FXConstants
     {
         { WorldFXType.BuyPlot, 0.5f },
         { WorldFXType.UpgradePlot, 0.5f },
-        { WorldFXType.SellPlortSound, 0.5f },
-        { WorldFXType.SellPlortDroneSound, 0.5f },
+        { WorldFXType.SellPlortSound, 0.8f },
+        { WorldFXType.SellPlortDroneSound, 1f },
     });
     public static readonly ReadOnlyDictionary<WorldFXType, bool> ShouldWorldSoundBeTransientDictionary = new(new Dictionary<WorldFXType, bool>()
     {

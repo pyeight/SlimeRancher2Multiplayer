@@ -142,9 +142,11 @@ namespace SR2MP.Shared.Managers
             return gotFx;
         }
         
-        public void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, bool loop = false)
+        public void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, float volume, bool loop = false)
         {
-            SECTR_AudioSystem.Play(cue, position, loop);
+            var played = SECTR_AudioSystem.Play(cue, position, loop);
+
+            played.Volume = volume;
         }
     }
 }
