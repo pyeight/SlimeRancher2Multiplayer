@@ -55,7 +55,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
                 var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
 
                 if (!actorObject)
-                    return;
+                    continue;
 
                 var networkComponent = actorObject.AddComponent<NetworkActor>();
                 networkComponent.previousPosition = actor.Position;
