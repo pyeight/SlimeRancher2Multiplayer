@@ -78,7 +78,7 @@ public sealed class Client
             receiveThread.IsBackground = true;
             receiveThread.Start();
 
-            Application.quitting += new System.Action(Disconnect);
+            Application.quitting += new Action(Disconnect);
 
             var connectPacket = new ConnectPacket
             {
