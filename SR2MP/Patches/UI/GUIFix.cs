@@ -8,7 +8,7 @@ namespace SR2MP.Patches.UI;
 internal static class GUIStateObjectsMultiPatch
 {
     private static Dictionary<int, Il2CppSystem.Object> stateCache = new();
-    
+
     [HarmonyPrefix]
     [HarmonyPatch(nameof(GUIStateObjects.QueryStateObject))]
     internal static bool QueryStateObject(Type t, int controlID, ref Il2CppSystem.Object __result)
@@ -17,7 +17,7 @@ internal static class GUIStateObjectsMultiPatch
         __result = (t.IsInstanceOfType(il2cppObject) ? il2cppObject : null)!;
         return false;
     }
-    
+
     [HarmonyPrefix]
     [HarmonyPatch(nameof(GUIStateObjects.GetStateObject))]
     public static bool GetStateObject(Type t, int controlID, ref Il2CppSystem.Object __result)
@@ -27,7 +27,7 @@ internal static class GUIStateObjectsMultiPatch
             instance = Activator.CreateInstance(t);
             stateCache[controlID] = instance;
         }
-    
+
         __result = instance;
         return false;
     }

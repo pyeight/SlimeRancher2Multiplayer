@@ -7,12 +7,12 @@ namespace SR2MP.Patches.Player;
 [HarmonyPatch(typeof(UpgradeModel), nameof(UpgradeModel.IncrementUpgradeLevel))]
 public static class OnPlayerUpgraded
 {
-    public static void Postfix(UpgradeModel __instance, UpgradeDefinition definition)
+    public static void Postfix(UpgradeDefinition definition)
     {
         if (handlingPacket) return;
-        
+
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
-            
+
         var packet = new PlayerUpgradePacket()
         {
             Type = (byte)PacketType.PlayerUpgrade,

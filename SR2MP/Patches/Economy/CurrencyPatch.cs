@@ -12,7 +12,7 @@ public static class CurrencyPatch
     public static void AddCurrency(
         ICurrency currencyDefinition,
         int adjust,
-        bool showUiNotification = true)
+        bool showUiNotification)
     {
         if (handlingPacket) return;
 

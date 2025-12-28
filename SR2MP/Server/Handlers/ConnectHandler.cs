@@ -5,7 +5,6 @@ using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
 using SR2MP.Shared.Managers;
-using Enumerable = Il2CppSystem.Linq.Enumerable;
 
 namespace SR2MP.Server.Handlers;
 

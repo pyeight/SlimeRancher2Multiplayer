@@ -47,7 +47,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
                 .TryCast<ActorModel>();
 
             if (model == null)
-                return;
+                continue;
 
             handlingPacket = true;
             try

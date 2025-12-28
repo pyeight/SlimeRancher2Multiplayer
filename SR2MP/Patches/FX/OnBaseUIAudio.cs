@@ -24,7 +24,7 @@ public static class OnPlayUIAudio
         return false;
     }
 
-    static void SendPacket(WorldFXType fxType, Vector3 position)
+    private static void SendPacket(WorldFXType fxType, Vector3 position)
     {
         var packet = new WorldFXPacket
         {
