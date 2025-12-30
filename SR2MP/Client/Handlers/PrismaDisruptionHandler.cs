@@ -24,53 +24,8 @@ namespace SR2MP.Client.Handlers
                 var director = SceneContext.Instance.PrismaDirector;
                 if (director == null) return;
 
-                // We need to find the DisruptionArea by ID (AreaId).
-                // PrismaDirector has `get__disruptionAreas()` returning Dictionary<DisruptionAreaDefinition, DisruptionArea>.
-                // Wait, Dictionary keys might be definitions.
-                // We need to iterate to find the one with matching name.
-                
-                // Assuming we can access the private dictionary via reflection if needed, 
-                // or if there is a public way.
-                // The dump showed `get__disruptionAreas`. The name suggests it's likely internal/private backing field but exposed by unhollower?
-                // Actually, often `get_` implies property.
-                
-                // Iterating the dictionary:
-                var areas = director._disruptionAreas; // This might be the field name if property is `_disruptionAreas`.
-                // Or maybe we have to use `director.GetDisruptionAreaDefinitions` and then lookup?
-                
-                // Let's try to access `director._disruptionAreas` if public, or iterate `director.GetDisruptionAreaDefinitions`?
-                // `GetDisruptionAreaDefinitions` returns keys.
-                // `SetDisruptionLevel` takes `DisruptionArea` object, NOT definition.
-                
-                // So we need to:
-                // 1. Find Definition by name.
-                // 2. Get DisruptionArea from Definition (using dictionary).
-                // 3. Call SetDisruptionLevel.
-                
-                // If `_disruptionAreas` is accessible:
-                // foreach (var kvp in director._disruptionAreas) { if (kvp.Key.name == packet.AreaId) ... }
-                
-                // Let's assume `_disruptionAreas` is exposed as a property or field.
-                // If Il2CppInterop/MelonLoader exposes private fields, we might use that.
-                // Otherwise, use reflection or `GetDisruptionAreaDefinitions` + lookup.
-                
-                // Using a safe approach:
-                // We'll iterate definitions if possible.
-                // Wait, `SceneContext`... `PrismaDirector`... 
-                
-                // Let's try:
-                /*
-                foreach (var kvp in director._disruptionAreas)
-                {
-                    if (kvp.Key.name == packet.AreaId)
-                    {
-                        director.SetDisruptionLevel(kvp.Value, (DisruptionLevel)packet.Level, packet.IsTransition);
-                        break;
-                    }
-                }
-                */
-                // Note: Il2Cpp dictionaries are specific.
-                
+                // Find the DisruptionArea by iterating the director's dictionary
+
                 var dict = director._disruptionAreas;
                 if (dict != null)
                 {

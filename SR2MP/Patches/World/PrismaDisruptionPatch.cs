@@ -15,11 +15,8 @@ namespace SR2MP.Patches.World
 
             if (Main.Client.IsConnected || Main.Server.IsRunning())
             {
-                // We need to find the ID (name) of the area.
-                // DisruptionArea doesn't have a name property directly visible in quick look, 
-                // but it likely has a reference to its definition.
-                // Or we can reverse lookup in the dictionary.
-                
+                // Reverse lookup the area ID from the dictionary
+
                 string areaId = "";
                 
                 // Reverse lookup in _disruptionAreas
@@ -28,7 +25,7 @@ namespace SR2MP.Patches.World
                 {
                     foreach (var entry in dict)
                     {
-                        if (entry.Value.Equals(area)) // Assuming value equality or ref check
+                        if (entry.Value.Equals(area))
                         {
                             areaId = entry.Key.name;
                             break;

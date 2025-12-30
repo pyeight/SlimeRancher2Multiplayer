@@ -1,5 +1,5 @@
 using HarmonyLib;
-using Il2CppMonomiPark.SlimeRancher.DataModel; // Assuming GadgetDirector is here
+using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Shared;
 using UnityEngine;
 
