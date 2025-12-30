@@ -17,6 +17,8 @@ public struct PlayerUpdatePacket : IPacket
     public float ForwardSpeed { get; set; }
     public bool Sprinting { get; set; }
     public float LookY { get; set; }
+    public int SelectedSlot { get; set; }
+    public byte VacuumState { get; set; }
 
     public readonly void Serialise(PacketWriter writer)
     {
@@ -36,6 +38,8 @@ public struct PlayerUpdatePacket : IPacket
         writer.WriteBool(Sprinting);
 
         writer.WriteFloat(LookY);
+        writer.WriteInt(SelectedSlot);
+        writer.WriteByte(VacuumState);
     }
 
     public void Deserialise(PacketReader reader)
@@ -56,5 +60,7 @@ public struct PlayerUpdatePacket : IPacket
         Sprinting = reader.ReadBool();
 
         LookY = reader.ReadFloat();
+        SelectedSlot = reader.ReadInt();
+        VacuumState = reader.ReadByte();
     }
 }

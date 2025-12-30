@@ -30,7 +30,9 @@ public sealed class PlayerUpdateHandler : BaseClientPacketHandler
             packet.HorizontalSpeed,
             packet.ForwardSpeed,
             packet.Sprinting,
-            packet.LookY
+            packet.LookY,
+            packet.SelectedSlot,
+            packet.VacuumState
         );
     }
 }

@@ -5,6 +5,7 @@ using SR2MP.Shared.Managers;
 using SR2MP.Components;
 using SR2MP.Components.Player;
 using SR2MP.Packets.Utils;
+using SR2MP.Packets.Shared;
 
 namespace SR2MP.Client.Handlers;
 
@@ -19,28 +20,18 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ConnectAckPacket>();
 
-        var joinPacket = new PlayerJoinPacket
+        Client.PendingJoin = new Client.PendingJoinData
         {
-            Type = (byte)PacketType.PlayerJoin,
             PlayerId = packet.PlayerId,
-            PlayerName = Main.Username
+            Money = packet.Money,
+            RainbowMoney = packet.RainbowMoney,
+            OtherPlayers = packet.OtherPlayers.ToList()
         };
 
-        SendPacket(joinPacket);
+        SrLogger.LogMessage($"Connection acknowledged by server! Requesting Save Data... (PlayerId: {packet.PlayerId})", SrLogger.LogTarget.Both);
 
-        Client.StartHeartbeat();
-        Client.NotifyConnected();
-
-        SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})",
-            SrLogger.LogTarget.Both);
-
-        SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
-        SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
-
-        foreach (var player in packet.OtherPlayers)
-        {
-            SpawnPlayer(player);
-        }
+        SendPacket(new RequestSavePacket());
+        // Join flow continues in Main.OnSceneWasLoaded after save load
     }
 
     private void SpawnPlayer(string id)

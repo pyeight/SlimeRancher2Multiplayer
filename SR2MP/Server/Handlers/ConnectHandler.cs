@@ -7,6 +7,11 @@ using MelonLoader;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
+using SR2MP.Components.World;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEngine;
+using Il2CppMonomiPark.SlimeRancher.World;
 
 namespace SR2MP.Server.Handlers;
 
@@ -16,7 +21,7 @@ public sealed class ConnectHandler : BasePacketHandler
     public ConnectHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, string clientIdentifier)
     {
         using var reader = new PacketReader(data);
         reader.Skip(1);
@@ -24,9 +29,24 @@ public sealed class ConnectHandler : BasePacketHandler
         var playerId = reader.ReadString();
 
         SrLogger.LogMessage($"Connect request received with PlayerId: {playerId}",
-            $"Connect request from {senderEndPoint} with PlayerId: {playerId}");
+            $"Connect request from {clientIdentifier} with PlayerId: {playerId}");
 
-        clientManager.AddClient(senderEndPoint, playerId);
+        // Parse clientIdentifier (e.g., "[::1]:12345" or "1.2.3.4:5678") back to IPEndPoint
+        int lastColon = clientIdentifier.LastIndexOf(':');
+        if (lastColon > 0)
+        {
+            string ipStr = clientIdentifier.Substring(0, lastColon);
+            string portStr = clientIdentifier.Substring(lastColon + 1);
+
+            if (ipStr.StartsWith("[") && ipStr.EndsWith("]"))
+                ipStr = ipStr.Substring(1, ipStr.Length - 2);
+
+            if (IPAddress.TryParse(ipStr, out var ip) && int.TryParse(portStr, out var port))
+            {
+                var endPoint = new IPEndPoint(ip, port);
+                clientManager.AddClient(clientIdentifier, endPoint, playerId);
+            }
+        }
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0]
             .Cast<ICurrency>());
@@ -38,30 +58,31 @@ public sealed class ConnectHandler : BasePacketHandler
         {
             Type = (byte)PacketType.ConnectAck,
             PlayerId = playerId,
-            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => input.PlayerId),
+            OtherPlayers = Array.ConvertAll(clientManager.GetAllClients().ToArray(), input => input.PlayerId),
             Money = money,
             RainbowMoney = rainbowMoney
         };
 
-        Main.Server.SendToClient(ackPacket, senderEndPoint);
+        Main.Server.SendToClient(ackPacket, clientIdentifier);
 
         var joinPacket = new PlayerJoinPacket
         {
             Type = (byte)PacketType.PlayerJoin, PlayerId = playerId, PlayerName = Main.Username
         };
 
-        Main.Server.SendToAllExcept(joinPacket, senderEndPoint);
+        Main.Server.SendToAllExcept(joinPacket, clientIdentifier);
 
-        SendPlotsPacket(senderEndPoint);
-        SendActorsPacket(senderEndPoint);
-        SendUpgradesPacket(senderEndPoint);
-        SendPediaPacket(senderEndPoint);
+        SendPlotsPacket(clientIdentifier);
+        SendActorsPacket(clientIdentifier);
+        SendGadgetsPacket(clientIdentifier);
+        SendUpgradesPacket(clientIdentifier);
+        SendPediaPacket(clientIdentifier);
 
         SrLogger.LogMessage($"Player {playerId} successfully connected",
-            $"Player {playerId} successfully connected from {senderEndPoint}");
+            $"Player {playerId} successfully connected from {clientIdentifier}");
     }
 
-    void SendUpgradesPacket(IPEndPoint client)
+    void SendUpgradesPacket(string clientIdentifier)
     {
         var upgrades = new Dictionary<byte, sbyte>();
 
@@ -75,9 +96,9 @@ public sealed class ConnectHandler : BasePacketHandler
             Type = (byte)PacketType.InitialPlayerUpgrades,
             Upgrades = upgrades,
         };
-        Main.Server.SendToClient(upgradesPacket, client);
+        Main.Server.SendToClient(upgradesPacket, clientIdentifier);
     } 
-    void SendPediaPacket(IPEndPoint client)
+    void SendPediaPacket(string clientIdentifier)
     {
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
         
@@ -96,12 +117,12 @@ public sealed class ConnectHandler : BasePacketHandler
             Entries = unlockedIDs
         };
 
-        Main.Server.SendToClient(pediasPacket, client);
+        Main.Server.SendToClient(pediasPacket, clientIdentifier);
 
         SrLogger.LogMessage("InitialPediaEntries packet sent");
     }
 
-    void SendActorsPacket(IPEndPoint client)
+    void SendActorsPacket(string clientIdentifier)
     {
         var actorsList = new List<ActorsPacket.Actor>();
 
@@ -113,7 +134,7 @@ public sealed class ConnectHandler : BasePacketHandler
             actorsList.Add(new ActorsPacket.Actor()
             {
                 ActorId = actor.actorId.Value,
-                ActorType = actorManager.GetPersistentID(actor.ident),
+                ActorType = GlobalVariables.actorManager.GetPersistentID(actor.ident),
                 Position = actor.lastPosition,
                 Rotation = rotation,
             });
@@ -125,10 +146,10 @@ public sealed class ConnectHandler : BasePacketHandler
             Actors = actorsList
         };
 
-        Main.Server.SendToClient(actorsPacket, client);
+        Main.Server.SendToClient(actorsPacket, clientIdentifier);
     }
 
-    void SendPlotsPacket(IPEndPoint client)
+    void SendPlotsPacket(string clientIdentifier)
     {
         var plotsList = new List<LandPlotsPacket.Plot>();
     
@@ -157,6 +178,40 @@ public sealed class ConnectHandler : BasePacketHandler
             Plots = plotsList
         };
 
-        Main.Server.SendToClient(plotsPacket, client);
+        Main.Server.SendToClient(plotsPacket, clientIdentifier);
+    }
+
+    void SendGadgetsPacket(string clientIdentifier)
+    {
+        var gadgetsList = new List<GadgetPacket>();
+        
+        foreach (var entry in GlobalVariables.gadgetsById)
+        {
+            if (entry.Value == null) continue;
+            
+            var identifiable = entry.Value.GetComponent<Identifiable>();
+            if (identifiable == null) continue;
+
+            var netGadget = entry.Value.GetComponent<NetworkGadget>();
+            if (netGadget == null) continue;
+
+            gadgetsList.Add(new GadgetPacket
+            {
+                Type = (byte)PacketType.Gadget,
+                GadgetId = netGadget.GadgetId,
+                GadgetTypeId = GlobalVariables.actorManager.GetPersistentID(identifiable.identType),
+                Position = entry.Value.transform.position,
+                Rotation = entry.Value.transform.rotation,
+                IsRemoval = false
+            });
+        }
+
+        var initialGadgetsPacket = new InitialGadgetsPacket
+        {
+            Type = (byte)PacketType.InitialGadgets,
+            Gadgets = gadgetsList
+        };
+
+        Main.Server.SendToClient(initialGadgetsPacket, clientIdentifier);
     }
 }

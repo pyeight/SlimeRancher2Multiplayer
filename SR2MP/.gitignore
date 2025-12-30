@@ -1,0 +1,25 @@
+# Visual Studio
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.doccache
+
+# Built-in diagnostic results
+SR2MP_ClassDump*.txt
+build_errors*.txt
+build_log*.txt
+build_output.txt
+clean_errors*.txt
+world_classes.txt
+
+# JetBrains Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# OS specific
+.DS_Store
+Thumbs.db

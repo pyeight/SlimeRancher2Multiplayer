@@ -1,4 +1,3 @@
-using System.Net;
 using System.Reflection;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
@@ -50,7 +49,7 @@ public sealed class PacketManager
         SrLogger.LogMessage($"Total handlers registered: {handlers.Count}", SrLogger.LogTarget.Both);
     }
 
-    public void HandlePacket(byte[] data, IPEndPoint clientEP)
+    public void HandlePacket(byte[] data, string clientIdentifier)
     {
         if (data.Length < 1)
         {
@@ -59,19 +58,12 @@ public sealed class PacketManager
         }
 
         byte packetType = data[0];
-        byte chunkIndex = data[1];
-        byte totalChunks = data[2];
-
-        byte[] chunkData = new byte[data.Length - 3];
-        Buffer.BlockCopy(data, 3, chunkData, 0, data.Length - 3);
-        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, totalChunks, out data))
-            return;
 
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try
             {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEP));
+                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientIdentifier));
             }
             catch (Exception ex)
             {

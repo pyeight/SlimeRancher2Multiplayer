@@ -27,6 +27,8 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteBool(bool value) => writer.Write(value);
 
+    public void WriteBytes(byte[] value) => writer.Write(value);
+
     public void WritePacket<T>(T value) where T : IPacket => value.Serialise(this);
 
     public void WriteEnum(Enum value) => Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));

@@ -4,12 +4,14 @@ namespace SR2MP.Server.Models;
 
 public sealed class ClientInfo
 {
+    public string Identifier { get; set; }
     public IPEndPoint EndPoint { get; set; }
     private DateTime LastHeartbeat { get; set; }
     public string PlayerId { get; set; }
 
-    public ClientInfo(IPEndPoint endPoint, string playerId = "")
+    public ClientInfo(string identifier, IPEndPoint endPoint, string playerId = "")
     {
+        Identifier = identifier;
         EndPoint = endPoint;
         LastHeartbeat = DateTime.UtcNow;
         PlayerId = playerId;
@@ -20,5 +22,5 @@ public sealed class ClientInfo
     public bool IsTimedOut()
         => (DateTime.UtcNow - LastHeartbeat).TotalSeconds > 30;
 
-    public string GetClientInfo() => $"{EndPoint.Address}:{EndPoint.Port}";
+    public string GetClientInfo() => Identifier;
 }

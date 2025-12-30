@@ -12,65 +12,51 @@ public sealed class ClientManager
     public event Action<ClientInfo>? OnClientRemoved;
     public int ClientCount => clients.Count;
 
-    public bool TryGetClient(string clientInfo, out ClientInfo? client)
+    public bool TryGetClient(string clientIdentifier, out ClientInfo? client)
     {
-        return clients.TryGetValue(clientInfo, out client);
+        return clients.TryGetValue(clientIdentifier, out client);
     }
 
-    public bool TryGetClient(IPEndPoint endPoint, out ClientInfo? client)
+    public ClientInfo? GetClient(string clientIdentifier)
     {
-        string clientInfo = $"{endPoint.Address}:{endPoint.Port}";
-        return TryGetClient(clientInfo, out client);
-    }
-
-    public ClientInfo? GetClient(string clientInfo)
-    {
-        clients.TryGetValue(clientInfo, out var client);
+        clients.TryGetValue(clientIdentifier, out var client);
         return client;
     }
 
-    public ClientInfo AddClient(IPEndPoint endPoint, string playerId)
+    public ClientInfo AddClient(string clientIdentifier, IPEndPoint endPoint, string playerId)
     {
-        string clientInfo = $"{endPoint.Address}:{endPoint.Port}";
+        var client = new ClientInfo(clientIdentifier, endPoint, playerId);
 
-        var client = new ClientInfo(endPoint, playerId);
-
-        if (clients.TryAdd(clientInfo, client))
+        if (clients.TryAdd(clientIdentifier, client))
         {
             SrLogger.LogMessage($"Client added! (PlayerId: {playerId})",
-                $"Client added: {clientInfo} (PlayerId: {playerId})");
+                $"Client added: {clientIdentifier} (PlayerId: {playerId})");
             OnClientAdded?.Invoke(client);
             return client;
         }
         else
         {
             SrLogger.LogWarning($"Client already exists! (PlayerId: {playerId})",
-                $"Client already exists: {clientInfo} (PlayerId: {playerId})");
-            return clients[clientInfo];
+                $"Client already exists: {clientIdentifier} (PlayerId: {playerId})");
+            return clients[clientIdentifier];
         }
     }
 
-    public bool RemoveClient(string clientInfo)
+    public bool RemoveClient(string clientIdentifier)
     {
-        if (clients.TryRemove(clientInfo, out var client))
+        if (clients.TryRemove(clientIdentifier, out var client))
         {
             SrLogger.LogMessage($"Client removed!",
-                $"Client removed: {clientInfo}");
+                $"Client removed: {clientIdentifier}");
             OnClientRemoved?.Invoke(client);
             return true;
         }
         return false;
     }
 
-    public bool RemoveClient(IPEndPoint endPoint)
+    public void UpdateHeartbeat(string clientIdentifier)
     {
-        string clientInfo = $"{endPoint.Address}:{endPoint.Port}";
-        return RemoveClient(clientInfo);
-    }
-
-    public void UpdateHeartbeat(string clientInfo)
-    {
-        if (clients.TryGetValue(clientInfo, out var client))
+        if (clients.TryGetValue(clientIdentifier, out var client))
         {
             client.UpdateHeartbeat();
         }
@@ -93,7 +79,7 @@ public sealed class ClientManager
         var timedOut = GetTimedOutClients();
         foreach (var client in timedOut)
         {
-            RemoveClient(client.GetClientInfo());
+            RemoveClient(client.Identifier);
         }
     }
 

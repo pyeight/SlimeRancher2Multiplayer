@@ -28,6 +28,13 @@ public sealed class LandplotUpdateHandler : BaseClientPacketHandler
             handlingPacket = true;
             location.Replace(landPlotComponent,
                 GameContext.Instance.LookupDirector._plotPrefabDict[packet.PlotType]);
+            
+            // Play Buy Sound
+            if (fxManager.worldAudioCueMap.TryGetValue(WorldFXType.BuyPlot, out var cue))
+            {
+                fxManager.PlayTransientAudio(cue, model.gameObj.transform.position, 0.8f);
+            }
+            
             handlingPacket = false;
 
             return;
@@ -40,6 +47,13 @@ public sealed class LandplotUpdateHandler : BaseClientPacketHandler
             var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
             handlingPacket = true;
             landPlotComponent.AddUpgrade(packet.PlotUpgrade);
+            
+            // Play Upgrade Sound
+            if (fxManager.worldAudioCueMap.TryGetValue(WorldFXType.UpgradePlot, out var cue))
+            {
+                fxManager.PlayTransientAudio(cue, model.gameObj.transform.position, 0.8f);
+            }
+            
             handlingPacket = false;
         }
     }

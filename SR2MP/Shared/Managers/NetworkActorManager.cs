@@ -12,6 +12,9 @@ public sealed class NetworkActorManager
     public int GetPersistentID(IdentifiableType type)
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation.GetPersistenceId(type);
 
+    public IdentifiableType GetIdentifiableType(int id)
+        => ActorTypes.ContainsKey(id) ? ActorTypes[id] : null!;
+
     internal void Initialize(GameContext context)
     {
         ActorTypes.Clear();

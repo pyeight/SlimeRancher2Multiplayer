@@ -31,5 +31,20 @@ public enum PacketType : byte
     InitialPlayerUpgrades = 32,   // Server -> Client                                                                   Player Upgrades on Load
     PlayerUpgrade = 33,           // Both Ways                                                                          On Upgrade
     InitialPediaEntries = 34,     // Server -> Client                                                                   Pedia Entries on Load
-    PediaUnlock = 35,             // Both Ways                                                                          On World FX Play
+    PediaUnlock = 35,             // Both Ways                                                                          On Pedia Unlock
+    Inventory = 36,               // Both Ways                                                                          Inventory Slot Update
+    Gadget = 37,                  // Both Ways                                                                          Gadget Update
+    InitialGadgets = 38,          // Server -> Client                                                                   Gadgets on Load
+    Decoration = 39,              // Both Ways                                                                          Decoration Update (Add/Remove)
+    PrismaBarrier = 40,           // Both Ways                                                                          Prisma Barrier Activation Time
+    PrismaDisruption = 41,        // Both Ways                                                                          Prisma Disruption Level Set
+    GardenPlant = 42,             // Both Ways                                                                          Garden Plant Update
+    SiloUpdate = 43,              // Both Ways                                                                          Silo Storage Update
+    RequestSave = 44,             // Client -> Server                                                                   Request Save Data
+    SaveData = 45,                // Server -> Client                                                                   Compressed Save Data
+    GordoEat = 46,                // Both Ways                                                                          Gordo Eat Count
+    TreasurePod = 47,             // Both Ways                                                                          Treasure Pod Open
+    MapUnlock = 48,               // Both Ways                                                                          Map Data Node Unlock
+    MarketUpdate = 49,            // Server -> Client                                                                   Market Prices Update
+    BlueprintUnlock = 50          // Both Ways                                                                          Gadget Blueprint Unlock
 }

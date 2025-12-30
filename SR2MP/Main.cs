@@ -1,4 +1,4 @@
-﻿using Il2CppTMPro;
+using Il2CppTMPro;
 using MelonLoader;
 using SR2E.Expansion;
 using SR2MP.Components.FX;
@@ -6,42 +6,45 @@ using SR2MP.Components.Player;
 using SR2MP.Components.Time;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Collections.Generic;
+
+using Il2CppMonomiPark.SlimeRancher.Economy;
+using SR2MP.Server;
+using SR2MP.Client;
 
 namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
+    public static string Username = "Player";
+    public static bool IsLoadingMultiplayerSave = false;
+    public static bool PacketSizeLogging = false;
+    public static Server.Server Server { get; private set; }
+    public static Client.Client Client { get; private set; }
+
+    public override void OnInitializeMelon()
+    {
+        Server = new Server.Server();
+        Client = new Client.Client();
+        SrLogger.LogMessage("SR2MP Initialized");
+    }
+
     public static void SendToAllOrServer<T>(T packet) where T : IPacket
     {
-        if (Client.IsConnected)
+        if (Client != null && Client.IsConnected)
         {
             Client.SendPacket(packet);
         }
 
-        if (Server.IsRunning())
+        if (Server != null && Server.IsRunning())
         {
             Server.SendToAll(packet);
         }
     }
-
-    public static Client.Client Client { get; private set; }
-    public static Server.Server Server { get; private set; }
-
-    static MelonPreferences_Category preferences;
-
-    public static string Username => preferences.GetEntry<string>("username").Value;
-    public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
-
-    public override void OnLateInitializeMelon()
-    {
-        preferences = MelonPreferences.CreateCategory("SR2MP");
-        preferences.CreateEntry("username", "Player");
-        preferences.CreateEntry("packet_size_log", false);
-
-        Client = new Client.Client();
-        Server = new Server.Server();
-    }
-
+    
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
         switch (sceneName)
@@ -83,6 +86,50 @@ public sealed class Main : SR2EExpansionV3
 
                 Object.DontDestroyOnLoad(playerPrefab);
                 break;
+        }
+
+        if (IsLoadingMultiplayerSave && !sceneName.Equals("MainMenuEnvironment") && !sceneName.Equals("SystemCore") && !sceneName.Equals("LoadScene"))
+        {
+            if (Client != null && Client.PendingJoin != null)
+            {
+                SrLogger.LogMessage($"Multiplayer Save Loaded in {sceneName}! Finalizing Join...", SrLogger.LogTarget.Both);
+                IsLoadingMultiplayerSave = false;
+
+                var pd = Client.PendingJoin;
+                
+                // Restore Currency
+                if(GameContext.Instance.LookupDirector != null && SceneContext.Instance.PlayerState != null)
+                {
+                    SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), pd.Money);
+                    SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), pd.RainbowMoney);
+                }
+
+                // Spawn Players
+                foreach (var player in pd.OtherPlayers)
+                {
+                   var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
+                   playerObject.gameObject.SetActive(true);
+                   playerObject.ID = player;
+                   playerObject.gameObject.name = player;
+                   playerObjects[player] = playerObject.gameObject; // Use indexer to add or update
+                   playerManager.AddPlayer(player);
+                   Object.DontDestroyOnLoad(playerObject);
+                }
+
+                // Send Join Packet
+                var joinPacket = new PlayerJoinPacket
+                {
+                    Type = (byte)PacketType.PlayerJoin,
+                    PlayerId = pd.PlayerId,
+                    PlayerName = Username // Username is from SR2EExpansionV3
+                };
+
+                Client.SendPacket(joinPacket);
+                Client.StartHeartbeat();
+                Client.NotifyConnected();
+
+                Client.PendingJoin = null;
+            }
         }
     }
 

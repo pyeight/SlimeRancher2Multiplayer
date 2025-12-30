@@ -20,6 +20,9 @@ public static class GlobalVariables
     // an infinite sending loop
     public static bool handlingPacket = false;
 
+    public static string currentlyInstantiatingGadgetId = string.Empty;
+    public static Dictionary<string, GameObject> gadgetsById = new();
+
     // I love this indenting
     public static string LocalID =>
         Main.Server.IsRunning() 

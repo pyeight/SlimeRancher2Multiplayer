@@ -9,6 +9,10 @@ public sealed class RemotePlayer
     public float Rotation { get; set; }
     public DateTime LastUpdate { get; set; }
 
+    // Inventory stuff
+    public int[] Inventory { get; set; } = new int[4];
+    public int SelectedSlot { get; set; }
+
     // Animation stuff
     public int AirborneState { get; set; }
     public bool Moving { get; set; }
@@ -18,6 +22,7 @@ public sealed class RemotePlayer
     public float HorizontalSpeed { get; set; }
     public float ForwardSpeed { get; set; }
     public bool Sprinting { get; set; }
+    public byte VacuumState { get; set; }
 
     public float LookY { get; set; }
     public float LastLookY { get; set; }

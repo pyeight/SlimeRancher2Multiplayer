@@ -40,7 +40,9 @@ namespace SR2MP.Shared.Managers
                 { PlayerFXType.None, null! },
                 { PlayerFXType.VacReject, allFX["FX_vacReject"] }, 
                 { PlayerFXType.VacAccept, allFX["FX_vacAcquire"] },
-                { PlayerFXType.VacShoot, allFX["FX_VacpackShoot"] }
+                { PlayerFXType.VacAccept, allFX["FX_vacAcquire"] },
+                { PlayerFXType.VacShoot, allFX["FX_VacpackShoot"] },
+                { PlayerFXType.WaterSplash, allFX.ContainsKey("FX_WaterSplash") ? allFX["FX_WaterSplash"] : null! } 
             };
             playerAudioCueMap = new Dictionary<PlayerFXType, SECTR_AudioCue>
             {

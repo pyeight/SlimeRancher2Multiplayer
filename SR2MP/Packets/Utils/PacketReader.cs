@@ -28,6 +28,8 @@ public sealed class PacketReader : IDisposable
 
     public bool ReadBool() => reader.ReadBoolean();
 
+    public byte[] ReadBytes(int count) => reader.ReadBytes(count);
+
     public Vector3 ReadVector3() => new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 
     public Quaternion ReadQuaternion() => new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());

@@ -10,13 +10,13 @@ public sealed class MovementSoundHandler : BasePacketHandler
     public MovementSoundHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, string clientIdentifier)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<MovementSoundPacket>();
 
         fxManager.PlayTransientAudio(fxManager.allCues[packet.CueName], packet.Position, 0.45f);
 
-        Main.Server.SendToAllExcept(packet, senderEndPoint);
+        Main.Server.SendToAllExcept(packet, clientIdentifier);
     }
 }

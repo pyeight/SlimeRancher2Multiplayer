@@ -11,17 +11,15 @@ public sealed class PlayerJoinHandler : BasePacketHandler
     public PlayerJoinHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, string clientIdentifier)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerJoinPacket>();
 
         string playerId = packet.PlayerId;
 
-        string address = $"{senderEndPoint.Address}:{senderEndPoint.Port}";
-
         SrLogger.LogMessage($"Player join request received (PlayerId: {playerId})",
-            $"Player join request from {address} (PlayerId: {playerId})");
+            $"Player join request from {clientIdentifier} (PlayerId: {playerId})");
 
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);

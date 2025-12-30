@@ -1,5 +1,8 @@
 using MelonLoader;
 
+using SR2MP.Packets.Utils;
+using SR2MP.Packets.Shared;
+
 namespace SR2MP.Components.FX
 {
     // Modified version of PlayerFootstepFX (from a restored decomp of 'PlayerFootstepFX' qwq)
@@ -46,6 +49,15 @@ namespace SR2MP.Components.FX
             {
                 playerInWater = true;
                 footstepParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+
+                var packet = new PlayerFXPacket()
+                {
+                    Type = (byte)PacketType.PlayerFX,
+                    FX = PlayerFXPacket.PlayerFXType.WaterSplash,
+                    Position = transform.position,
+                    Player = GlobalVariables.LocalID 
+                };
+                Main.SendToAllOrServer(packet);
             }
         }
 

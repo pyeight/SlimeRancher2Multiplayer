@@ -14,6 +14,9 @@ global using UnityEngine;
 global using CppCollections = Il2CppSystem.Collections.Generic;
 global using Il2Cpp;
 global using Il2CppMonomiPark.SlimeRancher;
+// global using Il2CppMonomiPark.SlimeRancher.Data;
+global using Il2CppMonomiPark.SlimeRancher.DataModel;
+global using Il2CppMonomiPark.SlimeRancher.World;
 
 global using static SR2MP.Shared.Utils.FXConstants;
 global using static SR2MP.GlobalVariables;

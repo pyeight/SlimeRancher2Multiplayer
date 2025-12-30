@@ -11,6 +11,7 @@ public static class FXConstants
         { PlayerFXType.VacReject, false },
         { PlayerFXType.VacAccept, false },
         { PlayerFXType.VacShoot, false },
+        { PlayerFXType.WaterSplash, false },
         
         { PlayerFXType.VacHold, true },
         { PlayerFXType.VacShootEmpty, true },

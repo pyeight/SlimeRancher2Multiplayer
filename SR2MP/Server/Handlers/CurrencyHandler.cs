@@ -11,7 +11,7 @@ public sealed class CurrencyHandler : BasePacketHandler
     public CurrencyHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, string clientIdentifier)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<CurrencyPacket>();
@@ -25,6 +25,6 @@ public sealed class CurrencyHandler : BasePacketHandler
             SceneContext.Instance.PlayerState.AddCurrency(currency!.Cast<ICurrency>(), packet.Adjust, packet.ShowUINotification, null);
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(packet, senderEndPoint);
+        Main.Server.SendToAllExcept(packet, clientIdentifier);
     }
 }

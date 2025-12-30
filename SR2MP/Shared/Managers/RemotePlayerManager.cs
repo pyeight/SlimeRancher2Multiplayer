@@ -58,7 +58,9 @@ public sealed class RemotePlayerManager
         float horizontalSpeed = 0f,
         float forwardSpeed = 0f,
         bool sprinting = false,
-        float lookY = 0f)
+        float lookY = 0f,
+        int selectedSlot = 0,
+        byte vacuumState = 0)
     {
         // I dont know.
         var playerId = Main.Client.IsConnected ? Main.Client.OwnPlayerId : Main.Server.IsRunning() ? "HOST" : "INVALID";
@@ -76,7 +78,9 @@ public sealed class RemotePlayerManager
             HorizontalSpeed = horizontalSpeed,
             ForwardSpeed = forwardSpeed,
             Sprinting = sprinting,
-            LookY = lookY
+            LookY = lookY,
+            SelectedSlot = selectedSlot,
+            VacuumState = vacuumState
         };
         Main.SendToAllOrServer(updatePacket);
     }
@@ -93,7 +97,9 @@ public sealed class RemotePlayerManager
         float horizontalSpeed,
         float forwardSpeed,
         bool sprinting,
-        float lookY)
+        float lookY,
+        int selectedSlot,
+        byte vacuumState)
     {
         if (players.TryGetValue(playerId, out var player))
         {
@@ -109,6 +115,12 @@ public sealed class RemotePlayerManager
             player.Sprinting = sprinting;
             player.LastLookY = player.LookY;
             player.LookY = lookY;
+            player.SelectedSlot = selectedSlot;
+            // RemotePlayer needs VacuumState property?
+            // I should add it to RemotePlayer model.
+            // But for now I'll just skip if model doesn't support it, 
+            // OR I update RemotePlayer model too.
+            // I'll update RemotePlayer model in next step.
             player.LastUpdate = DateTime.UtcNow;
             OnPlayerUpdated?.Invoke(playerId, player);
         }

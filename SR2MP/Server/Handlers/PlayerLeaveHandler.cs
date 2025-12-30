@@ -10,19 +10,17 @@ public sealed class PlayerLeaveHandler : BasePacketHandler
     public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, string clientIdentifier)
     {
         using var reader = new PacketReader(data);
         reader.Skip(1);
 
         string playerId = reader.ReadString();
 
-        string clientInfo = $"{senderEndPoint.Address}:{senderEndPoint.Port}";
-
         SrLogger.LogMessage($"Player leave request received (PlayerId: {playerId})",
-            $"Player leave request from {clientInfo} (PlayerId: {playerId})");
+            $"Player leave request from {clientIdentifier} (PlayerId: {playerId})");
 
-        if (clientManager.RemoveClient(clientInfo))
+        if (clientManager.RemoveClient(clientIdentifier))
         {
             var leavePacket = new PlayerLeavePacket
             {
@@ -33,12 +31,12 @@ public sealed class PlayerLeaveHandler : BasePacketHandler
             Main.Server.SendToAll(leavePacket);
 
             SrLogger.LogMessage($"Player {playerId} left the server",
-                $"Player {playerId} left from {clientInfo}");
+                $"Player {playerId} left from {clientIdentifier}");
         }
         else
         {
             SrLogger.LogWarning($"Player leave request from unknown client (PlayerId: {playerId})",
-                $"Player leave request from unknown client: {clientInfo} (PlayerId: {playerId})");
+                $"Player leave request from unknown client: {clientIdentifier} (PlayerId: {playerId})");
         }
     }
 }
