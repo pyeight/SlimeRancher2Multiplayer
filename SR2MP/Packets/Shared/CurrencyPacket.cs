@@ -4,9 +4,9 @@ namespace SR2MP.Packets.Shared;
 
 public struct CurrencyPacket : IPacket
 {
-    public byte Type { get; set; }
-
     public int Adjust { get; set; }
+
+    public byte Type { get; set; }
     public byte CurrencyType { get; set; }
     public bool ShowUINotification { get; set; }
 

@@ -10,6 +10,7 @@ public sealed class ClientManager
 
     public event Action<ClientInfo>? OnClientAdded;
     public event Action<ClientInfo>? OnClientRemoved;
+
     public int ClientCount => clients.Count;
 
     public bool TryGetClient(string clientInfo, out ClientInfo? client)

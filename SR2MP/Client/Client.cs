@@ -5,6 +5,7 @@ using SR2MP.Client.Models;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
+
 using Thread = Il2CppSystem.Threading.Thread;
 
 namespace SR2MP.Client;
@@ -128,12 +129,10 @@ public sealed class Client
                 SrLogger.LogPacketSize($"Received {data.Length} bytes",
                     $"Received {data.Length} bytes from {remoteEp}");
             }
-            catch (SocketException)
+            catch (SocketException socketEx)
             {
-                if (!isConnected)
-                    return;
-
-                SrLogger.LogError("ReceiveLoop error: Socket Exception");
+                if (isConnected)
+                    SrLogger.LogError($"ReceiveLoop error: Socket Exception\n{socketEx}");
             }
             catch (Exception ex)
             {

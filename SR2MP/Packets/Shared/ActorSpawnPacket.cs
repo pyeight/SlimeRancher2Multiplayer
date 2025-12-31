@@ -5,12 +5,13 @@ namespace SR2MP.Packets.Shared;
 
 public struct ActorSpawnPacket : IPacket
 {
-    public byte Type { get; set; }
-
     public ActorId ActorId { get; set; }
-    public Vector3 Position { get; set; }
+
     public Quaternion Rotation { get; set; }
+    public Vector3 Position { get; set; }
     public int ActorType { get; set; }
+
+    public byte Type { get; set; }
     public byte SceneGroup { get; set; }
 
     public readonly void Serialise(PacketWriter writer)

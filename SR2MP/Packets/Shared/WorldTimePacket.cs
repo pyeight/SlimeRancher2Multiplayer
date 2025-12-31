@@ -4,8 +4,8 @@ namespace SR2MP.Packets.Shared;
 
 public struct WorldTimePacket : IPacket
 {
-    public byte Type { get; set; }
     public double Time { get; set; }
+    public byte Type { get; set; }
 
     public readonly void Serialise(PacketWriter writer)
     {
