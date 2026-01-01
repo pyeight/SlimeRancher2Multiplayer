@@ -21,11 +21,11 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler
 
         if (playerId.Equals(Client.OwnPlayerId))
         {
-            SrLogger.LogMessage("Player join request accepted!", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Player join request accepted!", SrLogTarget.Both);
             return;
         }
 
-        SrLogger.LogMessage($"New Player joined! (PlayerId: {playerId})", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage($"New Player joined! (PlayerId: {playerId})", SrLogTarget.Both);
 
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);

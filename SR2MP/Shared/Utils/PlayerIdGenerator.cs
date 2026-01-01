@@ -20,12 +20,12 @@ public static class PlayerIdGenerator
 
             string playerId = $"PLAYER_{hash}";
 
-            SrLogger.LogMessage($"Generated persistent player ID: {playerId}", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage($"Generated persistent player ID: {playerId}", SrLogTarget.Both);
             return playerId;
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to generate persistent player ID: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Failed to generate persistent player ID: {ex}", SrLogTarget.Both);
             return null!;
         }
     }

@@ -69,7 +69,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
             {
                 SrLogger.LogError(
                     $"Error while loading actor with ID {actor.ActorId}\nActor Information: Type={type.name}\nError: {ex}",
-                    SrLogger.LogTarget.Both);
+                    SrLogTarget.Both);
             }
 
             handlingPacket = false;

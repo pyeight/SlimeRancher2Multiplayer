@@ -1,5 +1,6 @@
 global using Main = SR2MP.Main;
 global using SrLogger = SR2MP.Logger;
+global using SrLogTarget = SR2MP.Logger.LogTarget;
 global using Object = UnityEngine.Object;
 global using CppCollections = Il2CppSystem.Collections.Generic;
 global using WorldFXType = SR2MP.Packets.Shared.WorldFXPacket.WorldFXType;

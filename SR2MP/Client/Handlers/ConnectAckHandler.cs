@@ -29,7 +29,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
         Client.NotifyConnected();
 
         SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})",
-            SrLogger.LogTarget.Both);
+            SrLogTarget.Both);
 
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
