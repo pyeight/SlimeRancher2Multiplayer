@@ -4,6 +4,7 @@ using SR2E.Expansion;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
+using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 
@@ -30,6 +31,7 @@ public sealed class Main : SR2EExpansionV3
     static MelonPreferences_Category preferences;
 
     public static string Username => preferences.GetEntry<string>("username").Value;
+    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
     public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
 
     public override void OnLateInitializeMelon()
@@ -37,6 +39,7 @@ public sealed class Main : SR2EExpansionV3
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player");
         preferences.CreateEntry("packet_size_log", false);
+        preferences.CreateEntry("internal_setup_ui", true).IsHidden = true;
 
         Client = new Client.Client();
         Server = new Server.Server();
@@ -51,6 +54,9 @@ public sealed class Main : SR2EExpansionV3
 
                 var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
                 Object.DontDestroyOnLoad(forceTimeScale.gameObject);
+                
+                var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
+                Object.DontDestroyOnLoad(ui.gameObject);
                 break;
 
             case "MainMenuEnvironment":
@@ -89,5 +95,10 @@ public sealed class Main : SR2EExpansionV3
     public override void AfterGameContext(GameContext gameContext)
     {
         actorManager.Initialize(gameContext);
+    }
+
+    internal static void SetConfigValue<T>(string key, T value)
+    {
+        preferences.GetEntry<T>(key).Value = value;
     }
 }
