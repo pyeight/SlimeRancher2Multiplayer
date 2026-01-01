@@ -1,5 +1,7 @@
+using System.Net;
 using MelonLoader;
 using SR2E;
+using SR2E.Utils;
 
 namespace SR2MP.Components.UI;
 
@@ -18,6 +20,14 @@ public sealed class MultiplayerUI : MonoBehaviour
         SettingsInitial,
         SettingsMain,
         SettingsHelp,
+        Error,
+    }
+    public enum ErrorType
+    {
+        None,
+        UnknownError,
+        InvalidIP,
+        IPNotFound,
     }
     public enum HelpTopic
     {
@@ -100,6 +110,9 @@ public sealed class MultiplayerUI : MonoBehaviour
             case MenuState.SettingsInitial:
                 FirstTimeScreen();
                 break;
+            case MenuState.SettingsMain:
+                SettingsScreen();
+                break;
             case MenuState.DisconnectedMainMenu:
                 MainMenuScreen();
                 break;
@@ -126,7 +139,7 @@ public sealed class MultiplayerUI : MonoBehaviour
         
         GUI.Label(CalculateTextLayout(6),"Please fill in the options to play multiplayer.");
 
-        GUI.Label(CalculateTextLayout(6, 2, 0),"Username:");
+        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Username:");
         
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
@@ -143,6 +156,28 @@ public sealed class MultiplayerUI : MonoBehaviour
                 firstTime = false;
                 Main.SetConfigValue("internal_setup_ui", false);
                 Main.SetConfigValue("username", usernameInput);
+            }
+        }
+    }
+    void SettingsScreen()
+    {
+        bool valid = true;
+        
+        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Username:");
+        usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
+
+        if (string.IsNullOrWhiteSpace(usernameInput))
+        {
+            GUI.Label(CalculateTextLayout(6), "You must set an Username.");
+            valid = false;
+        }
+
+        if (valid)
+        {
+            if (GUI.Button(CalculateButtonLayout(6), "Save"))
+            {
+                Main.SetConfigValue("username", usernameInput);
+                viewingSettings = false;
             }
         }
     }
@@ -214,11 +249,12 @@ public sealed class MultiplayerUI : MonoBehaviour
         var validPort = ushort.TryParse(portInput, out var port);
         if (validPort)
         {
-            if (GUI.Button(CalculateButtonLayout(6), "Connect")) { }
+            if (GUI.Button(CalculateButtonLayout(6), "Connect")) 
+                Connect(ipInput, port);
         }
         else
         {
-            GUILayout.TextArea("Invalid port. Must be a number from 1 to 65535.");
+            GUI.Label(CalculateTextLayout(6, 2), "Invalid port. Must be a number from 1 to 65535.");
         }
         
         GUI.Label(CalculateTextLayout(6), "Host:");
@@ -229,7 +265,8 @@ public sealed class MultiplayerUI : MonoBehaviour
         var validHostPort = ushort.TryParse(hostPortInput, out var hostPort);
         if (validHostPort)
         {
-            if (GUI.Button(CalculateButtonLayout(6), "Host")) { }
+            if (GUI.Button(CalculateButtonLayout(6), "Host"))
+                Host(hostPort);
         }
         else
         {
@@ -345,6 +382,44 @@ public sealed class MultiplayerUI : MonoBehaviour
         previousLayoutRect = result;
 
         return result;
+    }
+    #endregion
+
+    #region Mod Controller
+    public void Host(ushort port)
+    {
+        Server.Server server;
+        MenuEUtil.CloseOpenMenu();
+        server = Main.Server;
+        server.Start(port, true);
+    }
+    public void Connect(string ip, ushort port)
+    {
+        MenuEUtil.CloseOpenMenu();
+        
+        if (ip.StartsWith("[") && ip.EndsWith("]"))
+        {
+            ip = ip[1..^1];
+        }
+        
+        try
+        {
+            var addresses = Dns.GetHostAddresses(ip);
+            if (addresses.Length > 0)
+            {
+                ip = addresses[0].ToString();
+            }
+            else
+            {
+                SrLogger.LogWarning("IP address incorrect!", SrLogTarget.Both);
+            }
+        }
+        catch
+        {
+            SrLogger.LogWarning("IP address could not be resolved! (are you connected to the internet?)", SrLogTarget.Both);
+        }
+
+        Main.Client.Connect(ip, port);
     }
     #endregion
 }

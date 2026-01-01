@@ -87,7 +87,8 @@ public sealed class Client
             var connectPacket = new ConnectPacket
             {
                 Type = (byte)PacketType.Connect,
-                PlayerId = OwnPlayerId
+                PlayerId = OwnPlayerId,
+                Username = Main.Username
             };
 
             SendPacket(connectPacket);
