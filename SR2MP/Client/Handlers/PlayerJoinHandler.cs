@@ -15,7 +15,7 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerJoinPacket>();
 
-        playerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName;
+        playerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName!;
 
         if (packet.PlayerId.Equals(Client.OwnPlayerId))
         {

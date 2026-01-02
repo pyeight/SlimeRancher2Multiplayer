@@ -28,7 +28,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler
         playerObject.ID = playerId;
         playerObject.gameObject.name = playerId;
         playerObjects.Add(playerId, playerObject.gameObject);
-        playerManager.AddPlayer(playerId).Username = packet.PlayerName;
+        playerManager.AddPlayer(playerId).Username = packet.PlayerName!;
         Object.DontDestroyOnLoad(playerObject);
 
         var joinPacket = new PlayerJoinPacket
