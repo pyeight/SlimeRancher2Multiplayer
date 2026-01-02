@@ -67,7 +67,7 @@ public sealed class MultiplayerUI : MonoBehaviour
     #region Initialization And Destruction
     public static MultiplayerUI Instance { get; private set; }
 
-    void Awake()
+    private void Awake()
     {
         firstTime = Main.SetupUI;
         usernameInput = Main.Username;
@@ -82,14 +82,14 @@ public sealed class MultiplayerUI : MonoBehaviour
     }
 
     // Not sure if OnDestroy is needed for the singleton, though it is IL2CPP stuff, so I don't want to deal with bugs.
-    void OnDestroy()
+    private void OnDestroy()
     {
         Instance = null!;
     }
     #endregion
 
     #region GUI Controller
-    void OnGUI()
+    private void OnGUI()
     {
         state = GetState();
 
@@ -102,7 +102,7 @@ public sealed class MultiplayerUI : MonoBehaviour
         //DrawChat();
     }
 
-    void DrawWindow()
+    private void DrawWindow()
     {
         GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP");
         switch (state)
@@ -124,7 +124,7 @@ public sealed class MultiplayerUI : MonoBehaviour
                 break;
         }
     }
-    void DrawChat()
+    private void DrawChat()
     {
         UnimplementedScreen();
     }
@@ -133,7 +133,7 @@ public sealed class MultiplayerUI : MonoBehaviour
     #region Screens
     // Please only add the most important options here, this is for first time setup,
     // and most options should be changed in SR2E or the main settings menu.
-    void FirstTimeScreen()
+    private void FirstTimeScreen()
     {
         bool valid = true;
         
@@ -159,7 +159,7 @@ public sealed class MultiplayerUI : MonoBehaviour
             }
         }
     }
-    void SettingsScreen()
+    private void SettingsScreen()
     {
         bool valid = true;
         
@@ -183,7 +183,7 @@ public sealed class MultiplayerUI : MonoBehaviour
     }
     
     // Use this when the mod properly handles joining from the main menu.
-    void MainMenuScreenUnused()
+    private void MainMenuScreenUnused()
     {
         GUILayout.BeginVertical();
         
@@ -219,7 +219,7 @@ public sealed class MultiplayerUI : MonoBehaviour
         
         GUILayout.EndVertical();
     }
-    void MainMenuScreen()
+    private void MainMenuScreen()
     {
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
@@ -230,7 +230,7 @@ public sealed class MultiplayerUI : MonoBehaviour
         GUI.Label(CalculateTextLayout(6), "You must be in a save to host or connect!");
         GUI.Label(CalculateTextLayout(6, 2), "Make sure you join a save you DO NOT care about losing when you connect, OR back it up.");
     }
-    void InGameScreen()
+    private void InGameScreen()
     {
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
@@ -273,14 +273,14 @@ public sealed class MultiplayerUI : MonoBehaviour
             GUI.Label(CalculateTextLayout(6, 2), "Invalid port. Must be a number from 1 to 65535. Make sure your pc doesn't use the port anywhere else.");
         }
     }
-    void UnimplementedScreen()
+    private void UnimplementedScreen()
     {
         GUI.Label(CalculateTextLayout(6), "This screen hasn't been implemented yet.");
     }
     #endregion
 
     #region State Controller
-    bool GetIsLoading()
+    private bool GetIsLoading()
     {
         switch (SystemContext.Instance.SceneLoader.CurrentSceneGroup.name)
         {
@@ -293,7 +293,7 @@ public sealed class MultiplayerUI : MonoBehaviour
         return false;
     }
     
-    MenuState GetState()
+    private MenuState GetState()
     {
         var inGame = ContextShortcuts.inGame;
         var loading = GetIsLoading();
@@ -314,7 +314,7 @@ public sealed class MultiplayerUI : MonoBehaviour
     #endregion
 
     #region Layout Controllers
-    public Rect CalculateTextLayout(float originalX, int lines = 1, int horizontalShare = 1, int horizontalIndex = 0)
+    private Rect CalculateTextLayout(float originalX, int lines = 1, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
         
@@ -337,7 +337,7 @@ public sealed class MultiplayerUI : MonoBehaviour
 
         return result;
     }
-    public Rect CalculateInputLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
+    private Rect CalculateInputLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
         
@@ -360,7 +360,7 @@ public sealed class MultiplayerUI : MonoBehaviour
 
         return result;
     }
-    public Rect CalculateButtonLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
+    private Rect CalculateButtonLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
         
