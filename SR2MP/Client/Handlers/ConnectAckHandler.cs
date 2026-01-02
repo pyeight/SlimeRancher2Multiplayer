@@ -36,7 +36,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
 
         foreach (var player in packet.OtherPlayers)
         {
-            SpawnPlayer(player.id, player.name);
+            SpawnPlayer(player.ID, player.Username);
         }
     }
 

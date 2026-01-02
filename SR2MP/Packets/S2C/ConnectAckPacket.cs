@@ -6,7 +6,7 @@ public sealed class ConnectAckPacket : IPacket
 {
     public byte Type { get; set; }
     public string PlayerId { get; set; }
-    public (string id, string name)[] OtherPlayers { get; set; }
+    public (string ID, string Username)[] OtherPlayers { get; set; }
 
     public int Money { get; set; }
     public int RainbowMoney { get; set; }
@@ -17,8 +17,8 @@ public sealed class ConnectAckPacket : IPacket
         writer.WriteString(PlayerId);
         writer.WriteArray(OtherPlayers, (packetWriter, tuple) =>
         {
-            packetWriter.WriteString(tuple.id);
-            packetWriter.WriteString(tuple.name);
+            packetWriter.WriteString(tuple.ID);
+            packetWriter.WriteString(tuple.Username);
         });
 
         writer.WriteInt(Money);

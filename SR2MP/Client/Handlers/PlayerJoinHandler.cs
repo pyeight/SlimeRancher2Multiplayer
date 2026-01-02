@@ -15,7 +15,6 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerJoinPacket>();
 
-        playerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName;
 
         if (packet.PlayerId.Equals(Client.OwnPlayerId))
         {
@@ -23,6 +22,8 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler
             return;
         }
 
+        playerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName!;
+        
         SrLogger.LogMessage($"New Player joined! (PlayerId: {packet.PlayerId})", SrLogTarget.Both);
 
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
