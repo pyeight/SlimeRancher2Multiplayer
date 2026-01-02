@@ -20,7 +20,7 @@
 | Landplot upgrades | 🟩     | Fully functional                                     |
 | Slimepedia        | 🟩     | Fully functional                                     |
 | Gadgets           | 🟥     | Not implemented                                      |
-| Upgrades          | 🟧     | Not tested                                           |
+| Upgrades          | 🟩     | Fully functional                                     |
 | Money             | 🟩     | Fully functional                                     |
 | Time              | 🟩     | Fully functional                                     |
 | Decorations       | 🟥     | Not implemented                                      |
