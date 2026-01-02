@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Unity.Mathematics;
@@ -8,6 +10,9 @@ public sealed class PacketWriter : IDisposable
 {
     private readonly MemoryStream _stream;
     private readonly BinaryWriter _writer;
+
+    private byte _currentPackingByte;
+    private int _currentBitIndex;
 
     public PacketWriter()
     {
@@ -23,6 +28,9 @@ public sealed class PacketWriter : IDisposable
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteByte(byte value) => _writer.Write(value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteShort(short value) => _writer.Write(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUShort(ushort value) => _writer.Write(value);
@@ -131,6 +139,35 @@ public sealed class PacketWriter : IDisposable
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ResetPackingBools()
+    {
+        _currentPackingByte = 0;
+        _currentBitIndex = 0;
+    }
+
+    public void WritePackedBool(bool value)
+    {
+        if (value)
+            _currentPackingByte |= (byte)(1 << _currentBitIndex);
+
+        _currentBitIndex++;
+
+        if (_currentBitIndex == 8)
+        {
+            _writer.Write(_currentPackingByte);
+            ResetPackingBools();
+        }
+    }
+
+    public void EndPackingBools()
+    {
+        if (_currentBitIndex > 0)
+            _writer.Write(_currentPackingByte);
+
+        ResetPackingBools();
+    }
+
     public byte[] ToArray() => _stream.ToArray();
 
     public void Dispose()
@@ -169,5 +206,69 @@ public static class PacketWriterDels
                 _ => throw new ArgumentException($"Enum size {size} not supported")
             };
         }
+    }
+
+    public static class Tuple<T1, T2>
+    {
+        public static readonly Action<PacketWriter, (T1, T2)> Func = CreateWriter();
+
+        private static Action<PacketWriter, (T1, T2)> CreateWriter() => TupleResolver.CreateTupleWriter<(T1, T2)>(typeof(T1), typeof(T2));
+    }
+
+    // See PacketReaderDels for the comments, they're pretty much the same
+    private static class TupleResolver
+    {
+        private static readonly Dictionary<Type, MethodInfo> TypeWriteCache = new();
+
+        public static Action<PacketWriter, TTuple> CreateTupleWriter<TTuple>(params Type[] componentTypes)
+        {
+            var writerParam = Expression.Parameter(typeof(PacketWriter), "writer");
+            var tupleParam = Expression.Parameter(typeof(TTuple), "tuple");
+
+            var writeCalls = new Expression[componentTypes.Length];
+
+            for (int i = 0; i < componentTypes.Length; i++)
+            {
+                var itemField = Expression.Field(tupleParam, $"Item{i + 1}");
+                writeCalls[i] = GetWriteExpression(writerParam, itemField, componentTypes[i]);
+            }
+
+            var block = Expression.Block(writeCalls);
+            return Expression.Lambda<Action<PacketWriter, TTuple>>(block, writerParam, tupleParam).Compile();
+        }
+
+        private static Expression GetWriteExpression(ParameterExpression writerParam, MemberExpression valueAccess, Type type)
+        {
+            if (TypeWriteCache.TryGetValue(type, out var method))
+                return Expression.Call(writerParam, method, valueAccess);
+
+            if (type == typeof(byte)) method = Method(nameof(PacketWriter.WriteByte));
+            else if (type == typeof(int)) method = Method(nameof(PacketWriter.WriteInt));
+            else if (type == typeof(uint)) method = Method(nameof(PacketWriter.WriteUInt));
+            else if (type == typeof(long)) method = Method(nameof(PacketWriter.WriteLong));
+            else if (type == typeof(bool)) method = Method(nameof(PacketWriter.WriteBool));
+            else if (type == typeof(short)) method = Method(nameof(PacketWriter.WriteShort));
+            else if (type == typeof(ulong)) method = Method(nameof(PacketWriter.WriteULong));
+            else if (type == typeof(sbyte)) method = Method(nameof(PacketWriter.WriteSByte));
+            else if (type == typeof(float)) method = Method(nameof(PacketWriter.WriteFloat));
+            else if (type == typeof(ushort)) method = Method(nameof(PacketWriter.WriteUShort));
+            else if (type == typeof(double)) method = Method(nameof(PacketWriter.WriteDouble));
+            else if (type == typeof(string)) method = Method(nameof(PacketWriter.WriteString));
+            else if (type == typeof(float4)) method = Method(nameof(PacketWriter.WriteFloat4));
+            else if (type == typeof(Vector3)) method = Method(nameof(PacketWriter.WriteVector3));
+            else if (type == typeof(Quaternion)) method = Method(nameof(PacketWriter.WriteQuaternion));
+            else if (type.IsEnum) method = Method(nameof(PacketWriter.WriteEnum)).MakeGenericMethod(type);
+            else if (typeof(IPacket).IsAssignableFrom(type)) method = Method(nameof(PacketWriter.WritePacket)).MakeGenericMethod(type);
+
+            if (method == null)
+                throw new NotSupportedException($"Type {type.Name} is not supported in automatic Tuple serialization.");
+
+            TypeWriteCache[type] = method;
+            return Expression.Call(writerParam, method, valueAccess);
+        }
+
+        private static MethodInfo Method(string name) =>
+            typeof(PacketWriter).GetMethod(name, BindingFlags.Instance | BindingFlags.Public)
+            ?? throw new MissingMethodException($"PacketWriter missing method: {name}");
     }
 }
