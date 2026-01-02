@@ -10,7 +10,7 @@ namespace SR2MP.Components.UI;
 public sealed class MultiplayerUI : MonoBehaviour
 {
     #region State Enums
-    public enum MenuState
+    public enum MenuState : byte
     {
         Hidden,
         DisconnectedMainMenu,
@@ -22,14 +22,14 @@ public sealed class MultiplayerUI : MonoBehaviour
         SettingsHelp,
         Error,
     }
-    public enum ErrorType
+    public enum ErrorType : byte
     {
         None,
         UnknownError,
         InvalidIP,
         IPNotFound,
     }
-    public enum HelpTopic
+    public enum HelpTopic : byte
     {
         Root,
         Playit,
