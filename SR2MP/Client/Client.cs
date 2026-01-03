@@ -114,7 +114,12 @@ public sealed class Client
 
         SrLogger.LogMessage("Client ReceiveLoop started!", SrLogTarget.Both);
 
-        IPEndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
+        IPEndPoint remoteEp = udpClient.Client.AddressFamily switch
+        {
+            AddressFamily.InterNetwork     => new IPEndPoint(IPAddress.Any, 0),
+            AddressFamily.InterNetworkV6   => new IPEndPoint(IPAddress.IPv6Any, 0),
+            _ => throw new NotSupportedException("Unsupported address family")
+        };
 
         while (isConnected)
         {
