@@ -1,9 +1,8 @@
 using System.Net;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerFX)]
 public sealed class PlayerFXHandler : BaseSharedPacketHandler

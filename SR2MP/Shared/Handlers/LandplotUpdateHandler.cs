@@ -1,8 +1,7 @@
 using System.Net;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.LandPlotUpdate)]
 public sealed class LandPlotUpdateHandler : BaseSharedPacketHandler

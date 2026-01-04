@@ -1,9 +1,8 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Economy;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.CurrencyAdjust)]
 public sealed class CurrencyHandler : BaseSharedPacketHandler

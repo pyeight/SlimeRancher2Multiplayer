@@ -1,10 +1,9 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Slime;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.ActorUpdate)]
 public sealed class ActorUpdateHandler : BaseSharedPacketHandler

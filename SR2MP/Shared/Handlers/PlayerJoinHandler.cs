@@ -1,9 +1,8 @@
 using System.Net;
 using SR2MP.Components.Player;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerJoin)]
 public sealed class PlayerJoinHandler : BaseSharedPacketHandler

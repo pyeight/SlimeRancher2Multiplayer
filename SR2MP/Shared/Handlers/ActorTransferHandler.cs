@@ -1,9 +1,8 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using SR2MP.Packets.Utils;
-using SR2MP.Server.Managers;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.ActorTransfer)]
 public sealed class ActorTransferHandler : BaseSharedPacketHandler
