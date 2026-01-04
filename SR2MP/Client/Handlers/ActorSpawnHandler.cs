@@ -11,7 +11,7 @@ public sealed class ActorSpawnHandler : BaseClientPacketHandler
     public ActorSpawnHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void HandleClient(byte[] data)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorSpawnPacket>();

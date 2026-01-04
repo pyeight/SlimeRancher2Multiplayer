@@ -1,16 +1,12 @@
 using System.Net;
 using SR2MP.Packets.Utils;
-using SR2MP.Server.Managers;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerUpdate)]
-public sealed class PlayerUpdateHandler : BasePacketHandler
+public sealed class PlayerUpdateHandler : BaseSharedPacketHandler
 {
-    public PlayerUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerUpdatePacket>();
@@ -34,6 +30,8 @@ public sealed class PlayerUpdateHandler : BasePacketHandler
             packet.LookY
         );
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        
+        if (clientEp != null)
+            Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

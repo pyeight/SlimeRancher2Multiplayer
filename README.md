@@ -18,9 +18,9 @@
 | Actors (Items)    | 🟩     | Fully functional                                     |
 | Landplots         | 🟨     | Gardens and Silos missing functionality              |
 | Landplot upgrades | 🟩     | Fully functional                                     |
-| Slimepedia        | 🟧     | Initial synchronisation is complete                  |
+| Slimepedia        | 🟩     | Fully functional                                     |
 | Gadgets           | 🟥     | Not implemented                                      |
-| Upgrades          | 🟧     | Not tested                                           |
+| Upgrades          | 🟩     | Fully functional                                     |
 | Money             | 🟩     | Fully functional                                     |
 | Time              | 🟩     | Fully functional                                     |
 | Decorations       | 🟥     | Not implemented                                      |

@@ -14,7 +14,7 @@ public abstract class BaseClientPacketHandler : IClientPacketHandler
         PlayerManager = playerManager;
     }
 
-    public abstract void Handle(byte[] data);
+    public abstract void HandleClient(byte[] data);
 
     protected void SendPacket<T>(T packet) where T : IPacket
     {

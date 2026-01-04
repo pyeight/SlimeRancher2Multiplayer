@@ -34,7 +34,6 @@ public sealed partial class MultiplayerUI
                 firstTime = false;
                 Main.SetConfigValue("internal_setup_ui", false);
                 Main.SetConfigValue("username", usernameInput);
-                Main.SetConfigValue("allow_cheats", allowCheatsInput);
             }
         }
     }
@@ -62,6 +61,7 @@ public sealed partial class MultiplayerUI
             if (GUI.Button(CalculateButtonLayout(6), "Save"))
             {
                 Main.SetConfigValue("username", usernameInput);
+                Main.SetConfigValue("allow_cheats", allowCheatsInput);
                 viewingSettings = false;
             }
         }

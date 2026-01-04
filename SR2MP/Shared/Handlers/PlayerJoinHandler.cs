@@ -1,27 +1,20 @@
 using System.Net;
 using SR2MP.Components.Player;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerJoin)]
-public sealed class PlayerJoinHandler : BasePacketHandler
+public sealed class PlayerJoinHandler : BaseSharedPacketHandler
 {
-    public PlayerJoinHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerJoinPacket>();
 
         string playerId = packet.PlayerId;
 
-        string address = $"{clientEp.Address}:{clientEp.Port}";
-
-        SrLogger.LogMessage($"Player join request received (PlayerId: {playerId})",
-            $"Player join request from {address} (PlayerId: {playerId})");
+        SrLogger.LogMessage($"Player join request received (PlayerId: {playerId})", SrLogTarget.Both);
 
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);
@@ -33,11 +26,12 @@ public sealed class PlayerJoinHandler : BasePacketHandler
 
         var joinPacket = new PlayerJoinPacket
         {
-            Type = (byte)PacketType.BroadcastPlayerJoin,
+            Type = (byte)PacketType.PlayerJoin,
             PlayerId = playerId,
             PlayerName = packet.PlayerName
         };
-
-        Main.Server.SendToAll(joinPacket);
+        
+        if (clientEp != null)
+            Main.Server.SendToAll(joinPacket);
     }
 }
