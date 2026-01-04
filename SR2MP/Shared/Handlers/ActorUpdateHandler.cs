@@ -7,12 +7,9 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ActorUpdate)]
-public sealed class ActorUpdateHandler : BasePacketHandler
+public sealed class ActorUpdateHandler : BaseSharedPacketHandler
 {
-    public ActorUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorUpdatePacket>();
@@ -39,6 +36,8 @@ public sealed class ActorUpdateHandler : BasePacketHandler
                 networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        
+        if (clientEp != null)
+            Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

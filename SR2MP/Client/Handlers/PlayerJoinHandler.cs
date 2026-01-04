@@ -10,7 +10,7 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler
     public PlayerJoinHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void HandleClient(byte[] data)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerJoinPacket>();

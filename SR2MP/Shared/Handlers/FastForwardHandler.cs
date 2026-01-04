@@ -5,12 +5,9 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.FastForward)]
-public sealed class FastForwardHandler : BasePacketHandler
+public sealed class FastForwardHandler : BaseSharedPacketHandler
 {
-    public FastForwardHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<WorldTimePacket>();
@@ -19,9 +16,13 @@ public sealed class FastForwardHandler : BasePacketHandler
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(packet with
+        
+        if (clientEp != null)
         {
-            Type = (byte)PacketType.BroadcastFastForward
-        }, clientEp);
+            Main.Server.SendToAllExcept(packet with
+            {
+                Type = (byte)PacketType.FastForward
+            }, clientEp);
+        }
     }
 }

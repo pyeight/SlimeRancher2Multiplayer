@@ -5,14 +5,14 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ChatMessage)]
-public sealed class ChatMessageHandler : BasePacketHandler
+public sealed class ChatMessageHandler : BaseServerPacketHandler
 {
     public ChatMessageHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager)
     {
     }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void HandleServer(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ChatMessagePacket>();

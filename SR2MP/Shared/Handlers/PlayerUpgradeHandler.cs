@@ -1,16 +1,12 @@
 using System.Net;
 using SR2MP.Packets.Utils;
-using SR2MP.Server.Managers;
 
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerUpgrade)]
-public sealed class PlayerUpgradeHandler : BasePacketHandler
+public sealed class PlayerUpgradeHandler : BaseSharedPacketHandler
 {
-    public PlayerUpgradeHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerUpgradePacket>();
@@ -24,7 +20,8 @@ public sealed class PlayerUpgradeHandler : BasePacketHandler
         handlingPacket = true;
         model.IncrementUpgradeLevel(upgrade);
         handlingPacket = false;
-
-        Main.Server.SendToAllExcept(packet, senderEndPoint);
+        
+        if (clientEp != null)
+            Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

@@ -6,12 +6,9 @@ using SR2MP.Server.Managers;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ActorTransfer)]
-public sealed class ActorTransferHandler : BasePacketHandler
+public sealed class ActorTransferHandler : BaseSharedPacketHandler
 {
-    public ActorTransferHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorTransferPacket>();
@@ -35,6 +32,8 @@ public sealed class ActorTransferHandler : BasePacketHandler
 
         component.LocallyOwned = false;
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        
+        if (clientEp != null)
+            Main.Server.SendToAllExcept(packet, clientEp);
     }
 }
