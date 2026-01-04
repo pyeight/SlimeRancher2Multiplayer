@@ -6,6 +6,8 @@ public sealed partial class MultiplayerUI
     private string ipInput = "127.0.0.1";
     private string portInput = "";
     private string hostPortInput = "1919";
+
+    private bool allowCheatsInput = false;
     
     // Please only add the most important options here, this is for first time setup,
     // and most options should be changed in SR2E or the main settings menu.
@@ -32,6 +34,7 @@ public sealed partial class MultiplayerUI
                 firstTime = false;
                 Main.SetConfigValue("internal_setup_ui", false);
                 Main.SetConfigValue("username", usernameInput);
+                Main.SetConfigValue("allow_cheats", allowCheatsInput);
             }
         }
     }
@@ -41,6 +44,12 @@ public sealed partial class MultiplayerUI
         
         GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Username:");
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
+        
+        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Allow Cheats:");
+        if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
+        {
+            allowCheatsInput = !allowCheatsInput;
+        }
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
@@ -100,19 +109,19 @@ public sealed partial class MultiplayerUI
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
         
-        if (GUI.Button(CalculateButtonLayout(6), "Help"))
-            viewingHelp = true;
+        //if (GUI.Button(CalculateButtonLayout(6), "Help"))
+        //    viewingHelp = true;
         
         GUI.Label(CalculateTextLayout(6), "You must be in a save to host or connect!");
-        GUI.Label(CalculateTextLayout(6, 2), "Make sure you join a save you DO NOT care about losing when you connect, OR back it up.");
+        GUI.Label(CalculateTextLayout(6, 2), "Make sure you join an EMPTY save before connecting, this save file WILL BE RESET.");
     }
     private void InGameScreen()
     {
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
         
-        if (GUI.Button(CalculateButtonLayout(6), "Help"))
-            viewingHelp = true;
+        //if (GUI.Button(CalculateButtonLayout(6), "Help"))
+        //    viewingHelp = true;
 
         GUI.Label(CalculateTextLayout(6), "Connect:");
         
@@ -152,5 +161,15 @@ public sealed partial class MultiplayerUI
     private void UnimplementedScreen()
     {
         GUI.Label(CalculateTextLayout(6), "This screen hasn't been implemented yet.");
+    }
+    private void HostingScreen()
+    {
+        GUI.Label(CalculateTextLayout(6), "You are the host.");
+        GUI.Label(CalculateTextLayout(6), $"Hosting on port: {Main.Server.Port}");
+        GUI.Label(CalculateTextLayout(6, 4), "If you are using PlayIt, you must host on the port you set as Local Port on PlayIt.");
+    }
+    private void ConnectedScreen()
+    {
+        GUI.Label(CalculateTextLayout(6), "You are the client.");       
     }
 }

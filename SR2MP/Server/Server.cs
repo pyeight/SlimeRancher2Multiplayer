@@ -13,6 +13,9 @@ public sealed class Server
 
     private Timer? timeoutTimer;
 
+    // Just here so that the port is viewable.
+    public int Port { get; private set; }
+
     public event Action? OnServerStarted;
 
     public Server()
@@ -42,6 +45,7 @@ public sealed class Server
             packetManager.RegisterHandlers();
             Application.quitting += new Action(Close);
             networkManager.Start(port, enableIPv6);
+            this.Port = port;
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();

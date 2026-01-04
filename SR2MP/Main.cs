@@ -33,13 +33,15 @@ public sealed class Main : SR2EExpansionV3
     public static string Username => preferences.GetEntry<string>("username").Value;
     internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
     public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
+    public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
 
     public override void OnLateInitializeMelon()
     {
         preferences = MelonPreferences.CreateCategory("SR2MP");
-        preferences.CreateEntry("username", "Player");
+        preferences.CreateEntry("username", "Player").IsHidden = true;
         preferences.CreateEntry("packet_size_log", false);
         preferences.CreateEntry("internal_setup_ui", true).IsHidden = true;
+        preferences.CreateEntry("allow_cheats", false).IsHidden = true;
 
         Client = new Client.Client();
         Server = new Server.Server();
@@ -57,6 +59,12 @@ public sealed class Main : SR2EExpansionV3
                 
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);
+
+                Server.OnServerStarted += () =>
+                {
+                    CheatsEnabled = AllowCheats;
+                };
+                
                 break;
 
             case "MainMenuEnvironment":

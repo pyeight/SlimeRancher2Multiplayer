@@ -36,7 +36,8 @@ public sealed class ConnectHandler : BasePacketHandler
             PlayerId = packet.PlayerId,
             OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => (input.PlayerId, input.Username)),
             Money = money,
-            RainbowMoney = rainbowMoney
+            RainbowMoney = rainbowMoney,
+            AllowCheats = Main.AllowCheats
         };
 
         Main.Server.SendToClient(ackPacket, clientEp);

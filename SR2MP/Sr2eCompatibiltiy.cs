@@ -82,20 +82,10 @@ internal sealed class MLEntrypoint : MelonMod
     {
         yield return new WaitForSeconds(0.1f);
 
-        var hasMainMenuUI = false;
+        var isInMainMenu = SystemContext.Instance?.SceneLoader.IsCurrentSceneGroupMainMenu();
 
-        for (var i = 0; i < SceneManager.sceneCount; i++)
-        {
-            var scene = SceneManager.GetSceneAt(i);
-
-            if (!scene.name.Contains("MainMenu") || !scene.isLoaded)
-                continue;
-
-            hasMainMenuUI = true;
-            break;
-        }
-
-        if (hasMainMenuUI)
+        // `== true` required due to the `?` in the previous line.
+        if (isInMainMenu == true)
             ShowIncompatibilityPopup(message);
         else
             MelonCoroutines.Start(CheckForMainMenu(message));
