@@ -15,4 +15,15 @@ public static class Extensions
         component = null!;
         return false;
     }
+
+    public static string ToStringYesOrNo(this bool value)
+    {
+        switch (value)
+        {
+            case true:
+                return "Yes";
+            case false:
+                return "No";
+        }
+    }
 }

@@ -10,6 +10,7 @@ public sealed class ConnectAckPacket : IPacket
 
     public int Money { get; set; }
     public int RainbowMoney { get; set; }
+    public bool AllowCheats { get; set; }
 
     public void Serialise(PacketWriter writer)
     {
@@ -23,6 +24,7 @@ public sealed class ConnectAckPacket : IPacket
 
         writer.WriteInt(Money);
         writer.WriteInt(RainbowMoney);
+        writer.WriteBool(AllowCheats);
     }
 
     public void Deserialise(PacketReader reader)
@@ -33,5 +35,6 @@ public sealed class ConnectAckPacket : IPacket
 
         Money = reader.ReadInt();
         RainbowMoney = reader.ReadInt();
+        AllowCheats = reader.ReadBool();
     }
 }

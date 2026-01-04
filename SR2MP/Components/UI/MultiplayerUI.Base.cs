@@ -15,6 +15,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
     {
         firstTime = Main.SetupUI;
         usernameInput = Main.Username;
+        allowCheatsInput = Main.AllowCheats;
         if (Instance)
         {
             SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!", SrLogTarget.Both);
@@ -60,6 +61,12 @@ public sealed partial class MultiplayerUI : MonoBehaviour
                 break;
             case MenuState.DisconnectedInGame:
                 InGameScreen();
+                break;
+            case MenuState.ConnectedClient:
+                ConnectedScreen();
+                break;
+            case MenuState.ConnectedHost:
+                HostingScreen();
                 break;
             default:
                 UnimplementedScreen();
