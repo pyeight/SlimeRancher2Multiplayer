@@ -201,12 +201,12 @@ public sealed class Client
     {
         if (!isConnected)
             return;
-    
-        var heartbeatPacket = new EmptyPacket
+        
+        var heartbeatPacket = new EmptyPacket 
         {
-            Type = (byte)PacketType.Heartbeat
+            Type = (byte)PacketType.Heartbeat 
         };
-    
+        
         SendPacket(heartbeatPacket);
     }
 
@@ -321,6 +321,7 @@ public sealed class Client
         }
 
         OnConnected?.Invoke(OwnPlayerId);
+        isConnected = true;
     }
 
     internal void NotifyChatMessageReceived(string playerId, string message, DateTime timestamp)

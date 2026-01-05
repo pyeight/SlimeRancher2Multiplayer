@@ -22,7 +22,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
             PlayerId = packet.PlayerId,
             PlayerName = Main.Username
         };
-
+        
         SendPacket(joinPacket);
 
         Client.StartHeartbeat();
