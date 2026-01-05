@@ -33,7 +33,7 @@ public sealed class Server
     {
         if (networkManager.IsRunning)
         {
-            SrLogger.LogMessage("Server is already running!", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
             return;
         }
 
@@ -48,7 +48,7 @@ public sealed class Server
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to start server: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Failed to start server: {ex}", SrLogTarget.Both);
         }
     }
 
@@ -63,7 +63,7 @@ public sealed class Server
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}", SrLogTarget.Both);
         }
     }
 
@@ -84,7 +84,7 @@ public sealed class Server
             networkManager.Send(data, otherClient.EndPoint);
         }
 
-        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
     }
 
     // private void CheckTimeouts(object? state)
@@ -133,11 +133,11 @@ public sealed class Server
             clientManager.Clear();
             networkManager.Stop();
 
-            SrLogger.LogMessage("Server closed", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Server closed", SrLogTarget.Both);
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error during server shutdown: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error during server shutdown: {ex}", SrLogTarget.Both);
         }
     }
 

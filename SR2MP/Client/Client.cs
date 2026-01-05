@@ -44,7 +44,7 @@ public sealed class Client
     {
         if (isConnected)
         {
-            SrLogger.LogMessage("You are already connected to a Server!", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("You are already connected to a Server!", SrLogTarget.Both);
             return;
         }
 
@@ -56,16 +56,16 @@ public sealed class Client
             {
                 if (!Socket.OSSupportsIPv6)
                 {
-                    SrLogger.LogError("IPv6 is not supported on this machine! Please enable IPv6 or use an IPv4 address.", SrLogger.LogTarget.Both);
+                    SrLogger.LogError("IPv6 is not supported on this machine! Please enable IPv6 or use an IPv4 address.", SrLogTarget.Both);
                     throw new NotSupportedException("IPv6 is not available on this system");
                 }
                 udpClient = new UdpClient(AddressFamily.InterNetworkV6);
-                SrLogger.LogMessage("Using IPv6 connection", SrLogger.LogTarget.Both);
+                SrLogger.LogMessage("Using IPv6 connection", SrLogTarget.Both);
             }
             else
             {
                 udpClient = new UdpClient(AddressFamily.InterNetwork);
-                SrLogger.LogMessage("Using IPv4 connection", SrLogger.LogTarget.Both);
+                SrLogger.LogMessage("Using IPv4 connection", SrLogTarget.Both);
             }
 
             serverEndPoint = new IPEndPoint(parsedIp, port);
@@ -88,7 +88,8 @@ public sealed class Client
             var connectPacket = new ConnectPacket
             {
                 Type = (byte)PacketType.Connect,
-                PlayerId = OwnPlayerId
+                PlayerId = OwnPlayerId,
+                Username = Main.Username
             };
 
             SendPacket(connectPacket);
@@ -98,7 +99,7 @@ public sealed class Client
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error connecting to the Server: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error connecting to the Server: {ex}", SrLogTarget.Both);
             isConnected = false;
             throw;
         }
@@ -108,11 +109,11 @@ public sealed class Client
     {
         if (udpClient == null)
         {
-            SrLogger.LogError("UDP client is null in ReceiveLoop!", SrLogger.LogTarget.Both);
+            SrLogger.LogError("UDP client is null in ReceiveLoop!", SrLogTarget.Both);
             return;
         }
 
-        SrLogger.LogMessage("Client ReceiveLoop started!", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage("Client ReceiveLoop started!", SrLogTarget.Both);
 
         IPEndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
 
@@ -198,7 +199,7 @@ public sealed class Client
             packet.Serialise(writer);
             byte[] data = writer.ToArray();
 
-            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogger.LogTarget.Both);
+            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
 
             var split = PacketChunkManager.SplitPacket(data);
             foreach (var chunk in split)
@@ -207,11 +208,11 @@ public sealed class Client
             }
 
             SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {split.Length} chunk(s).",
-                SrLogger.LogTarget.Both);
+                SrLogTarget.Both);
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to send packet: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
         }
     }
 
@@ -238,17 +239,17 @@ public sealed class Client
 
             if (receiveThread is { IsAlive: true })
             {
-                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogger.LogTarget.Both);
+                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
             }
 
             playerManager.Clear();
 
-            SrLogger.LogMessage("Disconnected from server", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Disconnected from server", SrLogTarget.Both);
             OnDisconnected?.Invoke();
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error during disconnect: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error during disconnect: {ex}", SrLogTarget.Both);
         }
     }
 

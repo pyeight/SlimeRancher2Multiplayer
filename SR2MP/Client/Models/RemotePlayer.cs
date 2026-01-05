@@ -3,6 +3,8 @@ namespace SR2MP.Client.Models;
 public sealed class RemotePlayer
 {
     public string PlayerId { get; set; }
+    public string Username { get; set; }
+    
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
     public DateTime LastUpdate { get; set; }

@@ -65,13 +65,13 @@ public sealed class ConnectCommand : SR2ECommand
             }
             else
             {
-                SrLogger.LogWarning("IP address incorrect!", SrLogger.LogTarget.Both);
+                SrLogger.LogWarning("IP address incorrect!", SrLogTarget.Both);
                 return false;
             }
         }
         catch
         {
-            SrLogger.LogWarning("IP address could not be resolved! (are you connected to the internet?)", SrLogger.LogTarget.Both);
+            SrLogger.LogWarning("IP address could not be resolved! (are you connected to the internet?)", SrLogTarget.Both);
             return false;
         }
 

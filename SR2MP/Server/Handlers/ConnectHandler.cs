@@ -17,14 +17,12 @@ public sealed class ConnectHandler : BasePacketHandler
     public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
-        reader.Skip(1);
+        var packet = reader.ReadPacket<ConnectPacket>();
 
-        var playerId = reader.ReadString();
+        SrLogger.LogMessage($"Connect request received with PlayerId: {packet.PlayerId}",
+            $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
 
-        SrLogger.LogMessage($"Connect request received with PlayerId: {playerId}",
-            $"Connect request from {clientEp} with PlayerId: {playerId}");
-
-        clientManager.AddClient(clientEp, playerId);
+        clientManager.AddClient(clientEp, packet.PlayerId);
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0]
             .Cast<ICurrency>());
@@ -35,30 +33,21 @@ public sealed class ConnectHandler : BasePacketHandler
         var ackPacket = new ConnectAckPacket
         {
             Type = (byte)PacketType.ConnectAck,
-            PlayerId = playerId,
-            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => input.PlayerId),
+            PlayerId = packet.PlayerId,
+            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => (input.PlayerId, input.Username)),
             Money = money,
             RainbowMoney = rainbowMoney
         };
 
         Main.Server.SendToClient(ackPacket, clientEp);
 
-        var joinPacket = new PlayerJoinPacket
-        {
-            Type = (byte)PacketType.PlayerJoin,
-            PlayerId = playerId,
-            PlayerName = Main.Username
-        };
-
-        Main.Server.SendToAllExcept(joinPacket, clientEp);
-
         SendPlotsPacket(clientEp);
         SendActorsPacket(clientEp);
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
 
-        SrLogger.LogMessage($"Player {playerId} successfully connected",
-            $"Player {playerId} successfully connected from {clientEp}");
+        SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
+            $"Player {packet.PlayerId} successfully connected from {clientEp}");
     }
 
     private static void SendUpgradesPacket(IPEndPoint client)

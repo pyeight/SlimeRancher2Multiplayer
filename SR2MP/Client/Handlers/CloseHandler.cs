@@ -11,7 +11,7 @@ public sealed class CloseHandler : BaseClientPacketHandler
 
     public override void Handle(byte[] data)
     {
-        SrLogger.LogMessage("Server closed, disconnecting!", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage("Server closed, disconnecting!", SrLogTarget.Both);
 
         Client.Disconnect();
     }

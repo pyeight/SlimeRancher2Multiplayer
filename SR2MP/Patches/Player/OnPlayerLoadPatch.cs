@@ -32,13 +32,17 @@ public static class OnPlayerLoadPatch
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
                 networkPlayer.ID = id;
                 networkPlayer.IsLocal = true;
+                
+                playerManager.AddPlayer(id).Username = Main.Username;
             };
 
             Main.Server.OnServerStarted += () =>
             {
                 if (!__instance)
                     return;
-
+                
+                playerManager.AddPlayer("HOST").Username = Main.Username;
+                
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
                 networkPlayer.ID = "HOST";
                 networkPlayer.IsLocal = true;

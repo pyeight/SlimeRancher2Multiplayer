@@ -92,13 +92,6 @@ public partial class NetworkPlayer : MonoBehaviour
 
         usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
 
-        if (usernamePanel)
-        {
-            usernamePanel.gameObject.AddComponent<TransformLookAtCamera>().targetTransform =
-                usernamePanel.transform;
-
-            SetUsername(gameObject.name);
-        }
 
         SetupRenderersAndCollision();
     }
@@ -126,6 +119,15 @@ public partial class NetworkPlayer : MonoBehaviour
         if (model == null)
         {
             model = playerManager.GetPlayer(ID) ?? playerManager.AddPlayer(ID);
+            
+            if (usernamePanel)
+            {
+                usernamePanel.gameObject.AddComponent<TransformLookAtCamera>().targetTransform =
+                    usernamePanel.transform;
+
+                SetUsername(model.Username);
+            }
+            
             return;
         }
 
