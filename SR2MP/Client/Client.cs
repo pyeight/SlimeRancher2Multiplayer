@@ -17,6 +17,9 @@ public sealed class Client
     private Timer? heartbeatTimer;
 
     private volatile bool isConnected;
+    private volatile bool connectionAcknowledged;
+    private Timer? connectionTimeoutTimer;
+    private const int ConnectionTimeoutSeconds = 10;
 
     private readonly ClientPacketManager packetManager;
 
@@ -74,11 +77,17 @@ public sealed class Client
 
             packetManager.RegisterHandlers();
 
+            isConnected = true;
+            connectionAcknowledged = false;
+
             receiveThread = new Thread(new Action(ReceiveLoop))
             {
                 IsBackground = true
             };
             receiveThread.Start();
+            
+            connectionTimeoutTimer = new Timer(CheckConnectionTimeout, null, 
+                TimeSpan.FromSeconds(ConnectionTimeoutSeconds), Timeout.InfiniteTimeSpan);
 
             Application.quitting += new Action(Disconnect);
 
@@ -99,6 +108,15 @@ public sealed class Client
             SrLogger.LogError($"Error connecting to the Server: {ex}", SrLogTarget.Both);
             isConnected = false;
             throw;
+        }
+    }
+
+    private void CheckConnectionTimeout(object? state)
+    {
+        if (!connectionAcknowledged && isConnected)
+        {
+            SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
+            Disconnect();
         }
     }
 
@@ -132,18 +150,21 @@ public sealed class Client
                 SrLogger.LogPacketSize($"Received {data.Length} bytes",
                     $"Received {data.Length} bytes from {remoteEp}");
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
-                if (!isConnected)
-                    return;
-
-                SrLogger.LogError("ReceiveLoop error: Socket Exception");
+                // This prevents WSAEINTR from logging, this is correct
+                if (ex.ErrorCode != 10004)
+                {
+                    SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}");
+                }
             }
             catch (Exception ex)
             {
                 SrLogger.LogError($"ReceiveLoop error: {ex}");
             }
         }
+
+        SrLogger.LogMessage("Client ReceiveLoop ended!", SrLogTarget.Both);
     }
 
     public void SendChatMessage(string message)
@@ -172,7 +193,7 @@ public sealed class Client
 
     internal static void StartHeartbeat()
     {
-        // Removed this temporarily because there are no Handlers and the Client will get timed out
+        // Removed this temporarily because there are no Handlers
         // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
@@ -227,24 +248,56 @@ public sealed class Client
 
         try
         {
-            var leavePacket = new PlayerLeavePacket
+            try
             {
-                Type = (byte)PacketType.PlayerLeave,
-                PlayerId = OwnPlayerId
-            };
+                var leavePacket = new PlayerLeavePacket
+                {
+                    Type = (byte)PacketType.PlayerLeave,
+                    PlayerId = OwnPlayerId
+                };
 
-            SendPacket(leavePacket);
-
-            heartbeatTimer?.Dispose();
-            heartbeatTimer = null;
-
-            isConnected = false;
-            udpClient?.Close();
-
-            if (receiveThread is { IsAlive: true })
-            {
-                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
+                SendPacket(leavePacket);
             }
+            catch (Exception ex)
+            {
+                SrLogger.LogWarning($"Could not send leave packet: {ex.Message}");
+            }
+            
+            isConnected = false;
+            
+            if (heartbeatTimer != null)
+            {
+                heartbeatTimer.Dispose();
+                heartbeatTimer = null;
+            }
+
+            if (connectionTimeoutTimer != null)
+            {
+                connectionTimeoutTimer.Dispose();
+                connectionTimeoutTimer = null;
+            }
+            
+            if (udpClient != null)
+            {
+                udpClient.Close();
+                udpClient = null;
+            }
+
+            // Give the receive thread a moment to exit normally
+            if (receiveThread != null && receiveThread.IsAlive)
+            {
+                for (int i = 0; i < 20 && receiveThread.IsAlive; i++)
+                {
+                    System.Threading.Thread.Sleep(100);
+                }
+
+                if (receiveThread.IsAlive)
+                {
+                    SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
+                }
+            }
+
+            receiveThread = null;
 
             playerManager.Clear();
 
@@ -259,6 +312,14 @@ public sealed class Client
 
     internal void NotifyConnected()
     {
+        connectionAcknowledged = true;
+        
+        if (connectionTimeoutTimer != null)
+        {
+            connectionTimeoutTimer.Dispose();
+            connectionTimeoutTimer = null;
+        }
+
         OnConnected?.Invoke(OwnPlayerId);
         isConnected = true;
     }

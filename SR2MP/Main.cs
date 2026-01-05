@@ -60,10 +60,7 @@ public sealed class Main : SR2EExpansionV3
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);
 
-                Server.OnServerStarted += () =>
-                {
-                    CheatsEnabled = AllowCheats;
-                };
+                Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
                 
                 break;
 

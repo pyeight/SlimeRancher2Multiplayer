@@ -75,11 +75,11 @@ public sealed class ConnectHandler : BaseServerPacketHandler
         var unlockedArray = Il2CppSystem.Linq.Enumerable
             .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
-        SrLogger.LogMessage($"Found {unlockedArray.Length} pedia entries");
+        SrLogger.LogPacketSize($"Found {unlockedArray.Length} pedia entries");
 
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
 
-        SrLogger.LogMessage($"Sent {unlockedIDs.Count} pedia entries");
+        SrLogger.LogPacketSize($"Sent {unlockedIDs.Count} pedia entries");
 
         var pediasPacket = new PediasPacket
         {
@@ -89,7 +89,7 @@ public sealed class ConnectHandler : BaseServerPacketHandler
 
         Main.Server.SendToClient(pediasPacket, client);
 
-        SrLogger.LogMessage("InitialPediaEntries packet sent");
+        SrLogger.LogPacketSize("InitialPediaEntries packet sent");
     }
 
     private static void SendActorsPacket(IPEndPoint client)

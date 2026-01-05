@@ -17,12 +17,12 @@ public sealed class PediaLoadHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PediasPacket>();
 
-        SrLogger.LogError("Received PediaLoad packet");
+        SrLogger.LogPacketSize("Received PediaLoad packet");
 
         var unlocked = packet.Entries.ConvertAll(entry =>
             GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._pediaEntryLookup[entry]);
 
-        SrLogger.LogMessage($"Received {packet.Entries.Count} entries in packet");
+        SrLogger.LogPacketSize($"Received {packet.Entries.Count} entries in packet");
 
         var unlockedCpp = new Il2CppReferenceArray<PediaEntry>(unlocked.ToArray());
         SceneContext.Instance.PediaDirector._pediaModel.unlocked = Enumerable.ToHashSet(
