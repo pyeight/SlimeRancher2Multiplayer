@@ -74,8 +74,6 @@ public sealed class Client
 
             packetManager.RegisterHandlers();
 
-            isConnected = true;
-
             receiveThread = new Thread(new Action(ReceiveLoop))
             {
                 IsBackground = true
@@ -178,18 +176,18 @@ public sealed class Client
         // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
-    // private void SendHeartbeat(object? state)
-    // {
-    //     if (!isConnected)
-    //         return;
-    //
-    //     var heartbeatPacket = new EmptyPacket
-    //     {
-    //         Type = (byte)PacketType.Heartbeat
-    //     };
-    //
-    //     SendPacket(heartbeatPacket);
-    // }
+    private void SendHeartbeat(object? state)
+    {
+        if (!isConnected)
+            return;
+        
+        var heartbeatPacket = new EmptyPacket 
+        {
+            Type = (byte)PacketType.Heartbeat 
+        };
+        
+        SendPacket(heartbeatPacket);
+    }
 
     internal void SendPacket<T>(T packet) where T : IPacket
     {
@@ -262,6 +260,7 @@ public sealed class Client
     internal void NotifyConnected()
     {
         OnConnected?.Invoke(OwnPlayerId);
+        isConnected = true;
     }
 
     internal void NotifyChatMessageReceived(string playerId, string message, DateTime timestamp)
