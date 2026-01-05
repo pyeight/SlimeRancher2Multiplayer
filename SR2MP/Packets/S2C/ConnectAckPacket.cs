@@ -15,11 +15,7 @@ public sealed class ConnectAckPacket : IPacket
     {
         writer.WriteByte(Type);
         writer.WriteString(PlayerId);
-        writer.WriteArray(OtherPlayers, (packetWriter, tuple) =>
-        {
-            packetWriter.WriteString(tuple.ID);
-            packetWriter.WriteString(tuple.Username);
-        });
+        writer.WriteArray(OtherPlayers, PacketWriterDels.Tuple<string, string>.Func);
 
         writer.WriteInt(Money);
         writer.WriteInt(RainbowMoney);
@@ -29,7 +25,7 @@ public sealed class ConnectAckPacket : IPacket
     {
         Type = reader.ReadByte();
         PlayerId = reader.ReadString();
-        OtherPlayers = reader.ReadArray((packetReader) => (packetReader.ReadString(), packetReader.ReadString()));
+        OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Func);
 
         Money = reader.ReadInt();
         RainbowMoney = reader.ReadInt();
