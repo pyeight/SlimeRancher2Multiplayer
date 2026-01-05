@@ -99,10 +99,16 @@ public sealed class RemoteFXManager
 
         foreach (var cue in PlayerAudioCueMap)
         {
+            if (!cue.Value)
+                continue;
+
             cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
         }
         foreach (var cue in WorldAudioCueMap)
         {
+            if (!cue.Value)
+                continue;
+
             cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
         }
 

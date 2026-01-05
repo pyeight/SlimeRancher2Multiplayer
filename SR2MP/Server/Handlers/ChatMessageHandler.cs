@@ -8,9 +8,7 @@ namespace SR2MP.Server.Handlers;
 public sealed class ChatMessageHandler : BaseServerPacketHandler
 {
     public ChatMessageHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager)
-    {
-    }
+        : base(networkManager, clientManager) { }
 
     public override void HandleServer(byte[] data, IPEndPoint clientEp)
     {

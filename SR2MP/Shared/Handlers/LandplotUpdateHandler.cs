@@ -1,11 +1,15 @@
 using System.Net;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.LandPlotUpdate)]
 public sealed class LandPlotUpdateHandler : BaseSharedPacketHandler
 {
+    public LandPlotUpdateHandler(NetworkManager networkManager, ClientManager clientManager) {}
+    public LandPlotUpdateHandler(Client.Client client, RemotePlayerManager playerManager) {}
     public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);

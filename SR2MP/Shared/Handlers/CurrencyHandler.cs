@@ -1,12 +1,16 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.CurrencyAdjust)]
 public sealed class CurrencyHandler : BaseSharedPacketHandler
 {
+    public CurrencyHandler(NetworkManager networkManager, ClientManager clientManager) {}
+    public CurrencyHandler(Client.Client client, RemotePlayerManager playerManager) {}
     public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
