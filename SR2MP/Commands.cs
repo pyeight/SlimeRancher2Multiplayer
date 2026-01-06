@@ -15,7 +15,7 @@ public sealed class HostCommand : SR2ECommand
     {
         MenuEUtil.CloseOpenMenu();
         server = Main.Server;
-        server.Start(int.Parse(args[0]), true);
+        server.Start(int.Parse(args[0].Trim()), true);
         return true;
     }
 }
@@ -31,31 +31,33 @@ public sealed class ConnectCommand : SR2ECommand
 
         if (args.Length < 1)
             return false;
+        
+        args = args.Select(a => a.Trim()).ToArray();
 
         var input = args[0];
         string ip;
         int port;
-        
+
         if (input.Contains(':'))
         {
             var split = input.Split(':');
-            ip = split[0];
+            ip = split[0].Trim();
 
-            if (!int.TryParse(split[1], out port))
+            if (!int.TryParse(split[1].Trim(), out port))
                 return false;
         }
         else
         {
-            ip = input;
-            if (args.Length < 2 || !int.TryParse(args[1], out port))
+            ip = input.Trim();
+            if (args.Length < 2 || !int.TryParse(args[1].Trim(), out port))
                 return false;
         }
         
         if (ip.StartsWith("[") && ip.EndsWith("]"))
         {
-            ip = ip[1..^1];
+            ip = ip[1..^1].Trim();
         }
-        
+
         try
         {
             var addresses = Dns.GetHostAddresses(ip);

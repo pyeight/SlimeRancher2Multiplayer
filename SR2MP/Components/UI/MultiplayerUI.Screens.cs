@@ -167,9 +167,21 @@ public sealed partial class MultiplayerUI
         GUI.Label(CalculateTextLayout(6), "You are the host.");
         GUI.Label(CalculateTextLayout(6), $"Hosting on port: {Main.Server.Port}");
         GUI.Label(CalculateTextLayout(6, 4), "If you are using PlayIt, you must host on the port you set as Local Port on PlayIt.");
+
+        GUI.Label(CalculateTextLayout(6), "Players:");
+        foreach (var player in playerManager.GetAllPlayers())
+        {
+            GUI.Label(CalculateTextLayout(6,1,2,0), player.Username);
+            // GUI.Button(CalculateButtonLayout(6,2,1), "Kick");
+        }
     }
     private void ConnectedScreen()
     {
-        GUI.Label(CalculateTextLayout(6), "You are the client.");       
+        GUI.Label(CalculateTextLayout(6, 2), "You are the client.");
+        GUI.Label(CalculateTextLayout(6), "Players:");
+        foreach (var player in playerManager.GetAllPlayers())
+        {
+            GUI.Label(CalculateTextLayout(6), player.Username);
+        }
     }
 }
