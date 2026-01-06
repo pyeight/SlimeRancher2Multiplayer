@@ -12,6 +12,7 @@ public sealed partial class MultiplayerUI
         SettingsInitial,
         SettingsMain,
         SettingsHelp,
+        Kicked,
         Error,
     }
     public enum ErrorType : byte

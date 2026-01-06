@@ -42,4 +42,5 @@ public sealed partial class MultiplayerUI
 
         Main.Client.Connect(ip, port);
     }
+    public void Kick(string player) { }
 }
