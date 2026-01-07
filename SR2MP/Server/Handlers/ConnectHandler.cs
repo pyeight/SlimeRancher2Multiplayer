@@ -5,6 +5,7 @@ using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
 using SR2MP.Shared.Managers;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server.Handlers;
 
@@ -43,7 +44,7 @@ public sealed class ConnectHandler : BasePacketHandler
         Main.Server.SendToClient(ackPacket, clientEp);
 
         SendPlotsPacket(clientEp);
-        SendActorsPacket(clientEp);
+        SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
 
@@ -86,7 +87,7 @@ public sealed class ConnectHandler : BasePacketHandler
         Main.Server.SendToClient(pediasPacket, client);
     }
 
-    private static void SendActorsPacket(IPEndPoint client)
+    private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
         var actorsList = new List<ActorsPacket.Actor>();
 
@@ -107,6 +108,7 @@ public sealed class ConnectHandler : BasePacketHandler
         var actorsPacket = new ActorsPacket
         {
             Type = (byte)PacketType.InitialActors,
+            StartingActorID = (uint)(playerIndex * 10000),
             Actors = actorsList
         };
 

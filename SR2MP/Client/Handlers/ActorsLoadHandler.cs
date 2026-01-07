@@ -33,6 +33,8 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
             SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor.value);
         }
 
+        SceneContext.Instance.GameModel._actorIdProvider._nextActorId = packet.StartingActorID;
+        
         foreach (var actor in packet.Actors)
         {
             var type = actorManager.ActorTypes[actor.ActorType];
