@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Unity.Mathematics;
@@ -8,6 +10,9 @@ public sealed class PacketReader : IDisposable
 {
     private readonly MemoryStream _stream;
     private readonly BinaryReader _reader;
+
+    private byte _currentPackedByte;
+    private int _currentBitIndex = 8;
 
     public PacketReader(byte[] data)
     {
@@ -34,6 +39,9 @@ public sealed class PacketReader : IDisposable
     public double ReadDouble() => _reader.ReadDouble();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public short ReadShort() => _reader.ReadInt16();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ushort ReadUShort() => _reader.ReadUInt16();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,13 +60,13 @@ public sealed class PacketReader : IDisposable
     public T ReadEnum<T>() where T : struct, Enum => PacketReaderDels.Enum<T>.Func(this);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector3 ReadVector3() => new Vector3(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
+    public Vector3 ReadVector3() => new(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Quaternion ReadQuaternion() => new Quaternion(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
+    public Quaternion ReadQuaternion() => new(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float4 ReadFloat4() => new float4(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
+    public float4 ReadFloat4() => new(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
 
     public T[] ReadArray<T>(Func<PacketReader, T> reader)
     {
@@ -132,6 +140,23 @@ public sealed class PacketReader : IDisposable
         return result;
     }
 
+    public bool ReadPackedBool()
+    {
+        if (_currentBitIndex >= 8)
+        {
+            _currentPackedByte = _reader.ReadByte();
+            _currentBitIndex = 0;
+        }
+
+        var value = (_currentPackedByte & (1 << _currentBitIndex)) != 0;
+        _currentBitIndex++;
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void EndPackingBools() => _currentBitIndex = 8;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Skip(int count) => _stream.Position += count;
 
     public void Dispose()
@@ -187,5 +212,66 @@ public static class PacketReaderDels
                 _ => throw new NotSupportedException($"Enum size {size} not supported")
             };
         }
+    }
+
+    public static class Tuple<T1, T2>
+    {
+        public static readonly Func<PacketReader, (T1, T2)> Func = CreateReader();
+
+        private static Func<PacketReader, (T1, T2)> CreateReader() => TupleResolver.CreateTupleReader<(T1, T2)>(typeof(T1), typeof(T2));
+    }
+
+    private static class TupleResolver
+    {
+        private static readonly Dictionary<Type, MethodInfo> TypeReadCache = new();
+
+        // Stack overflow my beloved
+        public static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
+        {
+            var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
+            var readCalls = new Expression[componentTypes.Length];
+
+            for (var i = 0; i < componentTypes.Length; i++)
+                readCalls[i] = GetReadExpression(readerParam, componentTypes[i]);
+
+            var constructor = typeof(TTuple).GetConstructor(componentTypes) ?? throw new InvalidOperationException($"Could not find constructor for tuple {typeof(TTuple)}");
+            var newTuple = Expression.New(constructor, readCalls);
+            return Expression.Lambda<Func<PacketReader, TTuple>>(newTuple, readerParam).Compile();
+        }
+
+        private static Expression GetReadExpression(ParameterExpression readerParam, Type type)
+        {
+            if (TypeReadCache.TryGetValue(type, out var method))
+                return Expression.Call(readerParam, method);
+
+            // Possibly the only time I'll ever use single line if statements; I'd rather DIE than do this again lmao
+            if (type == typeof(byte)) method = Method(nameof(PacketReader.ReadByte));
+            else if (type == typeof(int)) method = Method(nameof(PacketReader.ReadInt));
+            else if (type == typeof(bool)) method = Method(nameof(PacketReader.ReadBool));
+            else if (type == typeof(uint)) method = Method(nameof(PacketReader.ReadUInt));
+            else if (type == typeof(long)) method = Method(nameof(PacketReader.ReadLong));
+            else if (type == typeof(sbyte)) method = Method(nameof(PacketReader.ReadSByte));
+            else if (type == typeof(short)) method = Method(nameof(PacketReader.ReadShort));
+            else if (type == typeof(ulong)) method = Method(nameof(PacketReader.ReadULong));
+            else if (type == typeof(float)) method = Method(nameof(PacketReader.ReadFloat));
+            else if (type == typeof(ushort)) method = Method(nameof(PacketReader.ReadUShort));
+            else if (type == typeof(double)) method = Method(nameof(PacketReader.ReadDouble));
+            else if (type == typeof(string)) method = Method(nameof(PacketReader.ReadString));
+            else if (type == typeof(float4)) method = Method(nameof(PacketReader.ReadFloat4));
+            else if (type == typeof(Vector3)) method = Method(nameof(PacketReader.ReadVector3));
+            else if (type == typeof(Quaternion)) method = Method(nameof(PacketReader.ReadQuaternion));
+            else if (type.IsEnum) method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
+            else if (typeof(IPacket).IsAssignableFrom(type)) method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
+
+            if (method == null)
+                throw new NotSupportedException($"Type {type.Name} is not supported in automatic Tuple deserialization.");
+
+            TypeReadCache[type] = method;
+            return Expression.Call(readerParam, method);
+        }
+
+        private static MethodInfo Method(string name) =>
+            typeof(PacketReader).GetMethod(name, BindingFlags.Instance | BindingFlags.Public)
+            ?? throw new MissingMethodException($"PacketReader missing method: {name}");
     }
 }

@@ -6,9 +6,9 @@ public sealed class ActorsPacket : IPacket
 {
     public struct Actor : IPacket
     {
+        public long ActorId { get; set; }
         public Vector3 Position { get; set; }
         public Quaternion Rotation { get; set; }
-        public long ActorId { get; set; }
         public int ActorType { get; set; }
 
         public readonly void Serialise(PacketWriter writer)

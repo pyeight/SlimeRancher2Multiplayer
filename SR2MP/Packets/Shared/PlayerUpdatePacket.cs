@@ -27,15 +27,18 @@ public sealed class PlayerUpdatePacket : IPacket
         writer.WriteFloat(Rotation);
 
         writer.WriteInt(AirborneState);
-        writer.WriteBool(Moving);
         writer.WriteFloat(Yaw);
         writer.WriteFloat(HorizontalMovement);
         writer.WriteFloat(ForwardMovement);
         writer.WriteFloat(HorizontalSpeed);
         writer.WriteFloat(ForwardSpeed);
-        writer.WriteBool(Sprinting);
 
         writer.WriteFloat(LookY);
+
+        writer.ResetPackingBools();
+        writer.WritePackedBool(Moving);
+        writer.WritePackedBool(Sprinting);
+        writer.EndPackingBools();
     }
 
     public void Deserialise(PacketReader reader)
@@ -47,14 +50,16 @@ public sealed class PlayerUpdatePacket : IPacket
         Rotation = reader.ReadFloat();
 
         AirborneState = reader.ReadInt();
-        Moving = reader.ReadBool();
         Yaw = reader.ReadFloat();
         HorizontalMovement = reader.ReadFloat();
         ForwardMovement = reader.ReadFloat();
         HorizontalSpeed = reader.ReadFloat();
         ForwardSpeed = reader.ReadFloat();
-        Sprinting = reader.ReadBool();
 
         LookY = reader.ReadFloat();
+
+        Moving = reader.ReadPackedBool();
+        Sprinting = reader.ReadPackedBool();
+        reader.EndPackingBools();
     }
 }

@@ -6,13 +6,14 @@ namespace SR2MP.Packets.Shared;
 
 public struct ActorUpdatePacket : IPacket
 {
-    public byte Type { get; set; }
-
     public ActorId ActorId { get; set; }
-    public Vector3 Position { get; set; }
-    public Quaternion Rotation { get; set; }
-    public Vector3 Velocity { get; set; }
+
     public float4 Emotions { get; set; }
+    public Quaternion Rotation { get; set; }
+    public Vector3 Position { get; set; }
+    public Vector3 Velocity { get; set; }
+
+    public byte Type { get; set; }
 
     public readonly void Serialise(PacketWriter writer)
     {

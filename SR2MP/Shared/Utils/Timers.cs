@@ -17,7 +17,7 @@ public static class Timers
     public static float PlayerInventoryTimer => playerInventorySyncTimer;
     public static float PlanterTimer => planterSyncTimer;
 
-    public enum SyncTimerType
+    public enum SyncTimerType : byte
     {
         PLAYER,
         ACTOR,

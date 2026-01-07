@@ -5,6 +5,7 @@ using SR2MP.Client.Models;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
+
 using Thread = Il2CppSystem.Threading.Thread;
 
 namespace SR2MP.Client;

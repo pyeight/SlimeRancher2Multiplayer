@@ -14,10 +14,10 @@ public struct WorldFXPacket : IPacket
         SellPlortDroneSound,
     }
 
+    public Vector3 Position { get; set; }
+
     public byte Type { get; set; }
     public WorldFXType FX { get; set; }
-
-    public Vector3 Position { get; set; }
 
     public readonly void Serialise(PacketWriter writer)
     {
