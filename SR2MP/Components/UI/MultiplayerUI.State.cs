@@ -25,6 +25,8 @@ public sealed partial class MultiplayerUI
     
     private MenuState GetState()
     {
+        if (hidden) return MenuState.Hidden;
+
         var inGame = ContextShortcuts.inGame;
         var loading = GetIsLoading();
         var connected = Main.Client.IsConnected;

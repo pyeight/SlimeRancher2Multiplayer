@@ -1,7 +1,9 @@
 using System.Net;
 using MelonLoader;
 using SR2E;
+using SR2E.Managers;
 using SR2E.Utils;
+using UnityEngine.InputSystem.Utilities;
 
 namespace SR2MP.Components.UI;
 
@@ -43,4 +45,16 @@ public sealed partial class MultiplayerUI
         Main.Client.Connect(ip, port);
     }
     public void Kick(string player) { }
+
+    private void Update()
+    {
+        if (KeyCode.F4.OnKeyDown())
+            hidden = !hidden;
+    }
+
+    private void AdjustInputValues()
+    {
+        ipInput = ipInput.WithAllWhitespaceStripped();
+        portInput = portInput.WithAllWhitespaceStripped();
+    }
 }

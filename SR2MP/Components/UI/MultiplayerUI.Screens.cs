@@ -2,6 +2,7 @@ namespace SR2MP.Components.UI;
 
 public sealed partial class MultiplayerUI
 {
+    private bool hidden = false;
     private string usernameInput = "Player";
     private string ipInput = "127.0.0.1";
     private string portInput = "";
