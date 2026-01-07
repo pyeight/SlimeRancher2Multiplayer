@@ -2,21 +2,25 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Shared;
 
-public struct MarketPricePacket : IPacket
+public sealed class MarketPricePacket : IPacket
 {
     public byte Type { get; set; }
     
-    public float[] Prices { get; set; }
+    public (float Current, float Previous)[] Prices { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
+    public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
-        writer.WriteArray(Prices, PacketWriterDels.Float);
+        writer.WriteArray(Prices, (packetWriter, tuple) =>
+        {
+            packetWriter.WriteFloat(tuple.Current);
+            packetWriter.WriteFloat(tuple.Previous);
+        });
     }
 
     public void Deserialise(PacketReader reader)
     {
         Type = reader.ReadByte();
-        Prices = reader.ReadArray(PacketReaderDels.Float);
+        Prices = reader.ReadArray((packetReader) => (packetReader.ReadFloat(), packetReader.ReadFloat()));
     }
 }

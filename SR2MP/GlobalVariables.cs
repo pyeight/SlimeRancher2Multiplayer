@@ -1,3 +1,4 @@
+using Il2CppMonomiPark.SlimeRancher.UI;
 using SR2MP.Shared.Managers;
 using PriceDictionary = Il2CppSystem.Collections.Generic.Dictionary<Il2Cpp.IdentifiableType, Il2CppMonomiPark.SlimeRancher.Economy.PlortEconomyDirector.CurrValueEntry>;
 
@@ -37,10 +38,11 @@ public static class GlobalVariables
             : Main.Client.IsConnected
                 ? Main.Client.OwnPlayerId
                 : string.Empty;
-    
-    public static float[]? MarketPricesArray => SceneContext.Instance
-        ? Array.ConvertAll<PriceDictionary.Entry, float>(
+    public static (float Current, float Previous)[]? MarketPricesArray => SceneContext.Instance
+        ? Array.ConvertAll<PriceDictionary.Entry, (float Current, float Previous)>(
             SceneContext.Instance.PlortEconomyDirector._currValueMap._entries,
-            entry => entry.value.CurrValue)
+            entry => (entry.value?.CurrValue ?? 0f, entry.value?.PrevValue ?? 0f))
         : null;
+
+    public static MarketUI? marketUIInstance;
 }

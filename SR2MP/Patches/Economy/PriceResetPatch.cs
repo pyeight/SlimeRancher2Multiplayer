@@ -14,7 +14,7 @@ public class PriceResetPatch
     
     public static void Postfix(PlortEconomyDirector __instance, WorldModel worldModel, int day)
     {
-        if (Main.Client.IsConnected)
+        if (!Main.Server.IsRunning())
             return;
         
         new Dictionary<byte, byte>();

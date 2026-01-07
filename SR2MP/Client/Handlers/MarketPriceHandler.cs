@@ -14,11 +14,26 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<MarketPricePacket>();
 
+        var economy = SceneContext.Instance.PlortEconomyDirector;
+        
+        //economy.ResetPrices(SceneContext.Instance.GameModel.world, 0);
+        
+        //SrLogger.LogMessage($"Market price change received!\nRecieved {packet.Prices.Length} prices.\nPrices:\n{string.Join(",\n", packet.Prices)}");
+        
         int i = 0;
-        foreach (var price in SceneContext.Instance.PlortEconomyDirector._currValueMap._values)
+        // Couldn't do _currValueMap._values because its null for some reason, and
+        // _currValueMap.Values is bugged with rider.
+        foreach (var price in economy._currValueMap._entries)
         {
-            price.CurrValue = packet.Prices[i];
+            if (price.value != null)
+            {
+                price.value.CurrValue = packet.Prices[i].Current;
+                price.value.PrevValue = packet.Prices[i].Previous;
+            }
+
             i++;
         }
+        
+        marketUIInstance?.EconUpdate();
     }
 }

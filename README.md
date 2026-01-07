@@ -6,25 +6,28 @@
 - 🟧 in progress
 - 🟥 not synced
 
-| Feature           | Status | Details about Feature                                |
-|:-----------------:|:------:|:----------------------------------------------------:|
-| Player Movement   | 🟩     | Fully functional                                     |
-| Player Animations | 🟩     | Fully functional                                     |
-| Player Sound FX   | 🟨     | Water splash sound + Plot buy/upgrade sound missing  |
-| Player Visual FX  | 🟨     | Water splash particle + Vac suction trail missing    |
-| Player Inventory  | 🟥     | Not implemented                                      |
-| Initial Save load | 🟩     | Everything that is ___currently___ synchronised will be loaded on Player join|
-| Slimes            | 🟩     | Fully functional                                     |
-| Actors (Items)    | 🟩     | Fully functional                                     |
-| Landplots         | 🟨     | Gardens and Silos missing functionality              |
-| Landplot upgrades | 🟩     | Fully functional                                     |
-| Slimepedia        | 🟩     | Fully functional                                     |
-| Gadgets           | 🟥     | Not implemented                                      |
-| Upgrades          | 🟩     | Fully functional                                     |
-| Money             | 🟩     | Fully functional                                     |
-| Time              | 🟩     | Fully functional                                     |
-| Decorations       | 🟥     | Not implemented                                      |
-| Gray Labyrinth    | 🟥     | Not implemented                                      |
+|      Feature      | Status |                             Details about Feature                             |
+|:-----------------:|:------:|:-----------------------------------------------------------------------------:|
+|  Player Movement  |   🟩   |                               Fully functional                                |
+| Player Animations |   🟩   |                               Fully functional                                |
+|  Player Sound FX  |   🟨   |                             Water splash missing                              |
+| Player Visual FX  |   🟨   |               Water splash particle + Vac suction trail missing               |
+| Player Inventory  |   🟥   |                                Not implemented                                |
+| Initial Save load |   🟩   | Everything that is ___currently___ synchronised will be loaded on Player join |
+|      Slimes       |   🟩   |                               Fully functional                                |
+|  Actors (Items)   |   🟩   |                               Fully functional                                |
+|     Landplots     |   🟨   |                    Gardens and Silos missing functionality                    |
+| Landplot upgrades |   🟩   |                               Fully functional                                |
+|    Slimepedia     |   🟩   |                               Fully functional                                |
+|      Gadgets      |   🟥   |                                Not implemented                                |
+|     Upgrades      |   🟩   |                               Fully functional                                |
+|       Money       |   🟩   |                               Fully functional                                |
+|       Time        |   🟩   |                               Fully functional                                |
+|    Decorations    |   🟥   |                                Not implemented                                |
+|  Gray Labyrinth   |   🟥   |                                Not implemented                                |
+|   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
+|      Plot FX      |   🟩   |                               Fully functional                                |
+|     Market FX     |   🟩   |                               Fully functional                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
