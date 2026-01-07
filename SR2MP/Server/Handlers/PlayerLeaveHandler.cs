@@ -1,16 +1,17 @@
 using System.Net;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Handlers;
 
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerLeave)]
-public sealed class PlayerLeaveHandler : BasePacketHandler
+public sealed class PlayerLeaveHandler : BaseServerPacketHandler
 {
     public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void HandleServer(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         reader.Skip(1);

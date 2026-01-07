@@ -11,7 +11,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
     public ConnectAckHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void HandleClient(byte[] data)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ConnectAckPacket>();
@@ -22,7 +22,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
             PlayerId = packet.PlayerId,
             PlayerName = Main.Username
         };
-
+        
         SendPacket(joinPacket);
 
         Client.StartHeartbeat();

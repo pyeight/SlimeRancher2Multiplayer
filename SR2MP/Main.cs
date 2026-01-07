@@ -63,7 +63,7 @@ public sealed class Main : SR2EExpansionV3
                 Object.DontDestroyOnLoad(ui.gameObject);
 
                 Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
-
+                
                 break;
 
             case "MainMenuEnvironment":

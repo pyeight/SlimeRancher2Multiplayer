@@ -1,17 +1,16 @@
 using System.Net;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
 using SR2MP.Shared.Managers;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.WorldFX)]
-public sealed class WorldFXHandler : BasePacketHandler
+public sealed class WorldFXHandler : BaseSharedPacketHandler
 {
-    public WorldFXHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public WorldFXHandler(NetworkManager networkManager, ClientManager clientManager) {}
+    public WorldFXHandler(Client.Client client, RemotePlayerManager playerManager) {}
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<WorldFXPacket>();
@@ -31,6 +30,8 @@ public sealed class WorldFXHandler : BasePacketHandler
             RemoteFXManager.PlayTransientAudio(cue, packet.Position, WorldSoundVolumeDictionary[packet.FX]);
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        
+        if (clientEp != null)
+            Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

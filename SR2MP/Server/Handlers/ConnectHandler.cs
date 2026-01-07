@@ -10,12 +10,12 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.Connect)]
-public sealed class ConnectHandler : BasePacketHandler
+public sealed class ConnectHandler : BaseServerPacketHandler
 {
     public ConnectHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void HandleServer(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ConnectPacket>();
@@ -77,7 +77,11 @@ public sealed class ConnectHandler : BasePacketHandler
         var unlockedArray = Il2CppSystem.Linq.Enumerable
             .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
+        SrLogger.LogPacketSize($"Found {unlockedArray.Length} pedia entries");
+
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
+
+        SrLogger.LogPacketSize($"Sent {unlockedIDs.Count} pedia entries");
 
         var pediasPacket = new PediasPacket
         {
@@ -86,6 +90,8 @@ public sealed class ConnectHandler : BasePacketHandler
         };
 
         Main.Server.SendToClient(pediasPacket, client);
+
+        SrLogger.LogPacketSize("InitialPediaEntries packet sent");
     }
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)

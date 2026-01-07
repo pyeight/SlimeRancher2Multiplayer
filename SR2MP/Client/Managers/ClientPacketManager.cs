@@ -68,7 +68,7 @@ public sealed class ClientPacketManager
         {
             try
             {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data));
+                MainThreadDispatcher.Enqueue(() => handler.HandleClient(data));
             }
             catch (Exception ex)
             {

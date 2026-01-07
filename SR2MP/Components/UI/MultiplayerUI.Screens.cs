@@ -171,9 +171,8 @@ public sealed partial class MultiplayerUI
         GUI.Label(CalculateTextLayout(6), "Players:");
         foreach (var player in playerManager.GetAllPlayers())
         {
-            GUI.Label(CalculateTextLayout(6), player.Username);
-            //if (GUI.Button(CalculateButtonLayout(6, 2, 1), "Kick"))
-            //    Kick(player.PlayerId);
+            GUI.Label(CalculateTextLayout(6,1,2,0), player.Username);
+            // GUI.Button(CalculateButtonLayout(6,2,1), "Kick");
         }
     }
     private void ConnectedScreen()

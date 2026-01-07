@@ -12,13 +12,17 @@ public sealed class PediaLoadHandler : BaseClientPacketHandler
     public PediaLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void HandleClient(byte[] data)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PediasPacket>();
 
+        SrLogger.LogPacketSize("Received PediaLoad packet");
+
         var unlocked = packet.Entries.ConvertAll(entry =>
             GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._pediaEntryLookup[entry]);
+
+        SrLogger.LogPacketSize($"Received {packet.Entries.Count} entries in packet");
 
         var unlockedCpp = new Il2CppReferenceArray<PediaEntry>(unlocked.ToArray());
         SceneContext.Instance.PediaDirector._pediaModel.unlocked = Enumerable.ToHashSet(

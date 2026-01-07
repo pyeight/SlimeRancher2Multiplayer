@@ -5,16 +5,16 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
 
-public abstract class BasePacketHandler : IPacketHandler
+public abstract class BaseServerPacketHandler : IServerPacketHandler
 {
     protected readonly NetworkManager networkManager;
     protected readonly ClientManager clientManager;
 
-    protected BasePacketHandler(NetworkManager networkManager, ClientManager clientManager)
+    protected BaseServerPacketHandler(NetworkManager networkManager, ClientManager clientManager)
     {
         this.networkManager = networkManager;
         this.clientManager = clientManager;
     }
 
-    public abstract void Handle(byte[] data, IPEndPoint clientEp);
+    public abstract void HandleServer(byte[] data, IPEndPoint clientEp);
 }

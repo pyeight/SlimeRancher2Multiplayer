@@ -1,18 +1,18 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Slime;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
+using SR2MP.Shared.Managers;
 
-namespace SR2MP.Server.Handlers;
+namespace SR2MP.Shared.Handlers;
 
 [PacketHandler((byte)PacketType.ActorUpdate)]
-public sealed class ActorUpdateHandler : BasePacketHandler
+public sealed class ActorUpdateHandler : BaseSharedPacketHandler
 {
-    public ActorUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
-
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public ActorUpdateHandler(NetworkManager networkManager, ClientManager clientManager) {}
+    public ActorUpdateHandler(Client.Client client, RemotePlayerManager playerManager) {}
+    public override void Handle(byte[] data, IPEndPoint? clientEp = null)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorUpdatePacket>();
@@ -39,6 +39,8 @@ public sealed class ActorUpdateHandler : BasePacketHandler
                 networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        
+        if (clientEp != null)
+            Main.Server.SendToAllExcept(packet, clientEp);
     }
 }
