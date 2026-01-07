@@ -4,7 +4,7 @@ using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Utils;
-using UnityEngine.SocialPlatforms;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Actor;
 
@@ -43,7 +43,7 @@ public static class OnActorSpawn
 
         var id = actor.GetComponent<IdentifiableActor>().GetActorId();
 
-        var packet = new ActorSpawnPacket()
+        var packet = new ActorSpawnPacket
         {
             Type = (byte)PacketType.ActorSpawn,
             ActorType = actorType,
@@ -57,7 +57,7 @@ public static class OnActorSpawn
 
         actorManager.Actors.Add(id.Value, actor.GetComponent<IdentifiableActor>()._model);
     }
-    
+
     public static void Prefix()
     {
         var nextId = SceneContext.Instance.GameModel._actorIdProvider._nextActorId;
@@ -72,17 +72,12 @@ public static class OnActorSpawn
     public static void Postfix(
         GameObject __result,
         GameObject original,
-        SceneGroup sceneGroup,
-        Vector3 position,
-        Quaternion rotation,
-        bool nonActorOk = false,
-        SlimeAppearance.AppearanceSaveSet appearance = SlimeAppearance.AppearanceSaveSet.NONE,
-        SlimeAppearance.AppearanceSaveSet secondAppearance = SlimeAppearance.AppearanceSaveSet.NONE)
+        SceneGroup sceneGroup)
     {
         if (handlingPacket) return;
         __result.AddComponent<NetworkActor>().LocallyOwned = true;
 
-        var actorType = actorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
+        var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
         var sceneGroupId = GameContext.Instance.AutoSaveDirector._saveReferenceTranslation.GetPersistenceId(sceneGroup);
 
         MelonCoroutines.Start(SpawnOverNetwork(actorType, (byte)sceneGroupId, __result));

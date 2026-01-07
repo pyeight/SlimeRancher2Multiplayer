@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Shared;
 
-public struct PlayerUpdatePacket : IPacket
+public sealed class PlayerUpdatePacket : IPacket
 {
     public byte Type { get; set; }
     public string PlayerId { get; set; }
@@ -18,7 +18,7 @@ public struct PlayerUpdatePacket : IPacket
     public bool Sprinting { get; set; }
     public float LookY { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
+    public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
         writer.WriteString(PlayerId);
@@ -27,15 +27,18 @@ public struct PlayerUpdatePacket : IPacket
         writer.WriteFloat(Rotation);
 
         writer.WriteInt(AirborneState);
-        writer.WriteBool(Moving);
         writer.WriteFloat(Yaw);
         writer.WriteFloat(HorizontalMovement);
         writer.WriteFloat(ForwardMovement);
         writer.WriteFloat(HorizontalSpeed);
         writer.WriteFloat(ForwardSpeed);
-        writer.WriteBool(Sprinting);
 
         writer.WriteFloat(LookY);
+
+        writer.ResetPackingBools();
+        writer.WritePackedBool(Moving);
+        writer.WritePackedBool(Sprinting);
+        writer.EndPackingBools();
     }
 
     public void Deserialise(PacketReader reader)
@@ -47,14 +50,16 @@ public struct PlayerUpdatePacket : IPacket
         Rotation = reader.ReadFloat();
 
         AirborneState = reader.ReadInt();
-        Moving = reader.ReadBool();
         Yaw = reader.ReadFloat();
         HorizontalMovement = reader.ReadFloat();
         ForwardMovement = reader.ReadFloat();
         HorizontalSpeed = reader.ReadFloat();
         ForwardSpeed = reader.ReadFloat();
-        Sprinting = reader.ReadBool();
 
         LookY = reader.ReadFloat();
+
+        Moving = reader.ReadPackedBool();
+        Sprinting = reader.ReadPackedBool();
+        reader.EndPackingBools();
     }
 }

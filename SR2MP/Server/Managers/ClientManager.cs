@@ -10,6 +10,7 @@ public sealed class ClientManager
 
     public event Action<ClientInfo>? OnClientAdded;
     public event Action<ClientInfo>? OnClientRemoved;
+
     public int ClientCount => clients.Count;
 
     public bool TryGetClient(string clientInfo, out ClientInfo? client)
@@ -42,19 +43,16 @@ public sealed class ClientManager
             OnClientAdded?.Invoke(client);
             return client;
         }
-        else
-        {
-            SrLogger.LogWarning($"Client already exists! (PlayerId: {playerId})",
-                $"Client already exists: {clientInfo} (PlayerId: {playerId})");
-            return clients[clientInfo];
-        }
+        SrLogger.LogWarning($"Client already exists! (PlayerId: {playerId})",
+            $"Client already exists: {clientInfo} (PlayerId: {playerId})");
+        return clients[clientInfo];
     }
 
     public bool RemoveClient(string clientInfo)
     {
         if (clients.TryRemove(clientInfo, out var client))
         {
-            SrLogger.LogMessage($"Client removed!",
+            SrLogger.LogMessage("Client removed!",
                 $"Client removed: {clientInfo}");
             OnClientRemoved?.Invoke(client);
             return true;
@@ -107,6 +105,6 @@ public sealed class ClientManager
             OnClientRemoved?.Invoke(client);
         }
 
-        SrLogger.LogMessage("All clients cleared", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage("All clients cleared", SrLogTarget.Both);
     }
 }

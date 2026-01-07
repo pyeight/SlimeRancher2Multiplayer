@@ -1,40 +1,76 @@
-using UnityEngine;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
 public sealed class PacketReader : IDisposable
 {
-    private readonly MemoryStream stream;
-    private readonly BinaryReader reader;
+    private readonly MemoryStream _stream;
+    private readonly BinaryReader _reader;
+
+    private byte _currentPackedByte;
+    private int _currentBitIndex = 8;
 
     public PacketReader(byte[] data)
     {
-        stream = new MemoryStream(data);
-        reader = new BinaryReader(stream, Encoding.UTF8);
+        _stream = new MemoryStream(data);
+        _reader = new BinaryReader(_stream, Encoding.UTF8);
     }
 
-    public byte ReadByte() => reader.ReadByte();
-    public sbyte ReadSByte() => reader.ReadSByte();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public byte ReadByte() => _reader.ReadByte();
 
-    public int ReadInt() => reader.ReadInt32();
-    public long ReadLong() => reader.ReadInt64();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public sbyte ReadSByte() => _reader.ReadSByte();
 
-    public float ReadFloat() => reader.ReadSingle();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int ReadInt() => _reader.ReadInt32();
 
-    public double ReadDouble() => reader.ReadDouble();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public long ReadLong() => _reader.ReadInt64();
 
-    public string ReadString() => reader.ReadString();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float ReadFloat() => _reader.ReadSingle();
 
-    public bool ReadBool() => reader.ReadBoolean();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double ReadDouble() => _reader.ReadDouble();
 
-    public Vector3 ReadVector3() => new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public short ReadShort() => _reader.ReadInt16();
 
-    public Quaternion ReadQuaternion() => new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ushort ReadUShort() => _reader.ReadUInt16();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public uint ReadUInt() => _reader.ReadUInt32();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ulong ReadULong() => _reader.ReadUInt64();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string ReadString() => _reader.ReadString();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ReadBool() => _reader.ReadBoolean();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadEnum<T>() where T : struct, Enum => PacketReaderDels.Enum<T>.Func(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Vector3 ReadVector3() => new(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Quaternion ReadQuaternion() => new(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float4 ReadFloat4() => new(_reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle(), _reader.ReadSingle());
 
     public T[] ReadArray<T>(Func<PacketReader, T> reader)
     {
-        var array = new T[this.reader.ReadInt32()];
+        var array = new T[_reader.ReadInt32()];
 
         for (var i = 0; i < array.Length; i++)
             array[i] = reader(this);
@@ -44,25 +80,59 @@ public sealed class PacketReader : IDisposable
 
     public List<T> ReadList<T>(Func<PacketReader, T> reader)
     {
-        var list = new List<T>(this.reader.ReadInt32());
+        var count = _reader.ReadInt32();
+        var list = new List<T>(count);
 
-        for (var i = 0; i < list.Count; i++)
-            list[i] = reader(this);
+        for (var i = 0; i < count; i++)
+            list.Add(reader(this));
+
+        return list;
+    }
+
+    public HashSet<T> ReadSet<T>(Func<PacketReader, T> reader)
+    {
+        var count = _reader.ReadInt32();
+        var list = new HashSet<T>(count);
+
+        for (var i = 0; i < count; i++)
+            list.Add(reader(this));
+
+        return list;
+    }
+
+    public CppCollections.List<T> ReadCppList<T>(Func<PacketReader, T> reader)
+    {
+        var count = _reader.ReadInt32();
+        var list = new CppCollections.List<T>(count);
+
+        for (var i = 0; i < count; i++)
+            list.Add(reader(this));
+
+        return list;
+    }
+
+    public CppCollections.HashSet<T> ReadCppSet<T>(Func<PacketReader, T> reader)
+    {
+        var count = _reader.ReadInt32();
+        var list = new CppCollections.HashSet<T>();
+
+        for (var i = 0; i < count; i++)
+            list.Add(reader(this));
 
         return list;
     }
 
     public Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader) where TKey : notnull
     {
-        var dict = new Dictionary<TKey, TValue>(reader.ReadInt32());
+        var count = _reader.ReadInt32();
+        var dict = new Dictionary<TKey, TValue>(count);
 
-        for (var i = 0; i < dict.Count; i++)
+        for (var i = 0; i < count; i++)
             dict[keyReader(this)] = valueReader(this);
 
         return dict;
     }
 
-    // All packet types MUST have a parameter-less constructor! Either make the type a struct (which always has a parameterless constructor), or at least declare a parameterless constructor for classes!
     public T ReadPacket<T>() where T : IPacket, new()
     {
         var result = new T();
@@ -70,46 +140,138 @@ public sealed class PacketReader : IDisposable
         return result;
     }
 
-    public T ReadEnum<T>() => (T)ReadEnum(typeof(T)); // Special case to avoid the extra overhead of two switch cases happening at once
-
-    public T Read<T>() => (T)Read(typeof(T));
-
-    // This should NOT be used in actual RPCs! This is just a backing system! Use the concrete methods above!
-    // What this basically does is that it's a non-generic read method that returns an object based on the type you feed it.
-    private object Read(Type type) => type switch
+    public bool ReadPackedBool()
     {
-        null => throw new NullReferenceException(nameof(type)),
-        _ when type == typeof(byte) => ReadByte(),
-        _ when type == typeof(sbyte) => ReadSByte(),
-        _ when type == typeof(bool) => ReadBool(),
-        _ when type == typeof(int) => ReadInt(),
-        _ when type == typeof(long) => ReadLong(),
-        _ when type == typeof(float) => ReadFloat(),
-        _ when type == typeof(double) => ReadDouble(),
-        _ when type == typeof(string) => ReadString(),
-        _ when type == typeof(Vector3) => ReadVector3(),
-        _ when type == typeof(Quaternion) => ReadQuaternion(),
-        _ when type.IsAssignableTo(typeof(Enum)) => ReadEnum(type),
-        _ when type.IsAssignableTo(typeof(IPacket)) => ReadPacket(type),
-        _ => throw new NotSupportedException($"Unable to read a value associated with {type.Name}!")
-    };
+        if (_currentBitIndex >= 8)
+        {
+            _currentPackedByte = _reader.ReadByte();
+            _currentBitIndex = 0;
+        }
 
-    // Non-generic variant of the ReadPacket<T> method, for the above non-generic catch-all read method.
-    private object ReadPacket(Type type)
-    {
-        var result = (IPacket)Activator.CreateInstance(type)!;
-        result.Deserialise(this);
-        return result;
+        var value = (_currentPackedByte & (1 << _currentBitIndex)) != 0;
+        _currentBitIndex++;
+        return value;
     }
 
-    private object ReadEnum(Type type) => Enum.ToObject(type, Read(Enum.GetUnderlyingType(type)));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void EndPackingBools() => _currentBitIndex = 8;
 
-    public void Skip(int count) => stream.Position += count;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Skip(int count) => _stream.Position += count;
 
     public void Dispose()
     {
-        reader?.Dispose();
-        stream?.Dispose();
+        _reader.Dispose();
+        _stream.Dispose();
+        // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
         GC.SuppressFinalize(this);
+    }
+}
+
+public static class PacketReaderDels
+{
+    public static readonly Func<PacketReader, byte> Byte = reader => reader.ReadByte();
+    public static readonly Func<PacketReader, sbyte> SByte = reader => reader.ReadSByte();
+    public static readonly Func<PacketReader, string> String = reader => reader.ReadString();
+    public static readonly Func<PacketReader, float> Float = reader => reader.ReadFloat();
+
+    public static class Packet<T> where T : IPacket, new()
+    {
+        public static readonly Func<PacketReader, T> Func = reader => reader.ReadPacket<T>();
+    }
+
+    public static class Enum<T> where T : struct, Enum
+    {
+        public static readonly Func<PacketReader, T> Func = CreateReader();
+
+        private static Func<PacketReader, T> CreateReader()
+        {
+            var size = Unsafe.SizeOf<T>();
+            return size switch
+            {
+                1 => r =>
+                {
+                    var v = r.ReadByte();
+                    return Unsafe.As<byte, T>(ref v);
+                },
+                2 => r =>
+                {
+                    var v = r.ReadUShort();
+                    return Unsafe.As<ushort, T>(ref v);
+                },
+                4 => r =>
+                {
+                    var v = r.ReadUInt();
+                    return Unsafe.As<uint, T>(ref v);
+                },
+                8 => r =>
+                {
+                    var v = r.ReadULong();
+                    return Unsafe.As<ulong, T>(ref v);
+                },
+                _ => throw new NotSupportedException($"Enum size {size} not supported")
+            };
+        }
+    }
+
+    public static class Tuple<T1, T2>
+    {
+        public static readonly Func<PacketReader, (T1, T2)> Func = CreateReader();
+
+        private static Func<PacketReader, (T1, T2)> CreateReader() => TupleResolver.CreateTupleReader<(T1, T2)>(typeof(T1), typeof(T2));
+    }
+
+    private static class TupleResolver
+    {
+        private static readonly Dictionary<Type, MethodInfo> TypeReadCache = new();
+
+        // Stack overflow my beloved
+        public static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
+        {
+            var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
+            var readCalls = new Expression[componentTypes.Length];
+
+            for (var i = 0; i < componentTypes.Length; i++)
+                readCalls[i] = GetReadExpression(readerParam, componentTypes[i]);
+
+            var constructor = typeof(TTuple).GetConstructor(componentTypes) ?? throw new InvalidOperationException($"Could not find constructor for tuple {typeof(TTuple)}");
+            var newTuple = Expression.New(constructor, readCalls);
+            return Expression.Lambda<Func<PacketReader, TTuple>>(newTuple, readerParam).Compile();
+        }
+
+        private static Expression GetReadExpression(ParameterExpression readerParam, Type type)
+        {
+            if (TypeReadCache.TryGetValue(type, out var method))
+                return Expression.Call(readerParam, method);
+
+            // Possibly the only time I'll ever use single line if statements; I'd rather DIE than do this again lmao
+            if (type == typeof(byte)) method = Method(nameof(PacketReader.ReadByte));
+            else if (type == typeof(int)) method = Method(nameof(PacketReader.ReadInt));
+            else if (type == typeof(bool)) method = Method(nameof(PacketReader.ReadBool));
+            else if (type == typeof(uint)) method = Method(nameof(PacketReader.ReadUInt));
+            else if (type == typeof(long)) method = Method(nameof(PacketReader.ReadLong));
+            else if (type == typeof(sbyte)) method = Method(nameof(PacketReader.ReadSByte));
+            else if (type == typeof(short)) method = Method(nameof(PacketReader.ReadShort));
+            else if (type == typeof(ulong)) method = Method(nameof(PacketReader.ReadULong));
+            else if (type == typeof(float)) method = Method(nameof(PacketReader.ReadFloat));
+            else if (type == typeof(ushort)) method = Method(nameof(PacketReader.ReadUShort));
+            else if (type == typeof(double)) method = Method(nameof(PacketReader.ReadDouble));
+            else if (type == typeof(string)) method = Method(nameof(PacketReader.ReadString));
+            else if (type == typeof(float4)) method = Method(nameof(PacketReader.ReadFloat4));
+            else if (type == typeof(Vector3)) method = Method(nameof(PacketReader.ReadVector3));
+            else if (type == typeof(Quaternion)) method = Method(nameof(PacketReader.ReadQuaternion));
+            else if (type.IsEnum) method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
+            else if (typeof(IPacket).IsAssignableFrom(type)) method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
+
+            if (method == null)
+                throw new NotSupportedException($"Type {type.Name} is not supported in automatic Tuple deserialization.");
+
+            TypeReadCache[type] = method;
+            return Expression.Call(readerParam, method);
+        }
+
+        private static MethodInfo Method(string name) =>
+            typeof(PacketReader).GetMethod(name, BindingFlags.Instance | BindingFlags.Public)
+            ?? throw new MissingMethodException($"PacketReader missing method: {name}");
     }
 }

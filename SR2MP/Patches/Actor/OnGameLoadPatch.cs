@@ -1,6 +1,5 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2E.Utils;
 using SR2MP.Components.Actor;
 
 namespace SR2MP.Patches.Actor;
@@ -15,19 +14,18 @@ public static class OnGameLoadPatch
             foreach (var actor in SceneContext.Instance.GameModel.identifiables)
             {
                 if (actor.Value.TryCast<ActorModel>() == null) continue;
-                
+
                 var transform = actor.value.Transform;
 
-                if (transform)
-                {
-                    var networkComponent = transform.GetComponent<NetworkActor>();
-                     
-                    if (networkComponent) continue;
-                    
-                    transform.gameObject.AddComponent<NetworkActor>().LocallyOwned = true;
-                    
-                    actorManager.Actors.Add(transform.GetComponent<Identifiable>().GetActorId().Value, actor.value);
-                }
+                if (!transform)
+                    continue;
+                var networkComponent = transform.GetComponent<NetworkActor>();
+
+                if (networkComponent) continue;
+
+                transform.gameObject.AddComponent<NetworkActor>().LocallyOwned = true;
+
+                actorManager.Actors.Add(transform.GetComponent<Identifiable>().GetActorId().Value, actor.value);
             }
         };
     }

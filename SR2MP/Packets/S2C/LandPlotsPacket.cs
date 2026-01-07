@@ -1,71 +1,42 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.S2C
+namespace SR2MP.Packets.S2C;
+
+public sealed class LandPlotsPacket : IPacket
 {
-    public struct LandPlotsPacket : IPacket
+    public sealed class Plot : IPacket
     {
-        public struct Plot
+        public string ID { get; set; }
+        public LandPlot.Id Type { get; set; }
+        public CppCollections.HashSet<LandPlot.Upgrade> Upgrades { get; set; }
+
+        public void Serialise(PacketWriter writer)
         {
-            public string ID { get; set; }
-            public LandPlot.Id Type { get; set; }
-
-            internal CppCollections.List<LandPlot.Upgrade> UpgradesList { get; set; }
-            private CppCollections.HashSet<LandPlot.Upgrade> UpgradesSet { get; set; }
-            public CppCollections.HashSet<LandPlot.Upgrade> Upgrades => UpgradesSet;
-
-            public readonly void Serialize(PacketWriter writer)
-            {
-                writer.WriteString(ID);
-                writer.WriteEnum(Type);
-
-                writer.WriteInt(UpgradesList.Count);
-                foreach (var upgrade in UpgradesList)
-                    writer.WriteByte((byte)upgrade);
-            }
-
-            public void Deserialize(PacketReader reader)
-            {
-                ID = reader.ReadString();
-                Type = reader.ReadEnum<LandPlot.Id>();
-
-                UpgradesList = new CppCollections.List<LandPlot.Upgrade>();
-                UpgradesSet  = new CppCollections.HashSet<LandPlot.Upgrade>();
-
-                int count = reader.ReadInt();
-                for (int i = 0; i < count; i++)
-                {
-                    var upgrade = (LandPlot.Upgrade)reader.ReadByte();
-                    UpgradesList.Add(upgrade);
-                    UpgradesSet.Add(upgrade);
-                }
-            }
-        }
-
-        public byte Type { get; set; }
-        public List<Plot> Plots { get; set; }
-
-        public readonly void Serialise(PacketWriter writer)
-        {
-            writer.WriteByte(Type);
-            writer.WriteInt(Plots.Count);
-
-            foreach (var plot in Plots)
-                plot.Serialize(writer);
+            writer.WriteString(ID);
+            writer.WriteEnum(Type);
+            writer.WriteCppSet(Upgrades, PacketWriterDels.Enum<LandPlot.Upgrade>.Func);
         }
 
         public void Deserialise(PacketReader reader)
         {
-            Type = reader.ReadByte();
-
-            int plotCount = reader.ReadInt();
-            Plots = new List<Plot>(plotCount);
-
-            for (int i = 0; i < plotCount; i++)
-            {
-                var plot = new Plot();
-                plot.Deserialize(reader);
-                Plots.Add(plot);
-            }
+            ID = reader.ReadString();
+            Type = reader.ReadEnum<LandPlot.Id>();
+            Upgrades = reader.ReadCppSet(PacketReaderDels.Enum<LandPlot.Upgrade>.Func);
         }
+    }
+
+    public byte Type { get; set; }
+    public List<Plot> Plots { get; set; }
+
+    public void Serialise(PacketWriter writer)
+    {
+        writer.WriteByte(Type);
+        writer.WriteList(Plots, PacketWriterDels.Packet<Plot>.Func);
+    }
+
+    public void Deserialise(PacketReader reader)
+    {
+        Type = reader.ReadByte();
+        Plots = reader.ReadList(PacketReaderDels.Packet<Plot>.Func);
     }
 }

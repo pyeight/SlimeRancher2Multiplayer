@@ -23,8 +23,8 @@ public sealed class PacketManager
         var assembly = Assembly.GetExecutingAssembly();
         var handlerTypes = assembly.GetTypes()
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                           && typeof(IPacketHandler).IsAssignableFrom(type)
-                           && !type.IsAbstract);
+                            && typeof(IPacketHandler).IsAssignableFrom(type)
+                            && !type.IsAbstract);
 
         foreach (var type in handlerTypes)
         {
@@ -33,28 +33,26 @@ public sealed class PacketManager
 
             try
             {
-                var handler = Activator.CreateInstance(type, networkManager, clientManager) as IPacketHandler;
-
-                if (handler != null)
+                if (Activator.CreateInstance(type, networkManager, clientManager) is IPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
-                    SrLogger.LogMessage($"Registered handler: {type.Name} for packet type {attribute.PacketType}", SrLogger.LogTarget.Both);
+                    SrLogger.LogMessage($"Registered handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
                 }
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Failed to register handler {type.Name}: {ex}", SrLogger.LogTarget.Both);
+                SrLogger.LogError($"Failed to register handler {type.Name}: {ex}", SrLogTarget.Both);
             }
         }
 
-        SrLogger.LogMessage($"Total handlers registered: {handlers.Count}", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage($"Total handlers registered: {handlers.Count}", SrLogTarget.Both);
     }
 
-    public void HandlePacket(byte[] data, IPEndPoint clientEP)
+    public void HandlePacket(byte[] data, IPEndPoint clientEp)
     {
         if (data.Length < 1)
         {
-            SrLogger.LogWarning("Received empty packet", SrLogger.LogTarget.Both);
+            SrLogger.LogWarning("Received empty packet", SrLogTarget.Both);
             return;
         }
 
@@ -71,11 +69,11 @@ public sealed class PacketManager
         {
             try
             {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEP));
+                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEp));
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Error handling packet type {packetType}: {ex}", SrLogger.LogTarget.Both);
+                SrLogger.LogError($"Error handling packet type {packetType}: {ex}", SrLogTarget.Both);
             }
         }
         else

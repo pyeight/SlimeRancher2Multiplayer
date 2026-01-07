@@ -8,7 +8,7 @@ public sealed class NetworkPlayerSound : MonoBehaviour
 {
     public PlayerFXType fxType;
 
-    private bool cachedIsPlaying = false;
+    private bool cachedIsPlaying;
     private SECTR_AudioCue cachedAudioCue;
     private SECTR_PointSource audioSource;
 
@@ -41,7 +41,7 @@ public sealed class NetworkPlayerSound : MonoBehaviour
             return;
         }
 
-        var packet = new PlayerFXPacket()
+        var packet = new PlayerFXPacket
         {
             Type = (byte)PacketType.PlayerFX,
             FX = fxType,

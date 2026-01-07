@@ -1,12 +1,11 @@
-using System.Collections;
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
-using Il2CppMonomiPark.SlimeRancher.Pedia;
-using MelonLoader;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
-using SR2MP.Server.Models;
+using Il2CppMonomiPark.SlimeRancher.Pedia;
+using SR2MP.Shared.Managers;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server.Handlers;
 
@@ -16,17 +15,15 @@ public sealed class ConnectHandler : BasePacketHandler
     public ConnectHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
-        reader.Skip(1);
+        var packet = reader.ReadPacket<ConnectPacket>();
 
-        var playerId = reader.ReadString();
+        SrLogger.LogMessage($"Connect request received with PlayerId: {packet.PlayerId}",
+            $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
 
-        SrLogger.LogMessage($"Connect request received with PlayerId: {playerId}",
-            $"Connect request from {senderEndPoint} with PlayerId: {playerId}");
-
-        clientManager.AddClient(senderEndPoint, playerId);
+        clientManager.AddClient(clientEp, packet.PlayerId);
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0]
             .Cast<ICurrency>());
@@ -37,31 +34,26 @@ public sealed class ConnectHandler : BasePacketHandler
         var ackPacket = new ConnectAckPacket
         {
             Type = (byte)PacketType.ConnectAck,
-            PlayerId = playerId,
-            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => input.PlayerId),
+            PlayerId = packet.PlayerId,
+            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => (input.PlayerId, input.Username)),
             Money = money,
-            RainbowMoney = rainbowMoney
+            RainbowMoney = rainbowMoney,
+            AllowCheats = Main.AllowCheats
         };
 
-        Main.Server.SendToClient(ackPacket, senderEndPoint);
+        Main.Server.SendToClient(ackPacket, clientEp);
 
-        var joinPacket = new PlayerJoinPacket
-        {
-            Type = (byte)PacketType.PlayerJoin, PlayerId = playerId, PlayerName = Main.Username
-        };
+        SendPlotsPacket(clientEp);
+        SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
+        SendUpgradesPacket(clientEp);
+        SendPediaPacket(clientEp);
+        SendPricesPacket(clientEp);
 
-        Main.Server.SendToAllExcept(joinPacket, senderEndPoint);
-
-        SendPlotsPacket(senderEndPoint);
-        SendActorsPacket(senderEndPoint);
-        SendUpgradesPacket(senderEndPoint);
-        SendPediaPacket(senderEndPoint);
-
-        SrLogger.LogMessage($"Player {playerId} successfully connected",
-            $"Player {playerId} successfully connected from {senderEndPoint}");
+        SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
+            $"Player {packet.PlayerId} successfully connected from {clientEp}");
     }
 
-    void SendUpgradesPacket(IPEndPoint client)
+    private static void SendUpgradesPacket(IPEndPoint client)
     {
         var upgrades = new Dictionary<byte, sbyte>();
 
@@ -70,38 +62,33 @@ public sealed class ConnectHandler : BasePacketHandler
             upgrades.Add((byte)upgrade._uniqueId, (sbyte)SceneContext.Instance.PlayerState._model.upgradeModel.GetUpgradeLevel(upgrade));
         }
 
-        var upgradesPacket = new UpgradesPacket()
+        var upgradesPacket = new UpgradesPacket
         {
             Type = (byte)PacketType.InitialPlayerUpgrades,
             Upgrades = upgrades,
         };
         Main.Server.SendToClient(upgradesPacket, client);
-    } 
-    void SendPediaPacket(IPEndPoint client)
+    }
+
+    private static void SendPediaPacket(IPEndPoint client)
     {
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
-        
+
         var unlockedArray = Il2CppSystem.Linq.Enumerable
             .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
-        SrLogger.LogMessage($"Found {unlockedArray.Length} pedia entries");
-        
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
 
-        SrLogger.LogMessage($"Sent {unlockedIDs.Count} pedia entries");
-
-        var pediasPacket = new PediasPacket()
+        var pediasPacket = new PediasPacket
         {
             Type = (byte)PacketType.InitialPediaEntries,
             Entries = unlockedIDs
         };
 
         Main.Server.SendToClient(pediasPacket, client);
-
-        SrLogger.LogMessage("InitialPediaEntries packet sent");
     }
 
-    void SendActorsPacket(IPEndPoint client)
+    private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
         var actorsList = new List<ActorsPacket.Actor>();
 
@@ -110,53 +97,59 @@ public sealed class ConnectHandler : BasePacketHandler
             var actor = actorKeyValuePair.Value;
             var model = actor.TryCast<ActorModel>();
             var rotation = model?.lastRotation ?? Quaternion.identity;
-            actorsList.Add(new ActorsPacket.Actor()
+            actorsList.Add(new ActorsPacket.Actor
             {
                 ActorId = actor.actorId.Value,
-                ActorType = actorManager.GetPersistentID(actor.ident),
+                ActorType = NetworkActorManager.GetPersistentID(actor.ident),
                 Position = actor.lastPosition,
                 Rotation = rotation,
             });
         }
 
-        var actorsPacket = new ActorsPacket()
+        var actorsPacket = new ActorsPacket
         {
             Type = (byte)PacketType.InitialActors,
+            StartingActorID = (uint)(playerIndex * 10000),
             Actors = actorsList
         };
 
         Main.Server.SendToClient(actorsPacket, client);
     }
 
-    void SendPlotsPacket(IPEndPoint client)
+    private static void SendPlotsPacket(IPEndPoint client)
     {
         var plotsList = new List<LandPlotsPacket.Plot>();
-    
+
         foreach (var plotKeyValuePair in SceneContext.Instance.GameModel.landPlots)
         {
             var plot = plotKeyValuePair.Value;
             var id = plotKeyValuePair.Key;
-            
-            var upgradesList = new CppCollections.List<LandPlot.Upgrade>();
-            foreach (var upgrade in plot.upgrades)
-            {
-                upgradesList.Add(upgrade);
-            }
 
-            plotsList.Add(new LandPlotsPacket.Plot()
+            plotsList.Add(new LandPlotsPacket.Plot
             {
                 ID = id,
                 Type = plot.typeId,
-                UpgradesList = upgradesList,
+                Upgrades = plot.upgrades,
             });
         }
 
-        var plotsPacket = new LandPlotsPacket()
+        var plotsPacket = new LandPlotsPacket
         {
             Type = (byte)PacketType.InitialPlots,
             Plots = plotsList
         };
 
         Main.Server.SendToClient(plotsPacket, client);
+    }
+
+    private static void SendPricesPacket(IPEndPoint client)
+    {
+        var pricesPacket = new MarketPricePacket()
+        {
+            Type = (byte)PacketType.MarketPriceChange,
+            Prices = MarketPricesArray!
+        };
+
+        Main.Server.SendToClient(pricesPacket, client);
     }
 }

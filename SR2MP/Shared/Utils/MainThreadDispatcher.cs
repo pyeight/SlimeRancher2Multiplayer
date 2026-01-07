@@ -1,4 +1,3 @@
-using UnityEngine;
 using System.Collections.Concurrent;
 using MelonLoader;
 
@@ -9,7 +8,8 @@ public sealed class MainThreadDispatcher : MonoBehaviour
 {
     public static MainThreadDispatcher Instance { get; private set; }
 
-    private static readonly ConcurrentQueue<Action> actionQueue = new();
+    // ReSharper disable once InconsistentNaming
+    private static readonly ConcurrentQueue<Action?> actionQueue = new();
 
     public static void Initialize()
     {
@@ -19,7 +19,7 @@ public sealed class MainThreadDispatcher : MonoBehaviour
         Instance = obj.AddComponent<MainThreadDispatcher>();
         DontDestroyOnLoad(obj);
 
-        SrLogger.LogMessage("Main thread dispatcher initialized", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage("Main thread dispatcher initialized", SrLogTarget.Both);
     }
 
 #pragma warning disable CA1822 // Mark members as static
@@ -34,12 +34,12 @@ public sealed class MainThreadDispatcher : MonoBehaviour
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Error executing main thread action: {ex}", SrLogger.LogTarget.Both);
+                SrLogger.LogError($"Error executing main thread action: {ex}", SrLogTarget.Both);
             }
         }
     }
 
-    public static void Enqueue(Action action)
+    public static void Enqueue(Action? action)
     {
         actionQueue.Enqueue(action);
     }

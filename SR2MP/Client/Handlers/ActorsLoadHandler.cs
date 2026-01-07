@@ -33,6 +33,8 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
             SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor.value);
         }
 
+        SceneContext.Instance.GameModel._actorIdProvider._nextActorId = packet.StartingActorID;
+        
         foreach (var actor in packet.Actors)
         {
             var type = actorManager.ActorTypes[actor.ActorType];
@@ -46,32 +48,33 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
                     actor.Rotation)
                 .TryCast<ActorModel>();
 
-            if (model != null)
-            {
-                handlingPacket = true;
-                try
-                {
-                    var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
-                    if (actorObject)
-                    {
-                        var networkComponent = actorObject.AddComponent<NetworkActor>();
-                        networkComponent.previousPosition = actor.Position;
-                        networkComponent.nextPosition = actor.Position;
-                        networkComponent.previousRotation = actor.Rotation;
-                        networkComponent.nextRotation = actor.Rotation;
-                        actorObject.transform.position = actor.Position;
-                        actorManager.Actors.Add(actor.ActorId, model);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SrLogger.LogError(
-                        $"Error while loading actor with ID {actor.ActorId}\nActor Information: Type={type.name}\nError: {ex}",
-                        SrLogger.LogTarget.Both);
-                }
+            if (model == null)
+                continue;
 
-                handlingPacket = false;
+            handlingPacket = true;
+            try
+            {
+                var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
+
+                if (!actorObject)
+                    continue;
+
+                var networkComponent = actorObject.AddComponent<NetworkActor>();
+                networkComponent.previousPosition = actor.Position;
+                networkComponent.nextPosition = actor.Position;
+                networkComponent.previousRotation = actor.Rotation;
+                networkComponent.nextRotation = actor.Rotation;
+                actorObject.transform.position = actor.Position;
+                actorManager.Actors.Add(actor.ActorId, model);
             }
+            catch (Exception ex)
+            {
+                SrLogger.LogError(
+                    $"Error while loading actor with ID {actor.ActorId}\nActor Information: Type={type.name}\nError: {ex}",
+                    SrLogTarget.Both);
+            }
+
+            handlingPacket = false;
         }
     }
 }

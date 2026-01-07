@@ -4,7 +4,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.WorldFX)]
-public class WorldFXHandler : BaseClientPacketHandler
+public sealed class WorldFXHandler : BaseClientPacketHandler
 {
     public WorldFXHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
@@ -16,7 +16,7 @@ public class WorldFXHandler : BaseClientPacketHandler
 
         if (!IsWorldSoundDictionary[packet.FX])
         {
-            var fxPrefab = fxManager.worldFXMap[packet.FX];
+            var fxPrefab = fxManager.WorldFXMap[packet.FX];
 
             handlingPacket = true;
             FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
@@ -24,9 +24,9 @@ public class WorldFXHandler : BaseClientPacketHandler
         }
         else
         {
-            var cue = fxManager.worldAudioCueMap[packet.FX];
+            var cue = fxManager.WorldAudioCueMap[packet.FX];
 
-            fxManager.PlayTransientAudio(cue, packet.Position, WorldSoundVolumeDictionary[packet.FX]);
+            RemoteFXManager.PlayTransientAudio(cue, packet.Position, WorldSoundVolumeDictionary[packet.FX]);
         }
     }
 }

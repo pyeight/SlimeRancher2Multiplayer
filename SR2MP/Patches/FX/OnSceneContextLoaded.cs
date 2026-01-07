@@ -16,7 +16,7 @@ public static class OnSceneContextLoaded
 
         fxManager.Initialize();
     }
-    public static void Postfix(SceneContext __instance)
+    public static void Postfix()
     {
         MelonCoroutines.Start(WaitForFinishLoading());
     }

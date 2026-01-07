@@ -1,17 +1,13 @@
-using System.Collections;
-using Il2CppFebucci.UI.Core;
-using Il2CppInterop.Runtime;
-using Il2CppInterop.Runtime.Injection;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
-using Il2CppSystem.Reflection;
+using System.Collections;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 using Unity.Mathematics;
-using Action = Il2CppSystem.Action;
 using Delegate = Il2CppSystem.Delegate;
+using Type = Il2CppSystem.Type;
 
 namespace SR2MP.Components.Actor;
 
@@ -41,16 +37,9 @@ public sealed class NetworkActor : MonoBehaviour
     private float interpolationStart;
     private float interpolationEnd;
 
-    private float4 EmotionsFloat
-    {
-        get
-        {
-            var value = emotions
-                ? emotions._model.Emotions
-                : new float4(0, 0, 0, 0);
-            return value;
-        }
-    }
+    private float4 EmotionsFloat => emotions
+                                    ? emotions._model.Emotions
+                                    : new float4(0, 0, 0, 0);
 
     void Start()
     {
@@ -62,7 +51,7 @@ public sealed class NetworkActor : MonoBehaviour
         regionMember = GetComponent<RegionMember>();
 
         regionMember.add_BeforeHibernationChanged(
-            Delegate.CreateDelegate(Il2CppSystem.Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
+            Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
                     .GetEvent("BeforeHibernationChanged").EventHandlerType,
                 this.Cast<Il2CppSystem.Object>(),
                 nameof(HibernationChanged),
@@ -131,13 +120,13 @@ public sealed class NetworkActor : MonoBehaviour
             nextPosition = transform.position;
             nextRotation = transform.rotation;
 
-            var packet = new ActorUpdatePacket()
+            var packet = new ActorUpdatePacket
             {
                 Type = (byte)PacketType.ActorUpdate,
                 ActorId = ActorId,
                 Position = transform.position,
                 Rotation = transform.rotation,
-                Velocity = rigidbody?.velocity ?? Vector3.zero,
+                Velocity = rigidbody ? rigidbody.velocity : Vector3.zero,
                 Emotions = EmotionsFloat
             };
 
@@ -153,12 +142,14 @@ public sealed class NetworkActor : MonoBehaviour
         }
     }
 
-    private void SetRigidbodyState(bool enabled)
+    private void SetRigidbodyState(bool enableConstraints)
     {
-        if (rigidbody)
-            rigidbody.constraints =
-                enabled
-                    ? RigidbodyConstraints.None
-                    : RigidbodyConstraints.FreezeAll;
+        if (!rigidbody)
+            return;
+
+        rigidbody.constraints =
+            enableConstraints
+                ? RigidbodyConstraints.None
+                : RigidbodyConstraints.FreezeAll;
     }
 }

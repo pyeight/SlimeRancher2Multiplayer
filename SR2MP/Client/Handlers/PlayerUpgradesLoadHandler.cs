@@ -1,11 +1,10 @@
-using Mono.Cecil;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.InitialPlayerUpgrades)]
-public class PlayerUpgradesLoadHandler : BaseClientPacketHandler
+public sealed class PlayerUpgradesLoadHandler : BaseClientPacketHandler
 {
     public PlayerUpgradesLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }

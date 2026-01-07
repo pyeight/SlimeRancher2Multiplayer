@@ -24,20 +24,24 @@ public static class OnPlayerLoadPatch
         }
         else
         {
-            Main.Client.OnConnected += (id) =>
+            Main.Client.OnConnected += id =>
             {
                 if (!__instance)
                     return;
-                
+
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
                 networkPlayer.ID = id;
                 networkPlayer.IsLocal = true;
+                
+                playerManager.AddPlayer(id).Username = Main.Username;
             };
 
             Main.Server.OnServerStarted += () =>
             {
                 if (!__instance)
                     return;
+                
+                playerManager.AddPlayer("HOST").Username = Main.Username;
                 
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
                 networkPlayer.ID = "HOST";

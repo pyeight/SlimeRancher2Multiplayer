@@ -1,6 +1,7 @@
 using System.Net;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Handlers;
 
@@ -10,14 +11,14 @@ public sealed class PlayerFXHandler : BasePacketHandler
     public PlayerFXHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerFXPacket>();
 
         if (!IsPlayerSoundDictionary[packet.FX])
         {
-            var fxPrefab = fxManager.playerFXMap[packet.FX];
+            var fxPrefab = fxManager.PlayerFXMap[packet.FX];
 
             handlingPacket = true;
             FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
@@ -25,10 +26,10 @@ public sealed class PlayerFXHandler : BasePacketHandler
         }
         else
         {
-            var cue = fxManager.playerAudioCueMap[packet.FX];
+            var cue = fxManager.PlayerAudioCueMap[packet.FX];
             if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
             {
-                fxManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position, PlayerSoundVolumeDictionary[packet.FX]);
+                RemoteFXManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position, PlayerSoundVolumeDictionary[packet.FX]);
             }
             else
             {
@@ -42,6 +43,6 @@ public sealed class PlayerFXHandler : BasePacketHandler
             }
         }
 
-        Main.Server.SendToAllExcept(packet, senderEndPoint);
+        Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

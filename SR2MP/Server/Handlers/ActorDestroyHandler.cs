@@ -1,6 +1,6 @@
 using System.Net;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
 
 namespace SR2MP.Server.Handlers;
 
@@ -10,15 +10,13 @@ public sealed class ActorDestroyHandler : BasePacketHandler
     public ActorDestroyHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint senderEndPoint)
+    public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorDestroyPacket>();
 
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
+        if (!actorManager.Actors.Remove(packet.ActorId.Value, out var actor))
             return;
-
-        actorManager.Actors.Remove(packet.ActorId.Value);
 
         SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor);
 
@@ -26,6 +24,6 @@ public sealed class ActorDestroyHandler : BasePacketHandler
         Destroyer.DestroyActor(actor.GetGameObject(), "SR2MP.ActorDestroyHandler");
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(packet, senderEndPoint);
+        Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

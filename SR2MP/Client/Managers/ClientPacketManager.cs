@@ -22,8 +22,8 @@ public sealed class ClientPacketManager
         var assembly = Assembly.GetExecutingAssembly();
         var handlerTypes = assembly.GetTypes()
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                     && typeof(IClientPacketHandler).IsAssignableFrom(type)
-                     && !type.IsAbstract);
+                        && typeof(IClientPacketHandler).IsAssignableFrom(type)
+                        && !type.IsAbstract);
 
         foreach (var type in handlerTypes)
         {
@@ -32,28 +32,26 @@ public sealed class ClientPacketManager
 
             try
             {
-                var handler = Activator.CreateInstance(type, client, playerManager) as IClientPacketHandler;
-
-                if (handler != null)
+                if (Activator.CreateInstance(type, client, playerManager) is IClientPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
-                    SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}", SrLogger.LogTarget.Both);
+                    SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
                 }
             }
             catch (Exception ex)
             {
-                SrLogger.LogWarning($"Failed to register client handler {type.Name}: {ex}", SrLogger.LogTarget.Both);
+                SrLogger.LogWarning($"Failed to register client handler {type.Name}: {ex}", SrLogTarget.Both);
             }
         }
 
-        SrLogger.LogMessage($"Total client packet handlers registered: {handlers.Count}", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage($"Total client packet handlers registered: {handlers.Count}", SrLogTarget.Both);
     }
 
     public void HandlePacket(byte[] data)
     {
         if (data.Length < 1)
         {
-            SrLogger.LogMessage("Received empty packet", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Received empty packet", SrLogTarget.Both);
             return;
         }
 
@@ -74,12 +72,12 @@ public sealed class ClientPacketManager
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Error handling packet type {packetType}: {ex}", SrLogger.LogTarget.Both);
+                SrLogger.LogError($"Error handling packet type {packetType}: {ex}", SrLogTarget.Both);
             }
         }
         else
         {
-            SrLogger.LogError($"No client handler found for packet type: {packetType}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"No client handler found for packet type: {packetType}", SrLogTarget.Both);
         }
     }
 }

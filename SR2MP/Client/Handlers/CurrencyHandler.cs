@@ -19,9 +19,9 @@ public sealed class CurrencyHandler : BaseClientPacketHandler
 
         handlingPacket = true;
         if (packet.Adjust < 0)
-            SceneContext.Instance.PlayerState.SpendCurrency(currency!.Cast<ICurrency>(), -packet.Adjust, null);
+            SceneContext.Instance.PlayerState.SpendCurrency(currency!.Cast<ICurrency>(), -packet.Adjust);
         else
-            SceneContext.Instance.PlayerState.AddCurrency(currency!.Cast<ICurrency>(), packet.Adjust, packet.ShowUINotification, null);
+            SceneContext.Instance.PlayerState.AddCurrency(currency!.Cast<ICurrency>(), packet.Adjust, packet.ShowUINotification);
         handlingPacket = false;
     }
 }

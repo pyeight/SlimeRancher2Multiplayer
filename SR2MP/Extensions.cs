@@ -8,13 +8,22 @@ public static class Extensions
     public static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
     {
         var gameObject = actor.GetGameObject();
-        
-        if (gameObject == null)
+
+        if (gameObject)
+            return gameObject.TryGetComponent(out component);
+
+        component = null!;
+        return false;
+    }
+
+    public static string ToStringYesOrNo(this bool value)
+    {
+        switch (value)
         {
-            component = null!;
-            return false;
+            case true:
+                return "Yes";
+            case false:
+                return "No";
         }
-        
-        return gameObject.TryGetComponent<NetworkActor>(out component);
     }
 }

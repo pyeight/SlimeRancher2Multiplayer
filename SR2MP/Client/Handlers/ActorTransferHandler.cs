@@ -1,4 +1,3 @@
-using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;

@@ -1,7 +1,7 @@
 using System.Net;
 using SR2MP.Server.Managers;
-using SR2MP.Server.Models;
 using SR2MP.Packets.Utils;
+// ReSharper disable InconsistentNaming
 
 namespace SR2MP.Server.Handlers;
 
@@ -16,5 +16,5 @@ public abstract class BasePacketHandler : IPacketHandler
         this.clientManager = clientManager;
     }
 
-    public abstract void Handle(byte[] data, IPEndPoint senderEndPoint);
+    public abstract void Handle(byte[] data, IPEndPoint clientEp);
 }

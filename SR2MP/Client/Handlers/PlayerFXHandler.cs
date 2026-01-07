@@ -14,20 +14,23 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerFXPacket>();
 
-        if (!IsPlayerSoundDictionary[packet.FX])
+        handlingPacket = true;
+        try
         {
-            var fxPrefab = fxManager.playerFXMap[packet.FX];
+            if (!IsPlayerSoundDictionary[packet.FX])
+            {
+                var fxPrefab = fxManager.PlayerFXMap[packet.FX];
 
-            handlingPacket = true;
-            FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
-            handlingPacket = false;
-        }
-        else
-        {
-            var cue = fxManager.playerAudioCueMap[packet.FX];
+                FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
+                return;
+            }
+
+            var cue = fxManager.PlayerAudioCueMap[packet.FX];
+
             if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
             {
-                fxManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position, PlayerSoundVolumeDictionary[packet.FX]);
+                RemoteFXManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position,
+                    PlayerSoundVolumeDictionary[packet.FX]);
             }
             else
             {
@@ -40,5 +43,10 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler
                 playerAudio.Play();
             }
         }
+        catch
+        {
+            // SrLogger.LogWarning($"This \"error\" is NOT serious, DO NOT REPORT IT!\n{ex}");
+        }
+        handlingPacket = false;
     }
 }

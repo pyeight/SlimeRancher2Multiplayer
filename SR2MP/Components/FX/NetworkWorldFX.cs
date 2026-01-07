@@ -4,7 +4,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Components.FX;
 
 [RegisterTypeInIl2Cpp(false)]
-public class NetworkWorldFX : MonoBehaviour
+public sealed class NetworkWorldFX : MonoBehaviour
 {
     public WorldFXType fxType;
 
@@ -16,14 +16,14 @@ public class NetworkWorldFX : MonoBehaviour
     void SendPacket()
     {
         if (handlingPacket) return;
-        
-        var packet = new WorldFXPacket()
+
+        var packet = new WorldFXPacket
         {
             Type = (byte)PacketType.WorldFX,
             FX = fxType,
             Position = transform.position
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

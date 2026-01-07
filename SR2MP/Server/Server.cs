@@ -2,7 +2,6 @@ using System.Net;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
-using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server;
 
@@ -11,9 +10,11 @@ public sealed class Server
     private readonly NetworkManager networkManager;
     private readonly ClientManager clientManager;
     private readonly PacketManager packetManager;
+
     private Timer? timeoutTimer;
-    public int GetClientCount() => clientManager.ClientCount;
-    public bool IsRunning() => networkManager.IsRunning;
+
+    // Just here so that the port is viewable.
+    public int Port { get; private set; }
 
     public event Action? OnServerStarted;
 
@@ -27,45 +28,50 @@ public sealed class Server
         clientManager.OnClientRemoved += OnClientRemoved;
     }
 
+    public int GetClientCount() => clientManager.ClientCount;
+
+    public bool IsRunning() => networkManager.IsRunning;
+
     public void Start(int port, bool enableIPv6)
     {
         if (networkManager.IsRunning)
         {
-            SrLogger.LogMessage("Server is already running!", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
             return;
         }
 
         try
         {
             packetManager.RegisterHandlers();
-            Application.quitting += new System.Action(Close);
+            Application.quitting += new Action(Close);
             networkManager.Start(port, enableIPv6);
+            this.Port = port;
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to start server: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Failed to start server: {ex}", SrLogTarget.Both);
         }
     }
 
-    private void OnDataReceived(byte[] data, System.Net.IPEndPoint clientEP)
+    private void OnDataReceived(byte[] data, IPEndPoint clientEp)
     {
         SrLogger.LogPacketSize($"Received {data.Length} bytes from Client!",
-            $"Received {data.Length} bytes from {clientEP}.");
+            $"Received {data.Length} bytes from {clientEp}.");
 
         try
         {
-            packetManager.HandlePacket(data, clientEP);
+            packetManager.HandlePacket(data, clientEp);
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error handling packet from {clientEP}: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}", SrLogTarget.Both);
         }
     }
 
-    private void OnClientRemoved(Models.ClientInfo client)
+    private void OnClientRemoved(ClientInfo client)
     {
         var leavePacket = new PlayerLeavePacket
         {
@@ -82,20 +88,20 @@ public sealed class Server
             networkManager.Send(data, otherClient.EndPoint);
         }
 
-        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
     }
 
-    private void CheckTimeouts(object? state)
-    {
-        try
-        {
-            clientManager.RemoveTimedOutClients();
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogError($"Error checking timeouts: {ex}");
-        }
-    }
+    // private void CheckTimeouts(object? state)
+    // {
+    //     try
+    //     {
+    //         clientManager.RemoveTimedOutClients();
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         SrLogger.LogError($"Error checking timeouts: {ex}");
+    //     }
+    // }
 
     public void Close()
     {
@@ -131,14 +137,13 @@ public sealed class Server
             clientManager.Clear();
             networkManager.Stop();
 
-            SrLogger.LogMessage("Server closed", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Server closed", SrLogTarget.Both);
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error during server shutdown: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error during server shutdown: {ex}", SrLogTarget.Both);
         }
     }
-
 
     public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
     {

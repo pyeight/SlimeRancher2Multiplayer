@@ -1,8 +1,5 @@
-
 using Il2CppMonomiPark.SlimeRancher.Economy;
-using SR2MP.Client.Managers;
 using SR2MP.Shared.Managers;
-using SR2MP.Components;
 using SR2MP.Components.Player;
 using SR2MP.Packets.Utils;
 
@@ -32,25 +29,27 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
         Client.NotifyConnected();
 
         SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})",
-            SrLogger.LogTarget.Both);
+            SrLogTarget.Both);
 
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
 
+        CheatsEnabled = packet.AllowCheats;
+        
         foreach (var player in packet.OtherPlayers)
         {
-            SpawnPlayer(player);
+            SpawnPlayer(player.ID, player.Username);
         }
     }
 
-    private void SpawnPlayer(string id)
+    private static void SpawnPlayer(string id, string name)
     {
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);
         playerObject.ID = id;
         playerObject.gameObject.name = id;
         playerObjects.Add(id, playerObject.gameObject);
-        playerManager.AddPlayer(id);
+        playerManager.AddPlayer(id).Username = name;
         Object.DontDestroyOnLoad(playerObject);
     }
 }

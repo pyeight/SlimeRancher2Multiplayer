@@ -12,7 +12,7 @@ public sealed class PediaUnlockHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<PediaUnlockPacket>();;
+        var packet = reader.ReadPacket<PediaUnlockPacket>();
 
         handlingPacket = true;
         SceneContext.Instance.PediaDirector.Unlock(

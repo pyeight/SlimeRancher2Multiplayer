@@ -15,20 +15,26 @@ public static class PlayerIdGenerator
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
 
             string hash = BitConverter.ToString(hashBytes)
-                .Replace("-", "")
-                .Substring(0, 9)
+                .Replace("-", string.Empty)[..9]
                 .ToUpper();
 
             string playerId = $"PLAYER_{hash}";
 
-            SrLogger.LogMessage($"Generated persistent player ID: {playerId}", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage($"Generated persistent player ID: {playerId}", SrLogTarget.Both);
             return playerId;
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to generate persistent player ID: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Failed to generate persistent player ID: {ex}", SrLogTarget.Both);
             return null!;
         }
+    }
+    public static ushort GetPlayerIDNumber(string id)
+    {
+        ushort number = 12345;
+        foreach (char c in id.Substring(7))
+            number = (ushort)(((number << 5) + number) + c);
+        return number;
     }
 
     public static bool IsValidPlayerId(string playerId)
@@ -39,9 +45,6 @@ public static class PlayerIdGenerator
         if (!playerId.StartsWith("PLAYER_"))
             return false;
 
-        if (playerId.Length != 16)
-            return false;
-
-        return true;
+        return playerId.Length == 16;
     }
 }

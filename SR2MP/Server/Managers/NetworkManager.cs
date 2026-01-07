@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Shared.Managers;
+using Thread = Il2CppSystem.Threading.Thread;
 
 namespace SR2MP.Server.Managers;
 
@@ -8,7 +9,7 @@ public sealed class NetworkManager
 {
     private UdpClient? udpClient;
     private volatile bool isRunning;
-    private Il2CppSystem.Threading.Thread? receiveThread;
+    private Thread? receiveThread;
 
     public event Action<byte[], IPEndPoint>? OnDataReceived;
 
@@ -19,7 +20,7 @@ public sealed class NetworkManager
     {
         if (isRunning)
         {
-            SrLogger.LogMessage("Server is already running!", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
             return;
         }
 
@@ -31,26 +32,26 @@ public sealed class NetworkManager
                 udpClient = new UdpClient(AddressFamily.InterNetworkV6);
                 udpClient.Client.DualMode = true;
                 udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}", SrLogger.LogTarget.Both);
+                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}", SrLogTarget.Both);
             }
             else
             {
                 // IPv4 only
                 udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-                SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogger.LogTarget.Both);
+                SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogTarget.Both);
             }
 
             udpClient.Client.ReceiveTimeout = 0;
 
             isRunning = true;
 
-            receiveThread = new Il2CppSystem.Threading.Thread(new Action(ReceiveLoop));
+            receiveThread = new Thread(new Action(ReceiveLoop));
             receiveThread.IsBackground = true;
             receiveThread.Start();
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to start Server: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Failed to start Server: {ex}", SrLogTarget.Both);
             throw;
         }
     }
@@ -59,26 +60,26 @@ public sealed class NetworkManager
     {
         if (udpClient == null)
         {
-            SrLogger.LogError("Server is null in ReceiveLoop!", SrLogger.LogTarget.Both);
+            SrLogger.LogError("Server is null in ReceiveLoop!", SrLogTarget.Both);
             return;
         }
 
-        SrLogger.LogMessage("Server ReceiveLoop started!", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage("Server ReceiveLoop started!", SrLogTarget.Both);
 
-        IPEndPoint remoteEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+        IPEndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         while (isRunning)
         {
             try
             {
-                byte[] data = udpClient.Receive(ref remoteEP);
+                byte[] data = udpClient.Receive(ref remoteEp);
 
-                if (data.Length > 0)
-                {
-                    OnDataReceived?.Invoke(data, remoteEP);
-                    SrLogger.LogPacketSize($"Received {data.Length} bytes",
-                        $"Received {data.Length} bytes from {remoteEP}");
-                }
+                if (data.Length == 0)
+                    continue;
+
+                OnDataReceived?.Invoke(data, remoteEp);
+                SrLogger.LogPacketSize($"Received {data.Length} bytes",
+                    $"Received {data.Length} bytes from {remoteEp}");
             }
             catch (SocketException)
             {
@@ -86,7 +87,7 @@ public sealed class NetworkManager
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogger.LogTarget.Both);
+                SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
             }
         }
     }
@@ -95,7 +96,7 @@ public sealed class NetworkManager
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogWarning("Cannot send data: Server not running!", SrLogger.LogTarget.Both);
+            SrLogger.LogWarning("Cannot send data: Server not running!", SrLogTarget.Both);
             return;
         }
 
@@ -131,16 +132,16 @@ public sealed class NetworkManager
         {
             udpClient?.Close();
 
-            if (receiveThread != null && receiveThread.IsAlive)
+            if (receiveThread is { IsAlive: true })
             {
-                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogger.LogTarget.Both);
+                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
             }
 
-            SrLogger.LogMessage("Server stopped", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Server stopped", SrLogTarget.Both);
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error stopping Server: {ex}", SrLogger.LogTarget.Both);
+            SrLogger.LogError($"Error stopping Server: {ex}", SrLogTarget.Both);
         }
     }
 }

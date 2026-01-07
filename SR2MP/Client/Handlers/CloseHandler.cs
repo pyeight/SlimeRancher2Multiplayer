@@ -1,6 +1,5 @@
-using SR2MP.Client.Managers;
-using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Client.Handlers;
 
@@ -12,7 +11,7 @@ public sealed class CloseHandler : BaseClientPacketHandler
 
     public override void Handle(byte[] data)
     {
-        SrLogger.LogMessage("Server closed, disconnecting!", SrLogger.LogTarget.Both);
+        SrLogger.LogMessage("Server closed, disconnecting!", SrLogTarget.Both);
 
         Client.Disconnect();
     }

@@ -13,25 +13,24 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        reader.Skip(1);
+        var packet = reader.ReadPacket<PlayerJoinPacket>();
 
-        string playerId = reader.ReadString();
 
-        playerManager.AddPlayer(playerId);
-
-        if (playerId.Equals(Client.OwnPlayerId))
+        if (packet.PlayerId.Equals(Client.OwnPlayerId))
         {
-            SrLogger.LogMessage("Player join request accepted!", SrLogger.LogTarget.Both);
+            SrLogger.LogMessage("Player join request accepted!", SrLogTarget.Both);
             return;
         }
 
-        SrLogger.LogMessage($"New Player joined! (PlayerId: {playerId})", SrLogger.LogTarget.Both);
+        playerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName!;
+        
+        SrLogger.LogMessage($"New Player joined! (PlayerId: {packet.PlayerId})", SrLogTarget.Both);
 
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);
-        playerObject.ID = playerId;
-        playerObject.gameObject.name = playerId;
-        playerObjects.Add(playerId, playerObject.gameObject);
+        playerObject.ID = packet.PlayerId;
+        playerObject.gameObject.name = packet.PlayerId;
+        playerObjects.Add(packet.PlayerId, playerObject.gameObject);
         Object.DontDestroyOnLoad(playerObject);
     }
 }
