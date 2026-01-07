@@ -148,6 +148,7 @@ public static class PacketReaderDels
     public static readonly Func<PacketReader, byte> Byte = reader => reader.ReadByte();
     public static readonly Func<PacketReader, sbyte> SByte = reader => reader.ReadSByte();
     public static readonly Func<PacketReader, string> String = reader => reader.ReadString();
+    public static readonly Func<PacketReader, float> Float = reader => reader.ReadFloat();
 
     public static class Packet<T> where T : IPacket, new()
     {

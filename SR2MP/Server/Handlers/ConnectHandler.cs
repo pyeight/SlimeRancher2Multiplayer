@@ -47,6 +47,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
+        SendPricesPacket(clientEp);
 
         SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
             $"Player {packet.PlayerId} successfully connected from {clientEp}");
@@ -139,5 +140,16 @@ public sealed class ConnectHandler : BasePacketHandler
         };
 
         Main.Server.SendToClient(plotsPacket, client);
+    }
+
+    private static void SendPricesPacket(IPEndPoint client)
+    {
+        var pricesPacket = new MarketPricePacket()
+        {
+            Type = (byte)PacketType.MarketPriceChange,
+            Prices = MarketPricesArray!
+        };
+
+        Main.Server.SendToClient(pricesPacket, client);
     }
 }

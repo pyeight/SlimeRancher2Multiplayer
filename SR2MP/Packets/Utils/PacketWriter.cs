@@ -147,6 +147,7 @@ public static class PacketWriterDels
     public static readonly Action<PacketWriter, byte> Byte = (writer, value) => writer.WriteByte(value);
     public static readonly Action<PacketWriter, sbyte> SByte = (writer, value) => writer.WriteSByte(value);
     public static readonly Action<PacketWriter, string> String = (writer, value) => writer.WriteString(value);
+    public static readonly Action<PacketWriter, float> Float = (writer, value) => writer.WriteFloat(value);
 
     public static class Packet<T> where T : IPacket
     {

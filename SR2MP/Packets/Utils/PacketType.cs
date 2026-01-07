@@ -32,4 +32,5 @@ public enum PacketType : byte
     PlayerUpgrade = 33,           // Both Ways                                                                          On Upgrade
     InitialPediaEntries = 34,     // Server -> Client                                                                   Pedia Entries on Load
     PediaUnlock = 35,             // Both Ways                                                                          On World FX Play
+    MarketPriceChange = 36,       // Both Ways                                                                          On Plort Market Price Change
 }
