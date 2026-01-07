@@ -11,16 +11,12 @@ public sealed class MarketPricePacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
-        writer.WriteArray(Prices, (packetWriter, tuple) =>
-        {
-            packetWriter.WriteFloat(tuple.Current);
-            packetWriter.WriteFloat(tuple.Previous);
-        });
+        writer.WriteArray(Prices, PacketWriterDels.Tuple<float, float>.Func);
     }
 
     public void Deserialise(PacketReader reader)
     {
         Type = reader.ReadByte();
-        Prices = reader.ReadArray((packetReader) => (packetReader.ReadFloat(), packetReader.ReadFloat()));
+        Prices = reader.ReadArray(PacketReaderDels.Tuple<float, float>.Func);
     }
 }
