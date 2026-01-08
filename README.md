@@ -28,12 +28,13 @@
 |   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
 |      Plot FX      |   🟩   |                               Fully functional                                |
 |     Market FX     |   🟩   |                               Fully functional                                |
+|  Resource Nodes   |   🟥   |                                Not implemented                                |
+|  Gordos           |   🟥   |                                Not implemented                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
 
 ## Acknowledgements
 Special thanks to:
-- [PinkTarr](https://github.com/TheanMcGarity) for inspiration of his [Slime Rancher 2 Multiplayer Mod](https://github.com/TheanMcGarity/NewSR2MP-1.0compat) and actively helping test the mod
 - [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining his [Slime Rancher 2 Essentials Mod](https://github.com/ThatFinnDev/SR2E)
 - Each and every one of you for supporting us!
