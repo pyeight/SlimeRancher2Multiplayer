@@ -1,3 +1,4 @@
+using SR2MP.Packets.Economy;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
@@ -13,7 +14,7 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<MarketPricePacket>();
+        var packet = reader.ReadPacket<SMarketPricePacket>();
 
         var economy = SceneContext.Instance.PlortEconomyDirector;
         

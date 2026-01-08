@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class UpgradesPacket : IPacket
+public sealed class SUpgradesPacket : IPacket
 {
     public byte Type { get; set; }
 

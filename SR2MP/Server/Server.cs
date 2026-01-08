@@ -115,7 +115,7 @@ public sealed class Server
             timeoutTimer?.Dispose();
             timeoutTimer = null;
 
-            var closePacket = new ClosePacket
+            var closePacket = new SClosePacket
             {
                 Type = (byte)PacketType.Close
             };

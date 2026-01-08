@@ -1,6 +1,7 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
+using SR2MP.Packets.Economy;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
 
@@ -18,7 +19,7 @@ public static class PriceResetPatch
             return;
         
         new Dictionary<byte, byte>();
-        var packet = new MarketPricePacket()
+        var packet = new SMarketPricePacket()
         {
             Type = (byte)PacketType.MarketPriceChange,
             Prices = MarketPricesArray!,

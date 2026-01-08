@@ -1,8 +1,8 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Loading;
+namespace SR2MP.Packets.Economy;
 
-public sealed class MarketPricePacket : IPacket
+public sealed class SMarketPricePacket : IPacket
 {
     public byte Type { get; set; }
     

@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class ConnectAckPacket : IPacket
+public sealed class SConnectAckPacket : IPacket
 {
     public byte Type { get; set; }
     public string PlayerId { get; set; }

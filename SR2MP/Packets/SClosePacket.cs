@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets;
 
-public struct ClosePacket : IPacket
+public struct SClosePacket : IPacket
 {
     public byte Type { get; set; }
 
