@@ -29,6 +29,7 @@
 |      Plot FX      |   🟩   |                               Fully functional                                |
 |     Market FX     |   🟩   |                               Fully functional                                |
 |  Resource Nodes   |   🟥   |                                Not implemented                                |
+|  Gordos.          |   🟥   |                                Not implemented                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
