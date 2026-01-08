@@ -17,7 +17,7 @@ public sealed class PediaLoadHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<SPediasPacket>();
+        var packet = reader.ReadPacket<PediasPacket>();
 
         var unlocked = packet.Entries.ConvertAll(entry =>
             GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._pediaEntryLookup[entry]);

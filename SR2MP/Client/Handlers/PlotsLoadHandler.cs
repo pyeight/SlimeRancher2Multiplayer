@@ -13,7 +13,7 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<SLandPlotsPacket>();
+        var packet = reader.ReadPacket<LandPlotsPacket>();
 
         foreach (var plot in packet.Plots)
         {

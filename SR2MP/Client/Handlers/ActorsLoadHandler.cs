@@ -14,7 +14,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<SActorsPacket>();
+        var packet = reader.ReadPacket<ActorsPacket>();
 
         actorManager.Actors.Clear();
 
