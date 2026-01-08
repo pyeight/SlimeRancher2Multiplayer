@@ -21,7 +21,30 @@ public sealed class NetworkActor : MonoBehaviour
 
     private float syncTimer = Timers.ActorTimer;
     public Vector3 SavedVelocity { get; internal set; }
-    private ActorId ActorId => identifiableActor._model.actorId;
+
+    private byte attemptedGetIdentifiable = 0;
+    
+    private ActorId ActorId
+    {
+        get
+        {
+            if (!identifiableActor)
+            {
+                identifiableActor = GetComponent<IdentifiableActor>();
+                attemptedGetIdentifiable++;
+
+                if (attemptedGetIdentifiable >= 6)
+                {
+                    Destroy(this);
+                }
+
+                return new ActorId(0);
+            }
+
+            return identifiableActor._model.actorId;
+        }
+    }
+
     public bool LocallyOwned { get; set; }
     private bool cachedLocallyOwned;
 

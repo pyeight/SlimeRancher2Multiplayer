@@ -17,11 +17,15 @@ public sealed class CurrencyHandler : BaseClientPacketHandler
 
         var currency = GameContext.Instance.LookupDirector._currencyList._currencies[packet.CurrencyType - 1];
 
+        var currencyDefinition = currency!.Cast<ICurrency>();
+
+        var difference = packet.NewAmount - SceneContext.Instance.PlayerState.GetCurrency(currencyDefinition);
+        
         handlingPacket = true;
-        if (packet.Adjust < 0)
-            SceneContext.Instance.PlayerState.SpendCurrency(currency!.Cast<ICurrency>(), -packet.Adjust);
+        if (difference < 0)
+            SceneContext.Instance.PlayerState.SpendCurrency(currencyDefinition, -difference);
         else
-            SceneContext.Instance.PlayerState.AddCurrency(currency!.Cast<ICurrency>(), packet.Adjust, packet.ShowUINotification);
+            SceneContext.Instance.PlayerState.AddCurrency(currencyDefinition, difference, packet.ShowUINotification);
         handlingPacket = false;
     }
 }
