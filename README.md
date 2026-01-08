@@ -34,6 +34,19 @@
 
 ## Acknowledgements
 Special thanks to:
-- [PinkTarr](https://github.com/TheanMcGarity) for inspiration of his [Slime Rancher 2 Multiplayer Mod](https://github.com/TheanMcGarity/NewSR2MP-1.0compat) and actively helping test the mod
 - [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining his [Slime Rancher 2 Essentials Mod](https://github.com/ThatFinnDev/SR2E)
 - Each and every one of you for supporting us!
+
+## SR2MP Team
+
+Developers:
+- Shark
+- Az
+- Artur
+- PinkTarr
+  
+Contributors:
+- Nobody yet
+  
+Discord Managers:
+- Gopher
