@@ -1,6 +1,8 @@
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Shared.Managers;
 using SR2MP.Components.Player;
+using SR2MP.Packets.Loading;
+using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Client.Handlers;

@@ -4,6 +4,7 @@ using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
+using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 

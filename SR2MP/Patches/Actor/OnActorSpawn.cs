@@ -3,6 +3,7 @@ using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2MP.Components.Actor;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 

@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
+using SR2MP.Packets.Pedia;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Pedia;

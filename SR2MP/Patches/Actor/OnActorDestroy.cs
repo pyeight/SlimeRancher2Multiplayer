@@ -1,4 +1,5 @@
 using HarmonyLib;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Actor;

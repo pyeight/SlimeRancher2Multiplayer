@@ -1,4 +1,5 @@
 using MelonLoader;
+using SR2MP.Packets.FX;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Components.FX;

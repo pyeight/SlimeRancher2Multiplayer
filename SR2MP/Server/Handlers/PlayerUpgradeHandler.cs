@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Packets.Upgrades;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
 

@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
+using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 

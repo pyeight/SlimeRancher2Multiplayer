@@ -1,0 +1,42 @@
+using SR2MP.Packets.Utils;
+
+namespace SR2MP.Packets.Loading;
+
+public sealed class LandPlotsPacket : IPacket
+{
+    public sealed class Plot : IPacket
+    {
+        public string ID { get; set; }
+        public LandPlot.Id Type { get; set; }
+        public CppCollections.HashSet<LandPlot.Upgrade> Upgrades { get; set; }
+
+        public void Serialise(PacketWriter writer)
+        {
+            writer.WriteString(ID);
+            writer.WriteEnum(Type);
+            writer.WriteCppSet(Upgrades, PacketWriterDels.Enum<LandPlot.Upgrade>.Func);
+        }
+
+        public void Deserialise(PacketReader reader)
+        {
+            ID = reader.ReadString();
+            Type = reader.ReadEnum<LandPlot.Id>();
+            Upgrades = reader.ReadCppSet(PacketReaderDels.Enum<LandPlot.Upgrade>.Func);
+        }
+    }
+
+    public byte Type { get; set; }
+    public List<Plot> Plots { get; set; }
+
+    public void Serialise(PacketWriter writer)
+    {
+        writer.WriteByte(Type);
+        writer.WriteList(Plots, PacketWriterDels.Packet<Plot>.Func);
+    }
+
+    public void Deserialise(PacketReader reader)
+    {
+        Type = reader.ReadByte();
+        Plots = reader.ReadList(PacketReaderDels.Packet<Plot>.Func);
+    }
+}

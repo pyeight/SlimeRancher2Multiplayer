@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Economy;
+using SR2MP.Packets.Economy;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Economy;

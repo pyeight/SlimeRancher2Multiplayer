@@ -3,6 +3,7 @@ using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
 using MelonLoader;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 using Unity.Mathematics;
