@@ -16,7 +16,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<SConnectAckPacket>();
+        var packet = reader.ReadPacket<ConnectAckPacket>();
 
         var joinPacket = new PlayerJoinPacket
         {

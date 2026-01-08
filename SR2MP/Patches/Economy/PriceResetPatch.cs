@@ -19,7 +19,7 @@ public static class PriceResetPatch
             return;
         
         new Dictionary<byte, byte>();
-        var packet = new SMarketPricePacket()
+        var packet = new MarketPricePacket()
         {
             Type = (byte)PacketType.MarketPriceChange,
             Prices = MarketPricesArray!,

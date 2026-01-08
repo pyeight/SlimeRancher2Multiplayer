@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Economy;
 
-public sealed class SMarketPricePacket : IPacket
+public sealed class MarketPricePacket : IPacket
 {
     public byte Type { get; set; }
     

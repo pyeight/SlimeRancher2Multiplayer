@@ -14,7 +14,7 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<SMarketPricePacket>();
+        var packet = reader.ReadPacket<MarketPricePacket>();
 
         var economy = SceneContext.Instance.PlortEconomyDirector;
         

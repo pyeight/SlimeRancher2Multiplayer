@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class SActorsPacket : IPacket
+public sealed class ActorsPacket : IPacket
 {
     public struct Actor : IPacket
     {

@@ -20,7 +20,7 @@ public sealed class ConnectHandler : BasePacketHandler
     public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<CConnectPacket>();
+        var packet = reader.ReadPacket<ConnectPacket>();
 
         SrLogger.LogMessage($"Connect request received with PlayerId: {packet.PlayerId}",
             $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
@@ -33,7 +33,7 @@ public sealed class ConnectHandler : BasePacketHandler
             SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[1]
                 .Cast<ICurrency>());
 
-        var ackPacket = new SConnectAckPacket
+        var ackPacket = new ConnectAckPacket
         {
             Type = (byte)PacketType.ConnectAck,
             PlayerId = packet.PlayerId,
@@ -64,7 +64,7 @@ public sealed class ConnectHandler : BasePacketHandler
             upgrades.Add((byte)upgrade._uniqueId, (sbyte)SceneContext.Instance.PlayerState._model.upgradeModel.GetUpgradeLevel(upgrade));
         }
 
-        var upgradesPacket = new SUpgradesPacket
+        var upgradesPacket = new UpgradesPacket
         {
             Type = (byte)PacketType.InitialPlayerUpgrades,
             Upgrades = upgrades,
@@ -81,7 +81,7 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
 
-        var pediasPacket = new SPediasPacket
+        var pediasPacket = new PediasPacket
         {
             Type = (byte)PacketType.InitialPediaEntries,
             Entries = unlockedIDs
@@ -92,14 +92,14 @@ public sealed class ConnectHandler : BasePacketHandler
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
-        var actorsList = new List<SActorsPacket.Actor>();
+        var actorsList = new List<ActorsPacket.Actor>();
 
         foreach (var actorKeyValuePair in SceneContext.Instance.GameModel.identifiables)
         {
             var actor = actorKeyValuePair.Value;
             var model = actor.TryCast<ActorModel>();
             var rotation = model?.lastRotation ?? Quaternion.identity;
-            actorsList.Add(new SActorsPacket.Actor
+            actorsList.Add(new ActorsPacket.Actor
             {
                 ActorId = actor.actorId.Value,
                 ActorType = NetworkActorManager.GetPersistentID(actor.ident),
@@ -108,7 +108,7 @@ public sealed class ConnectHandler : BasePacketHandler
             });
         }
 
-        var actorsPacket = new SActorsPacket
+        var actorsPacket = new ActorsPacket
         {
             Type = (byte)PacketType.InitialActors,
             StartingActorID = (uint)(playerIndex * 10000),
@@ -120,14 +120,14 @@ public sealed class ConnectHandler : BasePacketHandler
 
     private static void SendPlotsPacket(IPEndPoint client)
     {
-        var plotsList = new List<SLandPlotsPacket.Plot>();
+        var plotsList = new List<LandPlotsPacket.Plot>();
 
         foreach (var plotKeyValuePair in SceneContext.Instance.GameModel.landPlots)
         {
             var plot = plotKeyValuePair.Value;
             var id = plotKeyValuePair.Key;
 
-            plotsList.Add(new SLandPlotsPacket.Plot
+            plotsList.Add(new LandPlotsPacket.Plot
             {
                 ID = id,
                 Type = plot.typeId,
@@ -135,7 +135,7 @@ public sealed class ConnectHandler : BasePacketHandler
             });
         }
 
-        var plotsPacket = new SLandPlotsPacket
+        var plotsPacket = new LandPlotsPacket
         {
             Type = (byte)PacketType.InitialPlots,
             Plots = plotsList
@@ -146,7 +146,7 @@ public sealed class ConnectHandler : BasePacketHandler
 
     private static void SendPricesPacket(IPEndPoint client)
     {
-        var pricesPacket = new SMarketPricePacket()
+        var pricesPacket = new MarketPricePacket()
         {
             Type = (byte)PacketType.MarketPriceChange,
             Prices = MarketPricesArray!

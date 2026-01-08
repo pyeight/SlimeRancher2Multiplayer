@@ -2,21 +2,21 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class SPediasPacket : IPacket
+public sealed class UpgradesPacket : IPacket
 {
     public byte Type { get; set; }
 
-    public List<string> Entries { get; set; }
+    public Dictionary<byte, sbyte> Upgrades { get; set; }
 
     public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
-        writer.WriteList(Entries, PacketWriterDels.String);
+        writer.WriteDictionary(Upgrades, PacketWriterDels.Byte, PacketWriterDels.SByte);
     }
 
     public void Deserialise(PacketReader reader)
     {
         Type = reader.ReadByte();
-        Entries = reader.ReadList(PacketReaderDels.String);
+        Upgrades = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.SByte);
     }
 }
