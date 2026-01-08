@@ -13,7 +13,7 @@ public sealed class PlayerUpgradesLoadHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<UpgradesPacket>();
+        var packet = reader.ReadPacket<SUpgradesPacket>();
 
         var upgradesList = GameContext.Instance.LookupDirector._upgradeDefinitions;
         foreach (var upgradeLevel in packet.Upgrades)

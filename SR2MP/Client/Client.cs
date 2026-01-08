@@ -95,7 +95,7 @@ public sealed class Client
 
             Application.quitting += new Action(Disconnect);
 
-            var connectPacket = new ConnectPacket
+            var connectPacket = new CConnectPacket
             {
                 PlayerId = OwnPlayerId,
                 Username = Main.Username
