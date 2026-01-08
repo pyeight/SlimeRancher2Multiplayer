@@ -28,6 +28,7 @@
 |   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
 |      Plot FX      |   🟩   |                               Fully functional                                |
 |     Market FX     |   🟩   |                               Fully functional                                |
+|  Resource Nodes   |   🟥   |                                Not implemented                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
