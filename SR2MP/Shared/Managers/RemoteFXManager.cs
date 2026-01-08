@@ -104,7 +104,8 @@ public sealed class RemoteFXManager
         }
         foreach (var cue in WorldAudioCueMap)
         {
-            cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
+            if (cue.Value)
+                cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
         }
 
         SrLogger.LogMessage("RemoteFXManager initialized", SrLogTarget.Both);
