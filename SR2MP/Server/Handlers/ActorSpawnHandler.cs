@@ -4,6 +4,7 @@ using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Handlers;
 
@@ -18,10 +19,12 @@ public sealed class ActorSpawnHandler : BasePacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorSpawnPacket>();
 
+        var scene = NetworkSceneManager.GetSceneGroup(packet.SceneGroup);
+        
         var model = SceneContext.Instance.GameModel.CreateActorModel(
                 packet.ActorId,
                 actorManager.ActorTypes[packet.ActorType],
-                SystemContext.Instance.SceneLoader.DefaultGameplaySceneGroup,
+                scene,
                 packet.Position,
                 packet.Rotation)
             .TryCast<ActorModel>();

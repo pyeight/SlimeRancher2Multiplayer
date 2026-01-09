@@ -8,6 +8,7 @@ using SR2MP.Components.Player;
 using SR2MP.Components.Time;
 using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP;
@@ -102,6 +103,7 @@ public sealed class Main : SR2EExpansionV3
     public override void AfterGameContext(GameContext gameContext)
     {
         actorManager.Initialize(gameContext);
+        NetworkSceneManager.Initialize(gameContext);
         
         // Automatically inserts just by running the constructor.
         //new CustomPauseMenuButton(

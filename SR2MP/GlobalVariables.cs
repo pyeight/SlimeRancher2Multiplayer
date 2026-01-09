@@ -38,6 +38,7 @@ public static class GlobalVariables
             : Main.Client.IsConnected
                 ? Main.Client.OwnPlayerId
                 : string.Empty;
+    
     public static (float Current, float Previous)[]? MarketPricesArray => SceneContext.Instance
         ? Array.ConvertAll<PriceDictionary.Entry, (float Current, float Previous)>(
             SceneContext.Instance.PlortEconomyDirector._currValueMap._entries,
