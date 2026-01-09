@@ -7,9 +7,9 @@ public sealed class SwitchesPacket : IPacket
     public struct Switch : IPacket
     {
         public string ID { get; set; }
-        
+
         public SwitchHandler.State State { get; set; }
-        
+
         public readonly void Serialise(PacketWriter writer)
         {
             writer.WriteString(ID);
@@ -24,7 +24,6 @@ public sealed class SwitchesPacket : IPacket
     }
 
     public byte Type { get; set; }
-
 
     public List<Switch> Switches { get; set; }
 

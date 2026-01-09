@@ -27,7 +27,7 @@ public static class OnSwitchActivated
     private static void SendPacket(SwitchHandler.State state, string id)
     {
         if (handlingPacket) return;
-        
+
         Main.SendToAllOrServer(new WorldSwitchPacket()
         {
             Type = (byte)PacketType.SwitchActivate,

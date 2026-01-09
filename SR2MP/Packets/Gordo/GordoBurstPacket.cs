@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Gordo;
 public struct GordoBurstPacket : IPacket
 {
     public byte Type { get; set; }
-    
+
     public string ID { get; set; }
 
     public readonly void Serialise(PacketWriter writer)

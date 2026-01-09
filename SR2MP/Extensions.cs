@@ -16,14 +16,5 @@ public static class Extensions
         return false;
     }
 
-    public static string ToStringYesOrNo(this bool value)
-    {
-        switch (value)
-        {
-            case true:
-                return "Yes";
-            case false:
-                return "No";
-        }
-    }
+    public static string ToStringYesOrNo(this bool value) => value ? "Yes" : "No";
 }

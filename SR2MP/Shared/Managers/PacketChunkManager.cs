@@ -19,19 +19,19 @@ public static class PacketChunkManager
     internal static bool TryMergePacket(PacketType packetType, byte[] data, byte chunkIndex, byte totalChunks, out byte[] fullData)
     {
         fullData = null!;
-        
+
         if (totalChunks is > 64 or 0)
         {
             SrLogger.LogWarning($"Rejected packet: invalid totalChunks={totalChunks}");
             return false;
         }
-        
+
         if (chunkIndex >= totalChunks)
         {
             SrLogger.LogWarning($"Rejected packet: chunkIndex={chunkIndex} >= totalChunks={totalChunks}");
             return false;
         }
-        
+
         if (!IncompletePackets.TryGetValue(packetType, out var packet))
         {
             packet = new IncompletePacket
@@ -52,7 +52,7 @@ public static class PacketChunkManager
                 return false;
             }
         }
-        
+
         if (!packet.received[chunkIndex])
         {
             packet.chunks[chunkIndex] = data;
@@ -61,10 +61,10 @@ public static class PacketChunkManager
         }
 
         SrLogger.LogPacketSize($"Received chunk {chunkIndex + 1}/{totalChunks} for type={packetType}");
-        
+
         if (packet.receivedCount != totalChunks)
             return false;
-        
+
         var complete = new List<byte>();
         for (int i = 0; i < totalChunks; i++)
         {

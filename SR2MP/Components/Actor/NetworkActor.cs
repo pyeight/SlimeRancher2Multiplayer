@@ -7,6 +7,7 @@ using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 using Unity.Mathematics;
+
 using Delegate = Il2CppSystem.Delegate;
 using Type = Il2CppSystem.Type;
 
@@ -24,7 +25,7 @@ public sealed class NetworkActor : MonoBehaviour
     public Vector3 SavedVelocity { get; internal set; }
 
     private byte attemptedGetIdentifiable = 0;
-    
+
     private ActorId ActorId
     {
         get
@@ -65,7 +66,7 @@ public sealed class NetworkActor : MonoBehaviour
                                     ? emotions._model.Emotions
                                     : new float4(0, 0, 0, 0);
 
-    void Start()
+    private void Start()
     {
         emotions = GetComponent<SlimeEmotions>();
         cachedLocallyOwned = LocallyOwned;
@@ -105,7 +106,7 @@ public sealed class NetworkActor : MonoBehaviour
         MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
     }
 
-    void UpdateInterpolation()
+    private void UpdateInterpolation()
     {
         if (LocallyOwned) return;
 
@@ -116,7 +117,7 @@ public sealed class NetworkActor : MonoBehaviour
         transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
     }
 
-    void Update()
+    private void Update()
     {
         if (cachedLocallyOwned != LocallyOwned)
         {

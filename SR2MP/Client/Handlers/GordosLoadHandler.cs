@@ -1,5 +1,4 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2MP.Components.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
@@ -16,9 +15,9 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<GordosPacket>();
-        
+
         var gameModel = SceneContext.Instance.GameModel;
-        
+
         foreach (var gordo in packet.Gordos)
         {
             if (gameModel.gordos.TryGetValue(gordo.Id, out var gordoModel))
@@ -29,7 +28,7 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler
                 if (gordoModel.gameObj)
                 {
                     var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
-                    
+
                     gordoComponent.SetModel(gordoModel);
                 }
             }
@@ -44,7 +43,7 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler
                     gameObj = null,
                     targetCount = gordo.RequiredEatCount,
                 };
-                
+
                 gameModel.gordos.Add(gordo.Id, gordoModel);
             }
         }

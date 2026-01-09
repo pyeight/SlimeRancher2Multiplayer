@@ -66,7 +66,7 @@ public partial class NetworkPlayer : MonoBehaviour
         }
     }
 
-    void Awake()
+    private void Awake()
     {
         if (transform.GetComponents<NetworkPlayer>().Length > 1)
         {
@@ -82,7 +82,7 @@ public partial class NetworkPlayer : MonoBehaviour
         }
     }
 
-    void Start()
+    private void Start()
     {
         if (IsLocal)
         {
@@ -92,11 +92,10 @@ public partial class NetworkPlayer : MonoBehaviour
 
         usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
 
-
         SetupRenderersAndCollision();
     }
 
-    void SetupRenderersAndCollision()
+    private void SetupRenderersAndCollision()
     {
         if (IsLocal)
         {
@@ -119,15 +118,14 @@ public partial class NetworkPlayer : MonoBehaviour
         if (model == null)
         {
             model = playerManager.GetPlayer(ID) ?? playerManager.AddPlayer(ID);
-            
-            if (usernamePanel)
-            {
-                usernamePanel.gameObject.AddComponent<TransformLookAtCamera>().targetTransform =
-                    usernamePanel.transform;
 
-                SetUsername(model.Username);
-            }
-            
+            if (!usernamePanel)
+                return;
+            usernamePanel.gameObject.AddComponent<TransformLookAtCamera>().targetTransform =
+                usernamePanel.transform;
+
+            SetUsername(model.Username);
+
             return;
         }
 
@@ -199,7 +197,7 @@ public partial class NetworkPlayer : MonoBehaviour
         }
     }
 
-    void ReloadMeshTransform()
+    private void ReloadMeshTransform()
     {
         // foreach (var renderer in renderers)
         // {
@@ -216,7 +214,7 @@ public partial class NetworkPlayer : MonoBehaviour
         collider.enabled = true;
     }
 
-    void LateUpdate()
+    private void LateUpdate()
     {
         AnimateArmY();
     }

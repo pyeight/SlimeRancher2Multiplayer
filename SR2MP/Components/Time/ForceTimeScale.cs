@@ -6,7 +6,7 @@ namespace SR2MP.Components.Time;
 public sealed class ForceTimeScale : MonoBehaviour
 {
     public float timeScale = 1f;
-    public float loadingTimeScale = 0f;
+    public float loadingTimeScale;
 
     private void Update()
     {

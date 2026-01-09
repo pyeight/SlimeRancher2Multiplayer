@@ -1,9 +1,6 @@
-using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Gordo;
 using SR2MP.Packets.Utils;
-using SR2MP.Server.Handlers;
-using SR2MP.Server.Managers;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Client.Handlers;
@@ -34,7 +31,7 @@ public sealed class GordoFeedHandler : BaseClientPacketHandler
                 targetCount = packet.RequiredFoodCount,
                 identifiableType = actorManager.ActorTypes[packet.GordoType]
             };
-                
+
             SceneContext.Instance.GameModel.gordos.Add(packet.ID, gordo);
         }
     }

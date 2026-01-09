@@ -89,8 +89,8 @@ public sealed class Client
                 IsBackground = true
             };
             receiveThread.Start();
-            
-            connectionTimeoutTimer = new Timer(CheckConnectionTimeout, null, 
+
+            connectionTimeoutTimer = new Timer(CheckConnectionTimeout, null,
                 TimeSpan.FromSeconds(ConnectionTimeoutSeconds), Timeout.InfiniteTimeSpan);
 
             Application.quitting += new Action(Disconnect);
@@ -205,12 +205,12 @@ public sealed class Client
     {
         if (!isConnected)
             return;
-    
+
         var heartbeatPacket = new EmptyPacket
         {
             Type = (byte)PacketType.Heartbeat
         };
-    
+
         SendPacket(heartbeatPacket);
     }
 
@@ -266,9 +266,9 @@ public sealed class Client
             {
                 SrLogger.LogWarning($"Could not send leave packet: {ex.Message}");
             }
-            
+
             isConnected = false;
-            
+
             if (heartbeatTimer != null)
             {
                 heartbeatTimer.Dispose();
@@ -280,7 +280,7 @@ public sealed class Client
                 connectionTimeoutTimer.Dispose();
                 connectionTimeoutTimer = null;
             }
-            
+
             if (udpClient != null)
             {
                 udpClient.Close();
@@ -288,7 +288,7 @@ public sealed class Client
             }
 
             // Give the receive thread a moment to exit normally
-            if (receiveThread != null && receiveThread.IsAlive)
+            if (receiveThread is { IsAlive: true })
             {
                 for (int i = 0; i < 20 && receiveThread.IsAlive; i++)
                 {
@@ -317,7 +317,7 @@ public sealed class Client
     internal void NotifyConnected()
     {
         connectionAcknowledged = true;
-        
+
         if (connectionTimeoutTimer != null)
         {
             connectionTimeoutTimer.Dispose();

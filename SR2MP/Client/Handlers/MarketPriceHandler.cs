@@ -1,5 +1,4 @@
 using SR2MP.Packets.Economy;
-using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
@@ -17,11 +16,11 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler
         var packet = reader.ReadPacket<MarketPricePacket>();
 
         var economy = SceneContext.Instance.PlortEconomyDirector;
-        
+
         //economy.ResetPrices(SceneContext.Instance.GameModel.world, 0);
-        
+
         //SrLogger.LogMessage($"Market price change received!\nRecieved {packet.Prices.Length} prices.\nPrices:\n{string.Join(",\n", packet.Prices)}");
-        
+
         int i = 0;
         // Couldn't do _currValueMap._values because its null for some reason, and
         // _currValueMap.Values is bugged with rider.
@@ -35,7 +34,7 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler
 
             i++;
         }
-        
+
         marketUIInstance?.EconUpdate();
     }
 }

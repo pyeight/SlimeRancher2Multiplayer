@@ -1,8 +1,6 @@
 ﻿using Il2CppTMPro;
 using MelonLoader;
-using SR2E.Buttons;
 using SR2E.Expansion;
-using SR2E.Managers;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
@@ -59,7 +57,7 @@ public sealed class Main : SR2EExpansionV3
 
                 var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
                 Object.DontDestroyOnLoad(forceTimeScale.gameObject);
-                
+
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);
 
@@ -104,7 +102,7 @@ public sealed class Main : SR2EExpansionV3
     {
         actorManager.Initialize(gameContext);
         NetworkSceneManager.Initialize(gameContext);
-        
+
         // Automatically inserts just by running the constructor.
         //new CustomPauseMenuButton(
         //    SR2ELanguageManger.AddTranslation("Multiplayer", "b.multiplayer", "UI"),

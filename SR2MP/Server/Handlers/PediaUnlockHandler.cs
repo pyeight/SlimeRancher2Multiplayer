@@ -22,7 +22,7 @@ public sealed class PediaUnlockHandler : BasePacketHandler
                 ._saveReferenceTranslation._pediaEntryLookup[packet.ID],
             packet.Popup);
         handlingPacket = false;
-        
+
         Main.Server.SendToAllExcept(packet, senderEndPoint);
     }
 }

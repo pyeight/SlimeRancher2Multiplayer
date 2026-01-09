@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Economy;
 public sealed class MarketPricePacket : IPacket
 {
     public byte Type { get; set; }
-    
+
     public (float Current, float Previous)[] Prices { get; set; }
 
     public void Serialise(PacketWriter writer)

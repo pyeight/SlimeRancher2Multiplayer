@@ -4,11 +4,11 @@ public sealed partial class MultiplayerUI
 {
     private Rect previousLayoutRect;
     private int previousLayoutHorizontalIndex;
-    
+
     private Rect CalculateTextLayout(float originalX, int lines = 1, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
-        
+
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
         float w = (maxWidth / horizontalShare);
@@ -16,11 +16,11 @@ public sealed partial class MultiplayerUI
 
         //if (horizontalShare != 1)
         //    w -= HorizontalSpacing * horizontalShare;
-        
+
         x += horizontalIndex * w;
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
-        
+
         var result = new Rect(x, y, w, h);
 
         previousLayoutHorizontalIndex = horizontalIndex;
@@ -28,10 +28,11 @@ public sealed partial class MultiplayerUI
 
         return result;
     }
+
     private Rect CalculateInputLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
-        
+
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
         float w = (maxWidth / horizontalShare);
@@ -39,11 +40,11 @@ public sealed partial class MultiplayerUI
 
         //if (horizontalShare != 1)
         //    w -= HorizontalSpacing * horizontalShare;
-        
+
         x += horizontalIndex * w;
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
-        
+
         var result = new Rect(x, y, w, h);
 
         previousLayoutHorizontalIndex = horizontalIndex;
@@ -51,10 +52,11 @@ public sealed partial class MultiplayerUI
 
         return result;
     }
+
     private Rect CalculateButtonLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
-        
+
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
         float w = (maxWidth / horizontalShare);
@@ -62,11 +64,11 @@ public sealed partial class MultiplayerUI
 
         //if (horizontalShare != 1)
         //    w -= HorizontalSpacing * horizontalShare;
-        
+
         x += horizontalIndex * w;
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
-        
+
         var result = new Rect(x, y, w, h);
 
         previousLayoutHorizontalIndex = horizontalIndex;

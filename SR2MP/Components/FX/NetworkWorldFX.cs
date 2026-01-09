@@ -14,7 +14,7 @@ public sealed class NetworkWorldFX : MonoBehaviour
         SendPacket();
     }
 
-    void SendPacket()
+    private void SendPacket()
     {
         if (handlingPacket) return;
 

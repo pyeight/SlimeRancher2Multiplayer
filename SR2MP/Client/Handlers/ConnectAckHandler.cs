@@ -37,7 +37,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
 
         CheatsEnabled = packet.AllowCheats;
-        
+
         foreach (var player in packet.OtherPlayers)
         {
             SpawnPlayer(player.ID, player.Username);

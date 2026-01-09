@@ -34,7 +34,7 @@ public sealed class NetworkPlayerSound : MonoBehaviour
         SendPacket();
     }
 
-    void SendPacket()
+    private void SendPacket()
     {
         // Defaults to PlayerFXType.None
         if (!fxManager.TryGetFXType(audioSource.Cue, out fxType))

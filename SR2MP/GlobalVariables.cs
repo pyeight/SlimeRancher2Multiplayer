@@ -14,7 +14,7 @@ public static class GlobalVariables
     };
 
     public static bool CheatsEnabled = false;
-    
+
     internal static GameObject playerPrefab;
 
     public static Dictionary<string, GameObject> playerObjects = new();
@@ -38,7 +38,7 @@ public static class GlobalVariables
             : Main.Client.IsConnected
                 ? Main.Client.OwnPlayerId
                 : string.Empty;
-    
+
     public static (float Current, float Previous)[]? MarketPricesArray => SceneContext.Instance
         ? Array.ConvertAll<PriceDictionary.Entry, (float Current, float Previous)>(
             SceneContext.Instance.PlortEconomyDirector._currValueMap._entries,
