@@ -40,6 +40,7 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler
                     fashions = new CppCollections.List<IdentifiableType>(0),
                     gordoEatCount = gordo.EatenCount,
                     gordoSeen = false,
+                    identifiableType = actorManager.ActorTypes[gordo.GordoType],
                     gameObj = null,
                     targetCount = gordo.RequiredEatCount,
                 };

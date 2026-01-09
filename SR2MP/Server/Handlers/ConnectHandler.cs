@@ -50,6 +50,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
         SendPricesPacket(clientEp);
+        SendGordosPacket(clientEp);
 
         SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
             $"Player {packet.PlayerId} successfully connected from {clientEp}");
@@ -129,6 +130,7 @@ public sealed class ConnectHandler : BasePacketHandler
                 Id = gordo.key,
                 EatenCount = gordo.value.GordoEatenCount,
                 RequiredEatCount = gordo.value.targetCount,
+                GordoType = NetworkActorManager.GetPersistentID(gordo.value.identifiableType)
                 //Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount
             });
         }

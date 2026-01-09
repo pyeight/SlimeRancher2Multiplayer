@@ -11,6 +11,8 @@ public sealed class GordosPacket : IPacket
 
         public int EatenCount { get; set; }
         public int RequiredEatCount { get; set; }
+        public int GordoType { get; set; }
+        
         //public bool Popped { get; set; }
         
         public readonly void Serialise(PacketWriter writer)
@@ -18,6 +20,7 @@ public sealed class GordosPacket : IPacket
             writer.WriteString(Id);
             writer.WriteInt(EatenCount);
             writer.WriteInt(RequiredEatCount);
+            writer.WriteInt(GordoType);
             //writer.WriteBool(Popped);
         }
 
@@ -26,6 +29,7 @@ public sealed class GordosPacket : IPacket
             Id = reader.ReadString();
             EatenCount = reader.ReadInt();
             RequiredEatCount = reader.ReadInt();
+            GordoType = reader.ReadInt();
             //Popped = reader.ReadBool();
         }
     }

@@ -31,7 +31,8 @@ public sealed class GordoFeedHandler : BasePacketHandler
                 gordoEatCount = packet.NewFoodCount,
                 gordoSeen = false,
                 gameObj = null,
-                targetCount = 50,
+                targetCount = packet.RequiredFoodCount,
+                identifiableType = actorManager.ActorTypes[packet.GordoType]
             };
                 
             SceneContext.Instance.GameModel.gordos.Add(packet.ID, gordo);
