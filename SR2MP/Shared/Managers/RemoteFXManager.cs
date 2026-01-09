@@ -59,6 +59,8 @@ public sealed class RemoteFXManager
         {
             { WorldFXType.None, null! },
             { WorldFXType.SellPlort, SellFX ?? AllFX["FX_Stars"] },
+            { WorldFXType.FavoriteFoodEaten, AllFX["FX_slimeEatFav"] },
+            { WorldFXType.GordoFoodEaten, AllFX["FX_Gordo_Eat"] },
         };
         WorldAudioCueMap = new Dictionary<WorldFXType, SECTR_AudioCue>
         {
@@ -67,6 +69,7 @@ public sealed class RemoteFXManager
             { WorldFXType.UpgradePlot, AllCues["PurchaseRanchTechUpgrade"]},
             { WorldFXType.SellPlortSound, AllCues["SiloReward"]},
             { WorldFXType.SellPlortDroneSound, AllCues["SiloRewardDrone"]},
+            { WorldFXType.GordoFoodEatenSound, AllCues["GordoGulp"] },
         };
 
         foreach (var (playerFX, obj) in PlayerFXMap)

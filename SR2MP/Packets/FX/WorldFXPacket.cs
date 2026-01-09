@@ -12,6 +12,9 @@ public struct WorldFXPacket : IPacket
         SellPlort,
         SellPlortSound,
         SellPlortDroneSound,
+        FavoriteFoodEaten, // Also applies to gordos.
+        GordoFoodEaten,
+        GordoFoodEatenSound,
     }
 
     public Vector3 Position { get; set; }

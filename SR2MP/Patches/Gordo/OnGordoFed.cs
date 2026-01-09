@@ -1,0 +1,29 @@
+using HarmonyLib;
+using SR2MP.Packets.FX;
+using SR2MP.Packets.Gordo;
+using SR2MP.Packets.Utils;
+
+namespace SR2MP.Patches.Gordo;
+
+[HarmonyPatch(typeof(GordoEat), nameof(GordoEat.DoEat))]
+public static class OnGordoFed
+{
+    public static void Postfix(GordoEat __instance, GameObject obj)
+    {
+        var packet = new GordoFeedPacket
+        {
+            Type = (byte)PacketType.GordoFeed,
+            ID = __instance.Id,
+            NewFoodCount = __instance.GordoModel.GordoEatenCount
+        };
+        Main.SendToAllOrServer(packet);
+        
+        var soundPacket = new WorldFXPacket
+        {
+            Type = (byte)PacketType.WorldFX, 
+            Position = __instance.transform.position,
+            FX = WorldFXType.GordoFoodEatenSound
+        };
+        Main.SendToAllOrServer(soundPacket);
+    }
+}

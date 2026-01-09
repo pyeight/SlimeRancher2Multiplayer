@@ -118,6 +118,30 @@ public sealed class ConnectHandler : BasePacketHandler
         Main.Server.SendToClient(actorsPacket, client);
     }
 
+    private static void SendGordosPacket(IPEndPoint client)
+    {
+        var gordosList = new List<GordosPacket.Gordo>();
+
+        foreach (var gordo in SceneContext.Instance.GameModel.gordos)
+        {
+            gordosList.Add(new GordosPacket.Gordo
+            {
+                Id = gordo.key,
+                EatenCount = gordo.value.GordoEatenCount,
+                RequiredEatCount = gordo.value.targetCount,
+                //Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount
+            });
+        }
+
+        var actorsPacket = new GordosPacket
+        {
+            Type = (byte)PacketType.InitialGordos,
+            Gordos = gordosList
+        };
+
+        Main.Server.SendToClient(actorsPacket, client);
+    }
+
     private static void SendPlotsPacket(IPEndPoint client)
     {
         var plotsList = new List<LandPlotsPacket.Plot>();
