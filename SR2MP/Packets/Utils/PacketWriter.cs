@@ -179,6 +179,9 @@ public sealed class PacketWriter : IDisposable
     }
 }
 
+/// <summary>
+/// Reusable cached delegates to improve performance, add more for data types as needed to avoid excess GC overhead
+/// </summary>
 public static class PacketWriterDels
 {
     public static readonly Action<PacketWriter, byte> Byte = (writer, value) => writer.WriteByte(value);
@@ -200,10 +203,10 @@ public static class PacketWriterDels
             var size = Unsafe.SizeOf<T>();
             return size switch
             {
-                1 => (w, v) => w.WriteByte(Unsafe.As<T, byte>(ref v)),
-                2 => (w, v) => w.WriteUShort(Unsafe.As<T, ushort>(ref v)),
-                4 => (w, v) => w.WriteUInt(Unsafe.As<T, uint>(ref v)),
-                8 => (w, v) => w.WriteULong(Unsafe.As<T, ulong>(ref v)),
+                1 => (writer, value) => writer.WriteByte(Unsafe.As<T, byte>(ref value)),
+                2 => (writer, value) => writer.WriteUShort(Unsafe.As<T, ushort>(ref value)),
+                4 => (writer, value) => writer.WriteUInt(Unsafe.As<T, uint>(ref value)),
+                8 => (writer, value) => writer.WriteULong(Unsafe.As<T, ulong>(ref value)),
                 _ => throw new ArgumentException($"Enum size {size} not supported")
             };
         }
@@ -224,11 +227,11 @@ public static class PacketWriterDels
         public static Action<PacketWriter, TTuple> CreateTupleWriter<TTuple>(params Type[] componentTypes)
         {
             var writerParam = Expression.Parameter(typeof(PacketWriter), "writer");
-            var tupleParam = Expression.Parameter(typeof(TTuple), "tuple");
+            var tupleParam = Expression.Parameter(typeof(TTuple), "value");
 
             var writeCalls = new Expression[componentTypes.Length];
 
-            for (int i = 0; i < componentTypes.Length; i++)
+            for (var i = 0; i < componentTypes.Length; i++)
             {
                 var itemField = Expression.Field(tupleParam, $"Item{i + 1}");
                 writeCalls[i] = GetWriteExpression(writerParam, itemField, componentTypes[i]);
