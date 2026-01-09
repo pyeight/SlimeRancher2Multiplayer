@@ -1,6 +1,8 @@
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Shared.Managers;
 using SR2MP.Components.Player;
+using SR2MP.Packets.Loading;
+using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Client.Handlers;
@@ -34,6 +36,8 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
 
+        CheatsEnabled = packet.AllowCheats;
+        
         foreach (var player in packet.OtherPlayers)
         {
             SpawnPlayer(player.ID, player.Username);

@@ -1,4 +1,6 @@
 using System.Net;
+using SR2MP.Packets;
+using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
@@ -12,6 +14,9 @@ public sealed class Server
     private readonly PacketManager packetManager;
 
     private Timer? timeoutTimer;
+
+    // Just here so that the port is viewable.
+    public int Port { get; private set; }
 
     public event Action? OnServerStarted;
 
@@ -42,6 +47,7 @@ public sealed class Server
             packetManager.RegisterHandlers();
             Application.quitting += new Action(Close);
             networkManager.Start(port, enableIPv6);
+            this.Port = port;
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();

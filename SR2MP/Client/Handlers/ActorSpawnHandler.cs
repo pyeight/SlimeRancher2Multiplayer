@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
@@ -16,14 +17,16 @@ public sealed class ActorSpawnHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorSpawnPacket>();
 
+        var scene = NetworkSceneManager.GetSceneGroup(packet.SceneGroup);
+        
         var model = SceneContext.Instance.GameModel.CreateActorModel(
-            packet.ActorId,
-            actorManager.ActorTypes[packet.ActorType],
-            SystemContext.Instance.SceneLoader.DefaultGameplaySceneGroup,
-            packet.Position,
-            packet.Rotation)
+                packet.ActorId,
+                actorManager.ActorTypes[packet.ActorType],
+                scene,
+                packet.Position,
+                packet.Rotation)
             .TryCast<ActorModel>();
-
+        
         if (model == null)
             return;
 

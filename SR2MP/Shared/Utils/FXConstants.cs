@@ -60,11 +60,14 @@ public static class FXConstants
     {
         { WorldFXType.None, false },
         { WorldFXType.SellPlort, false },
+        { WorldFXType.GordoFoodEaten, false },
+        { WorldFXType.FavoriteFoodEaten, false },
 
         { WorldFXType.BuyPlot, true },
         { WorldFXType.UpgradePlot, true },
         { WorldFXType.SellPlortSound, true },
         { WorldFXType.SellPlortDroneSound, true },
+        { WorldFXType.GordoFoodEatenSound, true },
     });
     public static readonly ReadOnlyDictionary<WorldFXType, bool> DoesWorldSoundLoopDictionary = new(new Dictionary<WorldFXType, bool>
     {
@@ -72,6 +75,7 @@ public static class FXConstants
         { WorldFXType.UpgradePlot, false },
         { WorldFXType.SellPlortSound, false },
         { WorldFXType.SellPlortDroneSound, false },
+        { WorldFXType.GordoFoodEatenSound, false },
     });
     public static readonly ReadOnlyDictionary<WorldFXType, float> WorldSoundVolumeDictionary = new(new Dictionary<WorldFXType, float>
     {
@@ -79,6 +83,7 @@ public static class FXConstants
         { WorldFXType.UpgradePlot, 0.5f },
         { WorldFXType.SellPlortSound, 0.8f },
         { WorldFXType.SellPlortDroneSound, 1f },
+        { WorldFXType.GordoFoodEatenSound, 1f },
     });
     public static readonly ReadOnlyDictionary<WorldFXType, bool> ShouldWorldSoundBeTransientDictionary = new(new Dictionary<WorldFXType, bool>
     {
@@ -86,6 +91,7 @@ public static class FXConstants
         { WorldFXType.UpgradePlot, true },
         { WorldFXType.SellPlortSound, true },
         { WorldFXType.SellPlortDroneSound, true },
+        { WorldFXType.GordoFoodEatenSound, true },
     });
 
     #endregion

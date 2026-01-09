@@ -29,6 +29,13 @@ public static class PlayerIdGenerator
             return null!;
         }
     }
+    public static ushort GetPlayerIDNumber(string id)
+    {
+        ushort number = 12345;
+        foreach (char c in id.Substring(7))
+            number = (ushort)(((number << 5) + number) + c);
+        return number;
+    }
 
     public static bool IsValidPlayerId(string playerId)
     {

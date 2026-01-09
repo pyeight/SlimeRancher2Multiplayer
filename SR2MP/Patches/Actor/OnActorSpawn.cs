@@ -3,6 +3,7 @@ using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2MP.Components.Actor;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
@@ -78,7 +79,7 @@ public static class OnActorSpawn
         __result.AddComponent<NetworkActor>().LocallyOwned = true;
 
         var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
-        var sceneGroupId = GameContext.Instance.AutoSaveDirector._saveReferenceTranslation.GetPersistenceId(sceneGroup);
+        var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
 
         MelonCoroutines.Start(SpawnOverNetwork(actorType, (byte)sceneGroupId, __result));
     }

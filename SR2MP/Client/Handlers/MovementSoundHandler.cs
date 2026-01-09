@@ -1,3 +1,4 @@
+using SR2MP.Packets.FX;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 

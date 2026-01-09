@@ -1,11 +1,14 @@
 ﻿using Il2CppTMPro;
 using MelonLoader;
+using SR2E.Buttons;
 using SR2E.Expansion;
+using SR2E.Managers;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
 using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP;
@@ -33,13 +36,15 @@ public sealed class Main : SR2EExpansionV3
     public static string Username => preferences.GetEntry<string>("username").Value;
     internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
     public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
+    public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
 
     public override void OnLateInitializeMelon()
     {
         preferences = MelonPreferences.CreateCategory("SR2MP");
-        preferences.CreateEntry("username", "Player");
+        preferences.CreateEntry("username", "Player").IsHidden = true;
         preferences.CreateEntry("packet_size_log", false);
         preferences.CreateEntry("internal_setup_ui", true).IsHidden = true;
+        preferences.CreateEntry("allow_cheats", false).IsHidden = true;
 
         Client = new Client.Client();
         Server = new Server.Server();
@@ -57,6 +62,9 @@ public sealed class Main : SR2EExpansionV3
                 
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);
+
+                Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
+
                 break;
 
             case "MainMenuEnvironment":
@@ -95,6 +103,14 @@ public sealed class Main : SR2EExpansionV3
     public override void AfterGameContext(GameContext gameContext)
     {
         actorManager.Initialize(gameContext);
+        NetworkSceneManager.Initialize(gameContext);
+        
+        // Automatically inserts just by running the constructor.
+        //new CustomPauseMenuButton(
+        //    SR2ELanguageManger.AddTranslation("Multiplayer", "b.multiplayer", "UI"),
+        //    5,
+        //    () => SrLogger.LogMessage("Multiplayer menu open"));
+
     }
 
     internal static void SetConfigValue<T>(string key, T value)

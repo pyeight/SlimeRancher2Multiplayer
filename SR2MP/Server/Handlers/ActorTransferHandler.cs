@@ -1,5 +1,6 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
 

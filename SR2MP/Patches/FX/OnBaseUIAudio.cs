@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.UI;
+using SR2MP.Packets.FX;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 

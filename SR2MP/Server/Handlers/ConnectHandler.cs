@@ -4,7 +4,10 @@ using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
+using SR2MP.Packets.Economy;
+using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server.Handlers;
 
@@ -36,15 +39,19 @@ public sealed class ConnectHandler : BasePacketHandler
             PlayerId = packet.PlayerId,
             OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => (input.PlayerId, input.Username)),
             Money = money,
-            RainbowMoney = rainbowMoney
+            RainbowMoney = rainbowMoney,
+            AllowCheats = Main.AllowCheats
         };
 
         Main.Server.SendToClient(ackPacket, clientEp);
 
         SendPlotsPacket(clientEp);
-        SendActorsPacket(clientEp);
+        SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
+        SendPricesPacket(clientEp);
+        SendGordosPacket(clientEp);
+        SendSwitchesPacket(clientEp);
 
         SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
             $"Player {packet.PlayerId} successfully connected from {clientEp}");
@@ -74,11 +81,7 @@ public sealed class ConnectHandler : BasePacketHandler
         var unlockedArray = Il2CppSystem.Linq.Enumerable
             .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
-        SrLogger.LogMessage($"Found {unlockedArray.Length} pedia entries");
-
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
-
-        SrLogger.LogMessage($"Sent {unlockedIDs.Count} pedia entries");
 
         var pediasPacket = new PediasPacket
         {
@@ -87,11 +90,9 @@ public sealed class ConnectHandler : BasePacketHandler
         };
 
         Main.Server.SendToClient(pediasPacket, client);
-
-        SrLogger.LogMessage("InitialPediaEntries packet sent");
     }
 
-    private static void SendActorsPacket(IPEndPoint client)
+    private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
         var actorsList = new List<ActorsPacket.Actor>();
 
@@ -112,10 +113,58 @@ public sealed class ConnectHandler : BasePacketHandler
         var actorsPacket = new ActorsPacket
         {
             Type = (byte)PacketType.InitialActors,
+            StartingActorID = (uint)(playerIndex * 10000),
             Actors = actorsList
         };
 
         Main.Server.SendToClient(actorsPacket, client);
+    }
+
+    private static void SendSwitchesPacket(IPEndPoint client)
+    {
+        var switchesList = new List<SwitchesPacket.Switch>();
+
+        foreach (var switchKeyValuePair in SceneContext.Instance.GameModel.switches)
+        {
+            switchesList.Add(new SwitchesPacket.Switch
+            {
+                ID = switchKeyValuePair.key,
+                State = switchKeyValuePair.value.state,
+            });
+        }
+
+        var switchesPacket = new SwitchesPacket()
+        {
+            Type = (byte)PacketType.InitialSwitches,
+            Switches = switchesList
+        };
+
+        Main.Server.SendToClient(switchesPacket, client);
+    }
+
+    private static void SendGordosPacket(IPEndPoint client)
+    {
+        var gordosList = new List<GordosPacket.Gordo>();
+
+        foreach (var gordo in SceneContext.Instance.GameModel.gordos)
+        {
+            gordosList.Add(new GordosPacket.Gordo
+            {
+                Id = gordo.key,
+                EatenCount = gordo.value.GordoEatenCount,
+                RequiredEatCount = gordo.value.targetCount,
+                GordoType = NetworkActorManager.GetPersistentID(gordo.value.identifiableType)
+                //Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount
+            });
+        }
+
+        var gordosPacket = new GordosPacket
+        {
+            Type = (byte)PacketType.InitialGordos,
+            Gordos = gordosList
+        };
+
+        Main.Server.SendToClient(gordosPacket, client);
     }
 
     private static void SendPlotsPacket(IPEndPoint client)
@@ -142,5 +191,16 @@ public sealed class ConnectHandler : BasePacketHandler
         };
 
         Main.Server.SendToClient(plotsPacket, client);
+    }
+
+    private static void SendPricesPacket(IPEndPoint client)
+    {
+        var pricesPacket = new MarketPricePacket()
+        {
+            Type = (byte)PacketType.MarketPriceChange,
+            Prices = MarketPricesArray!
+        };
+
+        Main.Server.SendToClient(pricesPacket, client);
     }
 }

@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using SR2MP.Packets.Upgrades;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Player;

@@ -4,59 +4,86 @@ namespace SR2MP.Shared.Managers;
 
 public static class PacketChunkManager
 {
-    internal sealed class IncompletePacket
+    private sealed class IncompletePacket
     {
         public byte[][] chunks;
-        public byte chunkIndex;
+        public bool[] received;
         public byte totalChunks;
+        public int receivedCount;
     }
 
-    internal static Dictionary<PacketType, IncompletePacket> incompletePackets = new();
+    private static readonly Dictionary<PacketType, IncompletePacket> IncompletePackets = new();
 
-    internal const int MaxChunkBytes = 250;
+    private const int MaxChunkBytes = 250;
 
     internal static bool TryMergePacket(PacketType packetType, byte[] data, byte chunkIndex, byte totalChunks, out byte[] fullData)
     {
         fullData = null!;
-
-        if (!incompletePackets.TryGetValue(packetType, out var packet))
+        
+        if (totalChunks is > 64 or 0)
+        {
+            SrLogger.LogWarning($"Rejected packet: invalid totalChunks={totalChunks}");
+            return false;
+        }
+        
+        if (chunkIndex >= totalChunks)
+        {
+            SrLogger.LogWarning($"Rejected packet: chunkIndex={chunkIndex} >= totalChunks={totalChunks}");
+            return false;
+        }
+        
+        if (!IncompletePackets.TryGetValue(packetType, out var packet))
         {
             packet = new IncompletePacket
             {
                 chunks = new byte[totalChunks][],
-                chunkIndex = 0,
+                received = new bool[totalChunks],
                 totalChunks = totalChunks,
+                receivedCount = 0
             };
-            incompletePackets[packetType] = packet;
+            IncompletePackets[packetType] = packet;
         }
-
-        packet.chunks[chunkIndex] = data;
-        packet.chunkIndex++;
-        SrLogger.LogPacketSize($"New chunk: type: {packetType}, index: {chunkIndex}, total: {totalChunks}");
-
-        if (chunkIndex + 1 < packet.totalChunks)
-            return false;
-
-        var completeData = new List<byte>();
-        foreach (var chunk in packet.chunks)
+        else
         {
-            completeData.AddRange(chunk);
+            if (packet.totalChunks != totalChunks)
+            {
+                SrLogger.LogWarning($"Packet chunk mismatch: existing total: {packet.totalChunks} new total: {totalChunks}");
+                IncompletePackets.Remove(packetType);
+                return false;
+            }
+        }
+        
+        if (!packet.received[chunkIndex])
+        {
+            packet.chunks[chunkIndex] = data;
+            packet.received[chunkIndex] = true;
+            packet.receivedCount++;
         }
 
-        incompletePackets.Remove(packetType);
+        SrLogger.LogPacketSize($"Received chunk {chunkIndex + 1}/{totalChunks} for type={packetType}");
+        
+        if (packet.receivedCount != totalChunks)
+            return false;
+        
+        var complete = new List<byte>();
+        for (int i = 0; i < totalChunks; i++)
+        {
+            complete.AddRange(packet.chunks[i]);
+        }
 
-        SrLogger.LogPacketSize($"Fully finished merge: type={packetType}");
+        IncompletePackets.Remove(packetType);
+        SrLogger.LogPacketSize($"Merged full packet: type={packetType}");
 
-        fullData = completeData.ToArray();
+        fullData = complete.ToArray();
         return true;
     }
 
     internal static byte[][] SplitPacket(byte[] data)
     {
         var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
-
         var packetType = data[0];
         var result = new byte[chunkCount][];
+
         for (byte index = 0; index < chunkCount; index++)
         {
             var offset = index * MaxChunkBytes;
