@@ -36,4 +36,6 @@ public enum PacketType : byte
     GordoFeed = 37,               // Both Ways                                                                          On Gordo Fed
     GordoBurst = 38,              // Both Ways                                                                          On Gordo Burst
     InitialGordos = 39,           // Server -> Client                                                                   Gordos on Load
+    InitialSwitches = 40,         // Server -> Client                                                                   Switches on Load
+    SwitchActivate = 41,          // Both Ways                                                                          On Switch Activated
 }

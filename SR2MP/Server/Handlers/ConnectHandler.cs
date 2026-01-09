@@ -51,6 +51,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SendPediaPacket(clientEp);
         SendPricesPacket(clientEp);
         SendGordosPacket(clientEp);
+        SendSwitchesPacket(clientEp);
 
         SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
             $"Player {packet.PlayerId} successfully connected from {clientEp}");
@@ -119,6 +120,28 @@ public sealed class ConnectHandler : BasePacketHandler
         Main.Server.SendToClient(actorsPacket, client);
     }
 
+    private static void SendSwitchesPacket(IPEndPoint client)
+    {
+        var switchesList = new List<SwitchesPacket.Switch>();
+
+        foreach (var switchKeyValuePair in SceneContext.Instance.GameModel.switches)
+        {
+            switchesList.Add(new SwitchesPacket.Switch
+            {
+                ID = switchKeyValuePair.key,
+                State = switchKeyValuePair.value.state,
+            });
+        }
+
+        var switchesPacket = new SwitchesPacket()
+        {
+            Type = (byte)PacketType.InitialSwitches,
+            Switches = switchesList
+        };
+
+        Main.Server.SendToClient(switchesPacket, client);
+    }
+
     private static void SendGordosPacket(IPEndPoint client)
     {
         var gordosList = new List<GordosPacket.Gordo>();
@@ -135,13 +158,13 @@ public sealed class ConnectHandler : BasePacketHandler
             });
         }
 
-        var actorsPacket = new GordosPacket
+        var gordosPacket = new GordosPacket
         {
             Type = (byte)PacketType.InitialGordos,
             Gordos = gordosList
         };
 
-        Main.Server.SendToClient(actorsPacket, client);
+        Main.Server.SendToClient(gordosPacket, client);
     }
 
     private static void SendPlotsPacket(IPEndPoint client)
