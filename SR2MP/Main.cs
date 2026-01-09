@@ -10,6 +10,7 @@ using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
+using Action = Il2CppSystem.Action;
 
 namespace SR2MP;
 
@@ -64,6 +65,14 @@ public sealed class Main : SR2EExpansionV3
                 Object.DontDestroyOnLoad(ui.gameObject);
 
                 Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
+
+                Application.quitting += new System.Action((() =>
+                {
+                    if (Server.IsRunning())
+                        Server.Close();
+                    if (Client.IsConnected)
+                        Client.Disconnect();
+                }));
 
                 break;
 
