@@ -15,6 +15,7 @@ public sealed partial class MultiplayerUI
         MenuEUtil.CloseOpenMenu();
         server = Main.Server;
         server.Start(port, true);
+        Main.SetConfigValue("host_port", hostPortInput);
     }
     public void Connect(string ip, ushort port)
     {
@@ -43,6 +44,9 @@ public sealed partial class MultiplayerUI
         }
 
         Main.Client.Connect(ip, port);
+        
+        Main.SetConfigValue("recent_ip", ipInput);
+        Main.SetConfigValue("recent_port", portInput);
     }
     public void Kick(string player) { }
 

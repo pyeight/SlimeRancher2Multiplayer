@@ -15,7 +15,7 @@ namespace SR2MP.Components.Actor;
 [RegisterTypeInIl2Cpp(false)]
 public sealed class NetworkActor : MonoBehaviour
 {
-    private RegionMember regionMember;
+    internal RegionMember regionMember;
     private IdentifiableActor identifiableActor;
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
@@ -87,17 +87,30 @@ public sealed class NetworkActor : MonoBehaviour
     {
         yield return null;
 
-        if (!value) yield break;
-
-        LocallyOwned = true;
-
-        var packet = new ActorTransferPacket
+        if (value)
         {
-            Type = (byte)PacketType.ActorTransfer,
-            ActorId = ActorId,
-            OwnerPlayer = LocalID,
-        };
-        Main.SendToAllOrServer(packet);
+            LocallyOwned = false;
+
+            var packet = new ActorUnloadPacket()
+            {
+                Type = (byte)PacketType.ActorUnload,
+                ActorId = ActorId,
+            };
+            Main.SendToAllOrServer(packet);
+        }
+        else
+        {
+            LocallyOwned = true;
+
+            var packet = new ActorTransferPacket
+            {
+                Type = (byte)PacketType.ActorTransfer,
+                ActorId = ActorId,
+                OwnerPlayer = LocalID,
+            };
+            Main.SendToAllOrServer(packet);
+        }
+        
     }
 
     public void HibernationChanged(bool value)

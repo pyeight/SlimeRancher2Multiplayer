@@ -96,24 +96,35 @@ public sealed class ConnectHandler : BasePacketHandler
     {
         var actorsList = new List<ActorsPacket.Actor>();
 
+        long playerHighestId = playerIndex * 10000;
         foreach (var actorKeyValuePair in SceneContext.Instance.GameModel.identifiables)
         {
             var actor = actorKeyValuePair.Value;
             var model = actor.TryCast<ActorModel>();
             var rotation = model?.lastRotation ?? Quaternion.identity;
+            var id = actor.actorId.Value;
             actorsList.Add(new ActorsPacket.Actor
             {
-                ActorId = actor.actorId.Value,
+                ActorId = id,
                 ActorType = NetworkActorManager.GetPersistentID(actor.ident),
                 Position = actor.lastPosition,
                 Rotation = rotation,
+                Scene = NetworkSceneManager.GetPersistentID(actor.sceneGroup)
             });
+            
+            if (id >= playerIndex * 10000 && id < (playerIndex * 10000) + 10000)
+            {
+                if (id > playerHighestId)
+                {
+                    playerHighestId = id;
+                }
+            }
         }
 
         var actorsPacket = new ActorsPacket
         {
             Type = (byte)PacketType.InitialActors,
-            StartingActorID = (uint)(playerIndex * 10000),
+            StartingActorID = (uint)playerHighestId,
             Actors = actorsList
         };
 
@@ -148,10 +159,14 @@ public sealed class ConnectHandler : BasePacketHandler
 
         foreach (var gordo in SceneContext.Instance.GameModel.gordos)
         {
+            var eatCount = gordo.value.GordoEatenCount;
+            if (eatCount == -1)
+                eatCount = gordo.value.targetCount;
+
             gordosList.Add(new GordosPacket.Gordo
             {
                 Id = gordo.key,
-                EatenCount = gordo.value.GordoEatenCount,
+                EatenCount = eatCount,
                 RequiredEatCount = gordo.value.targetCount,
                 GordoType = NetworkActorManager.GetPersistentID(gordo.value.identifiableType)
                 //Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount

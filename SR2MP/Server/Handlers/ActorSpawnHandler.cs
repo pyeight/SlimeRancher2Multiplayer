@@ -31,6 +31,8 @@ public sealed class ActorSpawnHandler : BasePacketHandler
 
         if (model != null)
         {
+            SceneContext.Instance.GameModel.identifiables[packet.ActorId] = model;
+            
             handlingPacket = true;
             var actor = InstantiationHelpers.InstantiateActorFromModel(model);
             handlingPacket = false;

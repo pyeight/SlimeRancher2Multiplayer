@@ -11,20 +11,20 @@ public static class OnSwitchActivated
     [HarmonyPostfix, HarmonyPatch(typeof(WorldStatePrimarySwitch), nameof(WorldStatePrimarySwitch.SetStateForAll))]
     public static void SetPrimary(WorldStatePrimarySwitch __instance, SwitchHandler.State state, bool immediate)
     {
-        SendPacket(state, __instance.SwitchDefinition.ID);
+        SendPacket(state, __instance.SwitchDefinition.ID, immediate);
     }
     [HarmonyPostfix, HarmonyPatch(typeof(WorldStateSecondarySwitch), nameof(WorldStateSecondarySwitch.SetState))]
     public static void SetSecondary(WorldStateSecondarySwitch __instance, SwitchHandler.State state, bool immediate)
     {
-        SendPacket(state, __instance._primary.SwitchDefinition.ID);
+        SendPacket(state, __instance._primary.SwitchDefinition.ID, immediate);
     }
     [HarmonyPostfix, HarmonyPatch(typeof(WorldStateInvisibleSwitch), nameof(WorldStateInvisibleSwitch.SetStateForAll))]
     public static void SetInvisible(WorldStateInvisibleSwitch __instance, SwitchHandler.State state, bool immediate)
     {
-        SendPacket(state, __instance.SwitchDefinition.ID);
+        SendPacket(state, __instance.SwitchDefinition.ID, immediate);
     }
 
-    private static void SendPacket(SwitchHandler.State state, string id)
+    private static void SendPacket(SwitchHandler.State state, string id, bool immediate)
     {
         if (handlingPacket) return;
         
@@ -33,6 +33,7 @@ public static class OnSwitchActivated
             Type = (byte)PacketType.SwitchActivate,
             ID = id,
             State = state,
+            Immediate = immediate
         });
     }
 }

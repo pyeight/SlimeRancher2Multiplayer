@@ -35,6 +35,9 @@ public sealed class Main : SR2EExpansionV3
     static MelonPreferences_Category preferences;
 
     public static string Username => preferences.GetEntry<string>("username").Value;
+    public static string SavedConnectPort => preferences.GetEntry<string>("recent_port").Value;
+    public static string SavedConnectIP => preferences.GetEntry<string>("recent_ip").Value;
+    public static string SavedHostPort => preferences.GetEntry<string>("host_port").Value;
     internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
     public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
@@ -43,10 +46,16 @@ public sealed class Main : SR2EExpansionV3
     {
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player").IsHidden = true;
-        preferences.CreateEntry("packet_size_log", false);
-        preferences.CreateEntry("internal_setup_ui", true).IsHidden = true;
         preferences.CreateEntry("allow_cheats", false).IsHidden = true;
-
+        
+        preferences.CreateEntry("recent_port", "").IsHidden = true;
+        preferences.CreateEntry("recent_ip", "127.0.0.1").IsHidden = true;
+        preferences.CreateEntry("host_port", "1919").IsHidden = true;
+        
+        preferences.CreateEntry("packet_size_log", false);
+        
+        preferences.CreateEntry("internal_setup_ui", true).IsHidden = true;
+        
         Client = new Client.Client();
         Server = new Server.Server();
     }
@@ -124,6 +133,8 @@ public sealed class Main : SR2EExpansionV3
 
     internal static void SetConfigValue<T>(string key, T value)
     {
-        preferences.GetEntry<T>(key).Value = value;
+        var pref = preferences.GetEntry<T>(key);
+        pref.Value = value;
+        MelonPreferences.Save();
     }
 }

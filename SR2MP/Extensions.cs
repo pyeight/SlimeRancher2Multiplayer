@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
 
@@ -26,4 +27,43 @@ public static class Extensions
                 return "No";
         }
     }
+    /*public static long SR2MPMax(this IEnumerable<long> source)
+    {
+        if (source == null)
+        {
+            var stack = new StackTrace();
+            SrLogger.LogError($"paramater 'source' is null!\n{stack}");
+            return 0;
+        }
+
+        long? value;
+        using (IEnumerator<long> e = source.GetEnumerator())
+        {
+            if (!e.MoveNext())
+            {
+                var stack = new StackTrace();
+                SrLogger.LogError($"paramater 'source' is empty!\n{stack}");
+                return 0;
+            }
+
+            value = e.Current;
+            while (e.MoveNext())
+            {
+                long? x = e.Current;
+                if (x > value)
+                {
+                    value = x;
+                }
+            }
+        }
+
+        if (value == null)
+        {
+            var stack = new StackTrace();
+            SrLogger.LogError($"Return value was null!\n{stack}");
+            return 0;
+        }
+
+        return (long)value;
+    }*/
 }

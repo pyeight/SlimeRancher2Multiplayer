@@ -19,8 +19,10 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
 
         actorManager.Actors.Clear();
 
+        var gameModel = SceneContext.Instance.GameModel;
+        
         var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
-            SceneContext.Instance.GameModel.identifiables
+            gameModel.identifiables
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
         foreach (var actor in toRemove)
@@ -31,26 +33,28 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
             if (gameObject)
                 Object.Destroy(gameObject);
 
-            SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor.value);
+            gameModel.DestroyIdentifiableModel(actor.value);
         }
 
-        SceneContext.Instance.GameModel._actorIdProvider._nextActorId = packet.StartingActorID;
+        gameModel._actorIdProvider._nextActorId = packet.StartingActorID;
         
         foreach (var actor in packet.Actors)
         {
             var type = actorManager.ActorTypes[actor.ActorType];
             if (type.IsPlayer) continue;
-
-            var model = SceneContext.Instance.GameModel.CreateActorModel(
+            var scene = NetworkSceneManager.GetSceneGroup(actor.Scene);
+            var model = gameModel.CreateActorModel(
                     new ActorId(actor.ActorId),
                     type,
-                    SystemContext.Instance.SceneLoader.DefaultGameplaySceneGroup,
+                    scene,
                     actor.Position,
                     actor.Rotation)
                 .TryCast<ActorModel>();
 
             if (model == null)
                 continue;
+            
+            gameModel.identifiables[new ActorId(actor.ActorId)] = model;
 
             handlingPacket = true;
             try

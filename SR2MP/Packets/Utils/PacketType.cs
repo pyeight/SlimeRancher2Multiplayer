@@ -38,4 +38,5 @@ public enum PacketType : byte
     InitialGordos = 39,           // Server -> Client                                                                   Gordos on Load
     InitialSwitches = 40,         // Server -> Client                                                                   Switches on Load
     SwitchActivate = 41,          // Both Ways                                                                          On Switch Activated
+    ActorUnload = 42,             // Both Ways                                                                          On Actor unloaded
 }

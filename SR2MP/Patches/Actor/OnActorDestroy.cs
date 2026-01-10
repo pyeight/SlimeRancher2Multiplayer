@@ -30,6 +30,7 @@ public static class OnActorDestroy
         if (!actor)
             return true;
 
+        actorManager.Actors.Remove(actor.GetActorId().Value);
         try
         {
             var packet = new ActorDestroyPacket

@@ -10,13 +10,15 @@ public sealed class ActorsPacket : IPacket
         public Vector3 Position { get; set; }
         public Quaternion Rotation { get; set; }
         public int ActorType { get; set; }
-
+        public int Scene { get; set; }
+        
         public readonly void Serialise(PacketWriter writer)
         {
             writer.WriteVector3(Position);
             writer.WriteQuaternion(Rotation);
             writer.WriteLong(ActorId);
             writer.WriteInt(ActorType);
+            writer.WriteInt(Scene);
         }
 
         public void Deserialise(PacketReader reader)
@@ -25,6 +27,7 @@ public sealed class ActorsPacket : IPacket
             Rotation = reader.ReadQuaternion();
             ActorId = reader.ReadLong();
             ActorType = reader.ReadInt();
+            Scene = reader.ReadInt();
         }
     }
 

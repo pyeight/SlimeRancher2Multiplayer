@@ -8,7 +8,7 @@ using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Handlers;
 
-[PacketHandler((byte)PacketType.GordoFeed)]
+[PacketHandler((byte)PacketType.GordoBurst)]
 public sealed class GordoBurstHandler : BasePacketHandler
 {
     public GordoBurstHandler(NetworkManager networkManager, ClientManager clientManager)
