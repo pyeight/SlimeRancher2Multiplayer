@@ -9,6 +9,8 @@ public static class OnGordoBurst
 {
     public static void Prefix(GordoEat __instance)
     {
+        if (handlingPacket) return;
+        
         var packet = new GordoBurstPacket()
         {
             Type = (byte)PacketType.GordoBurst,

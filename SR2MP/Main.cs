@@ -41,20 +41,24 @@ public sealed class Main : SR2EExpansionV3
     internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
     public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
+    public static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
 
     public override void OnLateInitializeMelon()
     {
         preferences = MelonPreferences.CreateCategory("SR2MP");
-        preferences.CreateEntry("username", "Player").IsHidden = true;
-        preferences.CreateEntry("allow_cheats", false).IsHidden = true;
+        preferences.CreateEntry("username", "Player", is_hidden: true);
+        preferences.CreateEntry("allow_cheats", false, is_hidden: true);
         
-        preferences.CreateEntry("recent_port", "").IsHidden = true;
-        preferences.CreateEntry("recent_ip", "127.0.0.1").IsHidden = true;
-        preferences.CreateEntry("host_port", "1919").IsHidden = true;
+        preferences.CreateEntry("recent_port", "", is_hidden: true);
+        preferences.CreateEntry("recent_ip", "127.0.0.1", is_hidden: true);
+        preferences.CreateEntry("host_port", "1919", is_hidden: true);
         
-        preferences.CreateEntry("packet_size_log", false);
+        preferences.CreateEntry("packet_size_log", false, display_name: "Packet Size Logging");
+
+        preferences.CreateEntry("internal_setup_ui", true, is_hidden: true);
         
-        preferences.CreateEntry("internal_setup_ui", true).IsHidden = true;
+        preferences.CreateEntry("the_rock_plorts_are_coming", false, 
+            display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode)");
         
         Client = new Client.Client();
         Server = new Server.Server();

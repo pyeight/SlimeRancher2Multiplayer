@@ -20,7 +20,8 @@ public sealed class WorldFXHandler : BaseClientPacketHandler
             var fxPrefab = fxManager.WorldFXMap[packet.FX];
 
             handlingPacket = true;
-            FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
+            try { FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity); }
+            catch { }
             handlingPacket = false;
         }
         else

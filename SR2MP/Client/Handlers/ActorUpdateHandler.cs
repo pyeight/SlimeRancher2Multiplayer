@@ -35,6 +35,12 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler
         networkComponent.SavedVelocity = packet.Velocity;
         networkComponent.nextPosition = packet.Position;
         networkComponent.nextRotation = packet.Rotation;
+        
+        if (networkComponent.regionMember?._hibernating == true)
+        {
+            networkComponent.transform.position = packet.Position;
+            networkComponent.transform.rotation = packet.Rotation;
+        }
 
         if (slime != null)
             networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);

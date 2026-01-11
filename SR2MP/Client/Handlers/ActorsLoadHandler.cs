@@ -40,46 +40,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
         
         foreach (var actor in packet.Actors)
         {
-            var type = actorManager.ActorTypes[actor.ActorType];
-            if (type.IsPlayer) continue;
-            var scene = NetworkSceneManager.GetSceneGroup(actor.Scene);
-            var model = gameModel.CreateActorModel(
-                    new ActorId(actor.ActorId),
-                    type,
-                    scene,
-                    actor.Position,
-                    actor.Rotation)
-                .TryCast<ActorModel>();
-
-            if (model == null)
-                continue;
-            
-            gameModel.identifiables[new ActorId(actor.ActorId)] = model;
-
-            handlingPacket = true;
-            try
-            {
-                var actorObject = InstantiationHelpers.InstantiateActorFromModel(model);
-
-                if (!actorObject)
-                    continue;
-
-                var networkComponent = actorObject.AddComponent<NetworkActor>();
-                networkComponent.previousPosition = actor.Position;
-                networkComponent.nextPosition = actor.Position;
-                networkComponent.previousRotation = actor.Rotation;
-                networkComponent.nextRotation = actor.Rotation;
-                actorObject.transform.position = actor.Position;
-                actorManager.Actors.Add(actor.ActorId, model);
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogError(
-                    $"Error while loading actor with ID {actor.ActorId}\nActor Information: Type={type.name}\nError: {ex}",
-                    SrLogTarget.Both);
-            }
-
-            handlingPacket = false;
+            actorManager.TrySpawnNetworkActor(new ActorId(actor.ActorId), actor.Position, actor.Rotation, actor.ActorType, actor.Scene, out _);
         }
     }
 }

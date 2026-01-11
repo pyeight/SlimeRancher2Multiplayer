@@ -96,7 +96,6 @@ public sealed class ConnectHandler : BasePacketHandler
     {
         var actorsList = new List<ActorsPacket.Actor>();
 
-        long playerHighestId = playerIndex * 10000;
         foreach (var actorKeyValuePair in SceneContext.Instance.GameModel.identifiables)
         {
             var actor = actorKeyValuePair.Value;
@@ -111,20 +110,12 @@ public sealed class ConnectHandler : BasePacketHandler
                 Rotation = rotation,
                 Scene = NetworkSceneManager.GetPersistentID(actor.sceneGroup)
             });
-            
-            if (id >= playerIndex * 10000 && id < (playerIndex * 10000) + 10000)
-            {
-                if (id > playerHighestId)
-                {
-                    playerHighestId = id;
-                }
-            }
         }
 
         var actorsPacket = new ActorsPacket
         {
             Type = (byte)PacketType.InitialActors,
-            StartingActorID = (uint)playerHighestId,
+            StartingActorID = (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * 10000, (playerIndex * 10000) + 10000),
             Actors = actorsList
         };
 

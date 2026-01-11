@@ -1,6 +1,7 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Actor;
 
@@ -25,8 +26,11 @@ public static class OnGameLoadPatch
 
                 transform.gameObject.AddComponent<NetworkActor>().LocallyOwned = true;
 
-                actorManager.Actors.Add(transform.GetComponent<Identifiable>().GetActorId().Value, actor.value);
+                actorManager.Actors[actor.value.actorId.Value] = actor.value;
             }
+
+            SceneContext.Instance.GameModel._actorIdProvider._nextActorId =
+                NetworkActorManager.GetHighestActorIdInRange(0, 10000);
         };
     }
 }

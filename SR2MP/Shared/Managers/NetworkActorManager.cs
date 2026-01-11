@@ -1,5 +1,6 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2MP.Components.Actor;
 
@@ -100,5 +101,72 @@ public sealed class NetworkActorManager
             }
             
         }
+    }
+
+    public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out ActorModel? actorModel)
+    {
+        actorModel = null;
+
+        if (Main.RockPlortBug)
+            typeId = 25;
+        
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        var type = actorManager.ActorTypes[typeId];
+        actorModel = SceneContext.Instance.GameModel.CreateActorModel(
+                actorId,
+                type,
+                scene,
+                position,
+                rotation)
+            .TryCast<ActorModel>();
+        
+        if (actorModel == null)
+            return false;
+        
+        SceneContext.Instance.GameModel.identifiables[actorId] = actorModel;
+        if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
+        {
+            actors.Add(actorModel);
+        }
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(actorModel);
+            SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
+        }
+        
+        handlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(actorModel);
+        handlingPacket = false;
+
+        if (actor)
+        {
+            var networkComponent = actor.AddComponent<NetworkActor>();
+            networkComponent.previousPosition = position;
+            networkComponent.nextPosition = position;
+            networkComponent.previousRotation = rotation;
+            networkComponent.nextRotation = rotation;
+            actor.transform.position = position;
+            actorManager.Actors.Add(actorId.Value, actorModel);
+        }
+        
+        return true;
+    }
+
+    public static long GetHighestActorIdInRange(long min, long max)
+    {
+        long result = min;
+        foreach (var actor in SceneContext.Instance.GameModel.identifiables)
+        {
+            var id = actor.value.actorId.Value;
+            if (id >= min && id < max)
+            {
+                if (id > result)
+                {
+                    result = id;
+                }
+            }    
+        }
+        return result;
     }
 }

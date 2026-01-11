@@ -22,6 +22,9 @@ public sealed class ActorUnloadHandler : BaseClientPacketHandler
         if (!actor.TryGetNetworkComponent(out var component))
             return;
 
+        if (!component.regionMember)
+            return;
+
         if (!component.regionMember._hibernating)
         {
             component.LocallyOwned = true;
