@@ -5,14 +5,13 @@ namespace SR2MP.Packets.Economy;
 public struct CurrencyPacket : IPacket
 {
     public int NewAmount { get; set; }
-
-    public byte Type { get; set; }
     public byte CurrencyType { get; set; }
     public bool ShowUINotification { get; set; }
 
+    public readonly PacketType Type => PacketType.CurrencyAdjust;
+
     public readonly void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteInt(NewAmount);
         writer.WriteByte(CurrencyType);
         writer.WriteBool(ShowUINotification);
@@ -20,7 +19,6 @@ public struct CurrencyPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         NewAmount = reader.ReadInt();
         CurrencyType = reader.ReadByte();
         ShowUINotification = reader.ReadBool();

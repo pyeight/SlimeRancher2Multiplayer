@@ -4,15 +4,9 @@ namespace SR2MP.Packets;
 
 public struct ClosePacket : IPacket
 {
-    public byte Type { get; set; }
+    public readonly PacketType Type => PacketType.Close;
 
-    public readonly void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-    }
+    public readonly void Serialise(PacketWriter writer) { }
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-    }
+    public readonly void Deserialise(PacketReader reader) { }
 }

@@ -4,7 +4,6 @@ namespace SR2MP.Packets.Player;
 
 public sealed class PlayerUpdatePacket : IPacket
 {
-    public byte Type { get; set; }
     public string PlayerId { get; set; }
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
@@ -18,9 +17,10 @@ public sealed class PlayerUpdatePacket : IPacket
     public bool Sprinting { get; set; }
     public float LookY { get; set; }
 
+    public PacketType Type => PacketType.PlayerUpdate;
+
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteString(PlayerId);
 
         writer.WriteVector3(Position);
@@ -43,7 +43,6 @@ public sealed class PlayerUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         PlayerId = reader.ReadString();
 
         Position = reader.ReadVector3();

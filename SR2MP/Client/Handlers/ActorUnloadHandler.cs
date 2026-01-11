@@ -1,4 +1,3 @@
-using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
@@ -22,21 +21,16 @@ public sealed class ActorUnloadHandler : BaseClientPacketHandler
         if (!actor.TryGetNetworkComponent(out var component))
             return;
 
-        if (!component.regionMember)
+        if (!component.regionMember || component.regionMember._hibernating)
             return;
 
-        if (!component.regionMember._hibernating)
+        component.LocallyOwned = true;
+
+        var ownershipPacket = new ActorTransferPacket
         {
-            component.LocallyOwned = true;
-
-            var ownershipPacket = new ActorTransferPacket
-            {
-                Type = (byte)PacketType.ActorTransfer,
-                ActorId = packet.ActorId,
-                OwnerPlayer = LocalID,
-            };
-            Main.SendToAllOrServer(ownershipPacket);
-            return;
-        }
+            ActorId = packet.ActorId,
+            OwnerPlayer = LocalID,
+        };
+        Main.SendToAllOrServer(ownershipPacket);
     }
 }

@@ -5,21 +5,19 @@ namespace SR2MP.Packets.Actor;
 
 public sealed class ActorTransferPacket : IPacket
 {
-    public byte Type { get; set; }
-
     public ActorId ActorId { get; set; }
     public string OwnerPlayer { get; set; }
 
+    public PacketType Type => PacketType.ActorTransfer;
+
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteLong(ActorId.Value);
         writer.WriteString(OwnerPlayer);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         ActorId = new ActorId(reader.ReadLong());
         OwnerPlayer = reader.ReadString();
     }

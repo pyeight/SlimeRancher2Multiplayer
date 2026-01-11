@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
 
@@ -18,7 +17,7 @@ public static class Extensions
     }
 
     public static string ToStringYesOrNo(this bool value) => value ? "Yes" : "No";
-    
+
     // https://discussions.unity.com/t/how-can-i-get-the-full-path-to-a-gameobject/412
     public static string GetGameObjectPath(this GameObject obj)
     {
@@ -30,7 +29,7 @@ public static class Extensions
         }
         return path;
     }
-    
+
     /*public static long SR2MPMax(this IEnumerable<long> source)
     {
         if (source == null)

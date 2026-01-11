@@ -1,6 +1,4 @@
-using Il2CppAssets.Script.Util.Extensions;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2MP.Components.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
@@ -37,7 +35,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
         }
 
         gameModel._actorIdProvider._nextActorId = packet.StartingActorID;
-        
+
         foreach (var actor in packet.Actors)
         {
             actorManager.TrySpawnNetworkActor(new ActorId(actor.ActorId), actor.Position, actor.Rotation, actor.ActorType, actor.Scene, out _);

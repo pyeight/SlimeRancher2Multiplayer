@@ -1,6 +1,5 @@
 using MelonLoader;
 using SR2MP.Packets.FX;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Components.FX;
 
@@ -20,7 +19,6 @@ public sealed class NetworkPlayerFX : MonoBehaviour
 
         var packet = new PlayerFXPacket
         {
-            Type = (byte)PacketType.PlayerFX,
             FX = fxType,
             Position = transform.position
         };

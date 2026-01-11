@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class LandPlotsPacket : IPacket
 {
-    public sealed class Plot : IPacket
+    public sealed class Plot : INetObject
     {
         public string ID { get; set; }
         public LandPlot.Id Type { get; set; }
@@ -25,18 +25,11 @@ public sealed class LandPlotsPacket : IPacket
         }
     }
 
-    public byte Type { get; set; }
     public List<Plot> Plots { get; set; }
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteList(Plots, PacketWriterDels.Packet<Plot>.Func);
-    }
+    public PacketType Type => PacketType.InitialPlots;
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        Plots = reader.ReadList(PacketReaderDels.Packet<Plot>.Func);
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteList(Plots, PacketWriterDels.NetObject<Plot>.Func);
+
+    public void Deserialise(PacketReader reader) => Plots = reader.ReadList(PacketReaderDels.NetObject<Plot>.Func);
 }

@@ -7,17 +7,9 @@ public struct ActorDestroyPacket : IPacket
 {
     public ActorId ActorId { get; set; }
 
-    public byte Type { get; set; }
+    public readonly PacketType Type => PacketType.ActorDestroy;
 
-    public readonly void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteLong(ActorId.Value);
-    }
+    public readonly void Serialise(PacketWriter writer) => writer.WriteLong(ActorId.Value);
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        ActorId = new ActorId(reader.ReadLong());
-    }
+    public void Deserialise(PacketReader reader) => ActorId = new ActorId(reader.ReadLong());
 }

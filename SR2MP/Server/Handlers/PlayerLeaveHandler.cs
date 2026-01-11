@@ -27,7 +27,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler
         {
             var leavePacket = new PlayerLeavePacket
             {
-                Type = (byte)PacketType.BroadcastPlayerLeave,
+                Type = PacketType.BroadcastPlayerLeave,
                 PlayerId = playerId
             };
 

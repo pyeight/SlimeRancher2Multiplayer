@@ -1,6 +1,5 @@
 using HarmonyLib;
 using SR2MP.Packets.Landplot;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Plots;
 
@@ -15,7 +14,6 @@ public static class ReplaceLandPlot
 
         var packet = new LandPlotUpdatePacket
         {
-            Type = (byte)PacketType.LandPlotUpdate,
             ID = __instance._id,
             IsUpgrade = false,
             PlotType = replacementPrefab.GetComponent<LandPlot>().TypeId

@@ -4,8 +4,6 @@ namespace SR2MP.Packets.Gordo;
 
 public sealed class GordoFeedPacket : IPacket
 {
-    public byte Type { get; set; }
-
     public string ID { get; set; }
     public int NewFoodCount { get; set; }
 
@@ -13,9 +11,10 @@ public sealed class GordoFeedPacket : IPacket
     public int RequiredFoodCount { get; set; }
     public int GordoType { get; set; }
 
+    public PacketType Type => PacketType.GordoFeed;
+
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteString(ID);
         writer.WriteInt(NewFoodCount);
         writer.WriteInt(RequiredFoodCount);
@@ -24,7 +23,6 @@ public sealed class GordoFeedPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         ID = reader.ReadString();
         NewFoodCount = reader.ReadInt();
         RequiredFoodCount = reader.ReadInt();

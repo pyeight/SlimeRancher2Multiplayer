@@ -19,19 +19,18 @@ public struct WorldFXPacket : IPacket
 
     public Vector3 Position { get; set; }
 
-    public byte Type { get; set; }
     public WorldFXType FX { get; set; }
+
+    public readonly PacketType Type => PacketType.WorldFX;
 
     public readonly void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteEnum(FX);
         writer.WriteVector3(Position);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         FX = reader.ReadEnum<WorldFXType>();
         Position = reader.ReadVector3();
     }

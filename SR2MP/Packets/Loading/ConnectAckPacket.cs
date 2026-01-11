@@ -4,7 +4,6 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class ConnectAckPacket : IPacket
 {
-    public byte Type { get; set; }
     public string PlayerId { get; set; }
     public (string ID, string Username)[] OtherPlayers { get; set; }
 
@@ -12,9 +11,10 @@ public sealed class ConnectAckPacket : IPacket
     public int RainbowMoney { get; set; }
     public bool AllowCheats { get; set; }
 
+    public PacketType Type => PacketType.ConnectAck;
+
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteString(PlayerId);
         writer.WriteArray(OtherPlayers, PacketWriterDels.Tuple<string, string>.Func);
 
@@ -25,7 +25,6 @@ public sealed class ConnectAckPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         PlayerId = reader.ReadString();
         OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Func);
 

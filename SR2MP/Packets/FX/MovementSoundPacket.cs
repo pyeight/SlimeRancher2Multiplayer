@@ -7,20 +7,19 @@ namespace SR2MP.Packets.FX;
 // GroundCollisionMaterials.GroundCollisionMaterialType.X
 public sealed class MovementSoundPacket : IPacket
 {
-    public byte Type { get; set; }
     public Vector3 Position { get; set; }
     public string CueName { get; set; }
 
+    public PacketType Type => PacketType.MovementSound;
+
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteVector3(Position);
         writer.WriteString(CueName);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         Position = reader.ReadVector3();
         CueName = reader.ReadString();
     }

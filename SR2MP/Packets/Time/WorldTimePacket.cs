@@ -5,17 +5,9 @@ namespace SR2MP.Packets.Time;
 public struct WorldTimePacket : IPacket
 {
     public double Time { get; set; }
-    public byte Type { get; set; }
+    public PacketType Type { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteDouble(Time);
-    }
+    public readonly void Serialise(PacketWriter writer) => writer.WriteDouble(Time);
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        Time = reader.ReadDouble();
-    }
+    public void Deserialise(PacketReader reader) => Time = reader.ReadDouble();
 }

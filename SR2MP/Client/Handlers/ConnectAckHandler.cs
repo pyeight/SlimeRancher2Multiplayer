@@ -20,7 +20,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
 
         var joinPacket = new PlayerJoinPacket
         {
-            Type = (byte)PacketType.PlayerJoin,
+            Type = PacketType.PlayerJoin,
             PlayerId = packet.PlayerId,
             PlayerName = Main.Username
         };
@@ -38,9 +38,9 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler
 
         CheatsEnabled = packet.AllowCheats;
 
-        foreach (var player in packet.OtherPlayers)
+        foreach (var (id, username) in packet.OtherPlayers)
         {
-            SpawnPlayer(player.ID, player.Username);
+            SpawnPlayer(id, username);
         }
     }
 

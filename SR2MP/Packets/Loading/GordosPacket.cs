@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class GordosPacket : IPacket
 {
-    public sealed class Gordo : IPacket
+    public sealed class Gordo : INetObject
     {
         public string Id { get; set; }
 
@@ -12,7 +12,7 @@ public sealed class GordosPacket : IPacket
         public int RequiredEatCount { get; set; }
         public int GordoType { get; set; }
 
-        //public bool Popped { get; set; }
+        // public bool Popped { get; set; }
 
         public void Serialise(PacketWriter writer)
         {
@@ -20,7 +20,7 @@ public sealed class GordosPacket : IPacket
             writer.WriteInt(EatenCount);
             writer.WriteInt(RequiredEatCount);
             writer.WriteInt(GordoType);
-            //writer.WriteBool(Popped);
+            // writer.WriteBool(Popped);
         }
 
         public void Deserialise(PacketReader reader)
@@ -29,23 +29,15 @@ public sealed class GordosPacket : IPacket
             EatenCount = reader.ReadInt();
             RequiredEatCount = reader.ReadInt();
             GordoType = reader.ReadInt();
-            //Popped = reader.ReadBool();
+            // Popped = reader.ReadBool();
         }
     }
 
-    public byte Type { get; set; }
-
     public List<Gordo> Gordos { get; set; }
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteList(Gordos, PacketWriterDels.Packet<Gordo>.Func);
-    }
+    public PacketType Type => PacketType.InitialGordos;
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        Gordos = reader.ReadList(PacketReaderDels.Packet<Gordo>.Func);
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteList(Gordos, PacketWriterDels.NetObject<Gordo>.Func);
+
+    public void Deserialise(PacketReader reader) => Gordos = reader.ReadList(PacketReaderDels.NetObject<Gordo>.Func);
 }

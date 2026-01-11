@@ -1,7 +1,6 @@
 using HarmonyLib;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Actor;
 
@@ -18,7 +17,6 @@ public static class OnActorVacced
 
         var packet = new ActorTransferPacket
         {
-            Type = (byte)PacketType.ActorTransfer,
             ActorId = __instance._identifiable.GetActorId(),
             OwnerPlayer = LocalID,
         };

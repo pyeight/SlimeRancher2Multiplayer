@@ -35,7 +35,6 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var ackPacket = new ConnectAckPacket
         {
-            Type = (byte)PacketType.ConnectAck,
             PlayerId = packet.PlayerId,
             OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(), input => (input.PlayerId, input.Username)),
             Money = money,
@@ -68,7 +67,6 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var upgradesPacket = new UpgradesPacket
         {
-            Type = (byte)PacketType.InitialPlayerUpgrades,
             Upgrades = upgrades,
         };
         Main.Server.SendToClient(upgradesPacket, client);
@@ -85,7 +83,6 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var pediasPacket = new PediasPacket
         {
-            Type = (byte)PacketType.InitialPediaEntries,
             Entries = unlockedIDs
         };
 
@@ -114,7 +111,6 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var actorsPacket = new ActorsPacket
         {
-            Type = (byte)PacketType.InitialActors,
             StartingActorID = (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * 10000, (playerIndex * 10000) + 10000),
             Actors = actorsList
         };
@@ -137,7 +133,6 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var switchesPacket = new SwitchesPacket()
         {
-            Type = (byte)PacketType.InitialSwitches,
             Switches = switchesList
         };
 
@@ -166,7 +161,6 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var gordosPacket = new GordosPacket
         {
-            Type = (byte)PacketType.InitialGordos,
             Gordos = gordosList
         };
 
@@ -192,7 +186,6 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var plotsPacket = new LandPlotsPacket
         {
-            Type = (byte)PacketType.InitialPlots,
             Plots = plotsList
         };
 
@@ -203,7 +196,6 @@ public sealed class ConnectHandler : BasePacketHandler
     {
         var pricesPacket = new MarketPricePacket()
         {
-            Type = (byte)PacketType.MarketPriceChange,
             Prices = MarketPricesArray!
         };
 

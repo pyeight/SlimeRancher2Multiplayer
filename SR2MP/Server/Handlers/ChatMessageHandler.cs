@@ -23,7 +23,7 @@ public sealed class ChatMessageHandler : BasePacketHandler
 
         var broadcastPacket = new ChatMessagePacket
         {
-            Type = (byte)PacketType.BroadcastChatMessage,
+            Type = PacketType.BroadcastChatMessage,
             PlayerId = packet.PlayerId,
             Message = packet.Message,
             Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()

@@ -22,7 +22,7 @@ public sealed class GeyserTriggerHandler : BasePacketHandler
         if (obj)
             obj.GetComponent<Geyser>().TriggerGeyser();
         handlingPacket = false;
-        
+
         Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

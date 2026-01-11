@@ -4,18 +4,10 @@ namespace SR2MP.Packets.Player;
 
 public sealed class PlayerLeavePacket : IPacket
 {
-    public byte Type { get; set; }
     public string PlayerId { get; set; }
+    public PacketType Type { get; set; }
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteString(PlayerId);
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteString(PlayerId);
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        PlayerId = reader.ReadString();
-    }
+    public void Deserialise(PacketReader reader) => PlayerId = reader.ReadString();
 }

@@ -4,19 +4,11 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class UpgradesPacket : IPacket
 {
-    public byte Type { get; set; }
-
     public Dictionary<byte, sbyte> Upgrades { get; set; }
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteDictionary(Upgrades, PacketWriterDels.Byte, PacketWriterDels.SByte);
-    }
+    public PacketType Type => PacketType.InitialPlayerUpgrades;
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        Upgrades = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.SByte);
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Upgrades, PacketWriterDels.Byte, PacketWriterDels.SByte);
+
+    public void Deserialise(PacketReader reader) => Upgrades = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.SByte);
 }
