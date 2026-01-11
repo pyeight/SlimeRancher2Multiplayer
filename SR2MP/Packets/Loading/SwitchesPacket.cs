@@ -4,13 +4,13 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class SwitchesPacket : IPacket
 {
-    public struct Switch : IPacket
+    public sealed class Switch : IPacket
     {
         public string ID { get; set; }
 
         public SwitchHandler.State State { get; set; }
 
-        public readonly void Serialise(PacketWriter writer)
+        public void Serialise(PacketWriter writer)
         {
             writer.WriteString(ID);
             writer.WriteEnum(State);

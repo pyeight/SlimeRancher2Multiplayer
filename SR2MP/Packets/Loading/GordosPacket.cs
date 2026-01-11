@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class GordosPacket : IPacket
 {
-    public struct Gordo : IPacket
+    public sealed class Gordo : IPacket
     {
         public string Id { get; set; }
 
@@ -14,7 +14,7 @@ public sealed class GordosPacket : IPacket
 
         //public bool Popped { get; set; }
 
-        public readonly void Serialise(PacketWriter writer)
+        public void Serialise(PacketWriter writer)
         {
             writer.WriteString(Id);
             writer.WriteInt(EatenCount);
