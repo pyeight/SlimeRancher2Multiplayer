@@ -18,6 +18,20 @@ public sealed class RemoteFXManager
     public GameObject FootstepFX;
     public GameObject? SellFX;
 
+    private static Predicate<SECTR_AudioCue> Force3DCondition => cue =>
+    {
+        // Movement SFX
+        if (cue.name.Contains("Step") 
+            || cue.name.Contains("Run")
+            || cue.name.Contains("Jump")
+            || cue.name.Contains("Land"))
+        {
+            return true;
+        }
+
+        return false;
+    };
+    
     internal void Initialize()
     {
         AllFX.Clear();
@@ -32,6 +46,9 @@ public sealed class RemoteFXManager
         foreach (var cue in Resources.FindObjectsOfTypeAll<SECTR_AudioCue>())
         {
             if (cue.Spatialization != SECTR_AudioCue.Spatializations.Simple2D)
+                cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
+            
+            if (Force3DCondition(cue))
                 cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
 
             var cueName = cue.name.Replace(' ', '_');

@@ -38,6 +38,12 @@ public sealed class ActorUpdateHandler : BasePacketHandler
 
             if (slime != null)
                 networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
+            
+            if (networkComponent.regionMember?._hibernating == true)
+            {
+                networkComponent.transform.position = packet.Position;
+                networkComponent.transform.rotation = packet.Rotation;
+            }
         }
 
         Main.Server.SendToAllExcept(packet, clientEp);

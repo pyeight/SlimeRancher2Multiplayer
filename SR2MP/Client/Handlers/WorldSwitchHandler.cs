@@ -32,9 +32,9 @@ public sealed class WorldSwitchHandler : BaseClientPacketHandler
                 var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
 
                 handlingPacket = true;
-                primary?.SetStateForAll(packet.State, false);
-                secondary?.SetState(packet.State, false);
-                invisible?.SetStateForAll(packet.State, false);
+                primary?.SetStateForAll(packet.State, packet.Immediate);
+                secondary?.SetState(packet.State, packet.Immediate);
+                invisible?.SetStateForAll(packet.State, packet.Immediate);
                 handlingPacket = false;
             }
         }

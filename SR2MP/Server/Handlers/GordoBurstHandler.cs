@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
 
-[PacketHandler((byte)PacketType.GordoFeed)]
+[PacketHandler((byte)PacketType.GordoBurst)]
 public sealed class GordoBurstHandler : BasePacketHandler
 {
     public GordoBurstHandler(NetworkManager networkManager, ClientManager clientManager)
@@ -15,11 +15,16 @@ public sealed class GordoBurstHandler : BasePacketHandler
     public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<GordoFeedPacket>();
+        var packet = reader.ReadPacket<GordoBurstPacket>();
 
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {
             gordo.GordoEatenCount = gordo.targetCount + 1;
+
+            handlingPacket = true;
+            if (gordo.gameObj)
+                gordo.gameObj.GetComponent<GordoEat>().ImmediateReachedTarget();
+            handlingPacket = false;
         }
         else
         {

@@ -18,6 +18,9 @@ public static class CurrencyPatch
     {
         if (handlingPacket) return;
 
+        if (currencyDefinition == null)
+            return;
+        
         var currency = currencyDefinition.PersistenceId;
 
         var packet = new CurrencyPacket

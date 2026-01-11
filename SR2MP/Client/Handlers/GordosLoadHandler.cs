@@ -30,6 +30,8 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler
                     var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
 
                     gordoComponent.SetModel(gordoModel);
+
+                    gordoModel.gameObj.SetActive(gordo.EatenCount < gordo.RequiredEatCount);
                 }
             }
             else

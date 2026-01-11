@@ -9,10 +9,7 @@ public static class OnSceneContextLoaded
 {
     private static IEnumerator WaitForFinishLoading()
     {
-        while (SystemContext.Instance.SceneLoader.IsSceneLoadInProgress)
-        {
-            yield return null;
-        }
+        yield return new WaitForSceneGroupLoad();
 
         fxManager.Initialize();
     }
