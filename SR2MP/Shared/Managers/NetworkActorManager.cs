@@ -122,8 +122,7 @@ public sealed class NetworkActorManager
                 type,
                 scene,
                 position,
-                rotation)
-            .TryCast<ActorModel>();
+                rotation);
         
         if (actorModel == null)
             return false;
