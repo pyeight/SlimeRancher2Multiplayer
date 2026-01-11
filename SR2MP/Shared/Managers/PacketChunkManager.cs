@@ -20,12 +20,6 @@ public static class PacketChunkManager
     {
         fullData = null!;
         
-        //if (totalChunks is > 64 or 0)
-        //{
-        //    SrLogger.LogWarning($"Rejected packet: invalid totalChunks={totalChunks}");
-        //    return false;
-        //}
-        
         if (chunkIndex >= totalChunks)
         {
             SrLogger.LogWarning($"Rejected packet: chunkIndex={chunkIndex} >= totalChunks={totalChunks}");
