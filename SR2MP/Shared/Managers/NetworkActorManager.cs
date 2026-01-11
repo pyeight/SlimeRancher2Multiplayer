@@ -2,6 +2,7 @@ using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
+using SR2E.Utils;
 using SR2MP.Components.Actor;
 
 namespace SR2MP.Shared.Managers;
@@ -102,11 +103,20 @@ public sealed class NetworkActorManager
     {
         actorModel = null;
 
+        
+        
         if (Main.RockPlortBug)
             typeId = 25;
         
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var type = actorManager.ActorTypes[typeId];
+
+        if (type.isGadget())
+        {
+            SrLogger.LogWarning($"Tried to spawn gadget over the network, this hasnt been implemented yet!\n\tActor {actorId.Value}: {type.name}");
+            return false;
+        }
+        
         actorModel = SceneContext.Instance.GameModel.CreateActorModel(
                 actorId,
                 type,

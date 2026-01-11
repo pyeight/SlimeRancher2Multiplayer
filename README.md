@@ -30,6 +30,7 @@
 |     Market FX     |   🟩   |                               Fully functional                                |
 |  Resource Nodes   |   🟥   |                                Not implemented                                |
 |      Gordos       |   🟩   |                               Fully functional                                |
+|      Geysers      |   🟩   |                               Fully functional                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠

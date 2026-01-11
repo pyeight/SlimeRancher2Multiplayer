@@ -27,6 +27,19 @@ public static class Extensions
                 return "No";
         }
     }
+    
+    // https://discussions.unity.com/t/how-can-i-get-the-full-path-to-a-gameobject/412
+    public static string GetGameObjectPath(this GameObject obj)
+    {
+        string path = "/" + obj.name;
+        while (obj.transform.parent != null)
+        {
+            obj = obj.transform.parent.gameObject;
+            path = "/" + obj.name + path;
+        }
+        return path;
+    }
+    
     /*public static long SR2MPMax(this IEnumerable<long> source)
     {
         if (source == null)

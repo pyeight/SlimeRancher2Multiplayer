@@ -34,7 +34,7 @@ public sealed class NetworkActor : MonoBehaviour
                 identifiableActor = GetComponent<IdentifiableActor>();
                 attemptedGetIdentifiable++;
 
-                if (attemptedGetIdentifiable >= 6)
+                if (attemptedGetIdentifiable >= 10)
                 {
                     Destroy(this);
                 }
