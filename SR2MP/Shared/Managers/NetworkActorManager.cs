@@ -44,8 +44,6 @@ public sealed class NetworkActorManager
             var gameModel = SceneContext.Instance?.GameModel;
             if (!gameModel) 
                 continue;
-            
-            SrLogger.LogMessage("Begining to load zone actors.");
 
             var scene = SystemContext.Instance.SceneLoader.CurrentSceneGroup;
             
@@ -95,11 +93,8 @@ public sealed class NetworkActorManager
                     networkComponent.nextRotation = model.lastRotation;
 
                     actorManager.Actors.Add(model.actorId.Value, model);
-                    
-                    SrLogger.LogMessage($"Reloaded actor {model.actorId.Value} - {model.ident.name}");
                 }
             }
-            
         }
     }
 

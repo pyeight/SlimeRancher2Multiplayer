@@ -41,6 +41,9 @@ public sealed class Main : SR2EExpansionV3
     internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
     public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
+    
+    // Made this because of a bug in the server handler of ActorSpawnPacket where TrySpawnNetworkActor
+    // was given `packet.Type` instead of `packet.ActorType` causing it to always be RockPlort (persistent id 25)
     public static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
 
     public override void OnLateInitializeMelon()
