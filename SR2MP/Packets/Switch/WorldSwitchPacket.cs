@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Switch;
 
-public struct WorldSwitchPacket : IPacket
+public sealed class WorldSwitchPacket : IPacket
 {
     public byte Type { get; set; }
 
@@ -10,7 +10,7 @@ public struct WorldSwitchPacket : IPacket
     public SwitchHandler.State State { get; set; }
     public bool Immediate { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
+    public void Serialise(PacketWriter writer)
     {
         writer.WriteByte(Type);
         writer.WriteString(ID);
