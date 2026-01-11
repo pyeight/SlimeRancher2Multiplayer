@@ -14,7 +14,7 @@ public static class OnGameLoadPatch
         {
             foreach (var actor in SceneContext.Instance.GameModel.identifiables)
             {
-                if (actor.Value.TryCast<ActorModel>() == null) continue;
+                if (actor.value.TryCast<ActorModel>() == null) continue;
 
                 var transform = actor.value.Transform;
 

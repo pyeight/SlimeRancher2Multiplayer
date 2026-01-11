@@ -141,7 +141,7 @@ public sealed class RemoteFXManager
 
         if (cueMap == null)
             return false;
-        
+
         foreach (var pair in cueMap)
         {
             if (pair.Value != cue)

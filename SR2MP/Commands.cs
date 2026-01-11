@@ -35,7 +35,7 @@ public sealed class ConnectCommand : SR2ECommand
         var input = args[0];
         string ip;
         int port;
-        
+
         if (input.Contains(':'))
         {
             var split = input.Split(':');
@@ -50,12 +50,12 @@ public sealed class ConnectCommand : SR2ECommand
             if (args.Length < 2 || !int.TryParse(args[1], out port))
                 return false;
         }
-        
+
         if (ip.StartsWith("[") && ip.EndsWith("]"))
         {
             ip = ip[1..^1];
         }
-        
+
         try
         {
             var addresses = Dns.GetHostAddresses(ip);

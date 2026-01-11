@@ -1,3 +1,4 @@
+using Il2CppAssets.Script.Util.Extensions;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Loading;
@@ -19,25 +20,23 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
 
         actorManager.Actors.Clear();
 
-        var gameModel = SceneContext.Instance.GameModel;
-        
-        var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
-            gameModel.identifiables
-                .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
+        var toRemove = new CppCollections.List<IdentifiableModel>(
+            SceneContext.Instance.GameModel.identifiables._values
+               .Cast<CppCollections.IEnumerable<IdentifiableModel>>());
 
         foreach (var actor in toRemove)
         {
-            if (actor.value.ident.IsPlayer) continue;
+            if (actor.ident.IsPlayer) continue;
 
-            var gameObject = actor.value.GetGameObject();
+            var gameObject = actor.GetGameObject();
             if (gameObject)
                 Object.Destroy(gameObject);
 
-            gameModel.DestroyIdentifiableModel(actor.value);
+            SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor);
         }
 
-        gameModel._actorIdProvider._nextActorId = packet.StartingActorID;
-        
+        SceneContext.Instance.GameModel._actorIdProvider._nextActorId = packet.StartingActorID;
+
         foreach (var actor in packet.Actors)
         {
             actorManager.TrySpawnNetworkActor(new ActorId(actor.ActorId), actor.Position, actor.Rotation, actor.ActorType, actor.Scene, out _);

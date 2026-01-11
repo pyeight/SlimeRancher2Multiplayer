@@ -28,6 +28,7 @@ public sealed class ConnectAckPacket : IPacket
         Type = reader.ReadByte();
         PlayerId = reader.ReadString();
         OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Func);
+
         Money = reader.ReadInt();
         RainbowMoney = reader.ReadInt();
         AllowCheats = reader.ReadBool();

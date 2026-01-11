@@ -168,6 +168,9 @@ public sealed class PacketReader : IDisposable
     }
 }
 
+/// <summary>
+/// Reusable cached delegates to improve performance, add more for data types as needed to avoid excess GC overhead
+/// </summary>
 public static class PacketReaderDels
 {
     public static readonly Func<PacketReader, byte> Byte = reader => reader.ReadByte();

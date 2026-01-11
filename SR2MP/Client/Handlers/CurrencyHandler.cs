@@ -21,7 +21,7 @@ public sealed class CurrencyHandler : BaseClientPacketHandler
         var currencyDefinition = currency!.Cast<ICurrency>();
 
         var difference = packet.NewAmount - SceneContext.Instance.PlayerState.GetCurrency(currencyDefinition);
-        
+
         handlingPacket = true;
         if (difference < 0)
             SceneContext.Instance.PlayerState.SpendCurrency(currencyDefinition, -difference);

@@ -14,7 +14,7 @@ public sealed class NetworkPlayerFX : MonoBehaviour
         SendPacket();
     }
 
-    void SendPacket()
+    private void SendPacket()
     {
         if (handlingPacket) return;
 

@@ -19,7 +19,6 @@ public sealed class PlayerUpgradeHandler : BaseClientPacketHandler
 
         var upgrade = model.upgradeDefinitions.items._items.FirstOrDefault(
             x => x._uniqueId == packet.UpgradeID);
-       
 
         handlingPacket = true;
         model.IncrementUpgradeLevel(upgrade);

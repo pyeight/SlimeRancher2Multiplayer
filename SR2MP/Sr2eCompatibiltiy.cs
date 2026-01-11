@@ -5,7 +5,6 @@ using Il2CppTMPro;
 using MelonLoader;
 using SR2E;
 using SR2E.Expansion;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Collections;
 
@@ -158,7 +157,8 @@ internal sealed class MLEntrypoint : MelonMod
         try
         {
             var pillTex = Resources.FindObjectsOfTypeAll<AssetBundle>()
-                .FirstOrDefault(x => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle")!
+                // ReSharper disable once StringLiteralTypo
+               .FirstOrDefault(x => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle")!
                 .LoadAsset<Texture2D>("Assets/UI/Textures/MenuDemo/whitePillBg.png");
             pill = Sprite.Create(pillTex, new Rect(0f, 0f, pillTex.width, pillTex.height), new Vector2(0.5f, 0.5f), 1f);
         }

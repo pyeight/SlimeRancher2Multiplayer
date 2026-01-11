@@ -15,6 +15,7 @@ public sealed partial class MultiplayerUI
         Kicked,
         Error,
     }
+
     public enum ErrorType : byte
     {
         None,
@@ -22,6 +23,7 @@ public sealed partial class MultiplayerUI
         InvalidIP,
         IPNotFound,
     }
+
     public enum HelpTopic : byte
     {
         Root,

@@ -1,7 +1,4 @@
-using System.Net;
 using MelonLoader;
-using SR2E;
-using SR2E.Utils;
 
 namespace SR2MP.Components.UI;
 
@@ -78,9 +75,9 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         }
         AdjustInputValues();
     }
+
     private void DrawChat()
     {
         UnimplementedScreen();
     }
-
 }

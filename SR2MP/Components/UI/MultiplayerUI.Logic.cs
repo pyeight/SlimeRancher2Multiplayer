@@ -1,7 +1,4 @@
 using System.Net;
-using MelonLoader;
-using SR2E;
-using SR2E.Managers;
 using SR2E.Utils;
 using UnityEngine.InputSystem.Utilities;
 
@@ -17,15 +14,16 @@ public sealed partial class MultiplayerUI
         server.Start(port, true);
         Main.SetConfigValue("host_port", hostPortInput);
     }
+
     public void Connect(string ip, ushort port)
     {
         MenuEUtil.CloseOpenMenu();
-        
+
         if (ip.StartsWith("[") && ip.EndsWith("]"))
         {
             ip = ip[1..^1];
         }
-        
+
         try
         {
             var addresses = Dns.GetHostAddresses(ip);
@@ -48,6 +46,7 @@ public sealed partial class MultiplayerUI
         Main.SetConfigValue("recent_ip", ipInput);
         Main.SetConfigValue("recent_port", portInput);
     }
+
     public void Kick(string player) { }
 
     private void Update()

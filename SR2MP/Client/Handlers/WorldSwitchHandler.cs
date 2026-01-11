@@ -1,7 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.World;
-using SR2MP.Components.Actor;
-using SR2MP.Packets.Loading;
 using SR2MP.Packets.Switch;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
@@ -29,7 +27,6 @@ public sealed class WorldSwitchHandler : BaseClientPacketHandler
             {
                 var switchComponentBase = switchModel.gameObj.GetComponent<WorldSwitchModel.Participant>();
 
-
                 var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
                 var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
                 var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
@@ -43,8 +40,8 @@ public sealed class WorldSwitchHandler : BaseClientPacketHandler
         }
         else
         {
-            switchModel = new WorldSwitchModel 
-            { 
+            switchModel = new WorldSwitchModel
+            {
                 gameObj = null,
                 state = packet.State
             };

@@ -17,16 +17,7 @@ public static class Extensions
         return false;
     }
 
-    public static string ToStringYesOrNo(this bool value)
-    {
-        switch (value)
-        {
-            case true:
-                return "Yes";
-            case false:
-                return "No";
-        }
-    }
+    public static string ToStringYesOrNo(this bool value) => value ? "Yes" : "No";
     
     // https://discussions.unity.com/t/how-can-i-get-the-full-path-to-a-gameobject/412
     public static string GetGameObjectPath(this GameObject obj)

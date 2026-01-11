@@ -7,14 +7,13 @@ public sealed class GordosPacket : IPacket
     public struct Gordo : IPacket
     {
         public string Id { get; set; }
-        
 
         public int EatenCount { get; set; }
         public int RequiredEatCount { get; set; }
         public int GordoType { get; set; }
-        
+
         //public bool Popped { get; set; }
-        
+
         public readonly void Serialise(PacketWriter writer)
         {
             writer.WriteString(Id);
@@ -35,7 +34,6 @@ public sealed class GordosPacket : IPacket
     }
 
     public byte Type { get; set; }
-
 
     public List<Gordo> Gordos { get; set; }
 

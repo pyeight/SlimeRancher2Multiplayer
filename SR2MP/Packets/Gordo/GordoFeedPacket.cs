@@ -5,10 +5,10 @@ namespace SR2MP.Packets.Gordo;
 public struct GordoFeedPacket : IPacket
 {
     public byte Type { get; set; }
-    
+
     public string ID { get; set; }
     public int NewFoodCount { get; set; }
-    
+
     // Needed for unregistered gordos.
     public int RequiredFoodCount { get; set; }
     public int GordoType { get; set; }

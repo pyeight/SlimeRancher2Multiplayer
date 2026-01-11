@@ -8,7 +8,7 @@ public partial class NetworkPlayer
     private Transform rightArmLower;
     private Transform rightHand;
 
-    void SetupAnimations()
+    private void SetupAnimations()
     {
         rightArmUpper = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
         rightArmLower = animator.GetBoneTransform(HumanBodyBones.RightLowerArm);
@@ -16,7 +16,7 @@ public partial class NetworkPlayer
         rightShoulder = animator.GetBoneTransform(HumanBodyBones.RightShoulder);
     }
 
-    void AnimateArmY()
+    private void AnimateArmY()
     {
         if (IsLocal) return;
         if (!hasAnimationController) return;

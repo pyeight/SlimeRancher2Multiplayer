@@ -20,10 +20,10 @@ public static class OnGordoFed
             GordoType = NetworkActorManager.GetPersistentID(__instance.GordoModel.identifiableType)
         };
         Main.SendToAllOrServer(packet);
-        
+
         var soundPacket = new WorldFXPacket
         {
-            Type = (byte)PacketType.WorldFX, 
+            Type = (byte)PacketType.WorldFX,
             Position = __instance.transform.position,
             FX = WorldFXType.GordoFoodEatenSound
         };

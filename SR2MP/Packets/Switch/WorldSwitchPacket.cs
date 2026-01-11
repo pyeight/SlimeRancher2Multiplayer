@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Switch;
 public struct WorldSwitchPacket : IPacket
 {
     public byte Type { get; set; }
-    
+
     public string ID { get; set; }
     public SwitchHandler.State State { get; set; }
     public bool Immediate { get; set; }
