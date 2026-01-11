@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Geyser;
 
-public struct GeyserTriggerPacket : IPacket
+public sealed class GeyserTriggerPacket : IPacket
 {
     public byte Type { get; set; }
 
