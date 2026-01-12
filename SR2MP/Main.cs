@@ -1,5 +1,8 @@
-﻿using Il2CppTMPro;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
+using Il2CppTMPro;
 using MelonLoader;
+using MelonLoader.Utils;
 using SR2E.Expansion;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
@@ -13,6 +16,9 @@ namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
+    [DllImport("kernel32", CharSet = CharSet.Ansi)]
+    private static extern IntPtr LoadLibrary(string lpFileName);
+
     public static void SendToAllOrServer<T>(T packet) where T : IPacket
     {
         if (Client.IsConnected)
@@ -70,6 +76,7 @@ public sealed class Main : SR2EExpansionV3
         {
             case "SystemCore":
                 MainThreadDispatcher.Initialize();
+                DiscordRPCManager.Initialize();
 
                 var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
                 Object.DontDestroyOnLoad(forceTimeScale.gameObject);
@@ -86,6 +93,8 @@ public sealed class Main : SR2EExpansionV3
                     if (Client.IsConnected)
                         Client.Disconnect();
                 }));
+
+                playerManager.OnPlayerAdded += id => DiscordRPCManager.UpdatePresence();
 
                 break;
 
@@ -132,7 +141,6 @@ public sealed class Main : SR2EExpansionV3
         //    SR2ELanguageManger.AddTranslation("Multiplayer", "b.multiplayer", "UI"),
         //    5,
         //    () => SrLogger.LogMessage("Multiplayer menu open"));
-
     }
 
     internal static void SetConfigValue<T>(string key, T value)
@@ -140,5 +148,13 @@ public sealed class Main : SR2EExpansionV3
         var pref = preferences.GetEntry<T>(key);
         pref.Value = value;
         MelonPreferences.Save();
+    }
+
+    internal static void LoadRPCAssembly()
+    {
+        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
+        byte[] array = new byte[manifestResourceStream.Length];
+        _ = manifestResourceStream.Read(array, 0, array.Length);
+        Assembly.Load(array);
     }
 }
