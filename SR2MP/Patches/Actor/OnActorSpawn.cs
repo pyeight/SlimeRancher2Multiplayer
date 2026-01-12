@@ -11,31 +11,6 @@ namespace SR2MP.Patches.Actor;
 [HarmonyPatch(typeof(InstantiationHelpers), nameof(InstantiationHelpers.InstantiateActor))]
 public static class OnActorSpawn
 {
-    private static int cachedPlayerIndex = -1;
-
-    private static int GetLocalPlayerIndex()
-    {
-        if (cachedPlayerIndex != -1)
-        {
-            return cachedPlayerIndex;
-        }
-
-        int i = 0;
-
-        foreach (var player in playerObjects)
-        {
-            if (LocalID == player.Key)
-            {
-                cachedPlayerIndex = i;
-                return i;
-            }
-
-            i++;
-        }
-
-        return 0;
-    }
-
     private static IEnumerator SpawnOverNetwork(int actorType, byte sceneGroup, GameObject actor)
     {
         yield return null;
@@ -55,17 +30,6 @@ public static class OnActorSpawn
         Main.SendToAllOrServer(packet);
 
         actorManager.Actors[id.Value] = actor.GetComponent<IdentifiableActor>()._model;
-    }
-
-    public static void Prefix()
-    {
-        var nextId = SceneContext.Instance.GameModel._actorIdProvider._nextActorId;
-        var playerOffset = GetLocalPlayerIndex() * 10000;
-
-        if (nextId < 10000)
-        {
-            SceneContext.Instance.GameModel._actorIdProvider._nextActorId += playerOffset;
-        }
     }
 
     public static void Postfix(

@@ -1,6 +1,7 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
+using Il2CppMonomiPark.SlimeRancher.Event;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
@@ -48,6 +49,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
+        SendMapPacket(clientEp);
         SendPricesPacket(clientEp);
         SendGordosPacket(clientEp);
         SendSwitchesPacket(clientEp);
@@ -87,6 +89,27 @@ public sealed class ConnectHandler : BasePacketHandler
         };
 
         Main.Server.SendToClient(pediasPacket, client);
+    }
+
+    private static void SendMapPacket(IPEndPoint client)
+    {
+        if (!SceneContext.Instance.eventDirector._model.table.TryGetValue(MapEventKey, out var maps))
+        {
+            maps = new CppCollections.Dictionary<string, EventRecordModel.Entry>();
+            SceneContext.Instance.eventDirector._model.table[MapEventKey] = maps;
+        };
+
+        var mapsList = new List<string>();
+        
+        foreach (var map in maps)
+            mapsList.Add(map.Key);
+
+        var mapPacket = new MapPacket()
+        {
+            UnlockedNodes = mapsList
+        };
+
+        Main.Server.SendToClient(mapPacket, client);
     }
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)

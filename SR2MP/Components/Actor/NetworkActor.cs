@@ -2,6 +2,8 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
+using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
+using Il2CppMonomiPark.SlimeRancher.World;
 using MelonLoader;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Utils;
@@ -67,6 +69,17 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void Start()
     {
+        if (GetComponent<Gadget>())
+        {
+            Destroy(this);
+            return;
+        }
+        if (GetComponent<SRCharacterController>())
+        {
+            Destroy(this);
+            return;
+        }
+        
         emotions = GetComponent<SlimeEmotions>();
         cachedLocallyOwned = LocallyOwned;
         rigidbody = GetComponent<Rigidbody>();

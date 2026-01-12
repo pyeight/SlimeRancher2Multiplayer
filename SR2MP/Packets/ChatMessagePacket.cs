@@ -7,8 +7,8 @@ public sealed class ChatMessagePacket : IPacket
     public string PlayerId { get; set; }
     public string Message { get; set; }
     public long Timestamp { get; set; }
-    public PacketType Type { get; set; }
-
+    public PacketType Type => PacketType.ChatMessage;
+    
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(PlayerId);

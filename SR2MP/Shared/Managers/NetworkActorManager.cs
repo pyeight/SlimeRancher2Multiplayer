@@ -1,5 +1,6 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
@@ -34,7 +35,7 @@ public sealed class NetworkActorManager
         {
             yield return new WaitForSceneGroupLoad(false);
             yield return new WaitForSceneGroupLoad(true);
-
+            
             if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
                 continue;
 
@@ -42,19 +43,19 @@ public sealed class NetworkActorManager
                 continue;
 
             var gameModel = SceneContext.Instance?.GameModel;
-            if (!gameModel)
+            if (!gameModel) 
                 continue;
 
             var scene = SystemContext.Instance.SceneLoader.CurrentSceneGroup;
-
+            
             foreach (var actor in gameModel!.identifiables)
             {
                 if (actor.value.ident.IsPlayer)
                     continue;
-
+                
                 if (actor.value.TryCast<ActorModel>() == null)
                     continue;
-
+                
                 var obj = actor.value.GetGameObject();
                 if (obj)
                 {
@@ -62,17 +63,17 @@ public sealed class NetworkActorManager
                     Actors.Remove(actor.value.actorId.Value);
                 }
             }
-
+            
             foreach (var actor2 in gameModel!.identifiables)
             {
                 if (actor2.value.ident.IsPlayer)
                     continue;
-
+                
                 var model = actor2.value.TryCast<ActorModel>();
 
                 if (model == null)
                     continue;
-
+                
                 if (!model.ident.prefab)
                     continue;
 
@@ -81,7 +82,7 @@ public sealed class NetworkActorManager
                     handlingPacket = true;
                     var obj = InstantiationHelpers.InstantiateActorFromModel(model);
                     handlingPacket = false;
-
+                    
                     if (!obj)
                         continue;
 
@@ -98,21 +99,39 @@ public sealed class NetworkActorManager
         }
     }
 
+    private bool ActorIDAlreadyInUse(ActorId id)
+    {
+        var gameModel = SceneContext.Instance?.GameModel;
+
+        if (!gameModel)
+        {
+            return false;
+        }
+
+        return gameModel!.TryGetIdentifiableModel(id, out _);
+    }
+    
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out ActorModel? actorModel)
     {
         actorModel = null;
-
+        
+        
         if (Main.RockPlortBug)
             typeId = 25;
         
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var type = actorManager.ActorTypes[typeId];
 
+        if (!type.prefab)
+            return false;
+        
         if (type.isGadget())
         {
             SrLogger.LogWarning($"Tried to spawn gadget over the network, this hasnt been implemented yet!\n\tActor {actorId.Value}: {type.name}");
             return false;
         }
+        
+        if (ActorIDAlreadyInUse(actorId))
         
         actorModel = SceneContext.Instance.GameModel.CreateActorModel(
                 actorId,
@@ -148,7 +167,7 @@ public sealed class NetworkActorManager
             networkComponent.previousRotation = rotation;
             networkComponent.nextRotation = rotation;
             actor.transform.position = position;
-            actorManager.Actors.Add(actorId.Value, actorModel);
+            actorManager.Actors[actorId.Value] = actorModel;
         }
         
         return true;
@@ -166,7 +185,7 @@ public sealed class NetworkActorManager
                 {
                     result = id;
                 }
-            }
+            }    
         }
         return result;
     }
