@@ -168,12 +168,24 @@ jobs:
             This release contains the latest automated build artifacts.
 
             **Compiled from Branch:** `${{ github.ref_name }}`
-            **SR2 Version:** ${{ steps.manifest_lookup.outputs.manifest_id_long }}
-            **SR2E Version:** ${{ steps.script_execution.outputs.sr2e_version }}
-            **MelonLoader:** ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}
+            **SR2 Version:** `${{ steps.manifest_lookup.outputs.manifest_id_long }}`
+            **SR2E Version:** `${{ steps.script_execution.outputs.sr2e_version }}`
+            **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
+            **Run:** `GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"`
           draft: false
           prerelease: true
           files: FinalArtifacts/*.dll
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.WEBHOOK_URL }}
+          content: |
+            **Compiled from Branch:** `${{ github.ref_name }}`
+            **SR2 Version:** `${{ steps.manifest_lookup.outputs.manifest_id_long }}`
+            **SR2E Version:** `${{ steps.script_execution.outputs.sr2e_version }}`
+            **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
+            **Link:** `GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"`
