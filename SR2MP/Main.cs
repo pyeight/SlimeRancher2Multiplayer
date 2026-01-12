@@ -51,6 +51,8 @@ public sealed class Main : SR2EExpansionV3
 
     public override void OnLateInitializeMelon()
     {
+        InsertLicensesFile();
+        
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
@@ -156,5 +158,12 @@ public sealed class Main : SR2EExpansionV3
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Assembly.Load(array);
+    }
+    internal static void InsertLicensesFile()
+    {
+        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
+        byte[] array = new byte[manifestResourceStream.Length];
+        _ = manifestResourceStream.Read(array, 0, array.Length);
+        File.WriteAllBytes(MelonEnvironment.UserDataDirectory + "/SR2MP/THIRD-PARTY-NOTICES.txt", array);
     }
 }
