@@ -166,8 +166,10 @@ jobs:
           name: Continuous Build
           body: |
             This release contains the latest automated build artifacts.
-            **SR2 Version:** ${{ steps.script_execution.outputs.sr2e_version }}
-            **SR2E Version:** ${{ steps.manifest_lookup.outputs.manifest_id_long }}
+
+            **Compiled from Branch:** `${{ github.ref_name }}`
+            **SR2 Version:** ${{ steps.manifest_lookup.outputs.manifest_id_long }}
+            **SR2E Version:** ${{ steps.script_execution.outputs.sr2e_version }}
             **MelonLoader:** ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}
           draft: false
           prerelease: true
