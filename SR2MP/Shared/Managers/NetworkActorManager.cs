@@ -130,8 +130,9 @@ public sealed class NetworkActorManager
             SrLogger.LogWarning($"Tried to spawn gadget over the network, this hasnt been implemented yet!\n\tActor {actorId.Value}: {type.name}");
             return false;
         }
-        
+
         if (ActorIDAlreadyInUse(actorId))
+            return false;
         
         actorModel = SceneContext.Instance.GameModel.CreateActorModel(
                 actorId,
