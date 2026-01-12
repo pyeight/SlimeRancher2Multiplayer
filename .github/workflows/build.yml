@@ -171,7 +171,7 @@ jobs:
             **SR2 Version:** `${{ steps.manifest_lookup.outputs.manifest_id_long }}`
             **SR2E Version:** `${{ steps.script_execution.outputs.sr2e_version }}`
             **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
-            **Run:** `GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"`
+            **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           draft: false
           prerelease: true
           files: FinalArtifacts/*.dll
@@ -189,8 +189,7 @@ jobs:
             **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
             **Link:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          # Use jq to safely encode the multi-line string into JSON
-          # This prevents issues with special characters or newlines
+          # Safe JSON encoding with jq
           PAYLOAD=$(jq -n --arg content "$MESSAGE_CONTENT" '{content: $content}')
 
           curl -H "Content-Type: application/json" \
