@@ -38,5 +38,9 @@
       <Reference Include="DiscordRPC.dll">
           <Private>false</Private>
       </Reference>
+
+      <None Remove="THIRD-PARTY-NOTICES.txt" />
+
+      <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" />
     </ItemGroup>
 </Project>

@@ -46,4 +46,6 @@ public static class GlobalVariables
         : null;
 
     public static MarketUI? marketUIInstance;
+
+    public const string MapEventKey = "fogRevealed";
 }

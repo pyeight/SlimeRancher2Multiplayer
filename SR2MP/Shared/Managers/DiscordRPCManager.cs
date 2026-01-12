@@ -20,6 +20,10 @@ public static class DiscordRPCManager
         LabyrinthTerrarium,
         LabyrinthCore,
         MainMenu,
+        
+        // Introduce at like, 0.4 or 1.0..?
+        FinalBoss,
+        Ending,
     }
     // This can be public, do not freak out :)
     public const string DISCORD_APP_ID = "1422276739026911262";
@@ -40,6 +44,8 @@ public static class DiscordRPCManager
             {Zone.LabyrinthHub, "Staring at the Impossible Sky"},
             {Zone.LabyrinthCore, "Inspecting the Core"},
             {Zone.MainMenu, "Getting ready for adventures!"},
+            {Zone.FinalBoss, "Fighting it."},
+            {Zone.Ending, "Relaxing after the end"},
         });
     public static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
         new(new Dictionary<string, Zone>()
@@ -77,6 +83,8 @@ public static class DiscordRPCManager
             {Zone.LabyrinthDreamland, "dreamland"},
             {Zone.LabyrinthCore, "core"},
             {Zone.MainMenu, "mainmenu"},
+            {Zone.FinalBoss, "battle"},
+            {Zone.Ending, "ending"},
         });
 
     public const string DetailsStringOnline = "Playing in a group of {0} players";
@@ -98,6 +106,7 @@ public static class DiscordRPCManager
     }
     
     public static ZoneDefinition? currentZone;
+    public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
     
     internal static void UpdatePresence()
     {
@@ -109,9 +118,13 @@ public static class DiscordRPCManager
                 ? DetailsStringOnlineSolo
                 : string.Format(DetailsStringOnline, playerManager.PlayerCount)
             : DetailsStringOffline;
+        var currentLocation = currentZone ? DefinitionToZone[currentZone!.name] : Zone.MainMenu;
+
+        //if (IsInEndingCutscene)
+        //    currentLocation = Zone.Ending;
         
-        var status = currentZone ? ZoneToStatus[DefinitionToZone[currentZone!.name]] : ZoneToStatus[Zone.MainMenu];
-        var icon = currentZone ? ZoneToIcon[DefinitionToZone[currentZone!.name]] : ZoneToIcon[Zone.MainMenu];
+        var status = ZoneToStatus[currentLocation];
+        var icon = ZoneToIcon[currentLocation];
 
         rpcClient.SetPresence(new RichPresence
         {

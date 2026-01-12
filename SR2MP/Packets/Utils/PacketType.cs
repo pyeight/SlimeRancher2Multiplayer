@@ -41,4 +41,6 @@ public enum PacketType : byte
     SwitchActivate = 36,          // Both Ways                                                                          On Switch Activated
     ActorUnload = 37,             // Both Ways                                                                          On Actor unloaded
     GeyserTrigger = 38,           // Both Ways                                                                          On Geyser Fired
+    MapUnlock = 39,               // Both Ways                                                                          On Geyser Fired
+    InitialMap = 40,              // Server -> Client                                                                   Map on Load
 }
