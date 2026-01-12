@@ -19,7 +19,7 @@ public static class PacketChunkManager
     internal static bool TryMergePacket(PacketType packetType, byte[] data, byte chunkIndex, byte totalChunks, out byte[] fullData)
     {
         fullData = null!;
-
+        
         if (chunkIndex >= totalChunks)
         {
             SrLogger.LogWarning($"Rejected packet: chunkIndex={chunkIndex} >= totalChunks={totalChunks}");
