@@ -1,6 +1,7 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Slime;
+using SR2MP.Packets.Actor;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
@@ -37,6 +38,12 @@ public sealed class ActorUpdateHandler : BasePacketHandler
 
             if (slime != null)
                 networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
+
+            if (networkComponent.regionMember?._hibernating == true)
+            {
+                networkComponent.transform.position = packet.Position;
+                networkComponent.transform.rotation = packet.Rotation;
+            }
         }
 
         Main.Server.SendToAllExcept(packet, clientEp);

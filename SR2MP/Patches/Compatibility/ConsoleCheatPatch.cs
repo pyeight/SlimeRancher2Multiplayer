@@ -1,5 +1,4 @@
 using HarmonyLib;
-using SR2E;
 using SR2E.Managers;
 
 namespace SR2MP.Patches.Compatibility;
@@ -16,7 +15,7 @@ public static class ConsoleCheatPatch
             return true;
 
         var containsCheat = false;
-        
+
         // Code copied from SR2E
         string[] cmds = input.Split(';');
         foreach (string cc in cmds)

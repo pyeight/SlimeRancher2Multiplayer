@@ -22,7 +22,7 @@ public static class GUILayoutAreaFix
         }
 
         GUI.BeginGroup(g.rect, content, style);
-        
+
         return false;
     }
 }

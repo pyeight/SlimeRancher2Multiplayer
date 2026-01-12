@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Packets.FX;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
@@ -21,7 +22,8 @@ public sealed class WorldFXHandler : BasePacketHandler
             var fxPrefab = fxManager.WorldFXMap[packet.FX];
 
             handlingPacket = true;
-            FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
+            try { FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity); }
+            catch { }
             handlingPacket = false;
         }
         else

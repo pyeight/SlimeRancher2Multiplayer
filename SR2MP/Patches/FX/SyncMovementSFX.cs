@@ -1,6 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.FX;
 
 namespace SR2MP.Patches.FX;
 
@@ -18,7 +18,6 @@ public static class SyncMovementSfx
 
         var packet = new MovementSoundPacket
         {
-            Type = (byte)PacketType.MovementSound,
             CueName = cue.name,
             Position = __instance.Position,
         };

@@ -1,3 +1,4 @@
+using SR2MP.Packets;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
@@ -12,7 +13,7 @@ public sealed class ChatMessageHandler : BaseClientPacketHandler
     public override void Handle(byte[] data)
     {
         using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<BroadcastChatMessagePacket>();
+        var packet = reader.ReadPacket<ChatMessagePacket>();
 
         DateTime messageTime = DateTimeOffset.FromUnixTimeMilliseconds(packet.Timestamp).UtcDateTime;
 

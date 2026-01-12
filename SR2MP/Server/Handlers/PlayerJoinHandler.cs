@@ -1,5 +1,6 @@
 using System.Net;
 using SR2MP.Components.Player;
+using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
@@ -33,7 +34,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler
 
         var joinPacket = new PlayerJoinPacket
         {
-            Type = (byte)PacketType.BroadcastPlayerJoin,
+            Type = PacketType.BroadcastPlayerJoin,
             PlayerId = playerId,
             PlayerName = packet.PlayerName
         };

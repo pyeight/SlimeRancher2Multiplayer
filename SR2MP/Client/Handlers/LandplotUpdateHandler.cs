@@ -1,3 +1,4 @@
+using SR2MP.Packets.Landplot;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
@@ -23,10 +24,10 @@ public sealed class LandPlotUpdateHandler : BaseClientPacketHandler
             if (!model.gameObj) return;
 
             var location = model.gameObj.GetComponent<LandPlotLocation>();
-            var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
+            var landPlotComponent2 = model.gameObj.GetComponentInChildren<LandPlot>();
 
             handlingPacket = true;
-            location.Replace(landPlotComponent,
+            location.Replace(landPlotComponent2,
                 GameContext.Instance.LookupDirector._plotPrefabDict[packet.PlotType]);
             handlingPacket = false;
 
@@ -36,11 +37,10 @@ public sealed class LandPlotUpdateHandler : BaseClientPacketHandler
         model.upgrades.Add(packet.PlotUpgrade);
 
         if (!model.gameObj) return;
-        {
-            var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
-            handlingPacket = true;
-            landPlotComponent.AddUpgrade(packet.PlotUpgrade);
-            handlingPacket = false;
-        }
+
+        var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
+        handlingPacket = true;
+        landPlotComponent.AddUpgrade(packet.PlotUpgrade);
+        handlingPacket = false;
     }
 }

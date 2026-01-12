@@ -1,5 +1,5 @@
 using HarmonyLib;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.Landplot;
 
 namespace SR2MP.Patches.Plots;
 
@@ -17,7 +17,6 @@ public static class UpgradeLandPlot
 
         var packet = new LandPlotUpdatePacket
         {
-            Type = (byte)PacketType.LandPlotUpdate,
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id,
             PlotUpgrade = upgrade,
             IsUpgrade = true

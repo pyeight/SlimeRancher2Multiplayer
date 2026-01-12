@@ -133,11 +133,17 @@ public sealed class PacketReader : IDisposable
         return dict;
     }
 
-    public T ReadPacket<T>() where T : IPacket, new()
+    public T ReadNetObject<T>() where T : INetObject, new()
     {
         var result = new T();
         result.Deserialise(this);
         return result;
+    }
+
+    public T ReadPacket<T>() where T : IPacket, new()
+    {
+        _stream.Position++;
+        return ReadNetObject<T>();
     }
 
     public bool ReadPackedBool()
@@ -168,6 +174,9 @@ public sealed class PacketReader : IDisposable
     }
 }
 
+/// <summary>
+/// Reusable cached delegates to improve performance, add more for data types as needed to avoid excess GC overhead
+/// </summary>
 public static class PacketReaderDels
 {
     public static readonly Func<PacketReader, byte> Byte = reader => reader.ReadByte();
@@ -178,6 +187,11 @@ public static class PacketReaderDels
     public static class Packet<T> where T : IPacket, new()
     {
         public static readonly Func<PacketReader, T> Func = reader => reader.ReadPacket<T>();
+    }
+
+    public static class NetObject<T> where T : INetObject, new()
+    {
+        public static readonly Func<PacketReader, T> Func = reader => reader.ReadNetObject<T>();
     }
 
     public static class Enum<T> where T : struct, Enum
@@ -232,17 +246,17 @@ public static class PacketReaderDels
             var readCalls = new Expression[componentTypes.Length];
 
             for (var i = 0; i < componentTypes.Length; i++)
-                readCalls[i] = GetReadExpression(readerParam, componentTypes[i]);
+                readCalls[i] = Expression.Call(readerParam, GetReadExpression(componentTypes[i]));
 
             var constructor = typeof(TTuple).GetConstructor(componentTypes) ?? throw new InvalidOperationException($"Could not find constructor for tuple {typeof(TTuple)}");
             var newTuple = Expression.New(constructor, readCalls);
             return Expression.Lambda<Func<PacketReader, TTuple>>(newTuple, readerParam).Compile();
         }
 
-        private static Expression GetReadExpression(ParameterExpression readerParam, Type type)
+        private static MethodInfo GetReadExpression(Type type)
         {
             if (TypeReadCache.TryGetValue(type, out var method))
-                return Expression.Call(readerParam, method);
+                return method;
 
             // Possibly the only time I'll ever use single line if statements; I'd rather DIE than do this again lmao
             if (type == typeof(byte)) method = Method(nameof(PacketReader.ReadByte));
@@ -262,12 +276,13 @@ public static class PacketReaderDels
             else if (type == typeof(Quaternion)) method = Method(nameof(PacketReader.ReadQuaternion));
             else if (type.IsEnum) method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
             else if (typeof(IPacket).IsAssignableFrom(type)) method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
+            else if (typeof(INetObject).IsAssignableFrom(type)) method = Method(nameof(PacketReader.ReadNetObject)).MakeGenericMethod(type);
 
             if (method == null)
                 throw new NotSupportedException($"Type {type.Name} is not supported in automatic Tuple deserialization.");
 
             TypeReadCache[type] = method;
-            return Expression.Call(readerParam, method);
+            return method;
         }
 
         private static MethodInfo Method(string name) =>

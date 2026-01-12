@@ -1,5 +1,4 @@
-using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2MP.Components.Actor;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
@@ -16,29 +15,6 @@ public sealed class ActorSpawnHandler : BaseClientPacketHandler
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorSpawnPacket>();
 
-        var model = SceneContext.Instance.GameModel.CreateActorModel(
-            packet.ActorId,
-            actorManager.ActorTypes[packet.ActorType],
-            SystemContext.Instance.SceneLoader.DefaultGameplaySceneGroup,
-            packet.Position,
-            packet.Rotation)
-            .TryCast<ActorModel>();
-
-        if (model == null)
-            return;
-
-        handlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model);
-        handlingPacket = false;
-
-        if (!actor)
-            return;
-        var networkComponent = actor.AddComponent<NetworkActor>();
-        networkComponent.previousPosition = packet.Position;
-        networkComponent.nextPosition = packet.Position;
-        networkComponent.previousRotation = packet.Rotation;
-        networkComponent.nextRotation = packet.Rotation;
-        actor.transform.position = packet.Position;
-        actorManager.Actors.Add(packet.ActorId.Value, model);
+        actorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out _);
     }
 }

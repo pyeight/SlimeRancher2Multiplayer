@@ -7,9 +7,9 @@ public sealed partial class MultiplayerUI
     private bool viewingSettings = false;
     private bool firstTime = true;
     private bool viewingHelp = false;
-    
+
     public MenuState state = MenuState.Hidden;
-    
+
     private bool GetIsLoading()
     {
         switch (SystemContext.Instance.SceneLoader.CurrentSceneGroup.name)
@@ -22,7 +22,7 @@ public sealed partial class MultiplayerUI
 
         return false;
     }
-    
+
     private MenuState GetState()
     {
         if (hidden) return MenuState.Hidden;
@@ -37,7 +37,7 @@ public sealed partial class MultiplayerUI
         if (firstTime) return MenuState.SettingsInitial;
         if (viewingSettings) return MenuState.SettingsMain;
         if (viewingHelp) return MenuState.SettingsHelp;
-        
+
         if (connected) return MenuState.ConnectedClient;
         if (hosting) return MenuState.ConnectedHost;
         return inGame ? MenuState.DisconnectedInGame : MenuState.DisconnectedMainMenu;

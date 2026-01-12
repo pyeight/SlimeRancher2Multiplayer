@@ -2,10 +2,13 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
+using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
+using Il2CppMonomiPark.SlimeRancher.World;
 using MelonLoader;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.Actor;
 using SR2MP.Shared.Utils;
 using Unity.Mathematics;
+
 using Delegate = Il2CppSystem.Delegate;
 using Type = Il2CppSystem.Type;
 
@@ -14,14 +17,37 @@ namespace SR2MP.Components.Actor;
 [RegisterTypeInIl2Cpp(false)]
 public sealed class NetworkActor : MonoBehaviour
 {
-    private RegionMember regionMember;
+    internal RegionMember regionMember;
     private IdentifiableActor identifiableActor;
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
 
     private float syncTimer = Timers.ActorTimer;
     public Vector3 SavedVelocity { get; internal set; }
-    private ActorId ActorId => identifiableActor._model.actorId;
+
+    private byte attemptedGetIdentifiable = 0;
+
+    private ActorId ActorId
+    {
+        get
+        {
+            if (!identifiableActor)
+            {
+                identifiableActor = GetComponent<IdentifiableActor>();
+                attemptedGetIdentifiable++;
+
+                if (attemptedGetIdentifiable >= 10)
+                {
+                    Destroy(this);
+                }
+
+                return new ActorId(0);
+            }
+
+            return identifiableActor._model.actorId;
+        }
+    }
+
     public bool LocallyOwned { get; set; }
     private bool cachedLocallyOwned;
 
@@ -41,8 +67,19 @@ public sealed class NetworkActor : MonoBehaviour
                                     ? emotions._model.Emotions
                                     : new float4(0, 0, 0, 0);
 
-    void Start()
+    private void Start()
     {
+        if (GetComponent<Gadget>())
+        {
+            Destroy(this);
+            return;
+        }
+        if (GetComponent<SRCharacterController>())
+        {
+            Destroy(this);
+            return;
+        }
+        
         emotions = GetComponent<SlimeEmotions>();
         cachedLocallyOwned = LocallyOwned;
         rigidbody = GetComponent<Rigidbody>();
@@ -63,17 +100,24 @@ public sealed class NetworkActor : MonoBehaviour
     {
         yield return null;
 
-        if (!value) yield break;
-
-        LocallyOwned = true;
-
-        var packet = new ActorTransferPacket
+        if (value)
         {
-            Type = (byte)PacketType.ActorTransfer,
-            ActorId = ActorId,
-            OwnerPlayer = LocalID,
-        };
-        Main.SendToAllOrServer(packet);
+            LocallyOwned = false;
+
+            var packet = new ActorUnloadPacket() { ActorId = ActorId };
+            Main.SendToAllOrServer(packet);
+        }
+        else
+        {
+            LocallyOwned = true;
+
+            var packet = new ActorTransferPacket
+            {
+                ActorId = ActorId,
+                OwnerPlayer = LocalID,
+            };
+            Main.SendToAllOrServer(packet);
+        }
     }
 
     public void HibernationChanged(bool value)
@@ -81,7 +125,7 @@ public sealed class NetworkActor : MonoBehaviour
         MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
     }
 
-    void UpdateInterpolation()
+    private void UpdateInterpolation()
     {
         if (LocallyOwned) return;
 
@@ -92,7 +136,7 @@ public sealed class NetworkActor : MonoBehaviour
         transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
     }
 
-    void Update()
+    private void Update()
     {
         if (cachedLocallyOwned != LocallyOwned)
         {
@@ -122,7 +166,6 @@ public sealed class NetworkActor : MonoBehaviour
 
             var packet = new ActorUpdatePacket
             {
-                Type = (byte)PacketType.ActorUpdate,
                 ActorId = ActorId,
                 Position = transform.position,
                 Rotation = transform.rotation,

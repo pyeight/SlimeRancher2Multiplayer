@@ -1,5 +1,5 @@
 using MelonLoader;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.FX;
 
 namespace SR2MP.Components.FX;
 
@@ -13,13 +13,12 @@ public sealed class NetworkWorldFX : MonoBehaviour
         SendPacket();
     }
 
-    void SendPacket()
+    private void SendPacket()
     {
         if (handlingPacket) return;
 
         var packet = new WorldFXPacket
         {
-            Type = (byte)PacketType.WorldFX,
             FX = fxType,
             Position = transform.position
         };

@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Slime;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
@@ -34,6 +35,18 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler
         networkComponent.SavedVelocity = packet.Velocity;
         networkComponent.nextPosition = packet.Position;
         networkComponent.nextRotation = packet.Rotation;
+        
+        if (networkComponent.regionMember?._hibernating == true)
+        {
+            networkComponent.transform.position = packet.Position;
+            networkComponent.transform.rotation = packet.Rotation;
+        }
+
+        if (networkComponent.regionMember?._hibernating == true)
+        {
+            networkComponent.transform.position = packet.Position;
+            networkComponent.transform.rotation = packet.Rotation;
+        }
 
         if (slime != null)
             networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);

@@ -1,4 +1,5 @@
 using MelonLoader;
+using SR2MP.Packets.Time;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 
@@ -11,12 +12,12 @@ public sealed class NetworkTime : MonoBehaviour
 
     private float sendTimer;
 
-    void Awake()
+    private void Awake()
     {
         timeDirector = GetComponent<TimeDirector>();
     }
 
-    void Update()
+    private void Update()
     {
         sendTimer += UnityEngine.Time.deltaTime;
 
@@ -27,7 +28,7 @@ public sealed class NetworkTime : MonoBehaviour
 
         var packet = new WorldTimePacket
         {
-            Type = (byte)PacketType.WorldTime,
+            Type = PacketType.WorldTime,
             Time = timeDirector._worldModel.worldTime
         };
 

@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Packets;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
@@ -20,9 +21,8 @@ public sealed class ChatMessageHandler : BasePacketHandler
         SrLogger.LogMessage($"Chat message from {packet.PlayerId}: {packet.Message}",
             $"Chat message from {clientEp} ({packet.PlayerId}): {packet.Message}");
 
-        var broadcastPacket = new BroadcastChatMessagePacket
+        var broadcastPacket = new ChatMessagePacket
         {
-            Type = (byte)PacketType.BroadcastChatMessage,
             PlayerId = packet.PlayerId,
             Message = packet.Message,
             Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()

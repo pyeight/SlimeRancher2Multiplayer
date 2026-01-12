@@ -1,5 +1,5 @@
 using MelonLoader;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.FX;
 
 namespace SR2MP.Components.FX;
 
@@ -33,7 +33,7 @@ public sealed class NetworkPlayerSound : MonoBehaviour
         SendPacket();
     }
 
-    void SendPacket()
+    private void SendPacket()
     {
         // Defaults to PlayerFXType.None
         if (!fxManager.TryGetFXType(audioSource.Cue, out fxType))
@@ -43,7 +43,6 @@ public sealed class NetworkPlayerSound : MonoBehaviour
 
         var packet = new PlayerFXPacket
         {
-            Type = (byte)PacketType.PlayerFX,
             FX = fxType,
             Player = LocalID
         };

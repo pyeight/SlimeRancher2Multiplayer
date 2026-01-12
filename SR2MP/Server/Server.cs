@@ -1,4 +1,6 @@
 using System.Net;
+using SR2MP.Packets;
+using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
@@ -75,12 +77,12 @@ public sealed class Server
     {
         var leavePacket = new PlayerLeavePacket
         {
-            Type = (byte)PacketType.BroadcastPlayerLeave,
+            Type = PacketType.BroadcastPlayerLeave,
             PlayerId = client.PlayerId
         };
 
         using var writer = new PacketWriter();
-        leavePacket.Serialise(writer);
+        writer.WritePacket(leavePacket);
         byte[] data = writer.ToArray();
 
         foreach (var otherClient in clientManager.GetAllClients())
@@ -113,13 +115,10 @@ public sealed class Server
             timeoutTimer?.Dispose();
             timeoutTimer = null;
 
-            var closePacket = new ClosePacket
-            {
-                Type = (byte)PacketType.Close
-            };
+            var closePacket = new ClosePacket();
 
             using var writer = new PacketWriter();
-            closePacket.Serialise(writer);
+            writer.WritePacket(closePacket);
             byte[] data = writer.ToArray();
 
             foreach (var client in clientManager.GetAllClients())
@@ -148,7 +147,7 @@ public sealed class Server
     public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
     {
         using var writer = new PacketWriter();
-        packet.Serialise(writer);
+        writer.WritePacket(packet);
         networkManager.Send(writer.ToArray(), endPoint);
     }
 
@@ -160,7 +159,7 @@ public sealed class Server
     public void SendToAll<T>(T packet) where T : IPacket
     {
         using var writer = new PacketWriter();
-        packet.Serialise(writer);
+        writer.WritePacket(packet);
         byte[] data = writer.ToArray();
 
         foreach (var client in clientManager.GetAllClients())
@@ -172,7 +171,7 @@ public sealed class Server
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
     {
         using var writer = new PacketWriter();
-        packet.Serialise(writer);
+        writer.WritePacket(packet);
         byte[] data = writer.ToArray();
 
         foreach (var client in clientManager.GetAllClients())

@@ -1,3 +1,4 @@
+using SR2MP.Packets.Upgrades;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
@@ -18,7 +19,6 @@ public sealed class PlayerUpgradeHandler : BaseClientPacketHandler
 
         var upgrade = model.upgradeDefinitions.items._items.FirstOrDefault(
             x => x._uniqueId == packet.UpgradeID);
-       
 
         handlingPacket = true;
         model.IncrementUpgradeLevel(upgrade);

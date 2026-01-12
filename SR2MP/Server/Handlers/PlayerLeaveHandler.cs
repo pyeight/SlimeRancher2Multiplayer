@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 
@@ -26,7 +27,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler
         {
             var leavePacket = new PlayerLeavePacket
             {
-                Type = (byte)PacketType.BroadcastPlayerLeave,
+                Type = PacketType.BroadcastPlayerLeave,
                 PlayerId = playerId
             };
 

@@ -1,6 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.Pedia;
 
 namespace SR2MP.Patches.Pedia;
 
@@ -13,7 +13,6 @@ public static class OnEntryUnlocked
 
         var packet = new PediaUnlockPacket()
         {
-            Type = (byte)PacketType.PediaUnlock,
             ID = entry.PersistenceId,
             Popup = showPopup
         };

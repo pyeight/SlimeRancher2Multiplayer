@@ -1,6 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.FX;
 
 namespace SR2MP.Patches.FX;
 
@@ -17,7 +17,6 @@ public static class OnPlayVacAudio
 
         var packet = new PlayerFXPacket
         {
-            Type = (byte)PacketType.PlayerFX,
             FX = fxType,
             Player = LocalID
         };

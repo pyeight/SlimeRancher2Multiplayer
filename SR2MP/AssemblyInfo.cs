@@ -19,6 +19,7 @@ using SR2E.Expansion;
 [assembly: MelonGame("MonomiPark", "SlimeRancher2")]
 
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.CoAuthors, BuildInfo.CoAuthors)]
+[assembly: AssemblyMetadata(SR2EExpansionAttributes.DisplayVersion, BuildInfo.DisplayVersion)]
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.MinSR2EVersion, BuildInfo.MinSr2EVersion)]
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.Contributors, BuildInfo.Contributors)]
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.SourceCode, BuildInfo.SourceCode)]
@@ -27,6 +28,7 @@ using SR2E.Expansion;
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.IsExpansion, "true")]
 
 [assembly: MelonAdditionalDependencies("SR2E")]
+[assembly: MelonOptionalDependencies("DiscordRPC")]
 
 // Modifies the minimum ML version required (mandatory)
 [assembly: VerifyLoaderVersion(0, 7, 1, true)]
@@ -40,21 +42,4 @@ internal static class GetEntrypointType
 {
     // ReSharper disable once InconsistentNaming
     public static Type type => typeof(Main);
-}
-
-// BuildInfo
-internal static class BuildInfo
-{
-    internal const string Name = "Slime Rancher 2 Multiplayer Mod";
-    internal const string Description = "Adds Multiplayer to Slime Rancher 2";
-    internal const string Author = "Shark";
-    internal const string CoAuthors = "";
-    internal const string Contributors = "AlchlcSystm, shizophrenicgopher, PinkTarr";
-    internal const string Company = "";
-    internal const string Version = "0.1.2";
-    internal const string DownloadLink = "https://discord.com/invite/a7wfBw5feU";
-    internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
-    internal const string Nexus = "";
-    internal const string UsePrism = "false";
-    internal const string MinSr2EVersion = SR2E.BuildInfo.CodeVersion; // e.g "3.4.3", the min required SR2 version. No beta or alpha versions
 }

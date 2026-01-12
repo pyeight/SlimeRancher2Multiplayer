@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Sockets;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
+using SR2MP.Packets;
+using SR2MP.Packets.Loading;
+using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
@@ -86,15 +89,14 @@ public sealed class Client
                 IsBackground = true
             };
             receiveThread.Start();
-            
-            connectionTimeoutTimer = new Timer(CheckConnectionTimeout, null, 
+
+            connectionTimeoutTimer = new Timer(CheckConnectionTimeout, null,
                 TimeSpan.FromSeconds(ConnectionTimeoutSeconds), Timeout.InfiniteTimeSpan);
 
             Application.quitting += new Action(Disconnect);
 
             var connectPacket = new ConnectPacket
             {
-                Type = (byte)PacketType.Connect,
                 PlayerId = OwnPlayerId,
                 Username = Main.Username
             };
@@ -184,7 +186,6 @@ public sealed class Client
 
         var chatPacket = new ChatMessagePacket
         {
-            Type = (byte)PacketType.ChatMessage,
             PlayerId = OwnPlayerId,
             Message = message
         };
@@ -198,18 +199,18 @@ public sealed class Client
         // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
-    private void SendHeartbeat(object? state)
-    {
-        if (!isConnected)
-            return;
-    
-        var heartbeatPacket = new EmptyPacket
-        {
-            Type = (byte)PacketType.Heartbeat
-        };
-    
-        SendPacket(heartbeatPacket);
-    }
+    // private void SendHeartbeat(object? state)
+    // {
+    //     if (!isConnected)
+    //         return;
+
+    //     var heartbeatPacket = new EmptyPacket
+    //     {
+    //         Type = PacketType.Heartbeat
+    //     };
+
+    //     SendPacket(heartbeatPacket);
+    // }
 
     internal void SendPacket<T>(T packet) where T : IPacket
     {
@@ -222,7 +223,7 @@ public sealed class Client
         try
         {
             using var writer = new PacketWriter();
-            packet.Serialise(writer);
+            writer.WritePacket(packet);
             byte[] data = writer.ToArray();
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
@@ -253,7 +254,7 @@ public sealed class Client
             {
                 var leavePacket = new PlayerLeavePacket
                 {
-                    Type = (byte)PacketType.PlayerLeave,
+                    Type = PacketType.PlayerLeave,
                     PlayerId = OwnPlayerId
                 };
 
@@ -263,9 +264,9 @@ public sealed class Client
             {
                 SrLogger.LogWarning($"Could not send leave packet: {ex.Message}");
             }
-            
+
             isConnected = false;
-            
+
             if (heartbeatTimer != null)
             {
                 heartbeatTimer.Dispose();
@@ -277,7 +278,7 @@ public sealed class Client
                 connectionTimeoutTimer.Dispose();
                 connectionTimeoutTimer = null;
             }
-            
+
             if (udpClient != null)
             {
                 udpClient.Close();
@@ -285,7 +286,7 @@ public sealed class Client
             }
 
             // Give the receive thread a moment to exit normally
-            if (receiveThread != null && receiveThread.IsAlive)
+            if (receiveThread is { IsAlive: true })
             {
                 for (int i = 0; i < 20 && receiveThread.IsAlive; i++)
                 {
@@ -314,7 +315,7 @@ public sealed class Client
     internal void NotifyConnected()
     {
         connectionAcknowledged = true;
-        
+
         if (connectionTimeoutTimer != null)
         {
             connectionTimeoutTimer.Dispose();

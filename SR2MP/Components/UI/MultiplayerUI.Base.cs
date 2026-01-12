@@ -1,7 +1,4 @@
-using System.Net;
 using MelonLoader;
-using SR2E;
-using SR2E.Utils;
 
 namespace SR2MP.Components.UI;
 
@@ -16,6 +13,10 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         firstTime = Main.SetupUI;
         usernameInput = Main.Username;
         allowCheatsInput = Main.AllowCheats;
+        ipInput = Main.SavedConnectIP;
+        portInput = Main.SavedConnectPort;
+        hostPortInput = Main.SavedHostPort;
+
         if (Instance)
         {
             SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!", SrLogTarget.Both);
@@ -74,9 +75,9 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         }
         AdjustInputValues();
     }
+
     private void DrawChat()
     {
         UnimplementedScreen();
     }
-
 }

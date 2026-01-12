@@ -1,4 +1,5 @@
 using HarmonyLib;
+using SR2MP.Packets.Time;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Time;
@@ -15,7 +16,7 @@ public static class OnFastForward
         {
             var packet = new WorldTimePacket
             {
-                Type = (byte)PacketType.BroadcastFastForward,
+                Type = PacketType.BroadcastFastForward,
                 Time = fastForwardUntil
             };
 
@@ -25,7 +26,7 @@ public static class OnFastForward
         {
             var packet = new WorldTimePacket
             {
-                Type = (byte)PacketType.FastForward,
+                Type = PacketType.FastForward,
                 Time = fastForwardUntil
             };
 
