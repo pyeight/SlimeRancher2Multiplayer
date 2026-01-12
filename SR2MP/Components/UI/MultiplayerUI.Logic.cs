@@ -42,7 +42,7 @@ public sealed partial class MultiplayerUI
         }
 
         Main.Client.Connect(ip, port);
-        
+
         Main.SetConfigValue("recent_ip", ipInput);
         Main.SetConfigValue("recent_port", portInput);
     }

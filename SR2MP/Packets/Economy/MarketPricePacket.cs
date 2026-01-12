@@ -4,19 +4,11 @@ namespace SR2MP.Packets.Economy;
 
 public sealed class MarketPricePacket : IPacket
 {
-    public byte Type { get; set; }
-
     public (float Current, float Previous)[] Prices { get; set; }
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteArray(Prices, PacketWriterDels.Tuple<float, float>.Func);
-    }
+    public PacketType Type => PacketType.MarketPriceChange;
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        Prices = reader.ReadArray(PacketReaderDels.Tuple<float, float>.Func);
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteArray(Prices, PacketWriterDels.Tuple<float, float>.Func);
+
+    public void Deserialise(PacketReader reader) => Prices = reader.ReadArray(PacketReaderDels.Tuple<float, float>.Func);
 }

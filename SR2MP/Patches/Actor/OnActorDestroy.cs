@@ -1,6 +1,5 @@
 using HarmonyLib;
 using SR2MP.Packets.Actor;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Actor;
 
@@ -33,11 +32,7 @@ public static class OnActorDestroy
         actorManager.Actors.Remove(actor.GetActorId().Value);
         try
         {
-            var packet = new ActorDestroyPacket
-            {
-                Type = (byte)PacketType.ActorDestroy,
-                ActorId = actor.GetActorId(),
-            };
+            var packet = new ActorDestroyPacket { ActorId = actor.GetActorId() };
             Main.SendToAllOrServer(packet);
         }
         catch (Exception ex)

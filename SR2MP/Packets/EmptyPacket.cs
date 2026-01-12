@@ -4,15 +4,9 @@ namespace SR2MP.Packets;
 
 public struct EmptyPacket : IPacket
 {
-    public byte Type { get; set; }
+    public PacketType Type { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-    }
+    public readonly void Serialise(PacketWriter writer) { }
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-    }
+    public readonly void Deserialise(PacketReader reader) { }
 }

@@ -1,9 +1,7 @@
 using System.Net;
-using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
-using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Handlers;
 
@@ -17,7 +15,7 @@ public sealed class ActorSpawnHandler : BasePacketHandler
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<ActorSpawnPacket>();
-       
+
         actorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out _);
 
         Main.Server.SendToAllExcept(packet, clientEp);

@@ -1,7 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Packets.Switch;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Switches;
 
@@ -30,7 +29,6 @@ public static class OnSwitchActivated
 
         Main.SendToAllOrServer(new WorldSwitchPacket()
         {
-            Type = (byte)PacketType.SwitchActivate,
             ID = id,
             State = state,
             Immediate = immediate

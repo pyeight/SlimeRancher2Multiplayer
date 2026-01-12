@@ -22,7 +22,7 @@ public sealed class FastForwardHandler : BasePacketHandler
 
         Main.Server.SendToAllExcept(packet with
         {
-            Type = (byte)PacketType.BroadcastFastForward
+            Type = PacketType.BroadcastFastForward
         }, clientEp);
     }
 }

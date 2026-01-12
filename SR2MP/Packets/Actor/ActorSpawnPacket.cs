@@ -6,17 +6,15 @@ namespace SR2MP.Packets.Actor;
 public struct ActorSpawnPacket : IPacket
 {
     public ActorId ActorId { get; set; }
-
     public Quaternion Rotation { get; set; }
     public Vector3 Position { get; set; }
     public int ActorType { get; set; }
-
-    public byte Type { get; set; }
     public byte SceneGroup { get; set; }
+
+    public readonly PacketType Type => PacketType.ActorSpawn;
 
     public readonly void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteLong(ActorId.Value);
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
@@ -26,7 +24,6 @@ public struct ActorSpawnPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         ActorId = new ActorId(reader.ReadLong());
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();

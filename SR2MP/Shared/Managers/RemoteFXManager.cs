@@ -21,7 +21,7 @@ public sealed class RemoteFXManager
     private static Predicate<SECTR_AudioCue> Force3DCondition => cue =>
     {
         // Movement SFX
-        if (cue.name.Contains("Step") 
+        if (cue.name.Contains("Step")
             || cue.name.Contains("Run")
             || cue.name.Contains("Jump")
             || cue.name.Contains("Land"))
@@ -31,7 +31,7 @@ public sealed class RemoteFXManager
 
         return false;
     };
-    
+
     internal void Initialize()
     {
         AllFX.Clear();
@@ -47,7 +47,7 @@ public sealed class RemoteFXManager
         {
             if (cue.Spatialization != SECTR_AudioCue.Spatializations.Simple2D)
                 cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
-            
+
             if (Force3DCondition(cue))
                 cue.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
 

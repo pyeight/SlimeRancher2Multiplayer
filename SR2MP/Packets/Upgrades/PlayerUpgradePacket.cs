@@ -4,18 +4,11 @@ namespace SR2MP.Packets.Upgrades;
 
 public struct PlayerUpgradePacket : IPacket
 {
-    public byte Type { get; set; }
     public byte UpgradeID { get; set; }
 
-    public readonly void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteByte(UpgradeID);
-    }
+    public readonly PacketType Type => PacketType.PlayerUpgrade;
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        UpgradeID = reader.ReadByte();
-    }
+    public readonly void Serialise(PacketWriter writer) => writer.WriteByte(UpgradeID);
+
+    public void Deserialise(PacketReader reader) => UpgradeID = reader.ReadByte();
 }

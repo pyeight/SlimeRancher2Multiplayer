@@ -4,15 +4,15 @@ namespace SR2MP.Packets.Landplot;
 
 public sealed class LandPlotUpdatePacket : IPacket
 {
-    public byte Type { get; set; }
     public bool IsUpgrade { get; set; }
     public string ID { get; set; }
     public LandPlot.Id PlotType { get; set; }
     public LandPlot.Upgrade PlotUpgrade { get; set; }
 
+    public PacketType Type => PacketType.LandPlotUpdate;
+
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteString(ID);
         writer.WriteBool(IsUpgrade);
 
@@ -24,7 +24,6 @@ public sealed class LandPlotUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         ID = reader.ReadString();
         IsUpgrade = reader.ReadBool();
 

@@ -4,7 +4,6 @@ using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
-using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Actor;
@@ -46,7 +45,6 @@ public static class OnActorSpawn
 
         var packet = new ActorSpawnPacket
         {
-            Type = (byte)PacketType.ActorSpawn,
             ActorType = actorType,
             SceneGroup = sceneGroup,
             ActorId = id,

@@ -1,6 +1,5 @@
 using HarmonyLib;
 using SR2MP.Packets.FX;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.FX;
 
@@ -24,7 +23,6 @@ public static class OnPointSourcePlay
 
         var packet = new WorldFXPacket
         {
-            Type = (byte)PacketType.WorldFX,
             FX = fxType,
             Position = position
         };

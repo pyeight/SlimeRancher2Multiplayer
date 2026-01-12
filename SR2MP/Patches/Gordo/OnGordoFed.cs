@@ -1,7 +1,6 @@
 using HarmonyLib;
 using SR2MP.Packets.FX;
 using SR2MP.Packets.Gordo;
-using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Gordo;
@@ -13,7 +12,6 @@ public static class OnGordoFed
     {
         var packet = new GordoFeedPacket
         {
-            Type = (byte)PacketType.GordoFeed,
             ID = __instance.Id,
             NewFoodCount = __instance.GordoModel.GordoEatenCount,
             RequiredFoodCount = __instance.GordoModel.targetCount,
@@ -23,7 +21,6 @@ public static class OnGordoFed
 
         var soundPacket = new WorldFXPacket
         {
-            Type = (byte)PacketType.WorldFX,
             Position = __instance.transform.position,
             FX = WorldFXType.GordoFoodEatenSound
         };

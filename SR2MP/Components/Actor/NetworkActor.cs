@@ -4,7 +4,6 @@ using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
 using MelonLoader;
 using SR2MP.Packets.Actor;
-using SR2MP.Packets.Utils;
 using SR2MP.Shared.Utils;
 using Unity.Mathematics;
 
@@ -92,11 +91,7 @@ public sealed class NetworkActor : MonoBehaviour
         {
             LocallyOwned = false;
 
-            var packet = new ActorUnloadPacket()
-            {
-                Type = (byte)PacketType.ActorUnload,
-                ActorId = ActorId,
-            };
+            var packet = new ActorUnloadPacket() { ActorId = ActorId };
             Main.SendToAllOrServer(packet);
         }
         else
@@ -105,13 +100,11 @@ public sealed class NetworkActor : MonoBehaviour
 
             var packet = new ActorTransferPacket
             {
-                Type = (byte)PacketType.ActorTransfer,
                 ActorId = ActorId,
                 OwnerPlayer = LocalID,
             };
             Main.SendToAllOrServer(packet);
         }
-        
     }
 
     public void HibernationChanged(bool value)
@@ -160,7 +153,6 @@ public sealed class NetworkActor : MonoBehaviour
 
             var packet = new ActorUpdatePacket
             {
-                Type = (byte)PacketType.ActorUpdate,
                 ActorId = ActorId,
                 Position = transform.position,
                 Rotation = transform.rotation,

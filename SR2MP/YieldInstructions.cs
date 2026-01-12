@@ -11,18 +11,18 @@ public abstract class MPYieldInstruction : IEnumerator
     }
 
     public void Reset() { }
-    
+
     public object? Current => null;
-    
+
     public abstract bool ShouldWait { get; }
 }
 
-public class WaitForSceneGroupLoad : MPYieldInstruction
+public sealed class WaitForSceneGroupLoad : MPYieldInstruction
 {
     public WaitForSceneGroupLoad(bool state = true) { this.state = state; }
 
     private bool state;
     private SceneLoader sceneLoader = SystemContext.Instance.SceneLoader;
-    
+
     public override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == state;
 }

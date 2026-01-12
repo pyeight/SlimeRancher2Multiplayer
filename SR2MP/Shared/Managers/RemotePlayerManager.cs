@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using SR2MP.Client.Models;
 using SR2MP.Packets.Player;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Shared.Managers;
 
@@ -62,7 +61,6 @@ public sealed class RemotePlayerManager
         var playerId = Main.Client.IsConnected ? Main.Client.OwnPlayerId : Main.Server.IsRunning() ? "HOST" : "INVALID";
         var updatePacket = new PlayerUpdatePacket
         {
-            Type = (byte)PacketType.PlayerUpdate,
             PlayerId = playerId,
             Position = position,
             Rotation = rotation,

@@ -16,7 +16,7 @@ public static class OnFastForward
         {
             var packet = new WorldTimePacket
             {
-                Type = (byte)PacketType.BroadcastFastForward,
+                Type = PacketType.BroadcastFastForward,
                 Time = fastForwardUntil
             };
 
@@ -26,7 +26,7 @@ public static class OnFastForward
         {
             var packet = new WorldTimePacket
             {
-                Type = (byte)PacketType.FastForward,
+                Type = PacketType.FastForward,
                 Time = fastForwardUntil
             };
 

@@ -60,7 +60,14 @@ public sealed class PacketWriter : IDisposable
     public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WritePacket<T>(T value) where T : IPacket => value.Serialise(this);
+    public void WriteNetObject<T>(T value) where T : INetObject => value.Serialise(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePacket<T>(T value) where T : IPacket
+    {
+        _writer.Write((byte)value.Type);
+        value.Serialise(this);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector3(Vector3 value)
@@ -90,6 +97,12 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteArray<T>(T[] array, Action<PacketWriter, T> writer)
     {
+        if (array == null)
+        {
+            _writer.Write(0);
+            return;
+        }
+
         _writer.Write(array.Length);
 
         foreach (var item in array)
@@ -98,6 +111,12 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteList<T>(List<T> list, Action<PacketWriter, T> writer)
     {
+        if (list == null)
+        {
+            _writer.Write(0);
+            return;
+        }
+
         _writer.Write(list.Count);
 
         foreach (var item in list)
@@ -106,6 +125,12 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteSet<T>(HashSet<T> set, Action<PacketWriter, T> writer)
     {
+        if (set == null)
+        {
+            _writer.Write(0);
+            return;
+        }
+
         _writer.Write(set.Count);
 
         foreach (var item in set)
@@ -114,6 +139,12 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteCppList<T>(CppCollections.List<T> list, Action<PacketWriter, T> writer)
     {
+        if (list == null)
+        {
+            _writer.Write(0);
+            return;
+        }
+
         _writer.Write(list.Count);
 
         foreach (var item in list)
@@ -122,6 +153,12 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteCppSet<T>(CppCollections.HashSet<T> set, Action<PacketWriter, T> writer)
     {
+        if (set == null)
+        {
+            _writer.Write(0);
+            return;
+        }
+
         _writer.Write(set.Count);
 
         foreach (var item in set)
@@ -130,6 +167,12 @@ public sealed class PacketWriter : IDisposable
 
     public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
     {
+        if (dict == null)
+        {
+            _writer.Write(0);
+            return;
+        }
+
         _writer.Write(dict.Count);
 
         foreach (var (key, value) in dict)
@@ -191,6 +234,11 @@ public static class PacketWriterDels
 
     public static class Packet<T> where T : IPacket
     {
+        public static readonly Action<PacketWriter, T> Func = (writer, value) => writer.WritePacket(value);
+    }
+
+    public static class NetObject<T> where T : INetObject
+    {
         public static readonly Action<PacketWriter, T> Func = (writer, value) => value.Serialise(writer);
     }
 
@@ -232,19 +280,16 @@ public static class PacketWriterDels
             var writeCalls = new Expression[componentTypes.Length];
 
             for (var i = 0; i < componentTypes.Length; i++)
-            {
-                var itemField = Expression.Field(tupleParam, $"Item{i + 1}");
-                writeCalls[i] = GetWriteExpression(writerParam, itemField, componentTypes[i]);
-            }
+                writeCalls[i] = Expression.Call(writerParam, GetWriteExpression(componentTypes[i]), Expression.Field(tupleParam, $"Item{i + 1}"));
 
             var block = Expression.Block(writeCalls);
             return Expression.Lambda<Action<PacketWriter, TTuple>>(block, writerParam, tupleParam).Compile();
         }
 
-        private static Expression GetWriteExpression(ParameterExpression writerParam, MemberExpression valueAccess, Type type)
+        private static MethodInfo GetWriteExpression(Type type)
         {
             if (TypeWriteCache.TryGetValue(type, out var method))
-                return Expression.Call(writerParam, method, valueAccess);
+                return method;
 
             if (type == typeof(byte)) method = Method(nameof(PacketWriter.WriteByte));
             else if (type == typeof(int)) method = Method(nameof(PacketWriter.WriteInt));
@@ -263,12 +308,13 @@ public static class PacketWriterDels
             else if (type == typeof(Quaternion)) method = Method(nameof(PacketWriter.WriteQuaternion));
             else if (type.IsEnum) method = Method(nameof(PacketWriter.WriteEnum)).MakeGenericMethod(type);
             else if (typeof(IPacket).IsAssignableFrom(type)) method = Method(nameof(PacketWriter.WritePacket)).MakeGenericMethod(type);
+            else if (typeof(INetObject).IsAssignableFrom(type)) method = Method(nameof(PacketWriter.WriteNetObject)).MakeGenericMethod(type);
 
             if (method == null)
                 throw new NotSupportedException($"Type {type.Name} is not supported in automatic Tuple serialization.");
 
             TypeWriteCache[type] = method;
-            return Expression.Call(writerParam, method, valueAccess);
+            return method;
         }
 
         private static MethodInfo Method(string name) =>

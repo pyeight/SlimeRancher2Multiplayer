@@ -1,7 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.UI;
 using SR2MP.Packets.FX;
-using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.FX;
@@ -29,7 +28,6 @@ public static class OnPlayUIAudio
     {
         var packet = new WorldFXPacket
         {
-            Type = (byte)PacketType.WorldFX,
             FX = fxType,
             Position = position
         };

@@ -4,10 +4,9 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class SwitchesPacket : IPacket
 {
-    public sealed class Switch : IPacket
+    public sealed class Switch : INetObject
     {
         public string ID { get; set; }
-
         public SwitchHandler.State State { get; set; }
 
         public void Serialise(PacketWriter writer)
@@ -23,19 +22,11 @@ public sealed class SwitchesPacket : IPacket
         }
     }
 
-    public byte Type { get; set; }
-
     public List<Switch> Switches { get; set; }
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteByte(Type);
-        writer.WriteList(Switches, PacketWriterDels.Packet<Switch>.Func);
-    }
+    public PacketType Type => PacketType.InitialSwitches;
 
-    public void Deserialise(PacketReader reader)
-    {
-        Type = reader.ReadByte();
-        Switches = reader.ReadList(PacketReaderDels.Packet<Switch>.Func);
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Func);
+
+    public void Deserialise(PacketReader reader) => Switches = reader.ReadList(PacketReaderDels.NetObject<Switch>.Func);
 }

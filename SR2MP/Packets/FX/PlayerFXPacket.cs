@@ -21,17 +21,16 @@ public sealed class PlayerFXPacket : IPacket
         VacShootSound,
     }
 
-    public byte Type { get; set; }
     public PlayerFXType FX { get; set; }
-
     public Vector3 Position { get; set; }
-
     public string Player { get; set; }
+
+    public PacketType Type => PacketType.PlayerFX;
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteByte(Type);
         writer.WriteEnum(FX);
+
         if (!IsPlayerSoundDictionary[FX])
             writer.WriteVector3(Position);
         else
@@ -40,8 +39,8 @@ public sealed class PlayerFXPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Type = reader.ReadByte();
         FX = reader.ReadEnum<PlayerFXType>();
+
         if (!IsPlayerSoundDictionary[FX])
             Position = reader.ReadVector3();
         else

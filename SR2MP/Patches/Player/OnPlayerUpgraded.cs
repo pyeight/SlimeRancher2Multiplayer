@@ -1,7 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Upgrades;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Player;
 
@@ -14,11 +13,7 @@ public static class OnPlayerUpgraded
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
 
-        var packet = new PlayerUpgradePacket()
-        {
-            Type = (byte)PacketType.PlayerUpgrade,
-            UpgradeID = (byte)definition._uniqueId
-        };
+        var packet = new PlayerUpgradePacket() { UpgradeID = (byte)definition._uniqueId };
 
         Main.SendToAllOrServer(packet);
     }

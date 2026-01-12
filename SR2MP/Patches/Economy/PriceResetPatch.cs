@@ -1,8 +1,6 @@
 using HarmonyLib;
-using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Packets.Economy;
-using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Economy;
 
@@ -12,17 +10,12 @@ public static class PriceResetPatch
     public static bool Prefix()
         => !Main.Client.IsConnected;
 
-    public static void Postfix(PlortEconomyDirector __instance, WorldModel worldModel, int day)
+    public static void Postfix()
     {
         if (!Main.Server.IsRunning())
             return;
 
-        new Dictionary<byte, byte>();
-        var packet = new MarketPricePacket()
-        {
-            Type = (byte)PacketType.MarketPriceChange,
-            Prices = MarketPricesArray!,
-        };
+        var packet = new MarketPricePacket() { Prices = MarketPricesArray! };
 
         Main.SendToAllOrServer(packet);
     }

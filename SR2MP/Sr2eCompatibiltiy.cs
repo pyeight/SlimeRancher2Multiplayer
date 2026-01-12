@@ -35,6 +35,7 @@ internal sealed class MLEntrypoint : MelonMod
 
     public override void OnInitializeMelon()
     {
+        Main.LoadRPCAssembly();
         foreach (var melonBase in MelonBase.RegisteredMelons)
         {
             if (melonBase.Info.Name != "SR2E")

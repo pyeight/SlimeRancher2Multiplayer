@@ -97,7 +97,6 @@ public sealed class Client
 
             var connectPacket = new ConnectPacket
             {
-                Type = (byte)PacketType.Connect,
                 PlayerId = OwnPlayerId,
                 Username = Main.Username
             };
@@ -187,7 +186,7 @@ public sealed class Client
 
         var chatPacket = new ChatMessagePacket
         {
-            Type = (byte)PacketType.ChatMessage,
+            Type = PacketType.ChatMessage,
             PlayerId = OwnPlayerId,
             Message = message
         };
@@ -201,18 +200,18 @@ public sealed class Client
         // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
-    private void SendHeartbeat(object? state)
-    {
-        if (!isConnected)
-            return;
+    // private void SendHeartbeat(object? state)
+    // {
+    //     if (!isConnected)
+    //         return;
 
-        var heartbeatPacket = new EmptyPacket
-        {
-            Type = (byte)PacketType.Heartbeat
-        };
+    //     var heartbeatPacket = new EmptyPacket
+    //     {
+    //         Type = PacketType.Heartbeat
+    //     };
 
-        SendPacket(heartbeatPacket);
-    }
+    //     SendPacket(heartbeatPacket);
+    // }
 
     internal void SendPacket<T>(T packet) where T : IPacket
     {
@@ -225,7 +224,7 @@ public sealed class Client
         try
         {
             using var writer = new PacketWriter();
-            packet.Serialise(writer);
+            writer.WritePacket(packet);
             byte[] data = writer.ToArray();
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
@@ -256,7 +255,7 @@ public sealed class Client
             {
                 var leavePacket = new PlayerLeavePacket
                 {
-                    Type = (byte)PacketType.PlayerLeave,
+                    Type = PacketType.PlayerLeave,
                     PlayerId = OwnPlayerId
                 };
 
