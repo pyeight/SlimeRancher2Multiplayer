@@ -41,3 +41,32 @@ Special thanks to:
 - [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining his [Slime Rancher 2 Essentials Mod](https://github.com/ThatFinnDev/SR2E)
 - [Lachee](https://github.com/Lachee/) for developing his [Ðiscord RPC C-Sharp library](https://github.com/Lachee/discord-rpc-csharp)
 - Each and every one of you for supporting us!
+
+
+# THIRD-PARTY-NOTICES
+
+discord-rpc-csharp (used by this MelonLoader mod)
+
+https://github.com/Lachee/discord-rpc-csharp
+
+MIT License
+
+Copyright (c) 2021 Lachee
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
