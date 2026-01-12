@@ -24,7 +24,7 @@
 |       Money       |   🟩   |                               Fully functional                                |
 |       Time        |   🟩   |                               Fully functional                                |
 |    Decorations    |   🟥   |                                Not implemented                                |
-|  Gray Labyrinth   |   🟨   |                                Switches work                                  |
+|  Gray Labyrinth   |   🟨   |                           Switches are functional                             |
 |   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
 |      Plot FX      |   🟩   |                               Fully functional                                |
 |     Market FX     |   🟩   |                               Fully functional                                |
