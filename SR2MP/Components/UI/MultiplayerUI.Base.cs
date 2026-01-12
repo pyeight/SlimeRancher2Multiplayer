@@ -8,7 +8,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 {
     public static MultiplayerUI Instance { get; private set; }
 
-    private void Awake()
+    public void Awake()
     {
         firstTime = Main.SetupUI;
         usernameInput = Main.Username;
@@ -28,12 +28,11 @@ public sealed partial class MultiplayerUI : MonoBehaviour
     }
 
     // Not sure if OnDestroy is needed for the singleton, though it is IL2CPP stuff, so I don't want to deal with bugs.
-    private void OnDestroy()
-    {
-        Instance = null!;
-    }
+#pragma warning disable CA1822
+    public void OnDestroy() => Instance = null!;
+#pragma warning restore CA1822
 
-    private void OnGUI()
+    public void OnGUI()
     {
         state = GetState();
 

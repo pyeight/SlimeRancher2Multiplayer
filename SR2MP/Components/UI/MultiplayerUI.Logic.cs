@@ -48,7 +48,7 @@ public sealed partial class MultiplayerUI
 
     public void Kick(string player) { }
 
-    private void Update()
+    public void Update()
     {
         if (KeyCode.F4.OnKeyDown())
             hidden = !hidden;
