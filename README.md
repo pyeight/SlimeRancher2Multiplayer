@@ -39,4 +39,5 @@
 ## Acknowledgements
 Special thanks to:
 - [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining his [Slime Rancher 2 Essentials Mod](https://github.com/ThatFinnDev/SR2E)
+- [Lachee](https://github.com/Lachee/) for developing his [Ðiscord RPC C-Sharp library](https://github.com/Lachee/discord-rpc-csharp)
 - Each and every one of you for supporting us!
