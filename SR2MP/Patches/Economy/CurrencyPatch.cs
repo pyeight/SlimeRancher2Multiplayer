@@ -15,6 +15,7 @@ public static class CurrencyPatch
     {
         if (handlingPacket) return;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (currencyDefinition == null)
             return;
 

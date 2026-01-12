@@ -24,18 +24,18 @@ public sealed class SwitchesLoadHandler : BaseClientPacketHandler
             {
                 switchModel.state = worldSwitch.State;
 
-                if (switchModel.gameObj)
-                {
-                    var switchComponentBase = switchModel.gameObj.GetComponent<WorldSwitchModel.Participant>();
+                if (!switchModel.gameObj)
+                    continue;
 
-                    switchComponentBase.SetModel(switchModel);
+                var switchComponentBase = switchModel.gameObj.GetComponent<WorldSwitchModel.Participant>();
 
-                    //var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
-                    //var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
-                    //var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
-                    //
-                    //primary?.SetStateForAll();
-                }
+                switchComponentBase.SetModel(switchModel);
+
+                //var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
+                //var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
+                //var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
+                //
+                //primary?.SetStateForAll();
             }
             else
             {

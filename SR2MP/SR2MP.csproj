@@ -3,7 +3,7 @@
       <TargetFramework>net6.0</TargetFramework>
       <ImplicitUsings>enable</ImplicitUsings>
       <Nullable>enable</Nullable>
-      <Version>0.1.0</Version>
+      <Version>0.2.0</Version>
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <PlatformTarget>x64</PlatformTarget>
       <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -27,8 +27,6 @@
       <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.11" PrivateAssets="all" ExcludeAssets="runtime" />
 
       <EmbeddedResource Include="Resources\*" />
-
-      <None Remove="DiscordRPC.dll" />
 
       <EmbeddedResource Include="DiscordRPC.dll" />
     </ItemGroup>

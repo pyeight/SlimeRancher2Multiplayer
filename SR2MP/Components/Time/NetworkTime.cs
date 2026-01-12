@@ -12,12 +12,9 @@ public sealed class NetworkTime : MonoBehaviour
 
     private float sendTimer;
 
-    private void Awake()
-    {
-        timeDirector = GetComponent<TimeDirector>();
-    }
+    public void Awake() => timeDirector = GetComponent<TimeDirector>();
 
-    private void Update()
+    public void Update()
     {
         sendTimer += UnityEngine.Time.deltaTime;
 

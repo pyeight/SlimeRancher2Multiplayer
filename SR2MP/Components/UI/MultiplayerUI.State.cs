@@ -4,24 +4,13 @@ namespace SR2MP.Components.UI;
 
 public sealed partial class MultiplayerUI
 {
-    private bool viewingSettings = false;
+    private bool viewingSettings;
     private bool firstTime = true;
-    private bool viewingHelp = false;
+    private bool viewingHelp;
 
     public MenuState state = MenuState.Hidden;
 
-    private bool GetIsLoading()
-    {
-        switch (SystemContext.Instance.SceneLoader.CurrentSceneGroup.name)
-        {
-            case "StandaloneStart":
-            case "CompanyLogo":
-            case "LoadScene":
-                return true;
-        }
-
-        return false;
-    }
+    private static bool GetIsLoading() => SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is "StandaloneStart" or "CompanyLogo" or "LoadScene";
 
     private MenuState GetState()
     {

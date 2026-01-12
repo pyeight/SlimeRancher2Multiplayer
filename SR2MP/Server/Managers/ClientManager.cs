@@ -13,7 +13,7 @@ public sealed class ClientManager
 
     public int ClientCount => clients.Count;
 
-    public bool TryGetClient(string clientInfo, out ClientInfo? client)
+    private bool TryGetClient(string clientInfo, out ClientInfo? client)
     {
         return clients.TryGetValue(clientInfo, out client);
     }
@@ -50,14 +50,13 @@ public sealed class ClientManager
 
     public bool RemoveClient(string clientInfo)
     {
-        if (clients.TryRemove(clientInfo, out var client))
-        {
-            SrLogger.LogMessage("Client removed!",
-                $"Client removed: {clientInfo}");
-            OnClientRemoved?.Invoke(client);
-            return true;
-        }
-        return false;
+        if (!clients.TryRemove(clientInfo, out var client))
+            return false;
+
+        SrLogger.LogMessage("Client removed!",
+            $"Client removed: {clientInfo}");
+        OnClientRemoved?.Invoke(client);
+        return true;
     }
 
     public bool RemoveClient(IPEndPoint endPoint)
@@ -79,7 +78,7 @@ public sealed class ClientManager
         return clients.Values.ToList();
     }
 
-    public List<ClientInfo> GetTimedOutClients()
+    private List<ClientInfo> GetTimedOutClients()
     {
         return clients.Values
             .Where(client => client.IsTimedOut())

@@ -39,7 +39,6 @@ public static class OnActorSpawn
     private static IEnumerator SpawnOverNetwork(int actorType, byte sceneGroup, GameObject actor)
     {
         yield return null;
-        yield return null;
 
         var id = actor.GetComponent<IdentifiableActor>().GetActorId();
 

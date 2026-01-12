@@ -8,9 +8,8 @@ public sealed partial class MultiplayerUI
 {
     public void Host(ushort port)
     {
-        Server.Server server;
         MenuEUtil.CloseOpenMenu();
-        server = Main.Server;
+        var server = Main.Server;
         server.Start(port, true);
         Main.SetConfigValue("host_port", hostPortInput);
     }

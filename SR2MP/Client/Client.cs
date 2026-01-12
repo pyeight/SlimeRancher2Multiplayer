@@ -116,11 +116,11 @@ public sealed class Client
 
     private void CheckConnectionTimeout(object? state)
     {
-        if (!connectionAcknowledged && isConnected)
-        {
-            SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
-            Disconnect();
-        }
+        if (connectionAcknowledged || !isConnected)
+            return;
+
+        SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
+        Disconnect();
     }
 
     private void ReceiveLoop()

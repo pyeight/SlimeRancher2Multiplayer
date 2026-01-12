@@ -8,10 +8,7 @@ public sealed class NetworkWorldFX : MonoBehaviour
 {
     public WorldFXType fxType;
 
-    private void OnEnable()
-    {
-        SendPacket();
-    }
+    public void OnEnable() => SendPacket();
 
     private void SendPacket()
     {

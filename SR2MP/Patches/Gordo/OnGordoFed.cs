@@ -8,7 +8,7 @@ namespace SR2MP.Patches.Gordo;
 [HarmonyPatch(typeof(GordoEat), nameof(GordoEat.DoEat))]
 public static class OnGordoFed
 {
-    public static void Postfix(GordoEat __instance, GameObject obj)
+    public static void Postfix(GordoEat __instance)
     {
         var packet = new GordoFeedPacket
         {

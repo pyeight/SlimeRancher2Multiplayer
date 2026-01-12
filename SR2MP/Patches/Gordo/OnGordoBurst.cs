@@ -10,10 +10,7 @@ public static class OnGordoBurst
     {
         if (handlingPacket) return;
 
-        var packet = new GordoBurstPacket()
-        {
-            ID = __instance.Id,
-        };
+        var packet = new GordoBurstPacket { ID = __instance.Id };
         Main.SendToAllOrServer(packet);
     }
 }

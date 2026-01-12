@@ -23,20 +23,20 @@ public sealed class WorldSwitchHandler : BaseClientPacketHandler
         {
             switchModel.state = packet.State;
 
-            if (switchModel.gameObj)
-            {
-                var switchComponentBase = switchModel.gameObj.GetComponent<WorldSwitchModel.Participant>();
+            if (!switchModel.gameObj)
+                return;
 
-                var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
-                var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
-                var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
+            var switchComponentBase = switchModel.gameObj.GetComponent<WorldSwitchModel.Participant>();
 
-                handlingPacket = true;
-                primary?.SetStateForAll(packet.State, packet.Immediate);
-                secondary?.SetState(packet.State, packet.Immediate);
-                invisible?.SetStateForAll(packet.State, packet.Immediate);
-                handlingPacket = false;
-            }
+            var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
+            var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
+            var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
+
+            handlingPacket = true;
+            primary?.SetStateForAll(packet.State, packet.Immediate);
+            secondary?.SetState(packet.State, packet.Immediate);
+            invisible?.SetStateForAll(packet.State, packet.Immediate);
+            handlingPacket = false;
         }
         else
         {

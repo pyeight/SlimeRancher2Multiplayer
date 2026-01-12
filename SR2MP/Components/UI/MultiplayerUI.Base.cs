@@ -43,12 +43,13 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
 
         DrawWindow();
-        //DrawChat();
+        // DrawChat();
     }
 
     private void DrawWindow()
     {
         GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to hide)");
+
         switch (state)
         {
             case MenuState.SettingsInitial:
@@ -73,6 +74,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
                 UnimplementedScreen();
                 break;
         }
+
         AdjustInputValues();
     }
 

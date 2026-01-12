@@ -20,9 +20,6 @@ public sealed class FastForwardHandler : BasePacketHandler
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(packet with
-        {
-            Type = PacketType.BroadcastFastForward
-        }, clientEp);
+        Main.Server.SendToAllExcept(packet with { Type = PacketType.BroadcastFastForward }, clientEp);
     }
 }

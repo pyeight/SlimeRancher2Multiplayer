@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using DiscordRPC;
 using Il2CppMonomiPark.SlimeRancher.World;
 
@@ -6,7 +6,7 @@ namespace SR2MP.Shared.Managers;
 
 public static class DiscordRPCManager
 {
-    public enum Zone
+    public enum Zone : byte
     {
         Conservatory,
         RainbowFields,
@@ -21,12 +21,13 @@ public static class DiscordRPCManager
         LabyrinthCore,
         MainMenu,
     }
+
     // This can be public, do not freak out :)
     public const string DISCORD_APP_ID = "1422276739026911262";
-    public static DiscordRpcClient rpcClient;
+    public static DiscordRpcClient? rpcClient;
 
     public static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
-        new(new Dictionary<Zone, string>()
+        new(new Dictionary<Zone, string>
         {
             {Zone.Conservatory, "Ranching at the Conservatory"},
             {Zone.RainbowFields, "Exploring the Rainbow Fields"},
@@ -42,7 +43,7 @@ public static class DiscordRPCManager
             {Zone.MainMenu, "Getting ready for adventures!"},
         });
     public static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
-        new(new Dictionary<string, Zone>()
+        new(new Dictionary<string, Zone>
         {
             {"Conservatory", Zone.Conservatory},
             {"Labyrinth hub", Zone.LabyrinthHub},
@@ -63,7 +64,7 @@ public static class DiscordRPCManager
             {"Conservatory Pools", Zone.Conservatory},
         });
     public static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
-        new(new Dictionary<Zone, string>()
+        new(new Dictionary<Zone, string>
         {
             {Zone.Conservatory, "conservatory"},
             {Zone.RainbowFields, "rainbowfields"},
@@ -96,24 +97,24 @@ public static class DiscordRPCManager
     {
         rpcClient?.Dispose();
     }
-    
+
     public static ZoneDefinition? currentZone;
-    
+
     internal static void UpdatePresence()
     {
         bool online = Main.Server.IsRunning() || Main.Client.IsConnected;
         bool solo = playerManager.PlayerCount < 2;
-        
+
         string details = online
             ? solo
                 ? DetailsStringOnlineSolo
                 : string.Format(DetailsStringOnline, playerManager.PlayerCount)
             : DetailsStringOffline;
-        
+
         var status = currentZone ? ZoneToStatus[DefinitionToZone[currentZone!.name]] : ZoneToStatus[Zone.MainMenu];
         var icon = currentZone ? ZoneToIcon[DefinitionToZone[currentZone!.name]] : ZoneToIcon[Zone.MainMenu];
 
-        rpcClient.SetPresence(new RichPresence
+        rpcClient?.SetPresence(new RichPresence
         {
             Details = details,
             State = status,

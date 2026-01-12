@@ -11,7 +11,7 @@ public static class OnEntryUnlocked
     {
         if (handlingPacket) return;
 
-        var packet = new PediaUnlockPacket()
+        var packet = new PediaUnlockPacket
         {
             ID = entry.PersistenceId,
             Popup = showPopup

@@ -1,8 +1,7 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Il2CppTMPro;
 using MelonLoader;
-using MelonLoader.Utils;
 using SR2E.Expansion;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
@@ -16,7 +15,7 @@ namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
-    [DllImport("kernel32", CharSet = CharSet.Ansi)]
+    [DllImport("kernel32", CharSet = CharSet.Unicode)]
     private static extern IntPtr LoadLibrary(string lpFileName);
 
     public static void SendToAllOrServer<T>(T packet) where T : IPacket
@@ -86,15 +85,16 @@ public sealed class Main : SR2EExpansionV3
 
                 Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
 
-                Application.quitting += new System.Action((() =>
+                Application.quitting += new Action(() =>
                 {
                     if (Server.IsRunning())
                         Server.Close();
+
                     if (Client.IsConnected)
                         Client.Disconnect();
-                }));
+                });
 
-                playerManager.OnPlayerAdded += id => DiscordRPCManager.UpdatePresence();
+                playerManager.OnPlayerAdded += _ => DiscordRPCManager.UpdatePresence();
 
                 break;
 

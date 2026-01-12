@@ -42,36 +42,36 @@ public static class Logger
         _sensitiveLogHandler = new LogHandler(Path.Combine(folderPath, "sensitive.log"));
     }
 
-    public static void LogMessage(object? message, LogTarget target = LogTarget.Main)
+    public static void LogMessage(object? message, SrLogTarget target = SrLogTarget.Main)
         => LogInternal(message, LogLevel.Message, target, SR2ELogManager.SendMessage, _melonLogger.Msg);
 
-    public static void LogWarning(object? message, LogTarget target = LogTarget.Main)
+    public static void LogWarning(object? message, SrLogTarget target = SrLogTarget.Main)
         => LogInternal(message, LogLevel.Warning, target, SR2ELogManager.SendWarning, _melonLogger.Warning);
 
-    public static void LogError(object? message, LogTarget target = LogTarget.Main)
+    public static void LogError(object? message, SrLogTarget target = SrLogTarget.Main)
         => LogInternal(message, LogLevel.Error, target, SR2ELogManager.SendError, _melonLogger.Error);
 
-    public static void LogDebug(object? message, LogTarget target = LogTarget.Main)
+    public static void LogDebug(object? message, SrLogTarget target = SrLogTarget.Main)
         => LogInternal(message, LogLevel.Debug, target, null, null);
 
-    public static void LogPacketSize(object? message, LogTarget target = LogTarget.Main)
+    public static void LogPacketSize(object? message, SrLogTarget target = SrLogTarget.Main)
     {
         if (Main.PacketSizeLogging)
             LogInternal(message, LogLevel.Message, target, null, _melonLogger.Msg);
     }
 
-    private static void LogInternal(object? message, LogLevel level, LogTarget target, Action<string>? sr2EAction, Action<string>? melonAction)
+    private static void LogInternal(object? message, LogLevel level, SrLogTarget target, Action<string>? sr2EAction, Action<string>? melonAction)
     {
         var msgString = message?.ToString() ?? "message was null!";
         var formattedLine = Format(msgString, level);
 
-        if (target.HasFlag(LogTarget.Main))
+        if (target.HasFlag(SrLogTarget.Main))
             _logHandler.Write(formattedLine);
 
-        if (target.HasFlag(LogTarget.Sensitive))
+        if (target.HasFlag(SrLogTarget.Sensitive))
             _sensitiveLogHandler.Write(formattedLine);
 
-        if (target == LogTarget.Sensitive)
+        if (target == SrLogTarget.Sensitive)
             msgString = $"A sensitive [{level}] message was logged!";
 
         sr2EAction?.Invoke(msgString);

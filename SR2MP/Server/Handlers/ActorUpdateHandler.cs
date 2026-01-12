@@ -33,13 +33,13 @@ public sealed class ActorUpdateHandler : BasePacketHandler
         if (actor.TryGetNetworkComponent(out var networkComponent))
         {
             networkComponent.SavedVelocity = packet.Velocity;
-            networkComponent.nextPosition = packet.Position;
-            networkComponent.nextRotation = packet.Rotation;
+            networkComponent.NextPosition = packet.Position;
+            networkComponent.NextRotation = packet.Rotation;
 
             if (slime != null)
                 networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
 
-            if (networkComponent.regionMember?._hibernating == true)
+            if (networkComponent.RegionMember?._hibernating == true)
             {
                 networkComponent.transform.position = packet.Position;
                 networkComponent.transform.rotation = packet.Rotation;

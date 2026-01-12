@@ -15,7 +15,7 @@ namespace SR2MP.Components.Actor;
 [RegisterTypeInIl2Cpp(false)]
 public sealed class NetworkActor : MonoBehaviour
 {
-    internal RegionMember regionMember;
+    internal RegionMember? RegionMember;
     private IdentifiableActor identifiableActor;
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
@@ -23,40 +23,39 @@ public sealed class NetworkActor : MonoBehaviour
     private float syncTimer = Timers.ActorTimer;
     public Vector3 SavedVelocity { get; internal set; }
 
-    private byte attemptedGetIdentifiable = 0;
+    private byte attemptedGetIdentifiable;
 
     private ActorId ActorId
     {
         get
         {
-            if (!identifiableActor)
+            if (identifiableActor)
+                return identifiableActor._model.actorId;
+
+            identifiableActor = GetComponent<IdentifiableActor>();
+            attemptedGetIdentifiable++;
+
+            if (attemptedGetIdentifiable >= 10)
             {
-                identifiableActor = GetComponent<IdentifiableActor>();
-                attemptedGetIdentifiable++;
-
-                if (attemptedGetIdentifiable >= 10)
-                {
-                    Destroy(this);
-                }
-
-                return new ActorId(0);
+                Destroy(this);
             }
 
-            return identifiableActor._model.actorId;
+            return new ActorId(0);
         }
     }
 
     public bool LocallyOwned { get; set; }
     private bool cachedLocallyOwned;
 
-    internal Vector3 previousPosition;
-    internal Vector3 nextPosition;
+    internal Vector3 PreviousPosition;
+    internal Vector3 NextPosition;
 
-    internal Quaternion previousRotation;
-    internal Quaternion nextRotation;
+    internal Quaternion PreviousRotation;
+    internal Quaternion NextRotation;
 
-    private Vector3 previousSentPosition;
-    private const float MinimumPositionDifference = 0.15f;
+    // Uncomment when these are ACTUALLY used!
+    // private Vector3 previousSentPosition;
+    // private const float MinimumPositionDifference = 0.15f;
 
     private float interpolationStart;
     private float interpolationEnd;
@@ -65,16 +64,16 @@ public sealed class NetworkActor : MonoBehaviour
                                     ? emotions._model.Emotions
                                     : new float4(0, 0, 0, 0);
 
-    private void Start()
+    public void Start()
     {
         emotions = GetComponent<SlimeEmotions>();
         cachedLocallyOwned = LocallyOwned;
         rigidbody = GetComponent<Rigidbody>();
         identifiableActor = GetComponent<IdentifiableActor>();
 
-        regionMember = GetComponent<RegionMember>();
+        RegionMember = GetComponent<RegionMember>();
 
-        regionMember.add_BeforeHibernationChanged(
+        RegionMember.add_BeforeHibernationChanged(
             Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
                     .GetEvent("BeforeHibernationChanged").EventHandlerType,
                 this.Cast<Il2CppSystem.Object>(),
@@ -91,7 +90,7 @@ public sealed class NetworkActor : MonoBehaviour
         {
             LocallyOwned = false;
 
-            var packet = new ActorUnloadPacket() { ActorId = ActorId };
+            var packet = new ActorUnloadPacket { ActorId = ActorId };
             Main.SendToAllOrServer(packet);
         }
         else
@@ -119,11 +118,11 @@ public sealed class NetworkActor : MonoBehaviour
         var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
         timer = Mathf.Clamp01(timer);
 
-        transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
-        transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
+        transform.position = Vector3.Lerp(PreviousPosition, NextPosition, timer);
+        transform.rotation = Quaternion.Lerp(PreviousRotation, NextRotation, timer);
     }
 
-    private void Update()
+    public void Update()
     {
         if (cachedLocallyOwned != LocallyOwned)
         {
@@ -144,12 +143,12 @@ public sealed class NetworkActor : MonoBehaviour
         {
             syncTimer = Timers.ActorTimer;
 
-            previousSentPosition = transform.position;
+            // previousSentPosition = transform.position;
 
-            previousPosition = transform.position;
-            previousRotation = transform.rotation;
-            nextPosition = transform.position;
-            nextRotation = transform.rotation;
+            PreviousPosition = transform.position;
+            PreviousRotation = transform.rotation;
+            NextPosition = transform.position;
+            NextRotation = transform.rotation;
 
             var packet = new ActorUpdatePacket
             {
@@ -164,8 +163,8 @@ public sealed class NetworkActor : MonoBehaviour
         }
         else
         {
-            previousPosition = transform.position;
-            previousRotation = transform.rotation;
+            PreviousPosition = transform.position;
+            PreviousRotation = transform.rotation;
 
             interpolationStart = UnityEngine.Time.unscaledTime;
             interpolationEnd = UnityEngine.Time.unscaledTime + Timers.ActorTimer;

@@ -33,7 +33,7 @@ public sealed class NetworkActorManager
         while (true)
         {
             yield return new WaitForSceneGroupLoad(false);
-            yield return new WaitForSceneGroupLoad(true);
+            yield return new WaitForSceneGroupLoad();
 
             if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
                 continue;
@@ -87,10 +87,10 @@ public sealed class NetworkActorManager
 
                     var networkComponent = obj.AddComponent<NetworkActor>();
 
-                    networkComponent.previousPosition = model.lastPosition;
-                    networkComponent.nextPosition = model.lastPosition;
-                    networkComponent.previousRotation = model.lastRotation;
-                    networkComponent.nextRotation = model.lastRotation;
+                    networkComponent.PreviousPosition = model.lastPosition;
+                    networkComponent.NextPosition = model.lastPosition;
+                    networkComponent.PreviousRotation = model.lastRotation;
+                    networkComponent.NextRotation = model.lastRotation;
 
                     actorManager.Actors.Add(model.actorId.Value, model);
                 }
@@ -104,7 +104,7 @@ public sealed class NetworkActorManager
 
         if (Main.RockPlortBug)
             typeId = 25;
-        
+
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var type = actorManager.ActorTypes[typeId];
 
@@ -113,17 +113,17 @@ public sealed class NetworkActorManager
             SrLogger.LogWarning($"Tried to spawn gadget over the network, this hasnt been implemented yet!\n\tActor {actorId.Value}: {type.name}");
             return false;
         }
-        
+
         actorModel = SceneContext.Instance.GameModel.CreateActorModel(
                 actorId,
                 type,
                 scene,
                 position,
                 rotation);
-        
+
         if (actorModel == null)
             return false;
-        
+
         SceneContext.Instance.GameModel.identifiables[actorId] = actorModel;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
         {
@@ -135,7 +135,7 @@ public sealed class NetworkActorManager
             actors.Add(actorModel);
             SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
         }
-        
+
         handlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(actorModel);
         handlingPacket = false;
@@ -143,14 +143,14 @@ public sealed class NetworkActorManager
         if (actor)
         {
             var networkComponent = actor.AddComponent<NetworkActor>();
-            networkComponent.previousPosition = position;
-            networkComponent.nextPosition = position;
-            networkComponent.previousRotation = rotation;
-            networkComponent.nextRotation = rotation;
+            networkComponent.PreviousPosition = position;
+            networkComponent.NextPosition = position;
+            networkComponent.PreviousRotation = rotation;
+            networkComponent.NextRotation = rotation;
             actor.transform.position = position;
             actorManager.Actors.Add(actorId.Value, actorModel);
         }
-        
+
         return true;
     }
 

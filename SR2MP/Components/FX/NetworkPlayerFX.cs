@@ -8,10 +8,7 @@ public sealed class NetworkPlayerFX : MonoBehaviour
 {
     public PlayerFXType fxType;
 
-    private void OnEnable()
-    {
-        SendPacket();
-    }
+    public void OnEnable() => SendPacket();
 
     private void SendPacket()
     {

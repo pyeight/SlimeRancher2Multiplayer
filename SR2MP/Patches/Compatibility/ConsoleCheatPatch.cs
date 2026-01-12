@@ -23,23 +23,20 @@ public static class ConsoleCheatPatch
             string c = cc.TrimStart(' ');
             if (!string.IsNullOrWhiteSpace(c))
             {
-                bool spaces = c.Contains(" ");
-                string cmd = spaces ? c.Substring(0, c.IndexOf(' ')) : c;
+                bool spaces = c.Contains(' ');
+                string cmd = spaces ? c[..c.IndexOf(' ')] : c;
 
-                if (CheatCommands.Contains(cmd))
-                {
-                    containsCheat = true;
-                    break;
-                }
+                if (!CheatCommands.Contains(cmd))
+                    continue;
+
+                containsCheat = true;
+                break;
             }
         }
 
-        if (containsCheat)
-        {
-            SR2ELogManager.SendError("Cheats are disabled on this server!");
-            return false;
-        }
-
-        return true;
+        if (!containsCheat)
+            return true;
+        SR2ELogManager.SendError("Cheats are disabled on this server!");
+        return false;
     }
 }

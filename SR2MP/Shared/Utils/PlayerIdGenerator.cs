@@ -29,6 +29,7 @@ public static class PlayerIdGenerator
             return null!;
         }
     }
+
     public static ushort GetPlayerIDNumber(string id)
     {
         ushort number = 12345;

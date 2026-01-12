@@ -33,16 +33,10 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler
             return;
 
         networkComponent.SavedVelocity = packet.Velocity;
-        networkComponent.nextPosition = packet.Position;
-        networkComponent.nextRotation = packet.Rotation;
-        
-        if (networkComponent.regionMember?._hibernating == true)
-        {
-            networkComponent.transform.position = packet.Position;
-            networkComponent.transform.rotation = packet.Rotation;
-        }
+        networkComponent.NextPosition = packet.Position;
+        networkComponent.NextRotation = packet.Rotation;
 
-        if (networkComponent.regionMember?._hibernating == true)
+        if (networkComponent.RegionMember?._hibernating == true)
         {
             networkComponent.transform.position = packet.Position;
             networkComponent.transform.rotation = packet.Rotation;

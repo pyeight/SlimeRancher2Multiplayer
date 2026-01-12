@@ -65,10 +65,7 @@ public sealed class ConnectHandler : BasePacketHandler
             upgrades.Add((byte)upgrade._uniqueId, (sbyte)SceneContext.Instance.PlayerState._model.upgradeModel.GetUpgradeLevel(upgrade));
         }
 
-        var upgradesPacket = new UpgradesPacket
-        {
-            Upgrades = upgrades,
-        };
+        var upgradesPacket = new UpgradesPacket { Upgrades = upgrades };
         Main.Server.SendToClient(upgradesPacket, client);
     }
 
@@ -81,11 +78,7 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
 
-        var pediasPacket = new PediasPacket
-        {
-            Entries = unlockedIDs
-        };
-
+        var pediasPacket = new PediasPacket { Entries = unlockedIDs };
         Main.Server.SendToClient(pediasPacket, client);
     }
 
@@ -131,7 +124,7 @@ public sealed class ConnectHandler : BasePacketHandler
             });
         }
 
-        var switchesPacket = new SwitchesPacket()
+        var switchesPacket = new SwitchesPacket
         {
             Switches = switchesList
         };
@@ -159,10 +152,7 @@ public sealed class ConnectHandler : BasePacketHandler
             });
         }
 
-        var gordosPacket = new GordosPacket
-        {
-            Gordos = gordosList
-        };
+        var gordosPacket = new GordosPacket { Gordos = gordosList };
 
         Main.Server.SendToClient(gordosPacket, client);
     }
@@ -171,11 +161,8 @@ public sealed class ConnectHandler : BasePacketHandler
     {
         var plotsList = new List<LandPlotsPacket.Plot>();
 
-        foreach (var plotKeyValuePair in SceneContext.Instance.GameModel.landPlots)
+        foreach (var (id, plot) in SceneContext.Instance.GameModel.landPlots)
         {
-            var plot = plotKeyValuePair.Value;
-            var id = plotKeyValuePair.Key;
-
             plotsList.Add(new LandPlotsPacket.Plot
             {
                 ID = id,
@@ -184,20 +171,14 @@ public sealed class ConnectHandler : BasePacketHandler
             });
         }
 
-        var plotsPacket = new LandPlotsPacket
-        {
-            Plots = plotsList
-        };
+        var plotsPacket = new LandPlotsPacket { Plots = plotsList };
 
         Main.Server.SendToClient(plotsPacket, client);
     }
 
     private static void SendPricesPacket(IPEndPoint client)
     {
-        var pricesPacket = new MarketPricePacket()
-        {
-            Prices = MarketPricesArray!
-        };
+        var pricesPacket = new MarketPricePacket { Prices = MarketPricesArray! };
 
         Main.Server.SendToClient(pricesPacket, client);
     }

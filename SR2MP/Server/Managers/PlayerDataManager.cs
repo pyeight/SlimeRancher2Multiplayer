@@ -60,7 +60,7 @@ public sealed class PlayerDataManager
         }
     }
 
-    public void SavePlayerData(PlayerData data)
+    private void SavePlayerData(PlayerData data)
     {
         try
         {
@@ -75,7 +75,7 @@ public sealed class PlayerDataManager
     }
 
     // on Server Close
-    public void SaveAllPlayerData()
+    private void SaveAllPlayerData()
     {
         try
         {

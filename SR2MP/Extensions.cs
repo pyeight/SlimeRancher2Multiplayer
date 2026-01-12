@@ -35,7 +35,7 @@ public static class Extensions
         if (source == null)
         {
             var stack = new StackTrace();
-            SrLogger.LogError($"paramater 'source' is null!\n{stack}");
+            SrLogger.LogError($"Paramater 'source' is null!\n{stack}");
             return 0;
         }
 
@@ -45,7 +45,7 @@ public static class Extensions
             if (!e.MoveNext())
             {
                 var stack = new StackTrace();
-                SrLogger.LogError($"paramater 'source' is empty!\n{stack}");
+                SrLogger.LogError($"Paramater 'source' is empty!\n{stack}");
                 return 0;
             }
 

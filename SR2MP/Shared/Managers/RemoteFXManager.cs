@@ -18,19 +18,12 @@ public sealed class RemoteFXManager
     public GameObject FootstepFX;
     public GameObject? SellFX;
 
+    // Movement FX
     private static Predicate<SECTR_AudioCue> Force3DCondition => cue =>
-    {
-        // Movement SFX
-        if (cue.name.Contains("Step")
-            || cue.name.Contains("Run")
-            || cue.name.Contains("Jump")
-            || cue.name.Contains("Land"))
-        {
-            return true;
-        }
-
-        return false;
-    };
+        cue.name.Contains("Step") ||
+        cue.name.Contains("Run") ||
+        cue.name.Contains("Jump") ||
+        cue.name.Contains("Land");
 
     internal void Initialize()
     {
@@ -135,7 +128,7 @@ public sealed class RemoteFXManager
 
     public bool TryGetFXType(SECTR_AudioCue cue, out WorldFXType fxType) => TryGetFXType(cue, WorldAudioCueMap, out fxType);
 
-    private static bool TryGetFXType<T>(SECTR_AudioCue cue, Dictionary<T, SECTR_AudioCue> cueMap, out T fxType) where T : struct, Enum
+    private static bool TryGetFXType<T>(SECTR_AudioCue cue, Dictionary<T, SECTR_AudioCue>? cueMap, out T fxType) where T : struct, Enum
     {
         fxType = default;
 

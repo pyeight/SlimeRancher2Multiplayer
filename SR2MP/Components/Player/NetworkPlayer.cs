@@ -27,11 +27,11 @@ public partial class NetworkPlayer : MonoBehaviour
     private MeshRenderer[] renderers;
     private Collider collider;
 
-    internal Vector3 previousPosition;
-    internal Vector3 nextPosition;
+    private Vector3 previousPosition;
+    private Vector3 nextPosition;
 
-    internal Vector2 previousRotation;
-    internal Vector2 nextRotation;
+    private Vector2 previousRotation;
+    private Vector2 nextRotation;
 
     private float interpolationStart;
     private float interpolationEnd;
@@ -43,9 +43,9 @@ public partial class NetworkPlayer : MonoBehaviour
     private Animator animator;
     private bool hasAnimationController;
 
-    internal RemotePlayer? model;
+    private RemotePlayer? model;
 
-    internal Transform camera;
+    private Transform camera;
 
     public string ID { get; internal set; }
 
@@ -66,7 +66,7 @@ public partial class NetworkPlayer : MonoBehaviour
         }
     }
 
-    private void Awake()
+    public void Awake()
     {
         if (transform.GetComponents<NetworkPlayer>().Length > 1)
         {
@@ -82,7 +82,7 @@ public partial class NetworkPlayer : MonoBehaviour
         }
     }
 
-    private void Start()
+    public void Start()
     {
         if (IsLocal)
         {
@@ -168,7 +168,7 @@ public partial class NetworkPlayer : MonoBehaviour
             {
                 var playerAnimatorController = sceneContext.player?.GetComponent<Animator>().runtimeAnimatorController;
 
-                if (animator.runtimeAnimatorController != null)
+                if (animator.runtimeAnimatorController)
                 {
                     hasAnimationController = true;
                     animator.runtimeAnimatorController =
@@ -214,8 +214,5 @@ public partial class NetworkPlayer : MonoBehaviour
         collider.enabled = true;
     }
 
-    private void LateUpdate()
-    {
-        AnimateArmY();
-    }
+    public void LateUpdate() => AnimateArmY();
 }

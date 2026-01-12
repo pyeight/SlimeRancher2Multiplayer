@@ -18,7 +18,7 @@ public sealed partial class MultiplayerUI
 
         GUI.Label(CalculateTextLayout(6),"Please fill in the options to play multiplayer.");
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Username:");
+        GUI.Label(CalculateTextLayout(6, 1, 2),"Username:");
 
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
@@ -40,10 +40,10 @@ public sealed partial class MultiplayerUI
     {
         bool valid = true;
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Username:");
+        GUI.Label(CalculateTextLayout(6, 1, 2),"Username:");
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Allow Cheats:");
+        GUI.Label(CalculateTextLayout(6, 1, 2),"Allow Cheats:");
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
         {
             allowCheatsInput = !allowCheatsInput;
@@ -122,10 +122,10 @@ public sealed partial class MultiplayerUI
 
         GUI.Label(CalculateTextLayout(6), "Connect:");
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0), "IP");
+        GUI.Label(CalculateTextLayout(6, 1, 2), "IP");
         ipInput = GUI.TextField(CalculateInputLayout(6, 2, 1), ipInput);
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0), "Port");
+        GUI.Label(CalculateTextLayout(6, 1, 2), "Port");
         portInput = GUI.TextField(CalculateInputLayout(6, 2, 1), portInput);
 
         var validPort = ushort.TryParse(portInput, out var port);
@@ -141,7 +141,7 @@ public sealed partial class MultiplayerUI
 
         GUI.Label(CalculateTextLayout(6), "Host:");
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0), "Port");
+        GUI.Label(CalculateTextLayout(6, 1, 2), "Port");
         hostPortInput = GUI.TextField(CalculateInputLayout(6, 2, 1), hostPortInput);
 
         var validHostPort = ushort.TryParse(hostPortInput, out var hostPort);

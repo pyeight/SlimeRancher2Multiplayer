@@ -22,10 +22,10 @@ public sealed class ActorUnloadHandler : BasePacketHandler
         if (!actor.TryGetNetworkComponent(out var component))
             return;
 
-        if (!component.regionMember)
+        if (!component.RegionMember)
             return;
 
-        if (!component.regionMember._hibernating)
+        if (!component.RegionMember._hibernating)
         {
             component.LocallyOwned = true;
 

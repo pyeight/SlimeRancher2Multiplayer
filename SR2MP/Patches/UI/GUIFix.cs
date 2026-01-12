@@ -13,8 +13,8 @@ internal static class GUIStateObjectsMultiPatch
     [HarmonyPatch(nameof(GUIStateObjects.QueryStateObject))]
     internal static bool QueryStateObject(Type t, int controlID, ref Il2CppSystem.Object __result)
     {
-        Il2CppSystem.Object il2cppObject = stateCache[controlID];
-        __result = (t.IsInstanceOfType(il2cppObject) ? il2cppObject : null)!;
+        Il2CppSystem.Object il2CPPObject = stateCache[controlID];
+        __result = (t.IsInstanceOfType(il2CPPObject) ? il2CPPObject : null)!;
         return false;
     }
 

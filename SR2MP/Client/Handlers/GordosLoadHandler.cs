@@ -25,14 +25,14 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler
                 gordoModel.GordoEatenCount = gordo.EatenCount;
                 gordoModel.targetCount = gordo.RequiredEatCount;
 
-                if (gordoModel.gameObj)
-                {
-                    var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
+                if (!gordoModel.gameObj)
+                    continue;
 
-                    gordoComponent.SetModel(gordoModel);
+                var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
 
-                    gordoModel.gameObj.SetActive(gordo.EatenCount < gordo.RequiredEatCount);
-                }
+                gordoComponent.SetModel(gordoModel);
+
+                gordoModel.gameObj.SetActive(gordo.EatenCount < gordo.RequiredEatCount);
             }
             else
             {
