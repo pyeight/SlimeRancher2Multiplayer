@@ -417,3 +417,4 @@ FodyWeavers.xsd
 /NewSR2MP/Networking/EOS/Mirror/Runtime/Transport/EpicOnlineTransport/EOSSDK
 NewSR2MP/Networking/Patches/SteamContextPatch.cs
 /SR2MP/Patches/Private
+!SR2MP/DiscordRPC.dll
