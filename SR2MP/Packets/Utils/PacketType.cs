@@ -43,4 +43,6 @@ public enum PacketType : byte
     GeyserTrigger = 38,           // Both Ways                                                                          On Geyser Fired
     MapUnlock = 39,               // Both Ways                                                                          On Geyser Fired
     InitialMap = 40,              // Server -> Client                                                                   Map on Load
+    InitialInventory = 41,        // Server -> Client                                                                   Update Player Inventory on Join
+    UpdateInventory = 42,         // Client -> Server                                                                   Update Clients Inventory on Server
 }

@@ -12,7 +12,7 @@
 | Player Animations |   🟩   |                               Fully functional                                |
 |  Player Sound FX  |   🟨   |                             Water splash missing                              |
 | Player Visual FX  |   🟨   |               Water splash particle + Vac suction trail missing               |
-| Player Inventory  |   🟥   |                                Not implemented                                |
+| Player Inventory  |   🟧   |                                      WIP                                      |
 | Initial Save load |   🟩   | Everything that is ___currently___ synchronised will be loaded on Player join |
 |      Slimes       |   🟩   |                               Fully functional                                |
 |  Actors (Items)   |   🟩   |                               Fully functional                                |
@@ -31,7 +31,7 @@
 |  Resource Nodes   |   🟥   |                                Not implemented                                |
 |      Gordos       |   🟩   |                               Fully functional                                |
 |      Geysers      |   🟨   |                   The time they stop shooting isn't synced                    |
-|        Map        |   🟩   |                              Fully functional                                 |
+|        Map        |   🟩   |                               Fully functional                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
