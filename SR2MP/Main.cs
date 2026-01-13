@@ -16,6 +16,11 @@ namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
+    public override void OnInitializeMelon()
+    {
+        Main.LoadRPCAssembly();
+    }
+
     [DllImport("kernel32", CharSet = CharSet.Ansi)]
     private static extern IntPtr LoadLibrary(string lpFileName);
 
