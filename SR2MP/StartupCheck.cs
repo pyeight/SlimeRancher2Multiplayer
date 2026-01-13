@@ -30,7 +30,7 @@ namespace SR2MP
             {
                 MessageBoxW(
                     IntPtr.Zero,
-                    $"SR2MP is incompatible with this game version.\n\n" +
+                    "SR2MP is incompatible with this game version.\n\n" +
                     $"Required: {RequiredGameVersion}\n" +
                     $"Detected: {installedGameVersion}",
                     "SR2MP – Incompatible Game Version",
