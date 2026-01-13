@@ -41,7 +41,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
-        previousLayoutChatRect = new Rect(6, (Screen.height / 2) - 10, WindowWidth, 0);
+        previousLayoutChatRect = new Rect(6, (Screen.height / 2) + 15, WindowWidth, 0);
 
         DrawWindow();
         DrawChat();
