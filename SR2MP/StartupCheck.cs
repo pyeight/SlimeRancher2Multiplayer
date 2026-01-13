@@ -62,12 +62,9 @@ namespace SR2MP
                 using (var client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromSeconds(5);
-                    // string currentModVersion = BuildInfo.DisplayVersion;
-                    string currentModVersion = "0.1.0";
-                    SrLogger.LogMessage("Installed SR2MP version: " + currentModVersion, SrLogTarget.Both);
+                    string currentModVersion = BuildInfo.DisplayVersion;
 
                     string latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
-                    SrLogger.LogMessage("Latest SR2MP version: " + latestVersion, SrLogTarget.Both);
 
                     int comparison = CompareVersions(currentModVersion, latestVersion);
 
