@@ -8,7 +8,7 @@ namespace SR2MP
     {
         private const string RequiredGameVersion = BuildInfo.RequiredGameVersion;
         private const string VersionUrl = "https://raw.githubusercontent.com/pyeight/SlimeRancher2Multiplayer/refs/heads/master/latestModVersion.txt";
-        private const string DiscordUrl = "https://discord.gg/a7wfBw5feU";
+        private const string DiscordUrl = BuildInfo.Discord;
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
