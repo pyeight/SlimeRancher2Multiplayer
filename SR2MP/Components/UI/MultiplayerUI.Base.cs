@@ -52,7 +52,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         if (state == MenuState.Hidden)
             return;
         
-        GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to hide)");
+        GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to toggle)");
         switch (state)
         {
             case MenuState.SettingsInitial:
