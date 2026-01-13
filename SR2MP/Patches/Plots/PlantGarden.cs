@@ -5,9 +5,9 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Plots;
 
 [HarmonyPatch(typeof(GardenCatcher), nameof(GardenCatcher.Plant))]
-public class PlantGarden
+public static class PlantGarden
 {
-    public static void Postfix(GardenCatcher __instance, IdentifiableType cropId, bool isReplacement)
+    public static void Postfix(GardenCatcher __instance, IdentifiableType cropId)
     {
         if (handlingPacket)
             return;

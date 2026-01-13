@@ -8,19 +8,18 @@ public sealed partial class MultiplayerUI
 
     private int DetectLineCount(string text)
     {
-
         var style = GUI.skin.label;
 
-        var height = style.CalcHeight(new GUIContent(text), ChatWidth - 10);
+        var height = style.CalcHeight(new GUIContent(text), ChatWidth);
         return Mathf.CeilToInt(height / style.lineHeight);
     }
     
     private Rect CalculateChatTextLayout(float originalX, int lines)
     {
-        var maxWidth = WindowWidth - (HorizontalSpacing * 2);
+        var maxWidth = ChatWidth;
 
         float x = originalX + HorizontalSpacing;
-        float y = previousLayoutRect.y;
+        float y = previousLayoutChatRect.y;
         float w = maxWidth;
         float h = TextHeight;
 
