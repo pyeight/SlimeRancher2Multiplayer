@@ -78,6 +78,7 @@ public sealed class Main : SR2EExpansionV3
         switch (sceneName)
         {
             case "SystemCore":
+                StartupCheck.Initialize();
                 MainThreadDispatcher.Initialize();
                 DiscordRPCManager.Initialize();
 
