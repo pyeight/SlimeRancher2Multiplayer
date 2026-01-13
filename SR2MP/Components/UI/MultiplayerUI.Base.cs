@@ -26,7 +26,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
         Instance = this;
         
-        RegisterChatMessage("Use the SR2E console to send messages!", "SR2MP", 0);
+        RegisterChatMessage("Use the SR2E console to send messages!", "-SYSTEM-", 0);
     }
 
     // Not sure if OnDestroy is needed for the singleton, though it is IL2CPP stuff, so I don't want to deal with bugs.

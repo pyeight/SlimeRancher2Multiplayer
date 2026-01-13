@@ -27,7 +27,7 @@ public sealed partial class MultiplayerUI
                 message = message,
                 playerName = playerName,
                 time = time,
-                lines = DetectLineCount($"<{playerName}> {message}")
+                lines = DetectHeight($"<{playerName}> {message}").lines
             });
         });
     }
@@ -73,7 +73,8 @@ public sealed partial class MultiplayerUI
     
     private void DrawChatMessage(ChatMessage message)
     {
-        GUI.Label(CalculateChatTextLayout(6, message.lines), $"<{message.playerName}> {message.message}");
+        var msg = $"<{message.playerName}> {message.message}";
+        GUI.Label(CalculateChatTextLayout(6, msg), msg);
     }
     
     private void DrawChat()
