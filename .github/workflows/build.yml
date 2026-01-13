@@ -7,7 +7,7 @@ name: SR2MP Compilation
 on:
   push:
     branches:
-      - shark
+      - tarr
 
   workflow_dispatch:
     inputs:
