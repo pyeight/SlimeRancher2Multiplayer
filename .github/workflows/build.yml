@@ -8,7 +8,7 @@ on:
   push:
     branches:
       - development
-      - tarr
+      - shark
 
   workflow_dispatch:
     inputs:
@@ -192,13 +192,13 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
           WEBHOOK_NAME: "Build Bot"
-          AVATAR_URL: "https://sr2e.sr2.dev/img/sr2mp-bot.png"
+          AVATAR_URL: "https://sr2e.sr2.dev/img/sr2mp-bot.png#profile"
           MESSAGE_CONTENT: |
             **Compiled from Branch:** `${{ github.ref_name }}`
             **SR2 Version:** `${{ steps.manifest_lookup.outputs.manifest_id_long }}`
             **SR2E Version:** `${{ steps.script_execution.outputs.sr2e_version }}`
             **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
-            **Link:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **Link:** <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>
         run: |
           PAYLOAD=$(jq -n \
             --arg content "$MESSAGE_CONTENT" \
