@@ -16,15 +16,15 @@ public sealed partial class MultiplayerUI
     {
         bool valid = true;
 
-        GUI.Label(CalculateTextLayout(6),"Please fill in the options to play multiplayer.");
+        DrawText("Please fill in the options to play multiplayer.");
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Username:");
+        DrawText("Username:", 2, 0);
 
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
-            GUI.Label(CalculateTextLayout(6), "You must set an Username first.");
+            DrawText("You must set an Username first.");
             valid = false;
         }
 
@@ -40,10 +40,10 @@ public sealed partial class MultiplayerUI
     {
         bool valid = true;
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Username:");
+        DrawText("Username:", 2, 0);
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0),"Allow Cheats:");
+        DrawText("Allow Cheats:", 2, 0);
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
         {
             allowCheatsInput = !allowCheatsInput;
@@ -51,7 +51,7 @@ public sealed partial class MultiplayerUI
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
-            GUI.Label(CalculateTextLayout(6), "You must set an Username.");
+            DrawText("You must set an Username.");
             valid = false;
         }
 
@@ -109,8 +109,8 @@ public sealed partial class MultiplayerUI
         //if (GUI.Button(CalculateButtonLayout(6), "Help"))
         //    viewingHelp = true;
 
-        GUI.Label(CalculateTextLayout(6), "You must be in a save to host or connect!");
-        GUI.Label(CalculateTextLayout(6, 2), "Make sure you join an EMPTY save before connecting, this save file WILL BE RESET.");
+        DrawText("You must be in a save to host or connect!");
+        DrawText("Make sure you join an EMPTY save before connecting, this save file WILL BE RESET.");
     }
     private void InGameScreen()
     {
@@ -120,12 +120,12 @@ public sealed partial class MultiplayerUI
         //if (GUI.Button(CalculateButtonLayout(6), "Help"))
         //    viewingHelp = true;
 
-        GUI.Label(CalculateTextLayout(6), "Connect:");
+        DrawText("Connect:");
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0), "IP");
+        DrawText("IP", 2, 0);
         ipInput = GUI.TextField(CalculateInputLayout(6, 2, 1), ipInput);
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0), "Port");
+        DrawText("Port", 2, 0);
         portInput = GUI.TextField(CalculateInputLayout(6, 2, 1), portInput);
 
         var validPort = ushort.TryParse(portInput, out var port);
@@ -136,12 +136,12 @@ public sealed partial class MultiplayerUI
         }
         else
         {
-            GUI.Label(CalculateTextLayout(6, 2), "Invalid port. Must be a number from 1 to 65535.");
+            DrawText("Invalid port. Must be a number from 1 to 65535.");
         }
 
-        GUI.Label(CalculateTextLayout(6), "Host:");
+        DrawText("Host:");
 
-        GUI.Label(CalculateTextLayout(6, 1, 2, 0), "Port");
+        DrawText("Port", 2, 0);
         hostPortInput = GUI.TextField(CalculateInputLayout(6, 2, 1), hostPortInput);
 
         var validHostPort = ushort.TryParse(hostPortInput, out var hostPort);
@@ -152,34 +152,34 @@ public sealed partial class MultiplayerUI
         }
         else
         {
-            GUI.Label(CalculateTextLayout(6, 2), "Invalid port. Must be a number from 1 to 65535. Make sure your pc doesn't use the port anywhere else.");
+            DrawText("Invalid port. Must be a number from 1 to 65535. Make sure your pc doesn't use the port anywhere else.");
         }
     }
     private void UnimplementedScreen()
     {
-        GUI.Label(CalculateTextLayout(6), "This screen hasn't been implemented yet.");
+        DrawText("This screen hasn't been implemented yet.");
     }
     private void HostingScreen()
     {
-        GUI.Label(CalculateTextLayout(6), "You are the host.");
-        GUI.Label(CalculateTextLayout(6), $"Hosting on port: {Main.Server.Port}");
-        GUI.Label(CalculateTextLayout(6, 4), "If you are using PlayIt, you must host on the port you set as Local Port on PlayIt.");
+        DrawText("You are the host.");
+        DrawText($"Hosting on port: {Main.Server.Port}");
+        DrawText("If you are using PlayIt, you must host on the port you set as Local Port on PlayIt.");
 
-        GUI.Label(CalculateTextLayout(6), "Players:");
+        DrawText("Players:");
         foreach (var player in playerManager.GetAllPlayers())
         {
-            GUI.Label(CalculateTextLayout(6), player.Username);
+            DrawText(player.Username);
             //if (GUI.Button(CalculateButtonLayout(6, 2, 1), "Kick"))
             //    Kick(player.PlayerId);
         }
     }
     private void ConnectedScreen()
     {
-        GUI.Label(CalculateTextLayout(6, 2), "You are the client.");
-        GUI.Label(CalculateTextLayout(6), "Players:");
+        DrawText("You are the client.");
+        DrawText("Players:");
         foreach (var player in playerManager.GetAllPlayers())
         {
-            GUI.Label(CalculateTextLayout(6), player.Username);
+            DrawText(player.Username);
         }
     }
 }

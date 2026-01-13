@@ -24,19 +24,21 @@
 |       Money       |   🟩   |                               Fully functional                                |
 |       Time        |   🟩   |                               Fully functional                                |
 |    Decorations    |   🟥   |                                Not implemented                                |
-|  Gray Labyrinth   |   🟥   |                                Not implemented                                |
+|  Gray Labyrinth   |   🟨   |                           Switches are functional                             |
 |   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
 |      Plot FX      |   🟩   |                               Fully functional                                |
 |     Market FX     |   🟩   |                               Fully functional                                |
 |  Resource Nodes   |   🟥   |                                Not implemented                                |
-|      Gordos       |   🟩   |                               Fully functional                                |
+|   Gordo Slimes    |   🟩   |                               Fully functional                                |
 |      Geysers      |   🟨   |                   The time they stop shooting isn't synced                    |
 |        Map        |   🟩   |                              Fully functional                                 |
+|    Teleporters    |   🟩   |                              Fully functional                                 |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
 
 ## Acknowledgements
 Special thanks to:
-- [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining his [Slime Rancher 2 Essentials Mod](https://github.com/ThatFinnDev/SR2E)
+- [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining their [Slime Rancher 2 Essentials Mod](https://github.com/ThatFinnDev/SR2E)
+- [Lachee](https://github.com/Lachee/) for developing and maintaining their [Discord RPC C# library](https://github.com/Lachee/discord-rpc-csharp)
 - Each and every one of you for supporting us!
