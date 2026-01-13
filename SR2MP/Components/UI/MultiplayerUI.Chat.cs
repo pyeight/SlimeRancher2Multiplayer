@@ -8,6 +8,8 @@ public sealed partial class MultiplayerUI
     private List<ChatMessage> chatMessages = new List<ChatMessage>();
     private int linesInUse;
     
+    private Queue<Action> waitToRegister = new Queue<Action>();
+    
     public sealed class ChatMessage
     {
         public string message;
@@ -18,15 +20,19 @@ public sealed partial class MultiplayerUI
 
     public void RegisterChatMessage(string message, string playerName, long time)
     {
-        chatMessages.Add(new ChatMessage()
+        waitToRegister.Enqueue(() =>
         {
-            message = message,
-            playerName = playerName,
-            time = time,
-            lines = DetectLineCount($"<{playerName}> {message}")
+            chatMessages.Add(new ChatMessage()
+            {
+                message = message,
+                playerName = playerName,
+                time = time,
+                lines = DetectLineCount($"<{playerName}> {message}")
+            });
         });
     }
 
+    
     private void CalculateLinesInUse()
     {
         linesInUse = 0;
@@ -56,6 +62,14 @@ public sealed partial class MultiplayerUI
             }
         }
     }
+
+    private void RegisterMessages()
+    {
+        while (waitToRegister.TryDequeue(out var messageAction))
+        {
+            messageAction();
+        }
+    }
     
     private void DrawChatMessage(ChatMessage message)
     {
@@ -69,6 +83,7 @@ public sealed partial class MultiplayerUI
         
         GUI.Box(new Rect(6, Screen.height / 2, ChatWidth, ChatHeight), "Chat (F5 to hide)");
         
+        RegisterMessages();
         ClearOldChatMessages();
         
         foreach (var chatMessage in chatMessages)
