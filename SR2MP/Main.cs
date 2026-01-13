@@ -4,6 +4,7 @@ using Il2CppTMPro;
 using MelonLoader;
 using MelonLoader.Utils;
 using SR2E.Expansion;
+using SR2E.Managers;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
@@ -129,6 +130,9 @@ public sealed class Main : SR2EExpansionV3
                 playerPrefab.AddComponent<NetworkPlayerFootstep>().spawnAtTransform = footstepFX.transform;
 
                 Object.DontDestroyOnLoad(playerPrefab);
+
+                SR2ECommandManager.RegisterCommand(new ChatCommand());
+                
                 break;
         }
     }
