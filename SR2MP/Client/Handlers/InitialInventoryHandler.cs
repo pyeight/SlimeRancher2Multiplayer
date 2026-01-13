@@ -1,0 +1,38 @@
+using SR2E.Utils;
+using SR2MP.Packets.Player;
+using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
+using UnityEngine.SceneManagement;
+
+namespace SR2MP.Client.Handlers;
+
+[PacketHandler((byte)PacketType.InitialInventory)]
+public sealed class InitialInventoryHandler : BaseClientPacketHandler
+{
+    public InitialInventoryHandler(Client client, RemotePlayerManager playerManager)
+        : base(client, playerManager)
+    {
+    }
+
+    public override void Handle(byte[] data)
+    {
+        using var reader = new PacketReader(data);
+        var packet = reader.ReadPacket<PlayerInventoryPacket>();
+
+        foreach (var ammSlot in packet.Slots)
+        {
+            IdentifiableType type = LookupEUtil.GetIdentifiableTypeByName(ammSlot.ItemName);
+            for (int i = 0; i <= ammSlot.Count; i++)
+                SceneContext.Instance.PlayerState.Ammo.MaybeAddToSlot(type, null, type.GetAppearanceSet());
+        }
+    }
+}
+
+internal static class TempEUtil
+{
+    internal static SlimeAppearance.AppearanceSaveSet GetAppearanceSet(this IdentifiableType type)
+    {
+        if (type.TryCast<SlimeDefinition>() != null) return SlimeAppearance.AppearanceSaveSet.CLASSIC;
+        return SlimeAppearance.AppearanceSaveSet.NONE;
+    }
+}

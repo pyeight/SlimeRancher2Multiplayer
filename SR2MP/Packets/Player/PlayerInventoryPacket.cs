@@ -6,7 +6,7 @@ namespace SR2MP.Packets.Player;
 public class PlayerAmmSlot
 {
     public int Count { get; set; }
-    public string Type { get; set; }
+    public string ItemName { get; set; }
 }
 
 public sealed class PlayerInventoryPacket : IPacket
@@ -23,7 +23,7 @@ public sealed class PlayerInventoryPacket : IPacket
         foreach (var slot in Slots)
         {
             writer.WriteInt(slot.Count);
-            writer.WriteString(slot.Type);
+            writer.WriteString(slot.ItemName);
         }
     }
 
@@ -37,7 +37,7 @@ public sealed class PlayerInventoryPacket : IPacket
             Slots.Add(new PlayerAmmSlot
             {
                 Count = reader.ReadInt(),
-                Type = reader.ReadString()
+                ItemName = reader.ReadString()
             });
         }
     }
