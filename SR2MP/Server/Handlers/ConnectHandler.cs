@@ -192,18 +192,33 @@ public sealed class ConnectHandler : BasePacketHandler
 
     private static void SendPlotsPacket(IPEndPoint client)
     {
-        var plotsList = new List<LandPlotsPacket.Plot>();
+        var plotsList = new List<LandPlotsPacket.BasePlot>();
 
         foreach (var plotKeyValuePair in SceneContext.Instance.GameModel.landPlots)
         {
             var plot = plotKeyValuePair.Value;
             var id = plotKeyValuePair.Key;
 
-            plotsList.Add(new LandPlotsPacket.Plot
+            INetObject? data = null;
+            if (plot.typeId == LandPlot.Id.GARDEN)
+            {
+                data = new LandPlotsPacket.GardenData() 
+                { 
+                    Crop = plot.resourceGrowerDefinition == null ? 9 : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType)
+                };
+            }
+            else if (plot.typeId == LandPlot.Id.SILO)
+            {
+                // todo
+                data = new LandPlotsPacket.SiloData() { };
+            }
+
+            plotsList.Add(new LandPlotsPacket.BasePlot
             {
                 ID = id,
                 Type = plot.typeId,
                 Upgrades = plot.upgrades,
+                Data = data
             });
         }
 

@@ -7,8 +7,6 @@ namespace SR2MP.Components.UI;
 
 public sealed partial class MultiplayerUI
 {
-    private LMultiKey chatKey = new(LKey.LeftShift, LKey.Return);
-    
     public void Host(ushort port)
     {
         Server.Server server;
@@ -57,7 +55,7 @@ public sealed partial class MultiplayerUI
         if (KeyCode.F4.OnKeyDown())
             hidden = !hidden;
         
-        if (chatKey.OnKeyDown())
+        if (KeyCode.F5.OnKeyDown())
             chatHidden = !chatHidden;
     }
 

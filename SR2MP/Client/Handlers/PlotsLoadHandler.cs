@@ -18,7 +18,7 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler
         foreach (var plot in packet.Plots)
         {
             var model = SceneContext.Instance.GameModel.landPlots[plot.ID];
-
+            
             if (model.gameObj)
             {
                 handlingPacket = true;
@@ -33,6 +33,36 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler
 
             model.typeId = plot.Type;
             model.upgrades = plot.Upgrades;
+
+            if (plot.Data is LandPlotsPacket.GardenData garden)
+            {
+                if (garden.Crop == 9)
+                {
+                    model.resourceGrowerDefinition = null;
+                    if (model.gameObj)
+                    {
+                        var gardenPlot = model.gameObj.GetComponentInChildren<LandPlot>();
+                        gardenPlot.DestroyAttached();
+                    }
+                }
+                else
+                {
+                    var actor = actorManager.ActorTypes[garden.Crop];
+                    model.resourceGrowerDefinition =
+                        GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation
+                            .RawLookupDictionary._entries.FirstOrDefault(x =>
+                                x.value._primaryResourceType == actor)!.value;
+
+                    if (model.gameObj)
+                    {
+                        var gardenCatcher = model.gameObj.GetComponentInChildren<GardenCatcher>();
+
+                        if (gardenCatcher.CanAccept(actor))
+                            gardenCatcher.Plant(actor, true);
+                    }
+                }
+            }
+            else if (plot.Data is LandPlotsPacket.SiloData silo) { } // todo
         }
     }
 }

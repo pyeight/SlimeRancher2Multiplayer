@@ -1,16 +1,17 @@
+using System.Net;
 using SR2MP.Packets.Landplot;
-using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
 
-namespace SR2MP.Client.Handlers;
+namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.GardenPlant)]
-public sealed class GardenPlantHandler : BaseClientPacketHandler
+public sealed class GardenPlantHandler : BasePacketHandler
 {
-    public GardenPlantHandler(Client client, RemotePlayerManager playerManager)
-        : base(client, playerManager) { }
+    public GardenPlantHandler(NetworkManager networkManager, ClientManager clientManager)
+        : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(byte[] data, IPEndPoint clientEp)
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<GardenPlantPacket>();
@@ -48,5 +49,6 @@ public sealed class GardenPlantHandler : BaseClientPacketHandler
                 handlingPacket = false;
             }
         }
+        Main.Server.SendToAllExcept(packet, clientEp);
     }
 }
