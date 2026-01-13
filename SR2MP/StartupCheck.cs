@@ -6,7 +6,7 @@ namespace SR2MP
 {
     public static class StartupCheck
     {
-        private const string RequiredGameVersion = "1.1.0";
+        private const string RequiredGameVersion = BuildInfo.RequiredGameVersion;
         private const string VersionUrl = "https://raw.githubusercontent.com/pyeight/SlimeRancher2Multiplayer/refs/heads/master/latestModVersion.txt";
         private const string DiscordUrl = "https://discord.gg/a7wfBw5feU";
 
