@@ -11,7 +11,7 @@ public sealed partial class MultiplayerUI
         var style = GUI.skin.label;
 
         var height = style.CalcHeight(new GUIContent(text), ChatWidth);
-        return Mathf.CeilToInt(height / style.lineHeight);
+        return Mathf.CeilToInt(height / style.lineHeight) - 1;
     }
     
     private Rect CalculateChatTextLayout(float originalX, int lines)
