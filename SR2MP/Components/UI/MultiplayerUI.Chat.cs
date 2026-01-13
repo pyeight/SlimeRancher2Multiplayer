@@ -82,7 +82,7 @@ public sealed partial class MultiplayerUI
         if (state == MenuState.DisconnectedMainMenu) return;
         if (chatHidden) return;
         
-        GUI.Box(new Rect(6, Screen.height / 2, ChatWidth, ChatHeight), "Chat (F5 to hide)");
+        GUI.Box(new Rect(6, Screen.height / 2, ChatWidth, ChatHeight), "Chat (Shift+Enter to toggle)");
         
         RegisterMessages();
         ClearOldChatMessages();
