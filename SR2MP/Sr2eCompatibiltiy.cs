@@ -97,10 +97,10 @@ internal class MLEntrypoint : MelonMod
         quitRT.pivot = new Vector2(0.5f, 0.5f);
         quitRT.offsetMin = Vector2.zero;
         quitRT.offsetMax = Vector2.zero;
-        Sprite pill = null;
+        Sprite pill = null!;
         try
         {
-            var pillTex = Resources.FindObjectsOfTypeAll<AssetBundle>().FirstOrDefault((x) => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle").LoadAsset("Assets/UI/Textures/MenuDemo/whitePillBg.png").Cast<Texture2D>();
+            var pillTex = Resources.FindObjectsOfTypeAll<AssetBundle>().FirstOrDefault((x) => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle")!.LoadAsset("Assets/UI/Textures/MenuDemo/whitePillBg.png").Cast<Texture2D>();
             pill = Sprite.Create(pillTex, new Rect(0f, 0f, (float)pillTex.width, (float)pillTex.height), new Vector2(0.5f, 0.5f), 1f);
         }catch { }
         var img = buttonObj.AddComponent<Image>();
@@ -310,6 +310,7 @@ internal class MLEntrypoint : MelonMod
         return true;
     }
 
+    #nullable disable
     void OnSR2EInstalled()
     {
         var type = GetEntrypointType.type;
