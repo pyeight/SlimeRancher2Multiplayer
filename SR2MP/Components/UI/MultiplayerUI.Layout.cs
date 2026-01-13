@@ -21,8 +21,10 @@ public sealed partial class MultiplayerUI
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutChatRect.y;
         float w = maxWidth;
-        float h = TextHeight;
-
+        float h = TextHeight * lines;
+        
+        y += previousLayoutRect.height;
+        
         var result = new Rect(x, y, w, h);
 
         previousLayoutChatRect = result;
