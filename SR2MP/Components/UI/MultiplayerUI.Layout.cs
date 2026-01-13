@@ -6,24 +6,24 @@ public sealed partial class MultiplayerUI
     private Rect previousLayoutChatRect;
     private int previousLayoutHorizontalIndex;
 
-    private int DetectLineCount(string text)
+    private (int lines, float height) DetectHeight(string text)
     {
         var style = GUI.skin.label;
 
         var height = style.CalcHeight(new GUIContent(text), ChatWidth);
-        return Mathf.CeilToInt(height / style.lineHeight) - 1;
+        return (Mathf.CeilToInt(height / style.lineHeight), height);
     }
     
-    private Rect CalculateChatTextLayout(float originalX, int lines)
+    private Rect CalculateChatTextLayout(float originalX, string text)
     {
         var maxWidth = ChatWidth;
-
+        var textHeight = DetectHeight(text);
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutChatRect.y;
         float w = maxWidth;
-        float h = TextHeight * lines;
+        float h = textHeight.height;// * textHeight.lines;
         
-        y += previousLayoutRect.height;
+        y += previousLayoutChatRect.height;
         
         var result = new Rect(x, y, w, h);
 
@@ -32,14 +32,19 @@ public sealed partial class MultiplayerUI
         return result;
     }
 
-    private Rect CalculateTextLayout(float originalX, int lines = 1, int horizontalShare = 1, int horizontalIndex = 0)
+    private void DrawText(string text, int horizontalShare = 1, int horizontalIndex = 0)
+    {
+        GUI.Label(CalculateTextLayout(6, text, horizontalShare, horizontalIndex), text);
+    }
+    
+    private Rect CalculateTextLayout(float originalX, string text, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
-
+        var textHeight = DetectHeight(text);
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
         float w = (maxWidth / horizontalShare);
-        float h = TextHeight * lines;
+        float h = textHeight.height * textHeight.lines;
 
         //if (horizontalShare != 1)
         //    w -= HorizontalSpacing * horizontalShare;
