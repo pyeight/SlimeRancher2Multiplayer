@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using MelonLoader;
-using SR2E.Managers;
 
 namespace SR2MP
 {
