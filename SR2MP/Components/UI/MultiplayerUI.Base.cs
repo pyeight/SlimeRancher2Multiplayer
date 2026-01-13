@@ -39,8 +39,6 @@ public sealed partial class MultiplayerUI : MonoBehaviour
     {
         state = GetState();
 
-        if (state == MenuState.Hidden)
-            return;
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
         previousLayoutChatRect = new Rect(6, (Screen.height / 2) - 10, WindowWidth, 0);
@@ -51,6 +49,9 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
     private void DrawWindow()
     {
+        if (state == MenuState.Hidden)
+            return;
+        
         GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to hide)");
         switch (state)
         {
