@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -21,15 +22,10 @@ public sealed class ChatMessageHandler : BasePacketHandler
         SrLogger.LogMessage($"Chat message from {packet.PlayerId}: {packet.Message}",
             $"Chat message from {clientEp} ({packet.PlayerId}): {packet.Message}");
 
-        var broadcastPacket = new ChatMessagePacket
-        {
-            PlayerId = packet.PlayerId,
-            Message = packet.Message,
-            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-        };
+        packet.Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        // Broadcast to self for confirmation (if a GUI will exist later qwq)
-        // If necessary, not sure how we should do it
-        Main.Server.SendToAll(broadcastPacket);
+        MultiplayerUI.Instance.RegisterChatMessage(packet.Message, playerManager.GetPlayer(packet.PlayerId)!.Username, packet.Timestamp);
+        
+        Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

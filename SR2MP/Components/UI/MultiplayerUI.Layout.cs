@@ -3,7 +3,33 @@ namespace SR2MP.Components.UI;
 public sealed partial class MultiplayerUI
 {
     private Rect previousLayoutRect;
+    private Rect previousLayoutChatRect;
     private int previousLayoutHorizontalIndex;
+
+    private int DetectLineCount(string text)
+    {
+
+        var style = GUI.skin.label;
+
+        var height = style.CalcHeight(new GUIContent(text), ChatWidth - 10);
+        return Mathf.CeilToInt(height / style.lineHeight);
+    }
+    
+    private Rect CalculateChatTextLayout(float originalX, int lines)
+    {
+        var maxWidth = WindowWidth - (HorizontalSpacing * 2);
+
+        float x = originalX + HorizontalSpacing;
+        float y = previousLayoutRect.y;
+        float w = maxWidth;
+        float h = TextHeight;
+
+        var result = new Rect(x, y, w, h);
+
+        previousLayoutChatRect = result;
+
+        return result;
+    }
 
     private Rect CalculateTextLayout(float originalX, int lines = 1, int horizontalShare = 1, int horizontalIndex = 0)
     {

@@ -1,6 +1,8 @@
 using System.Net;
 using SR2E;
 using SR2E.Utils;
+using SR2MP.Components.UI;
+using SR2MP.Packets;
 
 namespace SR2MP;
 
@@ -16,6 +18,30 @@ public sealed class HostCommand : SR2ECommand
         MenuEUtil.CloseOpenMenu();
         server = Main.Server;
         server.Start(int.Parse(args[0]), true);
+        return true;
+    }
+}
+public sealed class ChatCommand : SR2ECommand
+{
+    public override string ID => "chat";
+    public override string Usage => "chat <message>";
+
+    public override bool Execute(string[] args)
+    {
+        if (args.Length < 1)
+            SendError("Not enough arguments");
+        
+        var msg = string.Join(" ", args);
+        
+        var chatPacket = new ChatMessagePacket
+        {
+            PlayerId = LocalID,
+            Message = msg,
+        };
+
+        Main.SendToAllOrServer(chatPacket);
+        MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, 0);
+        
         return true;
     }
 }

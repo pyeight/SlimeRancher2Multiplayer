@@ -53,6 +53,9 @@ public sealed partial class MultiplayerUI
     {
         if (KeyCode.F4.OnKeyDown())
             hidden = !hidden;
+        
+        if (KeyCode.F5.OnKeyDown())
+            chatHidden = !chatHidden;
     }
 
     private void AdjustInputValues()

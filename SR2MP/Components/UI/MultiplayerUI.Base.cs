@@ -25,6 +25,8 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         }
 
         Instance = this;
+        
+        RegisterChatMessage("Use the SR2E console to send messages!", "SR2MP", 0);
     }
 
     // Not sure if OnDestroy is needed for the singleton, though it is IL2CPP stuff, so I don't want to deal with bugs.
@@ -41,9 +43,10 @@ public sealed partial class MultiplayerUI : MonoBehaviour
             return;
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
+        previousLayoutChatRect = new Rect(6, (Screen.height / 2) - 10, WindowWidth, 0);
 
         DrawWindow();
-        //DrawChat();
+        DrawChat();
     }
 
     private void DrawWindow()
@@ -74,10 +77,5 @@ public sealed partial class MultiplayerUI : MonoBehaviour
                 break;
         }
         AdjustInputValues();
-    }
-
-    private void DrawChat()
-    {
-        UnimplementedScreen();
     }
 }
