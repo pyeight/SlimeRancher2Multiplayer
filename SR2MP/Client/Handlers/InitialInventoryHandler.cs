@@ -27,12 +27,3 @@ public sealed class InitialInventoryHandler : BaseClientPacketHandler
         }
     }
 }
-
-internal static class TempEUtil
-{
-    internal static SlimeAppearance.AppearanceSaveSet GetAppearanceSet(this IdentifiableType type)
-    {
-        if (type.TryCast<SlimeDefinition>() != null) return SlimeAppearance.AppearanceSaveSet.CLASSIC;
-        return SlimeAppearance.AppearanceSaveSet.NONE;
-    }
-}
