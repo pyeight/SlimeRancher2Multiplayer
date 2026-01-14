@@ -7,6 +7,7 @@ using SR2MP.Packets.Utils;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
 using SR2MP.Packets.Economy;
 using SR2MP.Packets.Loading;
+using SR2MP.Packets.Player;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 
@@ -53,9 +54,20 @@ public sealed class ConnectHandler : BasePacketHandler
         SendPricesPacket(clientEp);
         SendGordosPacket(clientEp);
         SendSwitchesPacket(clientEp);
+        SendInventoryPacket(clientEp);
 
         SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
             $"Player {packet.PlayerId} successfully connected from {clientEp}");
+    }
+
+    private static void SendInventoryPacket(IPEndPoint clientEp)
+    {
+        var slots = new List<PlayerAmmoSlot>() { new() { Count = 4, ItemName = "HEARTBEET" } };
+        var packet = new PlayerInventoryPacket
+        {
+            Type = PacketType.InitialInventory, PlayerId = "PLACEHOLDER", Slots = slots
+        };
+        Main.Server.SendToClient(packet, clientEp);
     }
 
     private static void SendUpgradesPacket(IPEndPoint client)

@@ -20,11 +20,11 @@ public sealed class PlayerInventory : MonoBehaviour
         if (syncTimer >= 0) return;
         syncTimer = Timers.PlayerInventoryTimer;
 
-        var slots = new List<PlayerAmmSlot>();
+        var slots = new List<PlayerAmmoSlot>();
 
         foreach (var slot in SceneContext.Instance.PlayerState.Ammo.Slots)
         {
-            slots.Append(new PlayerAmmSlot { Count = slot.Count, ItemName = slot.Id.name, });
+            slots.Append(new PlayerAmmoSlot { Count = slot.Count, ItemName = slot.Id.name, });
         }
 
         var packet = new PlayerInventoryPacket

@@ -3,7 +3,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public class PlayerAmmSlot
+public class PlayerAmmoSlot
 {
     public int Count { get; set; }
     public string ItemName { get; set; }
@@ -13,7 +13,7 @@ public sealed class PlayerInventoryPacket : IPacket
 {
     public PacketType Type { get; set; }
     public string PlayerId { get; set; }
-    public List<PlayerAmmSlot> Slots { get; set; }
+    public List<PlayerAmmoSlot> Slots { get; set; }
 
 
     public void Serialise(PacketWriter writer)
@@ -31,10 +31,10 @@ public sealed class PlayerInventoryPacket : IPacket
     {
         PlayerId = reader.ReadString();
         var slotCount = reader.ReadInt();
-        Slots = new List<PlayerAmmSlot>(slotCount);
+        Slots = new List<PlayerAmmoSlot>(slotCount);
         for (var i = 0; i < slotCount; i++)
         {
-            Slots.Add(new PlayerAmmSlot
+            Slots.Add(new PlayerAmmoSlot
             {
                 Count = reader.ReadInt(),
                 ItemName = reader.ReadString()

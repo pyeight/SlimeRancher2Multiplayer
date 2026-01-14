@@ -2,7 +2,6 @@ using SR2E.Utils;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
-using UnityEngine.SceneManagement;
 
 namespace SR2MP.Client.Handlers;
 
