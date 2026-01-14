@@ -15,13 +15,16 @@ public sealed class InitialInventoryHandler : BaseClientPacketHandler
 
     public override void Handle(byte[] data)
     {
+        SceneContext.Instance.PlayerState.Ammo.Clear();
+            
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<PlayerInventoryPacket>();
-
+        
         foreach (var ammSlot in packet.Slots)
         {
-            IdentifiableType type = LookupEUtil.GetIdentifiableTypeByName(ammSlot.ItemName);
-            for (int i = 0; i <= ammSlot.Count; i++)
+            var type = LookupEUtil.GetIdentifiableTypeByName(ammSlot.ItemName);
+            
+            for (int i = 0; i < ammSlot.Count; i++)
                 SceneContext.Instance.PlayerState.Ammo.MaybeAddToSlot(type, null, type.GetAppearanceSet());
         }
     }

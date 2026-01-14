@@ -5,13 +5,13 @@ namespace SR2MP.Packets.Player;
 
 public class PlayerAmmoSlot
 {
-    public int Count { get; set; }
-    public string ItemName { get; set; }
+    public int Count { get; init; }
+    public string ItemName { get; init; }
 }
 
 public sealed class PlayerInventoryPacket : IPacket
 {
-    public PacketType Type { get; set; }
+    public PacketType Type { get; init; }
     public string PlayerId { get; set; }
     public List<PlayerAmmoSlot> Slots { get; set; }
 
