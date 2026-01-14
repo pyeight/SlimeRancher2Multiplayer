@@ -137,6 +137,8 @@ public sealed class Main : SR2EExpansionV3
 
                 Object.DontDestroyOnLoad(playerPrefab);
 
+                SR2ECommandManager.RegisterCommand(new HostCommand());
+                SR2ECommandManager.RegisterCommand(new ConnectCommand());
                 SR2ECommandManager.RegisterCommand(new ChatCommand());
                 
                 break;
