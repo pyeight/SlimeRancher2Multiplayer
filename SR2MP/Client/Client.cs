@@ -48,6 +48,12 @@ public sealed class Client
 
     public void Connect(string serverIp, int port)
     {
+        if (Main.Server.IsRunning())
+        {
+            SrLogger.LogWarning("You are already hosting a server, to connect to someone else, restart your game.");
+            return;
+        }
+        
         if (isConnected)
         {
             SrLogger.LogMessage("You are already connected to a Server!", SrLogTarget.Both);

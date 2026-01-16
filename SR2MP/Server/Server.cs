@@ -36,6 +36,12 @@ public sealed class Server
 
     public void Start(int port, bool enableIPv6)
     {
+        if (Main.Client.IsConnected)
+        {
+            SrLogger.LogWarning("You are already connected to a server, restart your game to host your own server");
+            return;
+        }
+        
         if (networkManager.IsRunning)
         {
             SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
