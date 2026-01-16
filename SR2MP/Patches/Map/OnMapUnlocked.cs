@@ -1,7 +1,6 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.UI.Map;
-using SR2MP.Packets.Map;
-using SR2MP.Packets.Utils;
+using SR2MP.Packets.World;
 
 namespace SR2MP.Patches.Map;
 
