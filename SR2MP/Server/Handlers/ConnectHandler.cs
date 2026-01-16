@@ -177,7 +177,8 @@ public sealed class ConnectHandler : BasePacketHandler
                 Id = gordo.key,
                 EatenCount = eatCount,
                 RequiredEatCount = gordo.value.targetCount,
-                GordoType = NetworkActorManager.GetPersistentID(gordo.value.identifiableType)
+                GordoType = NetworkActorManager.GetPersistentID(gordo.value.identifiableType),
+                WasSeen = gordo.value.GordoSeen
                 //Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount
             });
         }
