@@ -172,6 +172,7 @@ public sealed class Main : SR2EExpansionV3
         Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
+        Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));
         File.WriteAllBytes(MelonEnvironment.UserDataDirectory + "/SR2MP/THIRD-PARTY-NOTICES.txt", array);
     }
 }
