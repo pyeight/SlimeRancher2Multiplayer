@@ -49,18 +49,21 @@ public sealed class ClientPacketManager
 
     public void HandlePacket(byte[] data)
     {
-        if (data.Length < 1)
+        if (data.Length < 5)
         {
-            SrLogger.LogMessage("Received empty packet", SrLogTarget.Both);
+            SrLogger.LogMessage("Received packet too small for chunk header", SrLogTarget.Both);
             return;
         }
 
         byte packetType = data[0];
-        byte chunkIndex = data[1];
-        byte totalChunks = data[2];
         
-        byte[] chunkData = new byte[data.Length - 3];
-        Buffer.BlockCopy(data, 3, chunkData, 0, data.Length - 3);
+        ushort chunkIndex = (ushort)(data[1] | (data[2] << 8));
+        
+        ushort totalChunks = (ushort)(data[3] | (data[4] << 8));
+        
+        byte[] chunkData = new byte[data.Length - 5];
+        Buffer.BlockCopy(data, 5, chunkData, 0, data.Length - 5);
+        
         if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, totalChunks, out data))
             return;
 

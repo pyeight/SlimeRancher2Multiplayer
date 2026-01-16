@@ -44,4 +44,5 @@ public enum PacketType : byte
     MapUnlock = 39,               // Both Ways                                                                          On Geyser Fired
     InitialMap = 40,              // Server -> Client                                                                   Map on Load
     GardenPlant = 41,             // Both Ways                                                                          On Food Planted
+    ReservedDoNotUse = 255,
 }

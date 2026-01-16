@@ -1,4 +1,5 @@
 using SR2MP.Packets.Utils;
+using System.IO.Compression;
 
 namespace SR2MP.Shared.Managers;
 
@@ -8,15 +9,16 @@ public static class PacketChunkManager
     {
         public byte[][] chunks;
         public bool[] received;
-        public byte totalChunks;
+        public ushort totalChunks;
         public int receivedCount;
     }
 
     private static readonly Dictionary<PacketType, IncompletePacket> IncompletePackets = new();
 
     private const int MaxChunkBytes = 250;
+    private const int CompressionThreshold = 500;
 
-    internal static bool TryMergePacket(PacketType packetType, byte[] data, byte chunkIndex, byte totalChunks, out byte[] fullData)
+    internal static bool TryMergePacket(PacketType packetType, byte[] data, ushort chunkIndex, ushort totalChunks, out byte[] fullData)
     {
         fullData = null!;
         
@@ -66,31 +68,91 @@ public static class PacketChunkManager
         }
 
         IncompletePackets.Remove(packetType);
+        
+        fullData = complete.ToArray();
+        
+        if (fullData.Length > 0 && fullData[0] == 0xFF)
+        {
+            fullData = Decompress(fullData);
+            SrLogger.LogPacketSize($"Decompressed packet: type={packetType}");
+        }
+        
         SrLogger.LogPacketSize($"Merged full packet: type={packetType}");
 
-        fullData = complete.ToArray();
         return true;
     }
 
     internal static byte[][] SplitPacket(byte[] data)
     {
-        var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
+        var originalSize = data.Length;
         var packetType = data[0];
+        
+        if (data.Length > CompressionThreshold)
+        {
+            var compressed = Compress(data);
+            if (compressed.Length < data.Length * 0.9f)
+            {
+                data = compressed;
+                SrLogger.LogPacketSize($"Compressed packet: {originalSize} -> {data.Length} bytes ({(1 - (float)data.Length / originalSize) * 100:F1}% reduction)");
+            }
+        }
+        
+        var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
         var result = new byte[chunkCount][];
 
-        for (byte index = 0; index < chunkCount; index++)
+        for (ushort index = 0; index < chunkCount; index++)
         {
             var offset = index * MaxChunkBytes;
             var chunkSize = Math.Min(MaxChunkBytes, data.Length - offset);
 
-            var buffer = new byte[3 + chunkSize];
+            var buffer = new byte[5 + chunkSize];
             buffer[0] = packetType;
-            buffer[1] = index;
-            buffer[2] = (byte)chunkCount;
+            
+            buffer[1] = (byte)(index & 0xFF);
+            buffer[2] = (byte)((index >> 8) & 0xFF);
+            
+            buffer[3] = (byte)(chunkCount & 0xFF);
+            buffer[4] = (byte)((chunkCount >> 8) & 0xFF);
 
-            Buffer.BlockCopy(data, offset, buffer, 3, chunkSize);
+            Buffer.BlockCopy(data, offset, buffer, 5, chunkSize);
             result[index] = buffer;
         }
         return result;
+    }
+
+    private static byte[] Compress(byte[] data)
+    {
+        using var output = new MemoryStream();
+        
+        output.WriteByte(0xFF);
+        
+        output.WriteByte(data[0]);
+        
+        using (var gzip = new GZipStream(output, CompressionLevel.Fastest))
+        {
+            gzip.Write(data, 1, data.Length - 1);
+        }
+        
+        return output.ToArray();
+    }
+
+    private static byte[] Decompress(byte[] data)
+    {
+        using var input = new MemoryStream(data);
+        
+        input.ReadByte();
+        
+        var packetType = (byte)input.ReadByte();
+        
+        using var output = new MemoryStream();
+        
+        output.WriteByte(packetType);
+        
+        using (var gzip = new GZipStream(input, CompressionMode.Decompress))
+        {
+            gzip.CopyTo(output);
+        }
+        
+        return output.ToArray();
     }
 }
