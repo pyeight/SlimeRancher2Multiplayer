@@ -16,11 +16,11 @@ public sealed class AccessDoorHandler : BaseClientPacketHandler
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<AccessDoorPacket>();
+
+        var model = SceneContext.Instance.GameModel.doors[packet.ID];
         
         handlingPacket = true;
-        SceneContext.Instance.GameModel.doors[packet.ID]
-            .gameObj.GetComponent<AccessDoor>()
-            .CurrState = AccessDoor.State.OPEN;
+        model.gameObj.GetComponent<AccessDoor>().CurrState = packet.State;
         handlingPacket = false;
     }
 }
