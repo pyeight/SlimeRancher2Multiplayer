@@ -5,16 +5,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.GardenPlant)]
-public sealed class GardenPlantHandler : BaseClientPacketHandler
+public sealed class GardenPlantHandler : BaseClientPacketHandler<GardenPlantPacket>
 {
     public GardenPlantHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(GardenPlantPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<GardenPlantPacket>();
-
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 
         if (packet.ActorType == 9)

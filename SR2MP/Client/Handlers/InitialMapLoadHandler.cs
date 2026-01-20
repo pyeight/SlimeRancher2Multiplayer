@@ -10,16 +10,13 @@ using Enumerable = Il2CppSystem.Linq.Enumerable;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.InitialMap)]
-public sealed class MapLoadHandler : BaseClientPacketHandler
+public sealed class MapLoadHandler : BaseClientPacketHandler<InitialMapPacket>
 {
     public MapLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(InitialMapPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<MapPacket>();
-
         var eventModel = SceneContext.Instance.eventDirector._model;
 
         eventModel.table[MapEventKey] = new CppCollections.Dictionary<string, EventRecordModel.Entry>();

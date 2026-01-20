@@ -6,16 +6,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.ChatMessage)]
-public sealed class ChatMessageHandler : BaseClientPacketHandler
+public sealed class ChatMessageHandler : BaseClientPacketHandler<ChatMessagePacket>
 {
     public ChatMessageHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(ChatMessagePacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<ChatMessagePacket>();
-
         DateTime messageTime = DateTimeOffset.FromUnixTimeMilliseconds(packet.Timestamp).UtcDateTime;
 
         MultiplayerUI.Instance.RegisterChatMessage(packet.Message, playerManager.GetPlayer(packet.PlayerId)!.Username, packet.Timestamp);

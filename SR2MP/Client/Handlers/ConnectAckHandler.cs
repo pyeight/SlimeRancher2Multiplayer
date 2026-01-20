@@ -8,16 +8,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.ConnectAck)]
-public sealed class ConnectAckHandler : BaseClientPacketHandler
+public sealed class ConnectAckHandler : BaseClientPacketHandler<ConnectAckPacket>
 {
     public ConnectAckHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(ConnectAckPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<ConnectAckPacket>();
-
         var joinPacket = new PlayerJoinPacket
         {
             Type = PacketType.PlayerJoin,

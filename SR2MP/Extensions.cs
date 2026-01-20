@@ -21,7 +21,7 @@ public static class Extensions
     // https://discussions.unity.com/t/how-can-i-get-the-full-path-to-a-gameobject/412
     public static string GetGameObjectPath(this GameObject obj)
     {
-        string path = "/" + obj.name;
+        var path = "/" + obj.name;
         while (obj.transform.parent != null)
         {
             obj = obj.transform.parent.gameObject;
@@ -35,7 +35,7 @@ public static class Extensions
         if (source == null)
         {
             var stack = new StackTrace();
-            SrLogger.LogError($"paramater 'source' is null!\n{stack}");
+            SrLogger.LogError($"parameter 'source' is null!\n{stack}");
             return 0;
         }
 
@@ -45,7 +45,7 @@ public static class Extensions
             if (!e.MoveNext())
             {
                 var stack = new StackTrace();
-                SrLogger.LogError($"paramater 'source' is empty!\n{stack}");
+                SrLogger.LogError($"parameter 'source' is empty!\n{stack}");
                 return 0;
             }
 

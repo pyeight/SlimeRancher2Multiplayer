@@ -18,7 +18,7 @@ namespace SR2MP.Components.Actor;
 public sealed class NetworkActor : MonoBehaviour
 {
     internal RegionMember regionMember;
-    private IdentifiableActor identifiableActor;
+    private Identifiable identifiable;
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
 
@@ -31,9 +31,9 @@ public sealed class NetworkActor : MonoBehaviour
     {
         get
         {
-            if (!identifiableActor)
+            if (!identifiable)
             {
-                identifiableActor = GetComponent<IdentifiableActor>();
+                identifiable = GetComponent<Identifiable>();
                 attemptedGetIdentifiable++;
 
                 if (attemptedGetIdentifiable >= 10)
@@ -44,7 +44,7 @@ public sealed class NetworkActor : MonoBehaviour
                 return new ActorId(0);
             }
 
-            return identifiableActor._model.actorId;
+            return identifiable.GetActorId();
         }
     }
 
@@ -83,7 +83,7 @@ public sealed class NetworkActor : MonoBehaviour
         emotions = GetComponent<SlimeEmotions>();
         cachedLocallyOwned = LocallyOwned;
         rigidbody = GetComponent<Rigidbody>();
-        identifiableActor = GetComponent<IdentifiableActor>();
+        identifiable = GetComponent<Identifiable>();
 
         regionMember = GetComponent<RegionMember>();
 

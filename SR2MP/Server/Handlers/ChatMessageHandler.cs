@@ -7,18 +7,15 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ChatMessage)]
-public sealed class ChatMessageHandler : BasePacketHandler
+public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
 {
     public ChatMessageHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager)
     {
     }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(ChatMessagePacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<ChatMessagePacket>();
-
         SrLogger.LogMessage($"Chat message from {packet.PlayerId}: {packet.Message}",
             $"Chat message from {clientEp} ({packet.PlayerId}): {packet.Message}");
 

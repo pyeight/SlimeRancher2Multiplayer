@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class LandPlotsPacket : IPacket
+public sealed class InitialLandPlotsPacket : IPacket
 {
     public sealed class BasePlot : INetObject
     {

@@ -5,16 +5,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.InitialPlots)]
-public sealed class PlotsLoadHandler : BaseClientPacketHandler
+public sealed class PlotsLoadHandler : BaseClientPacketHandler<InitialLandPlotsPacket>
 {
     public PlotsLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(InitialLandPlotsPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<LandPlotsPacket>();
-
         foreach (var plot in packet.Plots)
         {
             var model = SceneContext.Instance.GameModel.landPlots[plot.ID];
@@ -34,7 +31,7 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler
             model.typeId = plot.Type;
             model.upgrades = plot.Upgrades;
 
-            if (plot.Data is LandPlotsPacket.GardenData garden)
+            if (plot.Data is InitialLandPlotsPacket.GardenData garden)
             {
                 if (garden.Crop == 9)
                 {
@@ -62,7 +59,7 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler
                     }
                 }
             }
-            else if (plot.Data is LandPlotsPacket.SiloData silo) { } // todo
+            else if (plot.Data is InitialLandPlotsPacket.SiloData silo) { } // todo
         }
     }
 }

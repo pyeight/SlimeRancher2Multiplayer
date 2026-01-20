@@ -6,17 +6,14 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerLeave)]
-public sealed class PlayerLeaveHandler : BasePacketHandler
+public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 {
     public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(PlayerLeavePacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        reader.Skip(1);
-
-        string playerId = reader.ReadString();
+        string playerId = packet.PlayerId;
 
         string clientInfo = $"{clientEp.Address}:{clientEp.Port}";
 

@@ -10,16 +10,13 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.MapUnlock)]
-public sealed class MapUnlockHandler : BasePacketHandler
+public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
 {
     public MapUnlockHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(MapUnlockPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<MapUnlockPacket>();
-        
         var gameEvent = Resources.FindObjectsOfTypeAll<StaticGameEvent>().FirstOrDefault(x => x._dataKey == packet.NodeID);
         SceneContext.Instance.MapDirector.NotifyZoneUnlocked(gameEvent, false, 0);
 

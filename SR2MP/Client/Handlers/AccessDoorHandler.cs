@@ -7,16 +7,13 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.AccessDoor)]
-public sealed class AccessDoorHandler : BaseClientPacketHandler
+public sealed class AccessDoorHandler : BaseClientPacketHandler<AccessDoorPacket>
 {
     public AccessDoorHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
     
-    public override void Handle(byte[] data)
+    public override void Handle(AccessDoorPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<AccessDoorPacket>();
-
         var model = SceneContext.Instance.GameModel.doors[packet.ID];
         
         handlingPacket = true;
