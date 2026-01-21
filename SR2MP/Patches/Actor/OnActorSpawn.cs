@@ -15,6 +15,9 @@ public static class OnActorSpawn
     {
         yield return null;
 
+        if (!actor)
+            yield break;
+        
         var id = actor.GetComponent<IdentifiableActor>().GetActorId();
 
         var packet = new ActorSpawnPacket

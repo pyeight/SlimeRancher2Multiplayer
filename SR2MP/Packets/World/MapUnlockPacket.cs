@@ -1,6 +1,6 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Map;
+namespace SR2MP.Packets.World;
 
 public sealed class MapUnlockPacket : IPacket
 {

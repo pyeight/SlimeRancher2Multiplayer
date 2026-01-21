@@ -7,16 +7,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerJoin)]
-public sealed class PlayerJoinHandler : BasePacketHandler
+public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 {
     public PlayerJoinHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<PlayerJoinPacket>();
-
         string playerId = packet.PlayerId;
 
         string address = $"{clientEp.Address}:{clientEp.Port}";

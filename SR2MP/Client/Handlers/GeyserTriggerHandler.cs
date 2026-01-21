@@ -5,16 +5,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.GeyserTrigger)]
-public sealed class GeyserTriggerHandler : BaseClientPacketHandler
+public sealed class GeyserTriggerHandler : BaseClientPacketHandler<GeyserTriggerPacket>
 {
     public GeyserTriggerHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(GeyserTriggerPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<GeyserTriggerPacket>();
-
         var obj = GameObject.Find(packet.ObjectPath);
 
         handlingPacket = true;

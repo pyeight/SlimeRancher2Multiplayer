@@ -9,7 +9,7 @@ public static class GlobalVariables
     public static readonly string[] CheatCommands = {
         "actortype", "clearinv", "delwarp", "emotions", "fastforward", "flatlook", "fling", "floaty", "freeze",
         "fxplayer", "gadget", "give", "gordo", "gravity", "infenergy", "infhealth", "kill", "killall", "newbucks",
-        "noclip", "party", "pedia", "player", "position", "ranch", "refillinv", "replace", "rotation", "scale",
+        "noclip", "pedia", "player", "position", "ranch", "refillinv", "replace", "rotation", "scale",
         "setwarp", "spawn", "speed", "strike", "timescale", "upgrade", "warp", "warplist", "weather",
     };
 

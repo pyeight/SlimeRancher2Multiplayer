@@ -1,5 +1,5 @@
 using HarmonyLib;
-using SR2MP.Packets.Time;
+using SR2MP.Packets.World;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Patches.Time;

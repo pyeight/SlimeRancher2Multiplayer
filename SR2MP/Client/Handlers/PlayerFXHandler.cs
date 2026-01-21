@@ -5,16 +5,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerFX)]
-public sealed class PlayerFXHandler : BaseClientPacketHandler
+public sealed class PlayerFXHandler : BaseClientPacketHandler<PlayerFXPacket>
 {
     public PlayerFXHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(PlayerFXPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<PlayerFXPacket>();
-
         handlingPacket = true;
         try
         {

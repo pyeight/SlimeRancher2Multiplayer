@@ -5,16 +5,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.WorldFX)]
-public sealed class WorldFXHandler : BaseClientPacketHandler
+public sealed class WorldFXHandler : BaseClientPacketHandler<WorldFXPacket>
 {
     public WorldFXHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(WorldFXPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<WorldFXPacket>();
-
         if (!IsWorldSoundDictionary[packet.FX])
         {
             var fxPrefab = fxManager.WorldFXMap[packet.FX];

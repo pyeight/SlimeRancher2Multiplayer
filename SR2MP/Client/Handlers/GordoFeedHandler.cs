@@ -6,16 +6,13 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.GordoFeed)]
-public sealed class GordoFeedHandler : BaseClientPacketHandler
+public sealed class GordoFeedHandler : BaseClientPacketHandler<GordoFeedPacket>
 {
     public GordoFeedHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(GordoFeedPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<GordoFeedPacket>();
-
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {
             gordo.GordoEatenCount = packet.NewFoodCount;

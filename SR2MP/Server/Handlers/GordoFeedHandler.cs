@@ -7,16 +7,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.GordoFeed)]
-public sealed class GordoFeedHandler : BasePacketHandler
+public sealed class GordoFeedHandler : BasePacketHandler<GordoFeedPacket>
 {
     public GordoFeedHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(GordoFeedPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<GordoFeedPacket>();
-
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {
             gordo.GordoEatenCount = packet.NewFoodCount;

@@ -1,6 +1,5 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
@@ -9,9 +8,8 @@ namespace SR2MP.Shared.Managers;
 
 public sealed class NetworkActorManager
 {
-    public readonly Dictionary<long, IdentifiableModel> Actors = new Dictionary<long, IdentifiableModel>();
-
-    public readonly Dictionary<int, IdentifiableType> ActorTypes = new Dictionary<int, IdentifiableType>();
+    public readonly Dictionary<long, IdentifiableModel> Actors              = new();
+    public readonly Dictionary<int, IdentifiableType> ActorTypes            = new();
 
     public static int GetPersistentID(IdentifiableType type)
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation.GetPersistenceId(type);
@@ -120,7 +118,13 @@ public sealed class NetworkActorManager
             typeId = 25;
 
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        var type = actorManager.ActorTypes[typeId];
+
+        if (!ActorTypes.ContainsKey(typeId))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+        var type = ActorTypes[typeId];
 
         if (!type.prefab)
             return false;

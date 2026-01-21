@@ -5,16 +5,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.PediaUnlock)]
-public sealed class PediaUnlockHandler : BaseClientPacketHandler
+public sealed class PediaUnlockHandler : BaseClientPacketHandler<PediaUnlockPacket>
 {
     public PediaUnlockHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(PediaUnlockPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<PediaUnlockPacket>();
-
         handlingPacket = true;
         SceneContext.Instance.PediaDirector.Unlock(
             GameContext.Instance.AutoSaveDirector

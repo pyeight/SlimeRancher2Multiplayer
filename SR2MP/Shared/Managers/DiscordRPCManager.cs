@@ -6,7 +6,7 @@ namespace SR2MP.Shared.Managers;
 
 public static class DiscordRPCManager
 {
-    public enum Zone : byte
+    private enum Zone : byte
     {
         Conservatory,
         RainbowFields,
@@ -27,11 +27,11 @@ public static class DiscordRPCManager
     }
 
     // This can be public, do not freak out :)
-    public const string DISCORD_APP_ID = "1422276739026911262";
-    public static DiscordRpcClient? rpcClient;
+    private const string DiscordAppID = "1422276739026911262";
+    private static DiscordRpcClient? rpcClient;
 
-    public static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
-        new(new Dictionary<Zone, string>
+    private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
+        new(new Dictionary<Zone, string>()
         {
             {Zone.Conservatory, "Ranching at the Conservatory"},
             {Zone.RainbowFields, "Exploring the Rainbow Fields"},
@@ -48,8 +48,9 @@ public static class DiscordRPCManager
             {Zone.FinalBoss, "Fighting it."},
             {Zone.Ending, "Relaxing after the end"},
         });
-    public static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
-        new(new Dictionary<string, Zone>
+
+    private static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
+        new(new Dictionary<string, Zone>()
         {
             {"Conservatory", Zone.Conservatory},
             {"Labyrinth hub", Zone.LabyrinthHub},
@@ -69,8 +70,9 @@ public static class DiscordRPCManager
             {"Conservatory Gully", Zone.Conservatory},
             {"Conservatory Pools", Zone.Conservatory},
         });
-    public static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
-        new(new Dictionary<Zone, string>
+
+    private static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
+        new(new Dictionary<Zone, string>()
         {
             {Zone.Conservatory, "conservatory"},
             {Zone.RainbowFields, "rainbowfields"},
@@ -88,13 +90,13 @@ public static class DiscordRPCManager
             {Zone.Ending, "ending"},
         });
 
-    public const string DetailsStringOnline = "Playing in a group of {0} players";
-    public const string DetailsStringOnlineSolo = "Playing online, waiting for others";
-    public const string DetailsStringOffline = "Playing offline";
+    private const string DetailsStringOnline = "Playing in a group of {0} players";
+    private const string DetailsStringOnlineSolo = "Playing online, waiting for others";
+    private const string DetailsStringOffline = "Playing offline";
 
     public static void Initialize()
     {
-        rpcClient = new DiscordRpcClient(DISCORD_APP_ID);
+        rpcClient = new DiscordRpcClient(DiscordAppID);
 
         rpcClient.Initialize();
 
@@ -116,6 +118,10 @@ public static class DiscordRPCManager
         bool solo = playerManager.PlayerCount < 2;
 
         string details = online
+        var online = Main.Server.IsRunning() || Main.Client.IsConnected;
+        var solo = playerManager.PlayerCount < 2;
+
+        var details = online
             ? solo
                 ? DetailsStringOnlineSolo
                 : string.Format(DetailsStringOnline, playerManager.PlayerCount)
@@ -137,7 +143,7 @@ public static class DiscordRPCManager
             {
                 new Button
                 {
-                    Label = "SR2MP Discord",
+                    Label = "SR2 Multiplayer Discord",
                     Url = "https://discord.gg/a7wfBw5feU"
                 }
             }

@@ -6,16 +6,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.BroadcastPlayerJoin)]
-public sealed class PlayerJoinHandler : BaseClientPacketHandler
+public sealed class PlayerJoinHandler : BaseClientPacketHandler<PlayerJoinPacket>
 {
     public PlayerJoinHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(PlayerJoinPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<PlayerJoinPacket>();
-
         if (packet.PlayerId.Equals(Client.OwnPlayerId))
         {
             SrLogger.LogMessage("Player join request accepted!", SrLogTarget.Both);

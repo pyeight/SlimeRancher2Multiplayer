@@ -1,6 +1,6 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Time;
+namespace SR2MP.Packets.World;
 
 public struct WorldTimePacket : IPacket
 {

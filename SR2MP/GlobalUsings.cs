@@ -5,6 +5,7 @@ global using Object = UnityEngine.Object;
 global using CppCollections = Il2CppSystem.Collections.Generic;
 global using WorldFXType = SR2MP.Packets.FX.WorldFXPacket.WorldFXType;
 global using PlayerFXType = SR2MP.Packets.FX.PlayerFXPacket.PlayerFXType;
+global using CompressionLevel = System.IO.Compression.CompressionLevel;
 global using UnityEngine;
 
 global using Il2Cpp;

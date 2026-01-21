@@ -7,16 +7,13 @@ using SR2MP.Server.Managers;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ActorTransfer)]
-public sealed class ActorTransferHandler : BasePacketHandler
+public sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket>
 {
     public ActorTransferHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(ActorTransferPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<ActorTransferPacket>();
-
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return;
 

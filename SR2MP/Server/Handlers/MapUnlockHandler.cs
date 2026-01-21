@@ -1,32 +1,27 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.UI.Map;
-using SR2MP.Packets.FX;
-using SR2MP.Packets.Map;
+using SR2MP.Packets.World;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
-using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.MapUnlock)]
-public sealed class MapUnlockHandler : BasePacketHandler
+public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
 {
     public MapUnlockHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(MapUnlockPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<MapUnlockPacket>();
-        
         var gameEvent = Resources.FindObjectsOfTypeAll<StaticGameEvent>().FirstOrDefault(x => x._dataKey == packet.NodeID);
         SceneContext.Instance.MapDirector.NotifyZoneUnlocked(gameEvent, false, 0);
 
         var activator = Resources.FindObjectsOfTypeAll<MapNodeActivator>().FirstOrDefault(x => x._fogRevealEvent._dataKey == packet.NodeID);
         activator?.StartCoroutine(activator.ActivateHologramAnimation());
-        
-        
+
+
         var eventDirModel = SceneContext.Instance.eventDirector._model;
         if (!eventDirModel.table.TryGetValue(MapEventKey, out var table))
         {

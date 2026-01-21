@@ -12,7 +12,7 @@ public enum PacketType : byte
     BroadcastPlayerLeave = 7,     // Server -> All Clients                        (except client that left)             Remove Player on other Clients
     PlayerUpdate = 8,             // Client -> Server                                                                   Update Player
     ChatMessage = 9,              // Client -> Server                                                                   Chat message
-    BroadcastChatMessage = 10,     // Server -> All Clients                                                              Chat message on other Clients
+    BroadcastChatMessage = 10,    // Server -> All Clients                                                              Chat message on other Clients
     Heartbeat = 11,               // Client -> Server                                                                   Check if Clients are alive
     HeartbeatAck = 12,            // Server -> Client                                                                   Automatically time the Clients out if the Server crashes
     WorldTime = 13,               // Server -> All Clients                                                              Updates Time
@@ -43,4 +43,9 @@ public enum PacketType : byte
     GeyserTrigger = 38,           // Both Ways                                                                          On Geyser Fired
     MapUnlock = 39,               // Both Ways                                                                          On Geyser Fired
     InitialMap = 40,              // Server -> Client                                                                   Map on Load
+    GardenPlant = 41,             // Both Ways                                                                          On Food Planted
+    AccessDoor = 42,              // Both Ways                                                                          On Map Extension bought
+    InitialAccessDoors = 43,      // Both Ways                                                                          Access Doors on Load
+    ResourceAttach = 44,          // Both Ways                                                                          On Resource Attach
+    ReservedDoNotUse = 255,       
 }

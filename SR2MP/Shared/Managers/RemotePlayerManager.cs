@@ -57,7 +57,6 @@ public sealed class RemotePlayerManager
         bool sprinting = false,
         float lookY = 0f)
     {
-        // I dont know.
         var playerId = Main.Client.IsConnected ? Main.Client.OwnPlayerId : Main.Server.IsRunning() ? "HOST" : "INVALID";
         var updatePacket = new PlayerUpdatePacket
         {

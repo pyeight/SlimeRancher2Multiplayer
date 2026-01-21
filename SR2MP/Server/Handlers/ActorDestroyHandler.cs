@@ -6,16 +6,13 @@ using SR2MP.Server.Managers;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ActorDestroy)]
-public sealed class ActorDestroyHandler : BasePacketHandler
+public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
 {
     public ActorDestroyHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(ActorDestroyPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<ActorDestroyPacket>();
-
         if (!actorManager.Actors.Remove(packet.ActorId.Value, out var actor))
             return;
 

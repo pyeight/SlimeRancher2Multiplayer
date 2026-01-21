@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class SwitchesPacket : IPacket
+public sealed class InitialSwitchesPacket : IPacket
 {
     public sealed class Switch : INetObject
     {

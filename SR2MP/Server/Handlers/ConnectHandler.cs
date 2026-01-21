@@ -13,16 +13,13 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.Connect)]
-public sealed class ConnectHandler : BasePacketHandler
+public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 {
     public ConnectHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(ConnectPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<ConnectPacket>();
-
         SrLogger.LogMessage($"Connect request received with PlayerId: {packet.PlayerId}",
             $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
 
@@ -50,6 +47,7 @@ public sealed class ConnectHandler : BasePacketHandler
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
         SendMapPacket(clientEp);
+        SendAccessDoorsPacket(clientEp);
         SendPricesPacket(clientEp);
         SendGordosPacket(clientEp);
         SendSwitchesPacket(clientEp);
@@ -80,7 +78,11 @@ public sealed class ConnectHandler : BasePacketHandler
 
         var unlockedIDs = unlockedArray.Select(entry => entry.PersistenceId).ToList();
 
-        var pediasPacket = new PediasPacket { Entries = unlockedIDs };
+        var pediasPacket = new InitialPediaPacket
+        {
+            Entries = unlockedIDs
+        };
+
         Main.Server.SendToClient(pediasPacket, client);
     }
 
@@ -93,11 +95,11 @@ public sealed class ConnectHandler : BasePacketHandler
         };
 
         var mapsList = new List<string>();
-        
+
         foreach (var map in maps)
             mapsList.Add(map.Key);
 
-        var mapPacket = new MapPacket()
+        var mapPacket = new InitialMapPacket()
         {
             UnlockedNodes = mapsList
         };
@@ -105,9 +107,30 @@ public sealed class ConnectHandler : BasePacketHandler
         Main.Server.SendToClient(mapPacket, client);
     }
 
+    private static void SendAccessDoorsPacket(IPEndPoint client)
+    {
+        var doorsList = new List<InitialAccessDoorsPacket.Door>();
+
+        foreach (var door in SceneContext.Instance.GameModel.doors)
+        {
+            doorsList.Add(new InitialAccessDoorsPacket.Door
+            {
+                ID = door.Key,
+                State = door.Value.state
+            });
+        }
+
+        var accessDoorsPacket = new InitialAccessDoorsPacket()
+        {
+            Doors = doorsList
+        };
+
+        Main.Server.SendToClient(accessDoorsPacket, client);
+    }
+
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
-        var actorsList = new List<ActorsPacket.Actor>();
+        var actorsList = new List<InitialActorsPacket.Actor>();
 
         foreach (var actorKeyValuePair in SceneContext.Instance.GameModel.identifiables)
         {
@@ -115,7 +138,7 @@ public sealed class ConnectHandler : BasePacketHandler
             var model = actor.TryCast<ActorModel>();
             var rotation = model?.lastRotation ?? Quaternion.identity;
             var id = actor.actorId.Value;
-            actorsList.Add(new ActorsPacket.Actor
+            actorsList.Add(new InitialActorsPacket.Actor
             {
                 ActorId = id,
                 ActorType = NetworkActorManager.GetPersistentID(actor.ident),
@@ -125,7 +148,7 @@ public sealed class ConnectHandler : BasePacketHandler
             });
         }
 
-        var actorsPacket = new ActorsPacket
+        var actorsPacket = new InitialActorsPacket
         {
             StartingActorID = (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * 10000, (playerIndex * 10000) + 10000),
             Actors = actorsList
@@ -136,18 +159,18 @@ public sealed class ConnectHandler : BasePacketHandler
 
     private static void SendSwitchesPacket(IPEndPoint client)
     {
-        var switchesList = new List<SwitchesPacket.Switch>();
+        var switchesList = new List<InitialSwitchesPacket.Switch>();
 
         foreach (var switchKeyValuePair in SceneContext.Instance.GameModel.switches)
         {
-            switchesList.Add(new SwitchesPacket.Switch
+            switchesList.Add(new InitialSwitchesPacket.Switch
             {
                 ID = switchKeyValuePair.key,
                 State = switchKeyValuePair.value.state,
             });
         }
 
-        var switchesPacket = new SwitchesPacket
+        var switchesPacket = new InitialSwitchesPacket()
         {
             Switches = switchesList
         };
@@ -157,7 +180,7 @@ public sealed class ConnectHandler : BasePacketHandler
 
     private static void SendGordosPacket(IPEndPoint client)
     {
-        var gordosList = new List<GordosPacket.Gordo>();
+        var gordosList = new List<InitialGordosPacket.Gordo>();
 
         foreach (var gordo in SceneContext.Instance.GameModel.gordos)
         {
@@ -165,36 +188,61 @@ public sealed class ConnectHandler : BasePacketHandler
             if (eatCount == -1)
                 eatCount = gordo.value.targetCount;
 
-            gordosList.Add(new GordosPacket.Gordo
+            gordosList.Add(new InitialGordosPacket.Gordo
             {
                 Id = gordo.key,
                 EatenCount = eatCount,
                 RequiredEatCount = gordo.value.targetCount,
-                GordoType = NetworkActorManager.GetPersistentID(gordo.value.identifiableType)
+                GordoType = NetworkActorManager.GetPersistentID(gordo.value.identifiableType),
+                WasSeen = gordo.value.GordoSeen
                 //Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount
             });
         }
 
-        var gordosPacket = new GordosPacket { Gordos = gordosList };
+        var gordosPacket = new InitialGordosPacket
+        {
+            Gordos = gordosList
+        };
 
         Main.Server.SendToClient(gordosPacket, client);
     }
 
     private static void SendPlotsPacket(IPEndPoint client)
     {
-        var plotsList = new List<LandPlotsPacket.Plot>();
+        var plotsList = new List<InitialLandPlotsPacket.BasePlot>();
 
         foreach (var (id, plot) in SceneContext.Instance.GameModel.landPlots)
         {
-            plotsList.Add(new LandPlotsPacket.Plot
+            var plot = plotKeyValuePair.Value;
+            var id = plotKeyValuePair.Key;
+
+            INetObject? data = null;
+            if (plot.typeId == LandPlot.Id.GARDEN)
+            {
+                data = new InitialLandPlotsPacket.GardenData()
+                {
+                    Crop = plot.resourceGrowerDefinition == null ? 9 : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
+                };
+            }
+            else if (plot.typeId == LandPlot.Id.SILO)
+            {
+                // todo
+                data = new InitialLandPlotsPacket.SiloData() { };
+            }
+
+            plotsList.Add(new InitialLandPlotsPacket.BasePlot
             {
                 ID = id,
                 Type = plot.typeId,
                 Upgrades = plot.upgrades,
+                Data = data
             });
         }
 
-        var plotsPacket = new LandPlotsPacket { Plots = plotsList };
+        var plotsPacket = new InitialLandPlotsPacket
+        {
+            Plots = plotsList
+        };
 
         Main.Server.SendToClient(plotsPacket, client);
     }
