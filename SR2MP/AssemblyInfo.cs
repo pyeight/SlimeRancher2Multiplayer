@@ -19,6 +19,7 @@ using SR2E.Expansion;
 [assembly: MelonGame("MonomiPark", "SlimeRancher2")]
 
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.CoAuthors, BuildInfo.CoAuthors)]
+[assembly: AssemblyMetadata(SR2EExpansionAttributes.DisplayVersion, BuildInfo.DisplayVersion)]
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.MinSR2EVersion, BuildInfo.MinSr2EVersion)]
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.Contributors, BuildInfo.Contributors)]
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.SourceCode, BuildInfo.SourceCode)]

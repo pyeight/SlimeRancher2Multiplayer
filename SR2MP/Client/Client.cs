@@ -186,7 +186,6 @@ public sealed class Client
 
         var chatPacket = new ChatMessagePacket
         {
-            Type = PacketType.ChatMessage,
             PlayerId = OwnPlayerId,
             Message = message
         };

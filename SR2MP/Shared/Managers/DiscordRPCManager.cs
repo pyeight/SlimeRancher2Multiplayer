@@ -20,6 +20,10 @@ public static class DiscordRPCManager
         LabyrinthTerrarium,
         LabyrinthCore,
         MainMenu,
+
+        // Introduce at like, 0.4 or 1.0..?
+        FinalBoss,
+        Ending,
     }
 
     // This can be public, do not freak out :)
@@ -41,6 +45,8 @@ public static class DiscordRPCManager
             {Zone.LabyrinthHub, "Staring at the Impossible Sky"},
             {Zone.LabyrinthCore, "Inspecting the Core"},
             {Zone.MainMenu, "Getting ready for adventures!"},
+            {Zone.FinalBoss, "Fighting it."},
+            {Zone.Ending, "Relaxing after the end"},
         });
     public static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
         new(new Dictionary<string, Zone>
@@ -78,6 +84,8 @@ public static class DiscordRPCManager
             {Zone.LabyrinthDreamland, "dreamland"},
             {Zone.LabyrinthCore, "core"},
             {Zone.MainMenu, "mainmenu"},
+            {Zone.FinalBoss, "battle"},
+            {Zone.Ending, "ending"},
         });
 
     public const string DetailsStringOnline = "Playing in a group of {0} players";
@@ -99,6 +107,8 @@ public static class DiscordRPCManager
     }
 
     public static ZoneDefinition? currentZone;
+
+    public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
 
     internal static void UpdatePresence()
     {

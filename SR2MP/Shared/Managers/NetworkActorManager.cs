@@ -1,5 +1,6 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using MelonLoader;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
@@ -33,7 +34,7 @@ public sealed class NetworkActorManager
         while (true)
         {
             yield return new WaitForSceneGroupLoad(false);
-            yield return new WaitForSceneGroupLoad();
+            yield return new WaitForSceneGroupLoad(true);
 
             if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
                 continue;
@@ -98,15 +99,31 @@ public sealed class NetworkActorManager
         }
     }
 
+    private bool ActorIDAlreadyInUse(ActorId id)
+    {
+        var gameModel = SceneContext.Instance?.GameModel;
+
+        if (!gameModel)
+        {
+            return false;
+        }
+
+        return gameModel!.TryGetIdentifiableModel(id, out _);
+    }
+
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out ActorModel? actorModel)
     {
         actorModel = null;
+
 
         if (Main.RockPlortBug)
             typeId = 25;
 
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var type = actorManager.ActorTypes[typeId];
+
+        if (!type.prefab)
+            return false;
 
         if (type.isGadget())
         {
@@ -148,7 +165,7 @@ public sealed class NetworkActorManager
             networkComponent.PreviousRotation = rotation;
             networkComponent.NextRotation = rotation;
             actor.transform.position = position;
-            actorManager.Actors.Add(actorId.Value, actorModel);
+            actorManager.Actors[actorId.Value] = actorModel;
         }
 
         return true;

@@ -1,0 +1,177 @@
+# ONLY THATFINN SHOULD EDIT THIS!
+# IT INTERACTS WITH THE SR2E API!
+# DO NOT CHANGE IT
+# even you Az, don't
+name: SR2MP Compilation
+
+on:
+  push:
+    branches:
+      - shark
+
+  workflow_dispatch:
+    inputs:
+      SR2Ver-ManifestID:
+        description: 'The SR2 version'
+        required: true
+        default: '1.1.0 [20251101030000-104680] (3171952233644049159)'
+        type: choice
+        options:
+          - '1.1.0 [20251101030000-104680] (3171952233644049159)'
+          - '1.0.3 [20251022195412-104356] (856213111485396824)'
+          - '1.0.2 [20250930224232-103839] (1405681876136878957)'
+          - '1.0.1 [202509261170751-103784] (8994333395097988684)'
+          - '1.0.0 [20250722233305-102214] (8022624175545882077)'
+          - '0.6.3 [20250317221806-98961] (8566855247446655920)'
+          - '0.6.2 [2025011013847-97426 (6069982423152242796)'
+          - '0.6.1 [20241213004310-97197] (189273010166514367)'
+          - '0.6.0 [20241127011752-96587] (1414082704721132799)'
+          - '0.5.2 [20240710202452-92414] (6260598103574271172)'
+          - '0.5.1 [20240621192955-91770] (7902724911923988684)'
+          - '0.5.0 [20240515225612-90960] (1628490608113731548)'
+          - '0.4.1 [20240221184607-88602] (4393032796263052690)'
+          - '0.4.0 [20240130235543-88058] (2090386319736778753)'
+          - '0.3.0 [20231010205547-86702] (3315520605090789825)'
+          - '0.2.2 [202303301344-83334] (7396249326112115908)'
+          - '0.2.1 [202303170853-83296] (8060903504213851078)'
+          - '0.2.0 [202301251534-82833] (8575900712105215507)'
+          - '0.1.2 [202210311641-82086] (3846710380284113869)'
+          - '0.1.1 [202208241520-81161] (359646488786338650)'
+      SR2Ver-MLVer:
+        description: 'The MelonLoader version'
+        required: true
+        default: '0.7.1'
+        type: choice
+        options:
+          - '0.7.1'
+          - '0.7.0'
+          - '0.6.4'
+          - '0.6.3'
+          - '0.6.2'
+          - '0.6.1'
+
+env:
+  DEP_ZIP_NAME: dependencies.zip
+  API_BASE_URL: https://api.sr2e.sr2.dev
+  DEFAULT_SR2_VER_MANIFESTID: '1.1.0 [20251101030000-104680] (3171952233644049159)'
+  DEFAULT_SR2_VER_MLVER: '0.7.1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check commit message for !nobuild!
+        shell: bash
+        run: |
+          FULL_MSG="${{ github.event.head_commit.message }}"
+
+          COMMIT_DESC="$(echo "$FULL_MSG" | tail -n +2 | sed -e '/^[[:space:]]*$/d')"
+
+          echo "Commit description:"
+          echo "'$COMMIT_DESC'"
+
+          if [[ "${COMMIT_DESC}" == "!nobuild!"* ]]; then
+            echo "Commit description starts with !nobuild! — exiting workflow."
+            exit 78
+          fi
+
+
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK 6
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Extract Manifest ID from Choice
+        id: manifest_lookup
+        shell: bash
+        run: |
+          # Use input if workflow_dispatch, otherwise use default for push
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              CHOICE="${{ github.event.inputs.SR2Ver-ManifestID }}"
+          else
+              CHOICE="${{ env.DEFAULT_SR2_VER_MANIFESTID }}"
+          fi
+
+          MANIFEST_ID=$(echo "$CHOICE" | grep -oP '\((\d+)\)' | grep -oP '\d+')
+
+          if [ -z "$MANIFEST_ID" ]; then
+              echo "::error::Could not extract Manifest ID from '$CHOICE'"
+              exit 1
+          fi
+          echo "manifest_id=$MANIFEST_ID" >> $GITHUB_OUTPUT
+          echo "manifest_id_long=$CHOICE" >> $GITHUB_OUTPUT
+
+      - name: 1. Download Dependencies
+        shell: bash
+        run: |
+          # Determine inputs based on trigger type
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              SR2VER_MLVER_INPUT="${{ github.event.inputs.SR2Ver-MLVer }}"
+          else
+              SR2VER_MLVER_INPUT="${{ env.DEFAULT_SR2_VER_MLVER }}"
+          fi
+
+          STATUS=$(curl -w "%{http_code}" -o "${{ env.DEP_ZIP_NAME }}" -L \
+            -H "User: ${{ secrets.API_USER }}" \
+            -H "Password: ${{ secrets.API_PASSWORD }}" \
+            -H "SR2Ver-ManifestID: ${{ steps.manifest_lookup.outputs.manifest_id }}" \
+            -H "SR2Ver-MLVer: $SR2VER_MLVER_INPUT" \
+            "${{ env.API_BASE_URL }}/sr2vers")
+
+          if [[ "$STATUS" == "404" ]]; then
+            echo "404 Error"
+            exit 1
+          fi
+
+      - name: 2. Downloading script
+        shell: bash
+        run: |
+          STATUS=$(curl -w "%{http_code}" -o "workerscript.bash" -L \
+            -H "User: ${{ secrets.API_USER }}" \
+            -H "Password: ${{ secrets.API_PASSWORD }}" \
+            "${{ env.API_BASE_URL }}/workerscript3")
+
+          if [[ "$STATUS" == "404" ]]; then
+            echo "404 Error"
+            exit 1
+          fi
+
+          chmod +x workerscript.bash
+
+      - name: 3. Execute script
+        id: script_execution
+        run: bash ./workerscript.bash
+        env:
+          WORKER_API_USER: ${{ secrets.API_USER }}
+          WORKER_API_PASS: ${{ secrets.API_PASSWORD }}
+          SR2VER_MANIFESTID: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-ManifestID || env.DEFAULT_SR2_VER_MANIFESTID }}
+          SR2VER_MLVER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}
+
+      - name: 4. Upload DLLs
+        uses: actions/upload-artifact@v4
+        with:
+          name: Artifacts
+          path: FinalArtifacts/*.dll
+
+      - name: 5. Create or Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: continuous-build
+          name: Continuous Build
+          body: |
+            This release contains the latest automated build artifacts.
+            **SR2 Version:** ${{ steps.script_execution.outputs.sr2e_version }}
+            **SR2E Version:** ${{ steps.manifest_lookup.outputs.manifest_id_long }}
+            **MelonLoader:** ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}
+          draft: false
+          prerelease: true
+          files: FinalArtifacts/*.dll
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

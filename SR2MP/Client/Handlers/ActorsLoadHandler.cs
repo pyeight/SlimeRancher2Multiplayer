@@ -17,20 +17,20 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler
         var packet = reader.ReadPacket<ActorsPacket>();
 
         actorManager.Actors.Clear();
-
-        var toRemove = new CppCollections.List<IdentifiableModel>(
-            SceneContext.Instance.GameModel.identifiables._values
-               .Cast<CppCollections.IEnumerable<IdentifiableModel>>());
+        
+        var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
+            SceneContext.Instance.GameModel.identifiables
+                .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
         foreach (var actor in toRemove)
         {
-            if (actor.ident.IsPlayer) continue;
+            if (actor.value.ident.IsPlayer) continue;
 
-            var gameObject = actor.GetGameObject();
+            var gameObject = actor.value.GetGameObject();
             if (gameObject)
                 Object.Destroy(gameObject);
 
-            SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor);
+            SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor.value);
         }
 
         SceneContext.Instance.GameModel._actorIdProvider._nextActorId = packet.StartingActorID;
