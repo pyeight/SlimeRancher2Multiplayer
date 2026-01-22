@@ -52,7 +52,7 @@ namespace SR2MP
                     $"Required: {RequiredGameVersion}\n" +
                     $"Detected: {installedGameVersion}",
                     "SR2MP – Incompatible Game Version",
-                    MB_OK | MB_ICONERROR
+                    MB_OK | MB_ICONERROR, true
                 );
                 Application.Quit();
                 return;
@@ -65,7 +65,7 @@ namespace SR2MP
                     $"Detected: {installedGameVersion}\n\n" +
                     "The mod may still work, but issues are possible.",
                     "SR2MP – Newer Game Version Detected",
-                    MB_OK | MB_ICONWARNING
+                    MB_OK | MB_ICONWARNING, false
                 );
             }
             
@@ -112,7 +112,7 @@ namespace SR2MP
                             "Click OK to join our Discord or get a new version from NexusMods.\n" +
                             "The game will close after clicking OK.",
                             "SR2MP – Update Available",
-                            MB_OK | MB_ICONWARNING
+                            MB_OK | MB_ICONWARNING, true
                         );
 
                         OpenUrl(DiscordUrl);
@@ -126,7 +126,7 @@ namespace SR2MP
                             $"Latest version: {latestVersion}\n\n" +
                             "This version is not officially supported and may not work correctly.",
                             "SR2MP – Unsupported Version",
-                            MB_OK | MB_ICONWARNING
+                            MB_OK | MB_ICONWARNING, false
                         );
                     }
                 }
@@ -145,16 +145,19 @@ namespace SR2MP
             }
         }
 
-        private static void ShowMessageBox(string text, string caption, uint type)
+        private static void ShowMessageBox(string text, string caption, uint type, bool error)
         {
             try
             {
                 MessageBoxW(IntPtr.Zero, text, caption, type);
-                SrLogger.LogError($"{caption}\n{text}", SrLogTarget.Both);
+                if (error)
+                    SrLogger.LogError($"{caption}\n{text}", SrLogTarget.Both);
+                else
+                    SrLogger.LogWarning($"{caption}\n{text}", SrLogTarget.Both);
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"{caption}\n{text}", SrLogTarget.Both);
+                SrLogger.LogError($"{caption}\n{text}\n{ex}", SrLogTarget.Both);
             }
         }
 
@@ -162,7 +165,7 @@ namespace SR2MP
         {
             try
             {
-                ShellExecuteW(IntPtr.Zero, "open", url, null, null, SW_SHOWNORMAL);
+                ShellExecuteW(IntPtr.Zero, "open", url, null!, null!, SW_SHOWNORMAL);
             }
             catch (Exception ex)
             {
