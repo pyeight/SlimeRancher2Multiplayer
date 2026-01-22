@@ -1,5 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using MelonLoader;
+using UnityEngine;
 
 namespace SR2MP
 {
@@ -13,7 +17,14 @@ namespace SR2MP
         private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 
         [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-        private static extern IntPtr ShellExecuteW(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters, string lpDirectory, int nShowCmd);
+        private static extern IntPtr ShellExecuteW(
+            IntPtr hwnd,
+            string lpOperation,
+            string lpFile,
+            string lpParameters,
+            string lpDirectory,
+            int nShowCmd
+        );
 
         private const uint MB_OK = 0x00000000;
         private const uint MB_ICONERROR = 0x00000010;
@@ -26,7 +37,9 @@ namespace SR2MP
             var installedGameVersion = MelonLoader.InternalUtils.UnityInformationHandler.GameVersion;
             installedGameVersion = installedGameVersion.Split(' ')[0];
 
-            if (installedGameVersion != RequiredGameVersion)
+            int comparison = CompareVersions(installedGameVersion, RequiredGameVersion);
+
+            if (comparison < 0)
             {
                 MessageBoxW(
                     IntPtr.Zero,
@@ -39,9 +52,20 @@ namespace SR2MP
                 Application.Quit();
                 return;
             }
+            else if (comparison > 0)
+            {
+                MessageBoxW(
+                    IntPtr.Zero,
+                    "You are running a newer game version than SR2MP was built for.\n\n" +
+                    $"Required: {RequiredGameVersion}\n" +
+                    $"Detected: {installedGameVersion}\n\n" +
+                    "The mod may still work, but issues are possible.",
+                    "SR2MP – Newer Game Version Detected",
+                    MB_OK | MB_ICONWARNING
+                );
+            }
             
             Task.Run(async () => await CheckModVersion());
-            
             MelonCoroutines.Start(QuitCoroutine());
         }
 
@@ -61,8 +85,8 @@ namespace SR2MP
                 using (var client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromSeconds(5);
-                    string currentModVersion = BuildInfo.DisplayVersion;
 
+                    string currentModVersion = BuildInfo.DisplayVersion;
                     string latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
 
                     int comparison = CompareVersions(currentModVersion, latestVersion);
@@ -78,6 +102,7 @@ namespace SR2MP
                             "SR2MP – Update Available",
                             MB_OK | MB_ICONWARNING
                         );
+
                         ShellExecuteW(IntPtr.Zero, "open", DiscordUrl, null!, null!, 1);
                         shouldQuit = true;
                     }
