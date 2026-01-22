@@ -29,20 +29,25 @@ namespace SR2MP
         private const uint MB_OK = 0x00000000;
         private const uint MB_ICONERROR = 0x00000010;
         private const uint MB_ICONWARNING = 0x00000030;
+        private const int SW_SHOWNORMAL = 1;
 
-        private static bool shouldQuit = false;
+        private static volatile bool shouldQuit = false;
 
         public static void Initialize()
         {
             var installedGameVersion = MelonLoader.InternalUtils.UnityInformationHandler.GameVersion;
-            installedGameVersion = installedGameVersion.Split(' ')[0];
+            
+            var versionParts = installedGameVersion.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (versionParts.Length > 0)
+            {
+                installedGameVersion = versionParts[0];
+            }
 
             int comparison = CompareVersions(installedGameVersion, RequiredGameVersion);
 
             if (comparison < 0)
             {
-                MessageBoxW(
-                    IntPtr.Zero,
+                ShowMessageBox(
                     "SR2MP is incompatible with this game version.\n\n" +
                     $"Required: {RequiredGameVersion}\n" +
                     $"Detected: {installedGameVersion}",
@@ -54,8 +59,7 @@ namespace SR2MP
             }
             else if (comparison > 0)
             {
-                MessageBoxW(
-                    IntPtr.Zero,
+                ShowMessageBox(
                     "You are running a newer game version than SR2MP was built for.\n\n" +
                     $"Required: {RequiredGameVersion}\n" +
                     $"Detected: {installedGameVersion}\n\n" +
@@ -71,11 +75,19 @@ namespace SR2MP
 
         private static System.Collections.IEnumerator QuitCoroutine()
         {
-            while (!shouldQuit)
+            float timeout = 30f;
+            float elapsed = 0f;
+            
+            while (!shouldQuit && elapsed < timeout)
             {
+                elapsed += Time.deltaTime;
                 yield return null;
             }
-            Application.Quit();
+            
+            if (shouldQuit)
+            {
+                Application.Quit();
+            }
         }
 
         private static async Task CheckModVersion()
@@ -93,23 +105,22 @@ namespace SR2MP
 
                     if (comparison < 0)
                     {
-                        MessageBoxW(
-                            IntPtr.Zero,
+                        ShowMessageBox(
                             "Your SR2MP mod is outdated!\n\n" +
                             $"Your version: {currentModVersion}\n" +
                             $"Latest version: {latestVersion}\n\n" +
-                            "Click OK to join our Discord or get a new version from NexusMods",
+                            "Click OK to join our Discord or get a new version from NexusMods.\n" +
+                            "The game will close after clicking OK.",
                             "SR2MP – Update Available",
                             MB_OK | MB_ICONWARNING
                         );
 
-                        ShellExecuteW(IntPtr.Zero, "open", DiscordUrl, null!, null!, 1);
+                        OpenUrl(DiscordUrl);
                         shouldQuit = true;
                     }
                     else if (comparison > 0)
                     {
-                        MessageBoxW(
-                            IntPtr.Zero,
+                        ShowMessageBox(
                             "Your SR2MP mod version is newer than the latest release.\n\n" +
                             $"Your version: {currentModVersion}\n" +
                             $"Latest version: {latestVersion}\n\n" +
@@ -120,9 +131,42 @@ namespace SR2MP
                     }
                 }
             }
+            catch (TaskCanceledException)
+            {
+                SrLogger.LogWarning("SR2MP version check timed out", SrLogTarget.Both);
+            }
+            catch (HttpRequestException ex)
+            {
+                SrLogger.LogWarning($"SR2MP version check failed: Network error\n{ex.Message}", SrLogTarget.Both);
+            }
             catch (Exception ex)
             {
                 SrLogger.LogWarning($"Failed to check SR2MP version\n{ex}", SrLogTarget.Both);
+            }
+        }
+
+        private static void ShowMessageBox(string text, string caption, uint type)
+        {
+            try
+            {
+                MessageBoxW(IntPtr.Zero, text, caption, type);
+                SrLogger.LogError($"{caption}\n{text}", SrLogTarget.Both);
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogError($"{caption}\n{text}", SrLogTarget.Both);
+            }
+        }
+
+        private static void OpenUrl(string url)
+        {
+            try
+            {
+                ShellExecuteW(IntPtr.Zero, "open", url, null, null, SW_SHOWNORMAL);
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogWarning($"Could not open URL: {url}\n{ex.Message}", SrLogTarget.Both);
             }
         }
 
