@@ -16,7 +16,7 @@ public static class PacketChunkManager
     private static readonly Dictionary<PacketType, IncompletePacket> IncompletePackets = new();
 
     private const int MaxChunkBytes = 250;
-    private const int CompressionThreshold = 500;
+    private const int CompressionThreshold = 50;
 
     internal static bool TryMergePacket(PacketType packetType, byte[] data, ushort chunkIndex, ushort totalChunks, out byte[] fullData)
     {
