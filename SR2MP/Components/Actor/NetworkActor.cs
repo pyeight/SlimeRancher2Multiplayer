@@ -26,6 +26,7 @@ public sealed class NetworkActor : MonoBehaviour
     public Vector3 SavedVelocity { get; internal set; }
 
     private byte attemptedGetIdentifiable = 0;
+    private bool isValid = true;
 
     private ActorId ActorId
     {
@@ -38,13 +39,21 @@ public sealed class NetworkActor : MonoBehaviour
 
                 if (attemptedGetIdentifiable >= 10)
                 {
-                    Destroy(this);
+                    isValid = false;
                 }
 
                 return new ActorId(0);
             }
-
-            return identifiable.GetActorId();
+            
+            try
+            {
+                return identifiable.GetActorId();
+            }
+            catch
+            {
+                isValid = false;
+                return new ActorId(0);
+            }
         }
     }
 
@@ -56,9 +65,6 @@ public sealed class NetworkActor : MonoBehaviour
 
     internal Quaternion previousRotation;
     internal Quaternion nextRotation;
-
-    private Vector3 previousSentPosition;
-    private const float MinimumPositionDifference = 0.15f;
 
     private float interpolationStart;
     private float interpolationEnd;
@@ -87,18 +93,23 @@ public sealed class NetworkActor : MonoBehaviour
 
         regionMember = GetComponent<RegionMember>();
 
-        regionMember.add_BeforeHibernationChanged(
-            Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
-                    .GetEvent("BeforeHibernationChanged").EventHandlerType,
-                this.Cast<Il2CppSystem.Object>(),
-                nameof(HibernationChanged),
-                true)
-                .Cast<RegionMember.OnHibernationChange>());
+        if (regionMember)
+        {
+            regionMember.add_BeforeHibernationChanged(
+                Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
+                        .GetEvent("BeforeHibernationChanged").EventHandlerType,
+                    this.Cast<Il2CppSystem.Object>(),
+                    nameof(HibernationChanged),
+                    true)
+                    .Cast<RegionMember.OnHibernationChange>());
+        }
     }
 
     IEnumerator WaitOneFrameOnHibernationChange(bool value)
     {
         yield return null;
+
+        if (!isValid) yield break;
 
         if (value)
         {
@@ -122,6 +133,7 @@ public sealed class NetworkActor : MonoBehaviour
 
     public void HibernationChanged(bool value)
     {
+        if (!isValid) return;
         MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
     }
 
@@ -138,6 +150,12 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void Update()
     {
+        if (!isValid)
+        {
+            Destroy(this);
+            return;
+        }
+
         if (cachedLocallyOwned != LocallyOwned)
         {
             SetRigidbodyState(LocallyOwned);
@@ -156,8 +174,6 @@ public sealed class NetworkActor : MonoBehaviour
         if (LocallyOwned)
         {
             syncTimer = Timers.ActorTimer;
-
-            previousSentPosition = transform.position;
 
             previousPosition = transform.position;
             previousRotation = transform.rotation;
