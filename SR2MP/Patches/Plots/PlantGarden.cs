@@ -18,6 +18,6 @@ public static class PlantGarden
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id
         };
         
-        Main.SendToAllOrServer(packet);
+        // Main.SendToAllOrServer(packet);
     }
 }
