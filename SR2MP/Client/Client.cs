@@ -9,8 +9,6 @@ using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 
-using Thread = Il2CppSystem.Threading.Thread;
-
 namespace SR2MP.Client;
 
 public sealed class Client
@@ -35,7 +33,6 @@ public sealed class Client
     public event Action<string>? OnPlayerJoined;
     public event Action<string>? OnPlayerLeft;
     public event Action<string, RemotePlayer>? OnPlayerUpdate;
-    public event Action<string, string, DateTime>? OnChatMessageReceived;
 
     public Client()
     {
@@ -82,6 +79,9 @@ public sealed class Client
 
             serverEndPoint = new IPEndPoint(parsedIp, port);
             udpClient.Connect(serverEndPoint);
+            
+            udpClient.Client.ReceiveBufferSize = 512 * 1024;
+            udpClient.Client.SendBufferSize = 512 * 1024;
 
             OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
 
@@ -176,47 +176,24 @@ public sealed class Client
         SrLogger.LogMessage("Client ReceiveLoop ended!", SrLogTarget.Both);
     }
 
-    public void SendChatMessage(string message)
-    {
-        if (!isConnected || string.IsNullOrEmpty(OwnPlayerId))
-        {
-            SrLogger.LogWarning("Cannot send chat message: Not connected to server!");
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            SrLogger.LogWarning("Cannot send empty chat message!");
-            return;
-        }
-
-        var chatPacket = new ChatMessagePacket
-        {
-            PlayerId = OwnPlayerId,
-            Message = message
-        };
-
-        SendPacket(chatPacket);
-    }
-
     internal static void StartHeartbeat()
     {
         // Removed this temporarily because there are no Handlers
         // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
-    // private void SendHeartbeat(object? state)
-    // {
-    //     if (!isConnected)
-    //         return;
+    private void SendHeartbeat(object? state)
+    {
+        if (!isConnected)
+            return;
 
-    //     var heartbeatPacket = new EmptyPacket
-    //     {
-    //         Type = PacketType.Heartbeat
-    //     };
+        var heartbeatPacket = new EmptyPacket
+        {
+            Type = PacketType.Heartbeat
+        };
 
-    //     SendPacket(heartbeatPacket);
-    // }
+        SendPacket(heartbeatPacket);
+    }
 
     internal void SendPacket<T>(T packet) where T : IPacket
     {
@@ -234,13 +211,13 @@ public sealed class Client
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
 
-            var split = PacketChunkManager.SplitPacket(data);
-            foreach (var chunk in split)
+            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
+            foreach (var chunk in chunks)
             {
                 udpClient.Send(chunk, chunk.Length);
             }
 
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {split.Length} chunk(s).",
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
                 SrLogTarget.Both);
         }
         catch (Exception ex)
@@ -296,7 +273,7 @@ public sealed class Client
             {
                 for (int i = 0; i < 20 && receiveThread.IsAlive; i++)
                 {
-                    System.Threading.Thread.Sleep(100);
+                    Thread.Sleep(100);
                 }
 
                 if (receiveThread.IsAlive)
@@ -329,11 +306,6 @@ public sealed class Client
         }
 
         OnConnected?.Invoke(OwnPlayerId);
-    }
-
-    internal void NotifyChatMessageReceived(string playerId, string message, DateTime timestamp)
-    {
-        OnChatMessageReceived?.Invoke(playerId, message, timestamp);
     }
 
     public static RemotePlayer? GetRemotePlayer(string playerId)

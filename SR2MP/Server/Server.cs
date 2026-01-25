@@ -90,11 +90,9 @@ public sealed class Server
         using var writer = new PacketWriter();
         writer.WritePacket(leavePacket);
         byte[] data = writer.ToArray();
-
-        foreach (var otherClient in clientManager.GetAllClients())
-        {
-            networkManager.Send(data, otherClient.EndPoint);
-        }
+        
+        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
+        networkManager.Broadcast(data, endpoints);
 
         SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
     }
@@ -126,19 +124,17 @@ public sealed class Server
             using var writer = new PacketWriter();
             writer.WritePacket(closePacket);
             byte[] data = writer.ToArray();
-
-            foreach (var client in clientManager.GetAllClients())
+            
+            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
+            try
             {
-                try
-                {
-                    networkManager.Send(data, client.EndPoint);
-                }
-                catch (Exception ex)
-                {
-                    SrLogger.LogWarning($"Failed to notify specific client of server shutdown: {ex}",
-                        $"Failed to send close packet to client: {client.GetClientInfo()}: {ex}");
-                }
+                networkManager.Broadcast(data, endpoints);
             }
+            catch (Exception ex)
+            {
+                SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
+            }
+
             clientManager.Clear();
             networkManager.Stop();
 
@@ -167,11 +163,9 @@ public sealed class Server
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
         byte[] data = writer.ToArray();
-
-        foreach (var client in clientManager.GetAllClients())
-        {
-            networkManager.Send(data, client.EndPoint);
-        }
+        
+        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
+        networkManager.Broadcast(data, endpoints);
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket

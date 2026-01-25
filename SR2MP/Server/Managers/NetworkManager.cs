@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Shared.Managers;
-using Thread = Il2CppSystem.Threading.Thread;
 
 namespace SR2MP.Server.Managers;
 
@@ -15,7 +14,6 @@ public sealed class NetworkManager
 
     public bool IsRunning => isRunning;
 
-    // Overload to allow IPv6 configuration
     public void Start(int port, bool enableIPv6 = true)
     {
         if (isRunning)
@@ -28,7 +26,6 @@ public sealed class NetworkManager
         {
             if (enableIPv6)
             {
-                // IPv6 with IPv4 fallback
                 udpClient = new UdpClient(AddressFamily.InterNetworkV6);
                 udpClient.Client.DualMode = true;
                 udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
@@ -36,11 +33,12 @@ public sealed class NetworkManager
             }
             else
             {
-                // IPv4 only
                 udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
                 SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogTarget.Both);
             }
-
+            
+            udpClient.Client.ReceiveBufferSize = 512 * 1024;
+            udpClient.Client.SendBufferSize = 512 * 1024;
             udpClient.Client.ReceiveTimeout = 0;
 
             isRunning = true;
@@ -78,8 +76,6 @@ public sealed class NetworkManager
                     continue;
 
                 OnDataReceived?.Invoke(data, remoteEp);
-                SrLogger.LogPacketSize($"Received {data.Length} bytes",
-                    $"Received {data.Length} bytes from {remoteEp}");
             }
             catch (SocketException)
             {
@@ -87,37 +83,63 @@ public sealed class NetworkManager
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
+                if (isRunning)
+                    SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
             }
         }
+        
+        SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
     }
 
     public void Send(byte[] data, IPEndPoint endPoint)
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogWarning("Cannot send data: Server not running!", SrLogTarget.Both);
+            SrLogger.LogWarning("Cannot send: Server not running!", SrLogTarget.Both);
             return;
         }
 
         try
         {
-            SrLogger.LogPacketSize($"Sending {data.Length} bytes to client..",
-                $"Sending {data.Length} bytes to {endPoint}..");
-
-            var splitData = PacketChunkManager.SplitPacket(data);
-            foreach (var chunk in splitData)
+            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
+            
+            // Send all chunks
+            foreach (var chunk in chunks)
             {
-                udpClient?.Send(chunk, chunk.Length, endPoint);
+                udpClient.Send(chunk, chunk.Length, endPoint);
             }
-
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to client in {splitData.Length} chunk(s).",
-                $"Sent {data.Length} bytes to {endPoint} in {splitData.Length} chunk(s).");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to send data to Client: {ex}",
-                $"Failed to send data to {endPoint}: {ex}");
+            SrLogger.LogError($"Send failed to {endPoint}: {ex}", SrLogTarget.Both);
+        }
+    }
+    
+    // Broadcast to multiple endpoints efficiently
+    public void Broadcast(byte[] data, IEnumerable<IPEndPoint> endpoints)
+    {
+        if (udpClient == null || !isRunning)
+        {
+            SrLogger.LogWarning("Cannot broadcast: Server not running!", SrLogTarget.Both);
+            return;
+        }
+
+        try
+        {
+            // Split once, send to many
+            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
+            
+            foreach (var endpoint in endpoints)
+            {
+                foreach (var chunk in chunks)
+                {
+                    udpClient.Send(chunk, chunk.Length, endpoint);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Broadcast failed: {ex}", SrLogTarget.Both);
         }
     }
 
