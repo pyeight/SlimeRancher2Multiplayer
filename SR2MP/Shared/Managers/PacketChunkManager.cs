@@ -29,9 +29,9 @@ public static class PacketChunkManager
     
     private static int nextPacketId = 1;
 
-    private const int MaxChunkBytes = 200;
-    private const int CompressionThreshold = 50;
-    private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(5);
+    private const int MaxChunkBytes = 500;
+    private const int CompressionThreshold = 30;
+    private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(15);
     
     private static int packetCounter = 0;
     private const int CleanupInterval = 100;
