@@ -12,4 +12,5 @@ public sealed partial class MultiplayerUI
     public const float ChatWidth = 400;
     public const float ChatHeight = 325f;
     public const int MaxChatLines = 25;
+    public const int MaxChatMessageLength = 200;
 }

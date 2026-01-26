@@ -1,5 +1,4 @@
 using System.Net;
-using SR2E.Enums;
 using SR2E.Utils;
 using UnityEngine.InputSystem.Utilities;
 
@@ -9,10 +8,8 @@ public sealed partial class MultiplayerUI
 {
     public void Host(ushort port)
     {
-        Server.Server server;
         MenuEUtil.CloseOpenMenu();
-        server = Main.Server;
-        server.Start(port, true);
+        Main.Server.Start(port, true);
         Main.SetConfigValue("host_port", hostPortInput);
     }
 
@@ -48,20 +45,84 @@ public sealed partial class MultiplayerUI
         Main.SetConfigValue("recent_port", portInput);
     }
 
-    public void Kick(string player) { }
+    public void Kick(string player) 
+    { 
+        // TODO: Implement kick functionality
+    }
 
     private void Update()
     {
-        if (KeyCode.F4.OnKeyDown())
-            hidden = !hidden;
-        
-        if (KeyCode.F5.OnKeyDown())
-            chatHidden = !chatHidden;
+        HandleUIToggle();
+        HandleChatToggle();
+        HandleChatInput();
     }
+
+    private void HandleUIToggle()
+    {
+        if (KeyCode.F4.OnKeyDown() && !isChatFocused)
+        {
+            multiplayerUIHidden = !multiplayerUIHidden;
+        }
+    }
+
+    private void HandleChatToggle()
+    {
+        if (KeyCode.F5.OnKeyDown())
+        {
+            if (!chatHidden && isChatFocused)
+            {
+                UnfocusChat();
+            }
+            
+            chatHidden = !chatHidden;
+            internalChatToggle = true;
+            
+            if (chatHidden && isChatFocused)
+            {
+                NativeEUtil.TryEnableSR2Input();
+            }
+        }
+    }
+
+    private void HandleChatInput()
+    {
+        if (chatHidden || state == MenuState.DisconnectedMainMenu) return;
+
+        bool enterPressed = KeyCode.Return.OnKeyDown() || KeyCode.KeypadEnter.OnKeyDown();
+        bool escapePressed = KeyCode.Escape.OnKeyDown();
+
+        if (isChatFocused)
+        {
+            if (enterPressed)
+            {
+                if (!string.IsNullOrWhiteSpace(chatInput))
+                {
+                    SendChatMessage(chatInput.Trim());
+                }
+                ClearChatInput();
+                UnfocusChat();
+            }
+            else if (escapePressed)
+            {
+                ClearChatInput();
+                UnfocusChat();
+            }
+        }
+        else
+        {
+            if (enterPressed)
+            {
+                FocusChat();
+            }
+        }
+    }
+
+    
 
     private void AdjustInputValues()
     {
         ipInput = ipInput.WithAllWhitespaceStripped();
         portInput = portInput.WithAllWhitespaceStripped();
+        hostPortInput = hostPortInput.WithAllWhitespaceStripped();
     }
 }
