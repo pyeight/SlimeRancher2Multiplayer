@@ -9,8 +9,8 @@ internal static class BuildInfo
     //Version is shown my ML
     //DisplayVersion is shown by SR2E
     //DisplayVersion automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
-    internal const string Version = "0.2.1";
-    internal const string DisplayVersion = "0.2.1"; // Auto-Dev_Do_not_remove
+    internal const string Version = "0.2.2";
+    internal const string DisplayVersion = "0.2.2"; // Auto-Dev_Do_not_remove
     internal const string DownloadLink = "https://discord.com/invite/a7wfBw5feU";
     internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
     internal const string Nexus = "https://www.nexusmods.com/slimerancher2/mods/118";
