@@ -267,19 +267,10 @@ public sealed class Client
                 udpClient.Close();
                 udpClient = null;
             }
-
-            // Give the receive thread a moment to exit normally
+            
             if (receiveThread is { IsAlive: true })
             {
-                for (int i = 0; i < 20 && receiveThread.IsAlive; i++)
-                {
-                    Thread.Sleep(100);
-                }
-
-                if (receiveThread.IsAlive)
-                {
-                    SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
-                }
+                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
             }
 
             receiveThread = null;
