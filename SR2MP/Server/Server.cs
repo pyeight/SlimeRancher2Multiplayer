@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
@@ -113,6 +114,15 @@ public sealed class Server
     {
         if (!networkManager.IsRunning)
             return;
+        
+        MultiplayerUI.Instance.RegisterChatMessage("Server closed!", "SYSTEM", "SYSTEM");
+        var closeChatMessage = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = "Server closed!",
+            MessageID = "SYSTEM"
+        };
+        SendToAll(closeChatMessage);
 
         try
         {
