@@ -81,8 +81,8 @@ public sealed class Main : SR2EExpansionV3
                 MainThreadDispatcher.Initialize();
                 DiscordRPCManager.Initialize();
 
-                var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
-                Object.DontDestroyOnLoad(forceTimeScale.gameObject);
+                // var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
+                // Object.DontDestroyOnLoad(forceTimeScale.gameObject);
 
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);

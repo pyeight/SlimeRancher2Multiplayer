@@ -9,6 +9,7 @@ public sealed partial class MultiplayerUI
     public const float WindowWidth = 275f;
     public const float WindowHeight = 450f;
     
+    public const float ChatHeaderHeight = 15f;
     public const float ChatWidth = 400;
     public const float ChatHeight = 325f;
     public const int MaxChatLines = 25;

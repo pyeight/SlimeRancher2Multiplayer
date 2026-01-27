@@ -1,4 +1,5 @@
 using MelonLoader;
+using SR2E.Utils;
 
 namespace SR2MP.Components.UI;
 
@@ -25,7 +26,6 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         }
 
         Instance = this;
-        RegisterChatMessage("Welcome to SR2MP!", "SYSTEM", 0);
     }
 
     private void OnDestroy()
@@ -35,14 +35,20 @@ public sealed partial class MultiplayerUI : MonoBehaviour
     
     private void OnGUI()
     {
-        state = GetState();
-        UpdateChatVisibility();
+        if (Event.current.type == EventType.Layout)
+        {
+            state = GetState();
+            UpdateChatVisibility();
+        }
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
         previousLayoutHorizontalIndex = 0;
 
-        DrawWindow();
-        DrawChat();
+        if (!MenuEUtil.isAnyMenuOpen)
+        {
+            DrawWindow();
+            DrawChat();
+        }
     }
     
     private void DrawWindow()

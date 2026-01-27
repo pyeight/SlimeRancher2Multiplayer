@@ -1,5 +1,7 @@
 using System.Net;
 using SR2MP.Components.Player;
+using SR2MP.Components.UI;
+using SR2MP.Packets;
 using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -36,6 +38,15 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
             PlayerName = packet.PlayerName
         };
 
+        var joinChatPacket = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = $"{packet.PlayerName} joined the world!",
+            MessageID = "SYSTEM"
+        };
+        
         Main.Server.SendToAll(joinPacket);
+        Main.Server.SendToAllExcept(joinChatPacket, playerId);
+        MultiplayerUI.Instance.RegisterChatMessage($"{packet.PlayerName} joined the world!", "SYSTEM", "SYSTEM");
     }
 }

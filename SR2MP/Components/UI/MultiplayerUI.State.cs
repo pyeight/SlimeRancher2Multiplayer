@@ -10,6 +10,7 @@ public sealed partial class MultiplayerUI
 
     public MenuState state = MenuState.Hidden;
     private bool chatShown = false;
+    private MenuState previousState = MenuState.Hidden;
 
     private bool GetIsLoading()
     {
@@ -63,6 +64,13 @@ public sealed partial class MultiplayerUI
         {
             chatHidden = false;
             chatShown = true;
+            
+            if (previousState == MenuState.DisconnectedMainMenu || previousState == MenuState.Hidden)
+            {
+                ClearChatMessages();
+            }
         }
+        
+        previousState = state;
     }
 }

@@ -35,12 +35,15 @@ public sealed class ChatCommand : SR2ECommand
         
         var chatPacket = new ChatMessagePacket
         {
-            PlayerId = LocalID,
+            Username = Main.Username,
             Message = msg,
         };
 
         Main.SendToAllOrServer(chatPacket);
-        MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, 0);
+        
+        string messageId = $"{Main.Username}_{msg.GetHashCode()}";
+        
+        MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
         
         return true;
     }

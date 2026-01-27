@@ -1,4 +1,6 @@
 using System.Net;
+using SR2MP.Components.UI;
+using SR2MP.Packets;
 using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -20,6 +22,8 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
         SrLogger.LogMessage($"Player leave request received (PlayerId: {playerId})",
             $"Player leave request from {clientInfo} (PlayerId: {playerId})");
 
+        var leaveUsername = playerManager.GetPlayer(playerId)!.Username;
+        
         if (clientManager.RemoveClient(clientInfo))
         {
             var leavePacket = new PlayerLeavePacket
@@ -32,6 +36,16 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 
             SrLogger.LogMessage($"Player {playerId} left the server",
                 $"Player {playerId} left from {clientInfo}");
+            
+            var leaveChatPacket = new ChatMessagePacket
+            {
+                Username = "SYSTEM",
+                Message = $"{leaveUsername} left the world!",
+                MessageID = "SYSTEM"
+            };
+            
+            Main.Server.SendToAll(leaveChatPacket);
+            MultiplayerUI.Instance.RegisterChatMessage($"{leaveUsername} left the world!", "SYSTEM", "SYSTEM");
         }
         else
         {

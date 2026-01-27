@@ -1,5 +1,6 @@
 using SR2MP.Shared.Managers;
 using SR2MP.Components.Player;
+using SR2MP.Components.UI;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 

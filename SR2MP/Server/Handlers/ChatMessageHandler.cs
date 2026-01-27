@@ -16,12 +16,10 @@ public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
 
     public override void Handle(ChatMessagePacket packet, IPEndPoint clientEp)
     {
-        SrLogger.LogMessage($"Chat message from {packet.PlayerId}: {packet.Message}",
-            $"Chat message from {clientEp} ({packet.PlayerId}): {packet.Message}");
+        SrLogger.LogMessage($"Chat message from {packet.Username}: {packet.Message}",
+            $"Chat message from {clientEp} ({packet.Username}): {packet.Message}");
 
-        packet.Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-        MultiplayerUI.Instance.RegisterChatMessage(packet.Message, playerManager.GetPlayer(packet.PlayerId)!.Username, packet.Timestamp);
+        MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
         
         Main.Server.SendToAllExcept(packet, clientEp);
     }

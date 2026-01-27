@@ -57,6 +57,16 @@ public sealed partial class MultiplayerUI
         HandleChatInput();
     }
 
+    private void DisableInput()
+    {
+        GameContext.Instance.InputDirector._mainGame.Map.Disable();
+    }
+
+    private void EnableInput()
+    {
+        GameContext.Instance.InputDirector._mainGame.Map.Enable();
+    }
+    
     private void HandleUIToggle()
     {
         if (KeyCode.F4.OnKeyDown() && !isChatFocused)
@@ -69,7 +79,7 @@ public sealed partial class MultiplayerUI
     {
         if (KeyCode.F5.OnKeyDown())
         {
-            if (!chatHidden && isChatFocused)
+            if (isChatFocused)
             {
                 UnfocusChat();
             }
@@ -77,9 +87,10 @@ public sealed partial class MultiplayerUI
             chatHidden = !chatHidden;
             internalChatToggle = true;
             
-            if (chatHidden && isChatFocused)
+            if (chatHidden && disabledInput)
             {
                 NativeEUtil.TryEnableSR2Input();
+                disabledInput = false;
             }
         }
     }
@@ -116,8 +127,6 @@ public sealed partial class MultiplayerUI
             }
         }
     }
-
-    
 
     private void AdjustInputValues()
     {

@@ -31,7 +31,7 @@ public static class PacketChunkManager
 
     private const int MaxChunkBytes = 500;
     private const int CompressionThreshold = 30;
-    private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(30);
     
     private static int packetCounter = 0;
     private const int CleanupInterval = 100;
