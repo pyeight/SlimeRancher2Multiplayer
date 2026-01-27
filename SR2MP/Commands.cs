@@ -41,7 +41,8 @@ public sealed class ChatCommand : SR2ECommand
 
         Main.SendToAllOrServer(chatPacket);
         
-        string messageId = $"{Main.Username}_{msg.GetHashCode()}";
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        string messageId = $"{Main.Username}_{msg.GetHashCode()}_{randomComponent}";
         
         MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
         

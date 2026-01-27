@@ -9,6 +9,8 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 {
     public static MultiplayerUI Instance { get; private set; }
 
+    private bool didUnfocus = false;
+
     private void Awake()
     {
         firstTime = Main.SetupUI;
@@ -43,11 +45,20 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
         previousLayoutHorizontalIndex = 0;
-
+        
         if (!MenuEUtil.isAnyMenuOpen)
         {
+            didUnfocus = false;
             DrawWindow();
             DrawChat();
+        }
+        else
+        {
+            if (!didUnfocus)
+            {
+                UnfocusChat();
+                didUnfocus = true;
+            }
         }
     }
     

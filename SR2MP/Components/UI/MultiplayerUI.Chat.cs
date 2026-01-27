@@ -138,7 +138,8 @@ public sealed partial class MultiplayerUI
 
         message = message.Trim();
         
-        string messageId = $"{Main.Username}_{message.GetHashCode()}";
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        string messageId = $"{Main.Username}_{message.GetHashCode()}_{randomComponent}";
         
         RegisterChatMessage(message, Main.Username, messageId);
         
