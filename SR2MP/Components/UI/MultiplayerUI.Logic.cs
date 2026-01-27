@@ -89,7 +89,7 @@ public sealed partial class MultiplayerUI
             
             if (chatHidden && disabledInput)
             {
-                NativeEUtil.TryEnableSR2Input();
+                EnableInput();
                 disabledInput = false;
             }
         }

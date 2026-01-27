@@ -1,4 +1,4 @@
-/*using HarmonyLib;
+using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Script.UI.Pause;
 
 namespace SR2MP.Patches.UI;
@@ -10,4 +10,4 @@ public static class TimeScaleFixer
     {
         return !GameContext.Instance.InputDirector._paused.Map.enabled;
     }
-}*/
+}

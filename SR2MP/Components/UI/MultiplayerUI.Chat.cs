@@ -184,7 +184,7 @@ public sealed partial class MultiplayerUI
             
             if (!disabledInput)
             {
-                NativeEUtil.TryDisableSR2Input();
+                DisableInput();
                 disabledInput = true;
             }
         }
@@ -195,7 +195,7 @@ public sealed partial class MultiplayerUI
             
             if (disabledInput)
             {
-                NativeEUtil.TryEnableSR2Input();
+                EnableInput();
                 disabledInput = false;
             }
         }
@@ -211,7 +211,7 @@ public sealed partial class MultiplayerUI
         {
             if (!disabledInput)
             {
-                NativeEUtil.TryDisableSR2Input();
+                DisableInput();
                 disabledInput = true;
             }
         }
@@ -219,7 +219,7 @@ public sealed partial class MultiplayerUI
         {
             if (disabledInput)
             {
-                NativeEUtil.TryEnableSR2Input();
+                EnableInput();
                 disabledInput = false;
             }
         }
