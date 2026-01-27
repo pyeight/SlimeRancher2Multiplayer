@@ -164,7 +164,7 @@ public sealed partial class MultiplayerUI
     {
         string currentChatFocus = GUI.GetNameOfFocusedControl();
         isChatFocused = currentChatFocus == ChatInputName;
-        
+
         if (isChatFocused && !wasChatFocused)
         {
             NativeEUtil.TryDisableSR2Input();
@@ -173,7 +173,7 @@ public sealed partial class MultiplayerUI
         {
             NativeEUtil.TryEnableSR2Input();
         }
-        
+
         wasChatFocused = isChatFocused;
     }
 
