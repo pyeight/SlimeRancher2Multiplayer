@@ -31,7 +31,7 @@ public static class Extensions
     }
 
     private static int id = 1;
-    public static int RandomIdGenerator()
+    public static int IdGenerator()
     {
         return ++id;
     }

@@ -58,7 +58,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
             };
             
             Main.Server.SendToAll(leaveChatPacket);
-            MultiplayerUI.Instance.RegisterSystemMessage($"{leaveUsername} left the world!", $"SYSTEM_LEAVE_HOST_{playerId}_" + Extensions.RandomIdGenerator(), MultiplayerUI.SystemMessageDisconnect);
+            MultiplayerUI.Instance.RegisterSystemMessage($"{leaveUsername} left the world!", $"SYSTEM_LEAVE_HOST_{playerId}_" + Extensions.IdGenerator(), MultiplayerUI.SystemMessageDisconnect);
         }
         else
         {

@@ -48,6 +48,6 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
         
         Main.Server.SendToAll(joinPacket);
         Main.Server.SendToAllExcept(joinChatPacket, playerId);
-        MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{playerId}_" + Extensions.RandomIdGenerator(), MultiplayerUI.SystemMessageConnect);
+        MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{playerId}_" + Extensions.IdGenerator(), MultiplayerUI.SystemMessageConnect);
     }
 }

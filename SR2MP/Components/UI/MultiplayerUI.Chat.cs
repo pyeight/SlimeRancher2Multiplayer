@@ -197,7 +197,7 @@ public sealed partial class MultiplayerUI
 
         message = message.Trim();
         
-        string messageId = $"{Main.Username}_{message.GetHashCode()}_" + Extensions.RandomIdGenerator();
+        string messageId = $"{Main.Username}_{message.GetHashCode()}_" + Extensions.IdGenerator();
         
         RegisterChatMessage(message, Main.Username, messageId);
         
@@ -226,7 +226,7 @@ public sealed partial class MultiplayerUI
         chatMessages.Clear();
         processedMessageIds.Clear();
         
-        RegisterSystemMessage("Welcome to SR2MP!", $"SYSTEM_WELCOME_" + Extensions.RandomIdGenerator(), SystemMessageNormal);
+        RegisterSystemMessage("Welcome to SR2MP!", $"SYSTEM_WELCOME_" + Extensions.IdGenerator(), SystemMessageNormal);
     }
 
     private void FocusChat()

@@ -60,7 +60,7 @@ public sealed class Server
             OnServerStarted?.Invoke();
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
-                $"SYSTEM_HOST_START_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_" + Extensions.RandomIdGenerator(),
+                $"SYSTEM_HOST_START_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_" + Extensions.IdGenerator(),
                 MultiplayerUI.SystemMessageConnect
             );
         }
@@ -130,7 +130,7 @@ public sealed class Server
         SendToAll(closeChatMessage);
         
         MultiplayerUI.Instance.ClearChatMessages();
-        MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_" + Extensions.RandomIdGenerator(), MultiplayerUI.SystemMessageClose);
+        MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_" + Extensions.IdGenerator(), MultiplayerUI.SystemMessageClose);
 
         try
         {
