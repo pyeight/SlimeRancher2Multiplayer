@@ -181,7 +181,7 @@ public sealed class Client
                     }
                 }
                 
-                MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", "SYSTEM_JOIN_10054_" + Extensions.IdGenerator(), MultiplayerUI.SystemMessageClose);
+                MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
                 Disconnect();
             }
             catch (Exception ex)
@@ -251,7 +251,7 @@ public sealed class Client
         try
         {
             MultiplayerUI.Instance.ClearChatMessages();
-            MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_" + Extensions.IdGenerator(), MultiplayerUI.SystemMessageDisconnect);
+            MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
             try
             {
                 var leavePacket = new PlayerLeavePacket

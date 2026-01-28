@@ -41,7 +41,7 @@ public sealed class ChatCommand : SR2ECommand
 
         Main.SendToAllOrServer(chatPacket);
         
-        string messageId = $"{Main.Username}_{msg.GetHashCode()}_" + Extensions.IdGenerator();
+        string messageId = $"{Main.Username}_{msg.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
         
         MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
         
