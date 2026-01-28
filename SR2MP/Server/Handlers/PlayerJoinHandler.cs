@@ -42,11 +42,13 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
         {
             Username = "SYSTEM",
             Message = $"{packet.PlayerName} joined the world!",
-            MessageID = "SYSTEM"
+            MessageID = $"SYSTEM_JOIN_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageConnect
         };
         
         Main.Server.SendToAll(joinPacket);
         Main.Server.SendToAllExcept(joinChatPacket, playerId);
-        MultiplayerUI.Instance.RegisterChatMessage($"{packet.PlayerName} joined the world!", "SYSTEM", "SYSTEM");
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{playerId}_{randomComponent}", MultiplayerUI.SystemMessageConnect);
     }
 }

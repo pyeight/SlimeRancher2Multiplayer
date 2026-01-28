@@ -28,12 +28,12 @@ public sealed partial class MultiplayerUI
         public long time;
         public int lines;
         public string messageId;
+        public bool isSystemMessage;
+        public byte systemMessageType;
     }
 
     public void RegisterChatMessage(string message, string playerName, string messageId)
     {
-        messageId = $"{playerName}_{message.GetHashCode()}";
-        
         if (processedMessageIds.Contains(messageId))
         {
             return;
@@ -53,7 +53,48 @@ public sealed partial class MultiplayerUI
                 playerName = playerName,
                 lines = lineInfo.lines,
                 time = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                messageId = messageId
+                messageId = messageId,
+                isSystemMessage = false,
+                systemMessageType = 0
+            });
+            
+            processedMessageIds.Add(messageId);
+            
+            if (processedMessageIds.Count > 1000)
+            {
+                var toRemove = processedMessageIds.Take(500).ToList();
+                foreach (var id in toRemove)
+                {
+                    processedMessageIds.Remove(id);
+                }
+            }
+        });
+    }
+    
+    public void RegisterSystemMessage(string message, string messageId, byte type)
+    {
+        if (processedMessageIds.Contains(messageId))
+        {
+            return;
+        }
+
+        pendingMessageRegistrations.Enqueue(() =>
+        {
+            var trimmedMessage = message.Trim();
+            var dateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var timeString = dateTime.ToString("HH:mm:ss");
+            var formattedMessage = $"[{timeString}] SYSTEM: {trimmedMessage}";
+            var lineInfo = CalculateMessageHeight(formattedMessage);
+            
+            chatMessages.Add(new ChatMessage
+            {
+                message = trimmedMessage,
+                playerName = "SYSTEM",
+                lines = lineInfo.lines,
+                time = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                messageId = messageId,
+                isSystemMessage = true,
+                systemMessageType = type
             });
             
             processedMessageIds.Add(messageId);
@@ -112,7 +153,25 @@ public sealed partial class MultiplayerUI
     {
         var dateTime = DateTimeOffset.FromUnixTimeSeconds(message.time).ToLocalTime();
         var timeString = dateTime.ToString("HH:mm:ss");
-        var formattedMessage = $"[{timeString}] {message.playerName}: {message.message}";
+        
+        string formattedMessage;
+        if (message.isSystemMessage)
+        {
+            string systemColor = message.systemMessageType switch
+            {
+                SystemMessageConnect => ColorSystemConnect,
+                SystemMessageDisconnect => ColorSystemDisconnect,
+                SystemMessageClose => ColorSystemClose,
+                _ => ColorSystemNormal
+            };
+            
+            formattedMessage = $"<color={systemColor}>[{timeString}] SYSTEM: {message.message}</color>";
+        }
+        else
+        {
+            formattedMessage = $"[{timeString}] {message.playerName}: {message.message}";
+        }
+        
         GUI.Label(CalculateChatMessageRect(formattedMessage), formattedMessage);
     }
 
@@ -147,7 +206,8 @@ public sealed partial class MultiplayerUI
         { 
             Message = message,
             Username = Main.Username,
-            MessageID = messageId
+            MessageID = messageId,
+            MessageType = 0 // Normal message
         });
     }
 
@@ -160,8 +220,15 @@ public sealed partial class MultiplayerUI
     {
         chatMessages.Clear();
         processedMessageIds.Clear();
+    }
+
+    public void ClearAndWelcome()
+    {
+        chatMessages.Clear();
+        processedMessageIds.Clear();
         
-        RegisterChatMessage("Welcome to SR2MP!", "SYSTEM", "SYSTEM");
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        RegisterSystemMessage("Welcome to SR2MP!", $"SYSTEM_WELCOME_{randomComponent}", SystemMessageNormal);
     }
 
     private void FocusChat()

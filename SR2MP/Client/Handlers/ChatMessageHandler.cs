@@ -13,6 +13,13 @@ public sealed class ChatMessageHandler : BaseClientPacketHandler<ChatMessagePack
 
     public override void Handle(ChatMessagePacket packet)
     {
-        MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
+        if (packet.Username == "SYSTEM")
+        {
+            MultiplayerUI.Instance.RegisterSystemMessage(packet.Message, packet.MessageID, packet.MessageType);
+        }
+        else
+        {
+            MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
+        }
     }
 }

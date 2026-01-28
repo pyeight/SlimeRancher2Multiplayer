@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
+using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
@@ -162,9 +163,16 @@ public sealed class Client
             catch (SocketException ex)
             {
                 // This prevents WSAEINTR from logging, this is correct
-                if (ex.ErrorCode != 10004)
+                if (ex.ErrorCode != 10004 && ex.ErrorCode != 10054)
                 {
-                    SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}");
+                    SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}", SrLogTarget.Both);
+                }
+
+                if (ex.ErrorCode == 10054)
+                {
+                    SrLogger.LogError("The server is not running!\n" +
+                                      "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
+                                      "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
                 }
             }
             catch (Exception ex)
@@ -233,6 +241,9 @@ public sealed class Client
 
         try
         {
+            MultiplayerUI.Instance.ClearChatMessages();
+            int randomComponent = UnityEngine.Random.Range(0, 999999999);
+            MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{randomComponent}", MultiplayerUI.SystemMessageDisconnect);
             try
             {
                 var leavePacket = new PlayerLeavePacket
@@ -274,6 +285,20 @@ public sealed class Client
             }
 
             receiveThread = null;
+            
+            var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
+            foreach (var playerId in allPlayerIds)
+            {
+                if (playerObjects.TryGetValue(playerId, out var playerObject))
+                {
+                    if (playerObject)
+                    {
+                        Object.Destroy(playerObject);
+                        SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                    }
+                    playerObjects.Remove(playerId);
+                }
+            }
 
             playerManager.Clear();
 

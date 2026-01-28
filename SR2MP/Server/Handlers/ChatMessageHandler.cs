@@ -19,7 +19,14 @@ public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
         SrLogger.LogMessage($"Chat message from {packet.Username}: {packet.Message}",
             $"Chat message from {clientEp} ({packet.Username}): {packet.Message}");
 
-        MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
+        if (packet.Username == "SYSTEM")
+        {
+            MultiplayerUI.Instance.RegisterSystemMessage(packet.Message, packet.MessageID, packet.MessageType);
+        }
+        else
+        {
+            MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
+        }
         
         Main.Server.SendToAllExcept(packet, clientEp);
     }

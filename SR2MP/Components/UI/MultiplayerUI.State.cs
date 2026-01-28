@@ -67,7 +67,7 @@ public sealed partial class MultiplayerUI
             
             if (previousState == MenuState.DisconnectedMainMenu || previousState == MenuState.Hidden)
             {
-                ClearChatMessages();
+                ClearAndWelcome();
             }
         }
         

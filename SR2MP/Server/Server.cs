@@ -58,6 +58,12 @@ public sealed class Server
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();
+            int randomComponent = UnityEngine.Random.Range(0, 999999999);
+            MultiplayerUI.Instance.RegisterSystemMessage(
+                "The world is now open to others!",
+                $"SYSTEM_HOST_START_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{randomComponent}",
+                MultiplayerUI.SystemMessageConnect
+            );
         }
         catch (Exception ex)
         {
@@ -115,14 +121,18 @@ public sealed class Server
         if (!networkManager.IsRunning)
             return;
         
-        MultiplayerUI.Instance.RegisterChatMessage("Server closed!", "SYSTEM", "SYSTEM");
         var closeChatMessage = new ChatMessagePacket
         {
             Username = "SYSTEM",
             Message = "Server closed!",
-            MessageID = "SYSTEM"
+            MessageID = $"SYSTEM_CLOSE_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageClose
         };
         SendToAll(closeChatMessage);
+        
+        MultiplayerUI.Instance.ClearChatMessages();
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_{randomComponent}", MultiplayerUI.SystemMessageClose);
 
         try
         {
@@ -144,8 +154,23 @@ public sealed class Server
             {
                 SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
             }
+            
+            var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
+            foreach (var playerId in allPlayerIds)
+            {
+                if (playerObjects.TryGetValue(playerId, out var playerObject))
+                {
+                    if (playerObject != null)
+                    {
+                        Object.Destroy(playerObject);
+                        SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                    }
+                    playerObjects.Remove(playerId);
+                }
+            }
 
             clientManager.Clear();
+            playerManager.Clear();
             networkManager.Stop();
 
             SrLogger.LogMessage("Server closed", SrLogTarget.Both);

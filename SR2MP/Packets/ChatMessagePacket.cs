@@ -8,12 +8,14 @@ public sealed class ChatMessagePacket : IPacket
     public string Message { get; set; }
     public string MessageID { get; set; }
     public PacketType Type => PacketType.ChatMessage;
+    public byte MessageType { get; set; } = 0;
     
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(Username);
         writer.WriteString(Message);
         writer.WriteString(MessageID);
+        writer.WriteByte(MessageType);
     }
 
     public void Deserialise(PacketReader reader)
@@ -21,5 +23,6 @@ public sealed class ChatMessagePacket : IPacket
         Username = reader.ReadString();
         Message = reader.ReadString();
         MessageID = reader.ReadString();
+        MessageType = reader.ReadByte();
     }
 }
