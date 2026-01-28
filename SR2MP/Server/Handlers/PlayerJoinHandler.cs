@@ -1,5 +1,7 @@
 using System.Net;
 using SR2MP.Components.Player;
+using SR2MP.Components.UI;
+using SR2MP.Packets;
 using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -7,16 +9,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerJoin)]
-public sealed class PlayerJoinHandler : BasePacketHandler
+public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 {
     public PlayerJoinHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<PlayerJoinPacket>();
-
         string playerId = packet.PlayerId;
 
         string address = $"{clientEp.Address}:{clientEp.Port}";
@@ -39,6 +38,17 @@ public sealed class PlayerJoinHandler : BasePacketHandler
             PlayerName = packet.PlayerName
         };
 
+        var joinChatPacket = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = $"{packet.PlayerName} joined the world!",
+            MessageID = $"SYSTEM_JOIN_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageConnect
+        };
+        
         Main.Server.SendToAll(joinPacket);
+        Main.Server.SendToAllExcept(joinChatPacket, playerId);
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{playerId}_{randomComponent}", MultiplayerUI.SystemMessageConnect);
     }
 }

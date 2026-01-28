@@ -3,21 +3,27 @@ namespace SR2MP.Components.UI;
 public sealed partial class MultiplayerUI
 {
     private Rect previousLayoutRect;
+    private Rect previousLayoutChatRect;
     private int previousLayoutHorizontalIndex;
 
-    private Rect CalculateTextLayout(float originalX, int lines = 1, int horizontalShare = 1, int horizontalIndex = 0)
+    private void DrawText(string text, int horizontalShare = 1, int horizontalIndex = 0)
+    {
+        GUI.Label(CalculateTextLayout(6, text, horizontalShare, horizontalIndex), text);
+    }
+    
+    private Rect CalculateTextLayout(float originalX, string text, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
-
+        var style = GUI.skin.label;
+        var height = style.CalcHeight(new GUIContent(text), maxWidth / horizontalShare);
+        
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
-        float w = (maxWidth / horizontalShare);
-        float h = TextHeight * lines;
-
-        //if (horizontalShare != 1)
-        //    w -= HorizontalSpacing * horizontalShare;
+        float w = maxWidth / horizontalShare;
+        float h = height;
 
         x += horizontalIndex * w;
+        
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
@@ -35,13 +41,11 @@ public sealed partial class MultiplayerUI
 
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
-        float w = (maxWidth / horizontalShare);
+        float w = maxWidth / horizontalShare;
         float h = InputHeight;
 
-        //if (horizontalShare != 1)
-        //    w -= HorizontalSpacing * horizontalShare;
-
         x += horizontalIndex * w;
+        
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
@@ -59,13 +63,11 @@ public sealed partial class MultiplayerUI
 
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
-        float w = (maxWidth / horizontalShare);
+        float w = maxWidth / horizontalShare;
         float h = ButtonHeight;
 
-        //if (horizontalShare != 1)
-        //    w -= HorizontalSpacing * horizontalShare;
-
         x += horizontalIndex * w;
+        
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 

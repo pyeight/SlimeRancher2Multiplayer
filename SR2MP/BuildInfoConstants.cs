@@ -7,13 +7,16 @@ internal static class BuildInfo
     internal const string Contributors = "AlchlcSystm, shizophrenicgopher, PinkTarr";
     internal const string Company = "";
     //Version is shown my ML
-    //DisplayVersion is shown bei SR2E
-    //DisplayVersion automatically gets a -dev at the end if SR2MP is compiled by Github Actio
-    internal const string Version = "0.2.0";
-    internal const string DisplayVersion = "0.2.0"; // Auto-Dev_Do_not_remove
+    //DisplayVersion is shown by SR2E
+    //DisplayVersion automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
+    internal const string Version = "0.2.2";
+    internal const string DisplayVersion = "0.2.2"; // Auto-Dev_Do_not_remove
     internal const string DownloadLink = "https://discord.com/invite/a7wfBw5feU";
     internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
-    internal const string Nexus = "";
+    internal const string Nexus = "https://www.nexusmods.com/slimerancher2/mods/118";
     internal const string UsePrism = "false";
+    internal const string Discord = "https://discord.com/invite/a7wfBw5feU"; // Discord Link for th Expansion.  (optional, set as null if none)
     internal const string MinSr2EVersion = SR2E.BuildInfo.CodeVersion; // e.g "3.4.3", the min required SR2 version. No beta or alpha versions
+    internal const string RequiredGameVersion = "1.1.1"; //e.g 1.1.0 or something similar (optional)
+    internal const string ExactRequiredGameVersion = "1.1.1"; //e.g 1.1.0 or something similar (optional)
 }

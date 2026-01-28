@@ -2,15 +2,15 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class GordosPacket : IPacket
+public sealed class InitialGordosPacket : IPacket
 {
     public sealed class Gordo : INetObject
     {
         public string Id { get; set; }
-
         public int EatenCount { get; set; }
         public int RequiredEatCount { get; set; }
         public int GordoType { get; set; }
+        public bool WasSeen { get; set; }
 
         // public bool Popped { get; set; }
 
@@ -20,6 +20,7 @@ public sealed class GordosPacket : IPacket
             writer.WriteInt(EatenCount);
             writer.WriteInt(RequiredEatCount);
             writer.WriteInt(GordoType);
+            writer.WriteBool(WasSeen);
             // writer.WriteBool(Popped);
         }
 
@@ -29,6 +30,7 @@ public sealed class GordosPacket : IPacket
             EatenCount = reader.ReadInt();
             RequiredEatCount = reader.ReadInt();
             GordoType = reader.ReadInt();
+            WasSeen = reader.ReadBool();
             // Popped = reader.ReadBool();
         }
     }

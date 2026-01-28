@@ -36,7 +36,7 @@ public sealed class PacketManager
                 if (Activator.CreateInstance(type, networkManager, clientManager) is IPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
-                    SrLogger.LogMessage($"Registered handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
+                    SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
                 }
             }
             catch (Exception ex)
@@ -50,19 +50,24 @@ public sealed class PacketManager
 
     public void HandlePacket(byte[] data, IPEndPoint clientEp)
     {
-        if (data.Length < 1)
+        if (data.Length < 7)
         {
-            SrLogger.LogWarning("Received empty packet", SrLogTarget.Both);
+            SrLogger.LogWarning($"Received packet too small for chunk header: {data.Length} bytes", SrLogTarget.Both);
             return;
         }
 
         byte packetType = data[0];
-        byte chunkIndex = data[1];
-        byte totalChunks = data[2];
-
-        byte[] chunkData = new byte[data.Length - 3];
-        Buffer.BlockCopy(data, 3, chunkData, 0, data.Length - 3);
-        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, totalChunks, out data))
+        ushort chunkIndex = (ushort)(data[1] | (data[2] << 8));
+        ushort totalChunks = (ushort)(data[3] | (data[4] << 8));
+        ushort packetId = (ushort)(data[5] | (data[6] << 8));
+        
+        byte[] chunkData = new byte[data.Length - 7];
+        Buffer.BlockCopy(data, 7, chunkData, 0, data.Length - 7);
+        
+        string senderKey = clientEp.ToString();
+        
+        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, 
+            totalChunks, packetId, senderKey, out data))
             return;
 
         if (handlers.TryGetValue(packetType, out var handler))

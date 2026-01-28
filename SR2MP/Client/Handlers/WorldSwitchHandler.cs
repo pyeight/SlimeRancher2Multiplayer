@@ -7,16 +7,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.SwitchActivate)]
-public sealed class WorldSwitchHandler : BaseClientPacketHandler
+public sealed class WorldSwitchHandler : BaseClientPacketHandler<WorldSwitchPacket>
 {
     public WorldSwitchHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(byte[] data)
+    public override void Handle(WorldSwitchPacket packet)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<WorldSwitchPacket>();
-
         var gameModel = SceneContext.Instance.GameModel;
 
         if (gameModel.switches.TryGetValue(packet.ID, out var switchModel))

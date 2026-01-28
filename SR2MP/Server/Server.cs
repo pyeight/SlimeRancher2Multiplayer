@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
@@ -36,6 +37,12 @@ public sealed class Server
 
     public void Start(int port, bool enableIPv6)
     {
+        if (Main.Client.IsConnected)
+        {
+            SrLogger.LogWarning("You are already connected to a server, restart your game to host your own server");
+            return;
+        }
+        
         if (networkManager.IsRunning)
         {
             SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
@@ -51,6 +58,12 @@ public sealed class Server
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();
+            int randomComponent = UnityEngine.Random.Range(0, 999999999);
+            MultiplayerUI.Instance.RegisterSystemMessage(
+                "The world is now open to others!",
+                $"SYSTEM_HOST_START_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{randomComponent}",
+                MultiplayerUI.SystemMessageConnect
+            );
         }
         catch (Exception ex)
         {
@@ -84,11 +97,9 @@ public sealed class Server
         using var writer = new PacketWriter();
         writer.WritePacket(leavePacket);
         byte[] data = writer.ToArray();
-
-        foreach (var otherClient in clientManager.GetAllClients())
-        {
-            networkManager.Send(data, otherClient.EndPoint);
-        }
+        
+        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
+        networkManager.Broadcast(data, endpoints);
 
         SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
     }
@@ -109,6 +120,19 @@ public sealed class Server
     {
         if (!networkManager.IsRunning)
             return;
+        
+        var closeChatMessage = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = "Server closed!",
+            MessageID = $"SYSTEM_CLOSE_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageClose
+        };
+        SendToAll(closeChatMessage);
+        
+        MultiplayerUI.Instance.ClearChatMessages();
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_{randomComponent}", MultiplayerUI.SystemMessageClose);
 
         try
         {
@@ -120,20 +144,33 @@ public sealed class Server
             using var writer = new PacketWriter();
             writer.WritePacket(closePacket);
             byte[] data = writer.ToArray();
-
-            foreach (var client in clientManager.GetAllClients())
+            
+            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
+            try
             {
-                try
+                networkManager.Broadcast(data, endpoints);
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
+            }
+            
+            var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
+            foreach (var playerId in allPlayerIds)
+            {
+                if (playerObjects.TryGetValue(playerId, out var playerObject))
                 {
-                    networkManager.Send(data, client.EndPoint);
-                }
-                catch (Exception ex)
-                {
-                    SrLogger.LogWarning($"Failed to notify specific client of server shutdown: {ex}",
-                        $"Failed to send close packet to client: {client.GetClientInfo()}: {ex}");
+                    if (playerObject != null)
+                    {
+                        Object.Destroy(playerObject);
+                        SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                    }
+                    playerObjects.Remove(playerId);
                 }
             }
+
             clientManager.Clear();
+            playerManager.Clear();
             networkManager.Stop();
 
             SrLogger.LogMessage("Server closed", SrLogTarget.Both);
@@ -161,11 +198,9 @@ public sealed class Server
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
         byte[] data = writer.ToArray();
-
-        foreach (var client in clientManager.GetAllClients())
-        {
-            networkManager.Send(data, client.EndPoint);
-        }
+        
+        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
+        networkManager.Broadcast(data, endpoints);
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket

@@ -1,12 +1,15 @@
 using MelonLoader;
+using SR2E.Utils;
 
 namespace SR2MP.Components.UI;
 
-// TODO: Make UI in an asset bundle so that it can be SR2 styled, among other things.
+// TODO: Asset bundle
 [RegisterTypeInIl2Cpp(false)]
 public sealed partial class MultiplayerUI : MonoBehaviour
 {
     public static MultiplayerUI Instance { get; private set; }
+
+    private bool didUnfocus = false;
 
     private void Awake()
     {
@@ -27,28 +30,44 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         Instance = this;
     }
 
-    // Not sure if OnDestroy is needed for the singleton, though it is IL2CPP stuff, so I don't want to deal with bugs.
     private void OnDestroy()
     {
         Instance = null!;
     }
-
+    
     private void OnGUI()
     {
-        state = GetState();
-
-        if (state == MenuState.Hidden)
-            return;
+        if (Event.current.type == EventType.Layout)
+        {
+            state = GetState();
+            UpdateChatVisibility();
+        }
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
-
-        DrawWindow();
-        //DrawChat();
+        previousLayoutHorizontalIndex = 0;
+        
+        if (!MenuEUtil.isAnyMenuOpen)
+        {
+            didUnfocus = false;
+            DrawWindow();
+            DrawChat();
+        }
+        else
+        {
+            if (!didUnfocus)
+            {
+                UnfocusChat();
+                didUnfocus = true;
+            }
+        }
     }
-
+    
     private void DrawWindow()
     {
-        GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to hide)");
+        if (state == MenuState.Hidden) return;
+        
+        GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to toggle)");
+        
         switch (state)
         {
             case MenuState.SettingsInitial:
@@ -73,11 +92,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
                 UnimplementedScreen();
                 break;
         }
+        
         AdjustInputValues();
-    }
-
-    private void DrawChat()
-    {
-        UnimplementedScreen();
     }
 }

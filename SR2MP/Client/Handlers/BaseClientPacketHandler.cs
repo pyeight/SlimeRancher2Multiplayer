@@ -3,7 +3,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Client.Handlers;
 
-public abstract class BaseClientPacketHandler : IClientPacketHandler
+public abstract class BaseClientPacketHandler<T> : IClientPacketHandler where T : IPacket, new()
 {
     protected readonly Client Client;
     protected readonly RemotePlayerManager PlayerManager;
@@ -14,9 +14,17 @@ public abstract class BaseClientPacketHandler : IClientPacketHandler
         PlayerManager = playerManager;
     }
 
-    public abstract void Handle(byte[] data);
+    public void Handle(byte[] data)
+    {
+        using var reader = new PacketReader(data);
+        var packet = reader.ReadPacket<T>();
+        
+        Handle(packet);
+    }
 
-    protected void SendPacket<T>(T packet) where T : IPacket
+    public abstract void Handle(T packet);
+    
+    protected void SendPacket<TOther>(TOther packet) where TOther : IPacket
     {
         Client.SendPacket(packet);
     }

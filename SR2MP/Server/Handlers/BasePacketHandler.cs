@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
 
-public abstract class BasePacketHandler : IPacketHandler
+public abstract class BasePacketHandler<T> : IPacketHandler where T : IPacket, new()
 {
     protected readonly NetworkManager networkManager;
     protected readonly ClientManager clientManager;
@@ -16,5 +16,13 @@ public abstract class BasePacketHandler : IPacketHandler
         this.clientManager = clientManager;
     }
 
-    public abstract void Handle(byte[] data, IPEndPoint clientEp);
+    public void Handle(byte[] data, IPEndPoint clientEp)
+    {
+        using var reader = new PacketReader(data);
+        var packet = reader.ReadPacket<T>();
+        
+        Handle(packet, clientEp);
+    }
+
+    public abstract void Handle(T packet, IPEndPoint clientEp);
 }

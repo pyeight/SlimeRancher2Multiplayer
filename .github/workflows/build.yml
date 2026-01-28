@@ -7,6 +7,7 @@ name: SR2MP Compilation
 on:
   push:
     branches:
+      - development
       - shark
 
   workflow_dispatch:
@@ -159,11 +160,19 @@ jobs:
           name: Artifacts
           path: FinalArtifacts/*.dll
 
-      - name: 5. Create or Update Release
+      - name: 5. Delete Old Release
+        uses: dev-drprasad/delete-tag-and-release@v1.1
+        with:
+          tag_name: continuous-build-${{ github.ref_name }}
+          delete_release: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 6. Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: continuous-build
-          name: Continuous Build
+          tag_name: continuous-build-${{ github.ref_name }}
+          name: Continuous Build (${{ github.ref_name }})
           body: |
             This release contains the latest automated build artifacts.
             **SR2 Version:** ${{ steps.script_execution.outputs.sr2e_version }}
@@ -175,3 +184,30 @@ jobs:
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 7. Send Discord Webhook with Artifacts
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_NAME: "Build Bot"
+          AVATAR_URL: "https://sr2e.sr2.dev/img/sr2mp-bot.png#profile"
+          MESSAGE_CONTENT: |
+            **Compiled from Branch:** `${{ github.ref_name }}`
+            **SR2 Version:** `${{ steps.manifest_lookup.outputs.manifest_id_long }}`
+            **SR2E Version:** `${{ steps.script_execution.outputs.sr2e_version }}`
+            **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
+            **Link:** <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg content "$MESSAGE_CONTENT" \
+            --arg username "$WEBHOOK_NAME" \
+            --arg avatar "$AVATAR_URL" \
+            '{content: $content, username: $username, avatar_url: $avatar}')
+
+          CURL_CMD=(curl -H "Content-Type: multipart/form-data" -X POST -F "payload_json=$PAYLOAD")
+
+          for file in FinalArtifacts/*.dll; do
+            if [ -f "$file" ]; then
+              CURL_CMD+=(-F "file[]=@$file")
+            fi
+          done
+          "${CURL_CMD[@]}" "$WEBHOOK_URL"

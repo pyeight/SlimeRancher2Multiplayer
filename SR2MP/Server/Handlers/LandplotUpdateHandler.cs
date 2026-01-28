@@ -6,16 +6,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.LandPlotUpdate)]
-public sealed class LandPlotUpdateHandler : BasePacketHandler
+public sealed class LandPlotUpdateHandler : BasePacketHandler<LandPlotUpdatePacket>
 {
     public LandPlotUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(LandPlotUpdatePacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<LandPlotUpdatePacket>();
-
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 
         Main.Server.SendToAllExcept(packet, clientEp);

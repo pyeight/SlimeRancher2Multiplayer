@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.InteropServices;
 using Il2CppTMPro;
 using MelonLoader;
 using MelonLoader.Utils;
@@ -16,9 +15,10 @@ namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
-    [DllImport("kernel32", CharSet = CharSet.Ansi)]
-    private static extern IntPtr LoadLibrary(string lpFileName);
-
+    public override void OnInitializeMelon()
+    {
+        Main.LoadRPCAssembly();
+    }
     public static void SendToAllOrServer<T>(T packet) where T : IPacket
     {
         if (Client.IsConnected)
@@ -77,6 +77,7 @@ public sealed class Main : SR2EExpansionV3
         switch (sceneName)
         {
             case "SystemCore":
+                StartupCheck.Initialize();
                 MainThreadDispatcher.Initialize();
                 DiscordRPCManager.Initialize();
 
@@ -88,15 +89,16 @@ public sealed class Main : SR2EExpansionV3
 
                 Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
 
-                Application.quitting += new System.Action((() =>
+                Application.quitting += new Action(() =>
                 {
+                    DiscordRPCManager.Shutdown();
                     if (Server.IsRunning())
                         Server.Close();
                     if (Client.IsConnected)
                         Client.Disconnect();
-                }));
+                });
 
-                playerManager.OnPlayerAdded += id => DiscordRPCManager.UpdatePresence();
+                playerManager.OnPlayerAdded += _ => DiscordRPCManager.UpdatePresence();
 
                 break;
 
@@ -129,6 +131,7 @@ public sealed class Main : SR2EExpansionV3
                 playerPrefab.AddComponent<NetworkPlayerFootstep>().spawnAtTransform = footstepFX.transform;
 
                 Object.DontDestroyOnLoad(playerPrefab);
+                
                 break;
         }
     }
@@ -152,18 +155,20 @@ public sealed class Main : SR2EExpansionV3
         MelonPreferences.Save();
     }
 
-    internal static void LoadRPCAssembly()
+    private static void LoadRPCAssembly()
     {
         Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Assembly.Load(array);
     }
-    internal static void InsertLicensesFile()
+
+    private static void InsertLicensesFile()
     {
         Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
+        Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));
         File.WriteAllBytes(MelonEnvironment.UserDataDirectory + "/SR2MP/THIRD-PARTY-NOTICES.txt", array);
     }
 }

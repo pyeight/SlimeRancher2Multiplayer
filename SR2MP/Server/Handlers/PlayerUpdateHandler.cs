@@ -6,17 +6,14 @@ using SR2MP.Server.Managers;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.PlayerUpdate)]
-public sealed class PlayerUpdateHandler : BasePacketHandler
+public sealed class PlayerUpdateHandler : BasePacketHandler<PlayerUpdatePacket>
 {
     public PlayerUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(PlayerUpdatePacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<PlayerUpdatePacket>();
-
-        // This is temporary :3
+        // todo: This is temporary :3
         if (packet.PlayerId == "HOST")
             return;
 

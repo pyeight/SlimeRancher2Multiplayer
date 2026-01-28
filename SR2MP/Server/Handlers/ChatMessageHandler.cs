@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -6,30 +7,27 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.ChatMessage)]
-public sealed class ChatMessageHandler : BasePacketHandler
+public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
 {
     public ChatMessageHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager)
     {
     }
 
-    public override void Handle(byte[] data, IPEndPoint clientEp)
+    public override void Handle(ChatMessagePacket packet, IPEndPoint clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<ChatMessagePacket>();
+        SrLogger.LogMessage($"Chat message from {packet.Username}: {packet.Message}",
+            $"Chat message from {clientEp} ({packet.Username}): {packet.Message}");
 
-        SrLogger.LogMessage($"Chat message from {packet.PlayerId}: {packet.Message}",
-            $"Chat message from {clientEp} ({packet.PlayerId}): {packet.Message}");
-
-        var broadcastPacket = new ChatMessagePacket
+        if (packet.Username == "SYSTEM")
         {
-            PlayerId = packet.PlayerId,
-            Message = packet.Message,
-            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-        };
-
-        // Broadcast to self for confirmation (if a GUI will exist later qwq)
-        // If necessary, not sure how we should do it
-        Main.Server.SendToAll(broadcastPacket);
+            MultiplayerUI.Instance.RegisterSystemMessage(packet.Message, packet.MessageID, packet.MessageType);
+        }
+        else
+        {
+            MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
+        }
+        
+        Main.Server.SendToAllExcept(packet, clientEp);
     }
 }
