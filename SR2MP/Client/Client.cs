@@ -251,7 +251,10 @@ public sealed class Client
         try
         {
             MultiplayerUI.Instance.ClearChatMessages();
-            MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
+            if (!ShownConnectionError)
+            {
+                MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
+            }
             try
             {
                 var leavePacket = new PlayerLeavePacket
