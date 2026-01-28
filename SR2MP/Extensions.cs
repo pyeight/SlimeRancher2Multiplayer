@@ -30,6 +30,12 @@ public static class Extensions
         return path;
     }
 
+    private static int id = 1;
+    public static int RandomIdGenerator()
+    {
+        return ++id;
+    }
+
     /*public static long SR2MPMax(this IEnumerable<long> source)
     {
         if (source == null)

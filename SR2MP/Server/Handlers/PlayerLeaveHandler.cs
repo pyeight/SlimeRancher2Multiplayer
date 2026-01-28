@@ -58,8 +58,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
             };
             
             Main.Server.SendToAll(leaveChatPacket);
-            int randomComponent = UnityEngine.Random.Range(0, 999999999);
-            MultiplayerUI.Instance.RegisterSystemMessage($"{leaveUsername} left the world!", $"SYSTEM_LEAVE_HOST_{playerId}_{randomComponent}", MultiplayerUI.SystemMessageDisconnect);
+            MultiplayerUI.Instance.RegisterSystemMessage($"{leaveUsername} left the world!", $"SYSTEM_LEAVE_HOST_{playerId}_" + Extensions.RandomIdGenerator(), MultiplayerUI.SystemMessageDisconnect);
         }
         else
         {

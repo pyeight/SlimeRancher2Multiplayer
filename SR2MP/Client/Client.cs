@@ -24,6 +24,8 @@ public sealed class Client
     private Timer? connectionTimeoutTimer;
     private const int ConnectionTimeoutSeconds = 10;
 
+    private bool ShownConnectionError = false;
+
     private readonly ClientPacketManager packetManager;
 
     public string OwnPlayerId { get; private set; } = string.Empty;
@@ -170,10 +172,17 @@ public sealed class Client
 
                 if (ex.ErrorCode == 10054)
                 {
-                    SrLogger.LogError("The server is not running!\n" +
-                                      "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                      "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
+                    if (!ShownConnectionError)
+                    {
+                        SrLogger.LogError("The server is not running!\n" +
+                                          "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
+                                          "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
+                        ShownConnectionError = true;
+                    }
                 }
+                
+                MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", "SYSTEM_JOIN_10054_" + Extensions.RandomIdGenerator(), MultiplayerUI.SystemMessageClose);
+                Disconnect();
             }
             catch (Exception ex)
             {
@@ -242,8 +251,7 @@ public sealed class Client
         try
         {
             MultiplayerUI.Instance.ClearChatMessages();
-            int randomComponent = UnityEngine.Random.Range(0, 999999999);
-            MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{randomComponent}", MultiplayerUI.SystemMessageDisconnect);
+            MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_" + Extensions.RandomIdGenerator(), MultiplayerUI.SystemMessageDisconnect);
             try
             {
                 var leavePacket = new PlayerLeavePacket
