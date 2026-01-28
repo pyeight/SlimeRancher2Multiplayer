@@ -175,12 +175,9 @@ jobs:
           name: Continuous Build (${{ github.ref_name }})
           body: |
             This release contains the latest automated build artifacts.
-
-            **Compiled from Branch:** `${{ github.ref_name }}`
-            **SR2 Version:** `${{ steps.manifest_lookup.outputs.manifest_id_long }}`
-            **SR2E Version:** `${{ steps.script_execution.outputs.sr2e_version }}`
-            **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
-            **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **SR2 Version:** ${{ steps.script_execution.outputs.sr2e_version }}
+            **SR2E Version:** ${{ steps.manifest_lookup.outputs.manifest_id_long }}
+            **MelonLoader:** ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}
           draft: false
           prerelease: true
           files: FinalArtifacts/*.dll
