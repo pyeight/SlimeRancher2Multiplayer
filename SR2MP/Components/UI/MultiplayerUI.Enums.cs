@@ -27,7 +27,7 @@ public sealed partial class MultiplayerUI
     public enum HelpTopic : byte
     {
         Root,
-        Playit,
+        PlayIt,
         SyncState,
         DiscordSupport,
     }

@@ -4,22 +4,25 @@ namespace SR2MP.Packets;
 
 public sealed class ChatMessagePacket : IPacket
 {
-    public string PlayerId { get; set; }
+    public string Username { get; set; }
     public string Message { get; set; }
-    public long Timestamp { get; set; }
+    public string MessageID { get; set; }
     public PacketType Type => PacketType.ChatMessage;
+    public byte MessageType { get; set; } = 0;
     
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteString(PlayerId);
+        writer.WriteString(Username);
         writer.WriteString(Message);
-        writer.WriteLong(Timestamp);
+        writer.WriteString(MessageID);
+        writer.WriteByte(MessageType);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadString();
+        Username = reader.ReadString();
         Message = reader.ReadString();
-        Timestamp = reader.ReadLong();
+        MessageID = reader.ReadString();
+        MessageType = reader.ReadByte();
     }
 }

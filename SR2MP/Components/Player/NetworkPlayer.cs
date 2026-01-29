@@ -54,6 +54,8 @@ public partial class NetworkPlayer : MonoBehaviour
     private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
     public void SetUsername(string username)
     {
+        username = username.Trim();
+        
         usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
         usernamePanel.text = username;
         usernamePanel.alignment = TextAlignmentOptions.Center;

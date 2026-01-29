@@ -1,12 +1,15 @@
 using MelonLoader;
+using SR2E.Utils;
 
 namespace SR2MP.Components.UI;
 
-// TODO: Make UI in an asset bundle so that it can be SR2 styled, among other things.
+// TODO: Asset bundle
 [RegisterTypeInIl2Cpp(false)]
 public sealed partial class MultiplayerUI : MonoBehaviour
 {
     public static MultiplayerUI Instance { get; private set; }
+
+    private bool didUnfocus = false;
 
     public void Awake()
     {
@@ -40,10 +43,22 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
-        previousLayoutChatRect = new Rect(6, (Screen.height / 2) + 15, WindowWidth, 0);
+        previousLayoutHorizontalIndex = 0;
 
-        DrawWindow();
-        DrawChat();
+        if (!MenuEUtil.isAnyMenuOpen)
+        {
+            didUnfocus = false;
+            DrawWindow();
+            DrawChat();
+        }
+        else
+        {
+            if (!didUnfocus)
+            {
+                UnfocusChat();
+                didUnfocus = true;
+            }
+        }
     }
 
     private void DrawWindow()
@@ -52,6 +67,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
             return;
 
         GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to toggle)");
+
         switch (state)
         {
             case MenuState.SettingsInitial:

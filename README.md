@@ -14,9 +14,10 @@
 | Player Visual FX  |   🟨   |               Water splash particle + Vac suction trail missing               |
 | Player Inventory  |   🟥   |                                Not implemented                                |
 | Initial Save load |   🟩   | Everything that is ___currently___ synchronised will be loaded on Player join |
+|   Map Expansions  |   🟩   |                               Fully functional                                |
 |      Slimes       |   🟩   |                               Fully functional                                |
 |  Actors (Items)   |   🟩   |                               Fully functional                                |
-|     Landplots     |   🟨   |                    Gardens and Silos missing functionality                    |
+|     Landplots     |   🟨   |                    Gardens (🟧) and Silos (🟥) missing functionality         |
 | Landplot upgrades |   🟩   |                               Fully functional                                |
 |    Slimepedia     |   🟩   |                               Fully functional                                |
 |      Gadgets      |   🟥   |                                Not implemented                                |

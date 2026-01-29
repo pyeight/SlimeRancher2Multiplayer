@@ -9,8 +9,7 @@ public sealed partial class MultiplayerUI
     public void Host(ushort port)
     {
         MenuEUtil.CloseOpenMenu();
-        var server = Main.Server;
-        server.Start(port, true);
+        Main.Server.Start(port, true);
         Main.SetConfigValue("host_port", hostPortInput);
     }
 
@@ -46,7 +45,10 @@ public sealed partial class MultiplayerUI
         Main.SetConfigValue("recent_port", portInput);
     }
 
-    public void Kick(string player) { }
+    public void Kick(string player)
+    {
+        // TODO: Implement kick functionality
+    }
 
     public void Update()
     {
@@ -54,12 +56,60 @@ public sealed partial class MultiplayerUI
             hidden = !hidden;
 
         if (KeyCode.F5.OnKeyDown())
+        {
+            if (isChatFocused)
+            {
+                UnfocusChat();
+            }
+
             chatHidden = !chatHidden;
+            internalChatToggle = true;
+
+            if (chatHidden && disabledInput)
+            {
+                EnableInput();
+                disabledInput = false;
+            }
+        }
+    }
+
+    private void HandleChatInput()
+    {
+        if (chatHidden || state == MenuState.DisconnectedMainMenu) return;
+
+        bool enterPressed = KeyCode.Return.OnKeyDown() || KeyCode.KeypadEnter.OnKeyDown();
+        bool escapePressed = KeyCode.Escape.OnKeyDown();
+
+        if (isChatFocused)
+        {
+            if (enterPressed)
+            {
+                if (!string.IsNullOrWhiteSpace(chatInput))
+                {
+                    SendChatMessage(chatInput.Trim());
+                }
+                ClearChatInput();
+                UnfocusChat();
+            }
+            else if (escapePressed)
+            {
+                ClearChatInput();
+                UnfocusChat();
+            }
+        }
+        else
+        {
+            if (enterPressed)
+            {
+                FocusChat();
+            }
+        }
     }
 
     private void AdjustInputValues()
     {
         ipInput = ipInput.WithAllWhitespaceStripped();
         portInput = portInput.WithAllWhitespaceStripped();
+        hostPortInput = hostPortInput.WithAllWhitespaceStripped();
     }
 }

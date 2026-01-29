@@ -21,6 +21,6 @@ public static class OnDestroyCrop
             ActorType = 9
         };
 
-        Main.SendToAllOrServer(packet);
+        // Main.SendToAllOrServer(packet);
     }
 }

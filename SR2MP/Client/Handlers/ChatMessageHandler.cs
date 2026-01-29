@@ -13,8 +13,13 @@ public sealed class ChatMessageHandler : BaseClientPacketHandler<ChatMessagePack
 
     public override void Handle(ChatMessagePacket packet)
     {
-        DateTime messageTime = DateTimeOffset.FromUnixTimeMilliseconds(packet.Timestamp).UtcDateTime;
-
-        MultiplayerUI.Instance.RegisterChatMessage(packet.Message, playerManager.GetPlayer(packet.PlayerId)!.Username, packet.Timestamp);
+        if (packet.Username == "SYSTEM")
+        {
+            MultiplayerUI.Instance.RegisterSystemMessage(packet.Message, packet.MessageID, packet.MessageType);
+        }
+        else
+        {
+            MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
+        }
     }
 }

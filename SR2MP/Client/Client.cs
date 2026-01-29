@@ -2,14 +2,13 @@ using System.Net;
 using System.Net.Sockets;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
+using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
-
-using Thread = Il2CppSystem.Threading.Thread;
 
 namespace SR2MP.Client;
 
@@ -25,6 +24,8 @@ public sealed class Client
     private Timer? connectionTimeoutTimer;
     private const int ConnectionTimeoutSeconds = 10;
 
+    private bool ShownConnectionError = false;
+
     private readonly ClientPacketManager packetManager;
 
     public string OwnPlayerId { get; private set; } = string.Empty;
@@ -35,7 +36,6 @@ public sealed class Client
     public event Action<string>? OnPlayerJoined;
     public event Action<string>? OnPlayerLeft;
     public event Action<string, RemotePlayer>? OnPlayerUpdate;
-    public event Action<string, string, DateTime>? OnChatMessageReceived;
 
     public Client()
     {
@@ -82,6 +82,9 @@ public sealed class Client
 
             serverEndPoint = new IPEndPoint(parsedIp, port);
             udpClient.Connect(serverEndPoint);
+            
+            udpClient.Client.ReceiveBufferSize = 512 * 1024;
+            udpClient.Client.SendBufferSize = 512 * 1024;
 
             OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
 
@@ -162,10 +165,24 @@ public sealed class Client
             catch (SocketException ex)
             {
                 // This prevents WSAEINTR from logging, this is correct
-                if (ex.ErrorCode != 10004)
+                if (ex.ErrorCode != 10004 && ex.ErrorCode != 10054)
                 {
-                    SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}");
+                    SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}", SrLogTarget.Both);
                 }
+
+                if (ex.ErrorCode == 10054)
+                {
+                    if (!ShownConnectionError)
+                    {
+                        SrLogger.LogError("The server is not running!\n" +
+                                          "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
+                                          "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
+                        ShownConnectionError = true;
+                    }
+                }
+                
+                MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
+                Disconnect();
             }
             catch (Exception ex)
             {
@@ -176,47 +193,24 @@ public sealed class Client
         SrLogger.LogMessage("Client ReceiveLoop ended!", SrLogTarget.Both);
     }
 
-    public void SendChatMessage(string message)
-    {
-        if (!isConnected || string.IsNullOrEmpty(OwnPlayerId))
-        {
-            SrLogger.LogWarning("Cannot send chat message: Not connected to server!");
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            SrLogger.LogWarning("Cannot send empty chat message!");
-            return;
-        }
-
-        var chatPacket = new ChatMessagePacket
-        {
-            PlayerId = OwnPlayerId,
-            Message = message
-        };
-
-        SendPacket(chatPacket);
-    }
-
     internal static void StartHeartbeat()
     {
         // Removed this temporarily because there are no Handlers
         // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
-    // private void SendHeartbeat(object? state)
-    // {
-    //     if (!isConnected)
-    //         return;
+    private void SendHeartbeat(object? state)
+    {
+        if (!isConnected)
+            return;
 
-    //     var heartbeatPacket = new EmptyPacket
-    //     {
-    //         Type = PacketType.Heartbeat
-    //     };
+        var heartbeatPacket = new EmptyPacket
+        {
+            Type = PacketType.Heartbeat
+        };
 
-    //     SendPacket(heartbeatPacket);
-    // }
+        SendPacket(heartbeatPacket);
+    }
 
     internal void SendPacket<T>(T packet) where T : IPacket
     {
@@ -234,13 +228,13 @@ public sealed class Client
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
 
-            var split = PacketChunkManager.SplitPacket(data);
-            foreach (var chunk in split)
+            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
+            foreach (var chunk in chunks)
             {
                 udpClient.Send(chunk, chunk.Length);
             }
 
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {split.Length} chunk(s).",
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
                 SrLogTarget.Both);
         }
         catch (Exception ex)
@@ -256,6 +250,11 @@ public sealed class Client
 
         try
         {
+            MultiplayerUI.Instance.ClearChatMessages();
+            if (!ShownConnectionError)
+            {
+                MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
+            }
             try
             {
                 var leavePacket = new PlayerLeavePacket
@@ -290,22 +289,27 @@ public sealed class Client
                 udpClient.Close();
                 udpClient = null;
             }
-
-            // Give the receive thread a moment to exit normally
+            
             if (receiveThread is { IsAlive: true })
             {
-                for (int i = 0; i < 20 && receiveThread.IsAlive; i++)
-                {
-                    System.Threading.Thread.Sleep(100);
-                }
-
-                if (receiveThread.IsAlive)
-                {
-                    SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
-                }
+                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
             }
 
             receiveThread = null;
+            
+            var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
+            foreach (var playerId in allPlayerIds)
+            {
+                if (playerObjects.TryGetValue(playerId, out var playerObject))
+                {
+                    if (playerObject)
+                    {
+                        Object.Destroy(playerObject);
+                        SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                    }
+                    playerObjects.Remove(playerId);
+                }
+            }
 
             playerManager.Clear();
 
@@ -329,11 +333,6 @@ public sealed class Client
         }
 
         OnConnected?.Invoke(OwnPlayerId);
-    }
-
-    internal void NotifyChatMessageReceived(string playerId, string message, DateTime timestamp)
-    {
-        OnChatMessageReceived?.Invoke(playerId, message, timestamp);
     }
 
     public static RemotePlayer? GetRemotePlayer(string playerId)
