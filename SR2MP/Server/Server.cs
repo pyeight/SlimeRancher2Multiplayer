@@ -58,10 +58,9 @@ public sealed class Server
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();
-            int randomComponent = UnityEngine.Random.Range(0, 999999999);
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
-                $"SYSTEM_HOST_START_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{randomComponent}",
+                $"SYSTEM_HOST_START_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
                 MultiplayerUI.SystemMessageConnect
             );
         }
@@ -131,8 +130,7 @@ public sealed class Server
         SendToAll(closeChatMessage);
         
         MultiplayerUI.Instance.ClearChatMessages();
-        int randomComponent = UnityEngine.Random.Range(0, 999999999);
-        MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_{randomComponent}", MultiplayerUI.SystemMessageClose);
+        MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
 
         try
         {

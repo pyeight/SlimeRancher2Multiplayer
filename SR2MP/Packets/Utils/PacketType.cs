@@ -47,5 +47,7 @@ public enum PacketType : byte
     AccessDoor = 42,              // Both Ways                                                                          On Map Extension bought
     InitialAccessDoors = 43,      // Both Ways                                                                          Access Doors on Load
     ResourceAttach = 44,          // Both Ways                                                                          On Resource Attach
+    WeatherUpdate = 45,           // Server -> All Clients                                                              On Weather Update
+    InitialWeather = 46,          // Server -> Client                                                                   Weather on Load
     ReservedDoNotUse = 255,       
 }

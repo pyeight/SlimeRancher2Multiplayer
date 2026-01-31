@@ -24,6 +24,8 @@ public sealed class Client
     private Timer? connectionTimeoutTimer;
     private const int ConnectionTimeoutSeconds = 10;
 
+    private bool shownConnectionError = false;
+
     private readonly ClientPacketManager packetManager;
 
     public string OwnPlayerId { get; private set; } = string.Empty;
@@ -48,13 +50,13 @@ public sealed class Client
     {
         if (Main.Server.IsRunning())
         {
-            SrLogger.LogWarning("You are already hosting a server, to connect to someone else, restart your game.");
+            SrLogger.LogWarning("You can not join a world while hosting a server.", SrLogTarget.Both);
             return;
         }
         
         if (isConnected)
         {
-            SrLogger.LogMessage("You are already connected to a Server!", SrLogTarget.Both);
+            SrLogger.LogWarning("You are already connected to a Server!", SrLogTarget.Both);
             return;
         }
 
@@ -170,10 +172,17 @@ public sealed class Client
 
                 if (ex.ErrorCode == 10054)
                 {
-                    SrLogger.LogError("The server is not running!\n" +
-                                      "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                      "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
+                    if (!shownConnectionError)
+                    {
+                        SrLogger.LogError("The server is not running!\n" +
+                                          "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
+                                          "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
+                        shownConnectionError = true;
+                    }
                 }
+                
+                MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
+                Disconnect();
             }
             catch (Exception ex)
             {
@@ -242,8 +251,10 @@ public sealed class Client
         try
         {
             MultiplayerUI.Instance.ClearChatMessages();
-            int randomComponent = UnityEngine.Random.Range(0, 999999999);
-            MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{randomComponent}", MultiplayerUI.SystemMessageDisconnect);
+            if (!shownConnectionError)
+            {
+                MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
+            }
             try
             {
                 var leavePacket = new PlayerLeavePacket
