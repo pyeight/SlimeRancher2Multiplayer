@@ -141,15 +141,42 @@ public sealed class Server
         if (string.IsNullOrEmpty(client.PlayerId))
             return;
 
+        var playerId = client.PlayerId;
+        var leaveUsername = playerManager.GetPlayer(playerId)?.Username ?? "Unknown";
+
+        playerManager.RemovePlayer(playerId);
+
+        if (playerObjects.TryGetValue(playerId, out var playerObject))
+        {
+            if (playerObject != null)
+            {
+                Object.Destroy(playerObject);
+                SrLogger.LogMessage($"Destroyed player object for {playerId}", SrLogTarget.Both);
+            }
+            playerObjects.Remove(playerId);
+        }
+
         var leavePacket = new PlayerLeavePacket
         {
             Kind = PacketType.BroadcastPlayerLeave,
-            PlayerId = client.PlayerId
+            PlayerId = playerId
         };
 
         SendToAll(leavePacket);
 
-        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
+        var leaveChatPacket = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = $"{leaveUsername} left the world!",
+            MessageID = $"SYSTEM_LEAVE_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageDisconnect
+        };
+
+        SendToAll(leaveChatPacket);
+        int randomComponent = UnityEngine.Random.Range(0, 999999999);
+        MultiplayerUI.Instance.RegisterSystemMessage($"{leaveUsername} left the world!", $"SYSTEM_LEAVE_HOST_{playerId}_{randomComponent}", MultiplayerUI.SystemMessageDisconnect);
+
+        SrLogger.LogMessage($"Player left broadcast sent for: {playerId}", SrLogTarget.Both);
     }
 
     // private void CheckTimeouts(object? state)

@@ -10,13 +10,13 @@ public static class OnPlayerLoadPatch
 {
     public static void Postfix(SRCharacterController __instance)
     {
-        if (Main.Server.IsRunning())
+        if (Main.Server?.IsRunning() == true)
         {
             var networkPlayer = __instance.AddComponent<NetworkPlayer>();
             networkPlayer.ID = "HOST";
             networkPlayer.IsLocal = true;
         }
-        else if (Main.Client.IsConnected)
+        else if (Main.Client?.IsConnected == true)
         {
             var networkPlayer = __instance.AddComponent<NetworkPlayer>();
             networkPlayer.ID = Main.Client.OwnPlayerId;
@@ -24,6 +24,9 @@ public static class OnPlayerLoadPatch
         }
         else
         {
+            if (Main.Client == null || Main.Server == null)
+                return;
+
             Main.Client.OnConnected += id =>
             {
                 if (!__instance)

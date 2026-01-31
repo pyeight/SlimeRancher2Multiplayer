@@ -11,6 +11,9 @@ public static class OnTimeDirectorStarted
 
     public static void Postfix(SceneContext __instance)
     {
+        if (Main.Server == null)
+            return;
+
         // This is temporary until we have a proper GUI (we should not host in the menu)
         if (Main.Server.IsRunning())
         {

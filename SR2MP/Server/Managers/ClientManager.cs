@@ -53,10 +53,7 @@ public sealed class ClientManager
         return false;
     }
 
-    public List<ClientInfo> GetAllClients()
-    {
-        return clients.Values.ToList();
-    }
+    public ICollection<ClientInfo> GetAllClients() => clients.Values;
 
     public void Clear()
     {

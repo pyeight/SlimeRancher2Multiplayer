@@ -16,17 +16,20 @@ public static class SyncMovementSfx
         if (!cue || !cue.name.Contains("Player") || !IsMovementSound(cue.name))
             return;
 
+        if (!Main.IsMultiplayerActive)
+            return;
+
         var packet = new MovementSoundPacket
         {
             CueName = cue.name,
             Position = __instance.Position,
         };
 
-        if (Main.Server.IsRunning())
+        if (Main.Server?.IsRunning() == true)
         {
             Main.Server.SendToAll(packet);
         }
-        else if (Main.Client.IsConnected)
+        else if (Main.Client?.IsConnected == true)
         {
             Main.Client.SendPacket(packet);
         }

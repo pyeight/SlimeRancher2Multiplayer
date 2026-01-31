@@ -273,6 +273,6 @@ public sealed class Client
 
     public static List<RemotePlayer> GetAllRemotePlayers()
     {
-        return playerManager.GetAllPlayers();
+        return playerManager.GetAllPlayers().ToList();
     }
 }

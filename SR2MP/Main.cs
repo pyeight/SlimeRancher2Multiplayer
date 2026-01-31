@@ -22,12 +22,15 @@ public sealed class Main : SR2EExpansionV3
     }
     public static void SendToAllOrServer<T>(T packet) where T : PacketBase
     {
-        if (Client.IsConnected)
+        if (Client == null && Server == null)
+            return;
+
+        if (Client?.IsConnected == true)
         {
             Client.SendPacket(packet);
         }
 
-        if (Server.IsRunning())
+        if (Server?.IsRunning() == true)
         {
             Server.SendToAll(packet);
         }
@@ -49,6 +52,7 @@ public sealed class Main : SR2EExpansionV3
     // Made this because of a bug in the server handler of ActorSpawnPacket where TrySpawnNetworkActor
     // was given `packet.Type` instead of `packet.ActorType` causing it to always be RockPlort (persistent id 25)
     public static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
+    public static bool IsMultiplayerActive => (Client?.IsConnected ?? false) || (Server?.IsRunning() ?? false);
 
     public override void OnLateInitializeMelon()
     {
@@ -182,7 +186,8 @@ public sealed class Main : SR2EExpansionV3
 
     private static void InsertLicensesFile()
     {
-        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
+        using Stream manifestResourceStream = Assembly.GetCallingAssembly()
+            .GetManifestResourceStream("SR2MP.Bundled.THIRD-PARTY-NOTICES.txt")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));

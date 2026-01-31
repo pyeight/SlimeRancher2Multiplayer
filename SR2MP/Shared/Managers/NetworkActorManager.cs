@@ -36,7 +36,7 @@ public sealed class NetworkActorManager
             yield return new WaitForSceneGroupLoad(false);
             yield return new WaitForSceneGroupLoad(true);
             
-            if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+            if (!Main.IsMultiplayerActive)
                 continue;
 
             if (!SystemContext.Instance.SceneLoader.IsCurrentSceneGroupGameplay())

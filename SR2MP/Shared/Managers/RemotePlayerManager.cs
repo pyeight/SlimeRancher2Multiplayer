@@ -108,10 +108,7 @@ public sealed class RemotePlayerManager
         OnPlayerUpdated?.Invoke(playerId, player);
     }
 
-    public List<RemotePlayer> GetAllPlayers()
-    {
-        return players.Values.ToList();
-    }
+    public ICollection<RemotePlayer> GetAllPlayers() => players.Values;
 
     public void Clear()
     {
