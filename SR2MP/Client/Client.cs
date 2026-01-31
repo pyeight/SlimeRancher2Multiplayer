@@ -24,7 +24,7 @@ public sealed class Client
     private Timer? connectionTimeoutTimer;
     private const int ConnectionTimeoutSeconds = 10;
 
-    private bool ShownConnectionError = false;
+    private bool shownConnectionError = false;
 
     private readonly ClientPacketManager packetManager;
 
@@ -50,13 +50,13 @@ public sealed class Client
     {
         if (Main.Server.IsRunning())
         {
-            SrLogger.LogWarning("You are already hosting a server, to connect to someone else, restart your game.");
+            SrLogger.LogWarning("You can not join a world while hosting a server.", SrLogTarget.Both);
             return;
         }
         
         if (isConnected)
         {
-            SrLogger.LogMessage("You are already connected to a Server!", SrLogTarget.Both);
+            SrLogger.LogWarning("You are already connected to a Server!", SrLogTarget.Both);
             return;
         }
 
@@ -172,12 +172,12 @@ public sealed class Client
 
                 if (ex.ErrorCode == 10054)
                 {
-                    if (!ShownConnectionError)
+                    if (!shownConnectionError)
                     {
                         SrLogger.LogError("The server is not running!\n" +
                                           "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
                                           "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
-                        ShownConnectionError = true;
+                        shownConnectionError = true;
                     }
                 }
                 
@@ -251,7 +251,7 @@ public sealed class Client
         try
         {
             MultiplayerUI.Instance.ClearChatMessages();
-            if (!ShownConnectionError)
+            if (!shownConnectionError)
             {
                 MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
             }

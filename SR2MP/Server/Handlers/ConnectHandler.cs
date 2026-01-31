@@ -5,11 +5,13 @@ using Il2CppMonomiPark.SlimeRancher.Event;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
+using Il2CppMonomiPark.SlimeRancher.Weather;
+using MelonLoader;
 using SR2MP.Packets.Economy;
 using SR2MP.Packets.Loading;
+using SR2MP.Packets.World;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
-using UnityEngine.SceneManagement;
 
 namespace SR2MP.Server.Handlers;
 
@@ -43,15 +45,16 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
         Main.Server.SendToClient(ackPacket, clientEp);
 
+        SendGordosPacket(clientEp);
+        SendSwitchesPacket(clientEp);
         SendPlotsPacket(clientEp);
         SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
+        SendWeatherPacket(clientEp);
         SendUpgradesPacket(clientEp);
         SendPediaPacket(clientEp);
         SendMapPacket(clientEp);
         SendAccessDoorsPacket(clientEp);
         SendPricesPacket(clientEp);
-        SendGordosPacket(clientEp);
-        SendSwitchesPacket(clientEp);
 
         SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
             $"Player {packet.PlayerId} successfully connected from {clientEp}");
@@ -71,6 +74,24 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Upgrades = upgrades,
         };
         Main.Server.SendToClient(upgradesPacket, client);
+    }
+    
+    private static void SendWeatherPacket(IPEndPoint client)
+    {
+        var weatherRegistry = Resources.FindObjectsOfTypeAll<WeatherRegistry>().FirstOrDefault();
+        if (weatherRegistry == null || weatherRegistry._model == null)
+        {
+            SrLogger.LogError("WeatherRegistry or model not found!", SrLogTarget.Both);
+            return;
+        }
+
+        MelonCoroutines.Start(
+            WeatherPacket.CreateFromModel(
+                weatherRegistry._model,
+                PacketType.InitialWeather,
+                packet => Main.Server.SendToClient(packet, client)
+            )
+        );
     }
 
     private static void SendPediaPacket(IPEndPoint client)
@@ -96,7 +117,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         {
             maps = new CppCollections.Dictionary<string, EventRecordModel.Entry>();
             SceneContext.Instance.eventDirector._model.table[MapEventKey] = maps;
-        };
+        }
 
         var mapsList = new List<string>();
         
