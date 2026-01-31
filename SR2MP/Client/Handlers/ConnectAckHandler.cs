@@ -17,14 +17,12 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler<ConnectAckPacket
     {
         var joinPacket = new PlayerJoinPacket
         {
-            Type = PacketType.PlayerJoin,
             PlayerId = packet.PlayerId,
             PlayerName = Main.Username
         };
 
         SendPacket(joinPacket);
 
-        Client.StartHeartbeat();
         Client.NotifyConnected();
 
         SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})",

@@ -2,20 +2,21 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialMapPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class InitialMapPacket : PacketBase
 {
-    public PacketType Type => PacketType.InitialMap;
+    public override PacketType Type => PacketType.InitialMap;
 
     public List<string> UnlockedNodes { get; set; }
 
     // todo: Add navigation marker data later.
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteList(UnlockedNodes, PacketWriterDels.String);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         UnlockedNodes = reader.ReadList(PacketReaderDels.String);
     }

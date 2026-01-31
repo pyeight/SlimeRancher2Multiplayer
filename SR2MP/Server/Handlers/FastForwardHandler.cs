@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.World;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -6,20 +6,17 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Server.Handlers;
 
 [PacketHandler((byte)PacketType.FastForward)]
-public sealed class FastForwardHandler : BasePacketHandler<WorldTimePacket>
+public sealed class FastForwardHandler : BasePacketHandler<FastForwardPacket>
 {
-    public FastForwardHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public FastForwardHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(WorldTimePacket packet, IPEndPoint clientEp)
+    public override void Handle(FastForwardPacket packet, NetPeer clientPeer)
     {
         handlingPacket = true;
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(packet with
-        {
-            Type = PacketType.BroadcastFastForward
-        }, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

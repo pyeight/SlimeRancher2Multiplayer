@@ -2,7 +2,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialActorsPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class InitialActorsPacket : PacketBase
 {
     public struct Actor : INetObject
     {
@@ -12,7 +13,7 @@ public sealed class InitialActorsPacket : IPacket
         public int ActorType { get; set; }
         public int Scene { get; set; }
 
-        public readonly void Serialise(PacketWriter writer)
+        public void Serialise(PacketWriter writer)
         {
             writer.WriteVector3(Position);
             writer.WriteQuaternion(Rotation);
@@ -34,15 +35,15 @@ public sealed class InitialActorsPacket : IPacket
     public uint StartingActorID { get; set; } = 10000;
     public List<Actor> Actors { get; set; }
 
-    public PacketType Type => PacketType.InitialActors;
+    public override PacketType Type => PacketType.InitialActors;
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteUInt(StartingActorID);
         writer.WriteList(Actors, PacketWriterDels.NetObject<Actor>.Func);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         StartingActorID = reader.ReadUInt();
         Actors = reader.ReadList(PacketReaderDels.NetObject<Actor>.Func);

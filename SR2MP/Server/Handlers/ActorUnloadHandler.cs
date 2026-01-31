@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
@@ -8,10 +8,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.ActorUnload)]
 public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
 {
-    public ActorUnloadHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public ActorUnloadHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(ActorUnloadPacket packet, IPEndPoint clientEp)
+    public override void Handle(ActorUnloadPacket packet, NetPeer clientPeer)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return;
@@ -35,6 +35,6 @@ public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
             return;
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

@@ -1,24 +1,20 @@
+using LiteNetLib;
 using System.Net;
 
 namespace SR2MP.Server.Models;
 
 public sealed class ClientInfo
 {
-    public IPEndPoint EndPoint { get; set; }
-    private DateTime LastHeartbeat { get; set; }
+    public NetPeer Peer { get; }
     public string PlayerId { get; set; }
 
-    public ClientInfo(IPEndPoint endPoint, string playerId = "")
+    public ClientInfo(NetPeer peer, string playerId = "")
     {
-        EndPoint = endPoint;
-        LastHeartbeat = DateTime.UtcNow;
+        Peer = peer;
         PlayerId = playerId;
     }
 
-    public void UpdateHeartbeat() => LastHeartbeat = DateTime.UtcNow;
+    public IPEndPoint EndPoint => new IPEndPoint(Peer.Address, Peer.Port);
 
-    public bool IsTimedOut()
-        => (DateTime.UtcNow - LastHeartbeat).TotalSeconds > 30;
-
-    public string GetClientInfo() => $"{EndPoint.Address}:{EndPoint.Port}";
+    public string GetClientInfo() => $"{Peer.Address}:{Peer.Port}";
 }

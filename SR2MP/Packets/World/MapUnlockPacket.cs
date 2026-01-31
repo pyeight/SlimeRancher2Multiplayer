@@ -2,18 +2,19 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public sealed class MapUnlockPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class MapUnlockPacket : PacketBase
 {
-    public PacketType Type => PacketType.MapUnlock;
+    public override PacketType Type => PacketType.MapUnlock;
 
     public string NodeID { get; set; }
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteString(NodeID);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         NodeID = reader.ReadString();
     }

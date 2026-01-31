@@ -14,9 +14,8 @@ public static class OnFastForward
 
         if (Main.Server.IsRunning())
         {
-            var packet = new WorldTimePacket
+            var packet = new FastForwardPacket
             {
-                Type = PacketType.BroadcastFastForward,
                 Time = fastForwardUntil
             };
 
@@ -24,9 +23,8 @@ public static class OnFastForward
         }
         else if (Main.Client.IsConnected)
         {
-            var packet = new WorldTimePacket
+            var packet = new FastForwardPacket
             {
-                Type = PacketType.FastForward,
                 Time = fastForwardUntil
             };
 

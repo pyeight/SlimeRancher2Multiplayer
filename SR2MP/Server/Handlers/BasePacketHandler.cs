@@ -1,28 +1,18 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 // ReSharper disable InconsistentNaming
 
 namespace SR2MP.Server.Handlers;
 
-public abstract class BasePacketHandler<T> : IPacketHandler where T : IPacket, new()
+public abstract class BasePacketHandler<T> where T : PacketBase, new()
 {
-    protected readonly NetworkManager networkManager;
     protected readonly ClientManager clientManager;
 
-    protected BasePacketHandler(NetworkManager networkManager, ClientManager clientManager)
+    protected BasePacketHandler(ClientManager clientManager)
     {
-        this.networkManager = networkManager;
         this.clientManager = clientManager;
     }
 
-    public void Handle(byte[] data, IPEndPoint clientEp)
-    {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<T>();
-        
-        Handle(packet, clientEp);
-    }
-
-    public abstract void Handle(T packet, IPEndPoint clientEp);
+    public abstract void Handle(T packet, NetPeer clientPeer);
 }

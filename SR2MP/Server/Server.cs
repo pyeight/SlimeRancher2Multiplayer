@@ -1,16 +1,20 @@
-using System.Net;
+using LiteNetLib;
+using LiteNetLib.Utils;
 using SR2MP.Components.UI;
-using SR2MP.Packets;
+using SR2MP.Networking;
+using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
 using SR2MP.Server.Models;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
 public sealed class Server
 {
-    private readonly NetworkManager networkManager;
+    private NetManager? netManager;
+    private EventBasedNetListener? listener;
     private readonly ClientManager clientManager;
     private readonly PacketManager packetManager;
 
@@ -23,17 +27,15 @@ public sealed class Server
 
     public Server()
     {
-        networkManager = new NetworkManager();
         clientManager = new ClientManager();
-        packetManager = new PacketManager(networkManager, clientManager);
+        packetManager = new PacketManager(clientManager);
 
-        networkManager.OnDataReceived += OnDataReceived;
         clientManager.OnClientRemoved += OnClientRemoved;
     }
 
     public int GetClientCount() => clientManager.ClientCount;
 
-    public bool IsRunning() => networkManager.IsRunning;
+    public bool IsRunning() => netManager?.IsRunning ?? false;
 
     public void Start(int port, bool enableIPv6)
     {
@@ -42,8 +44,8 @@ public sealed class Server
             SrLogger.LogWarning("You are already connected to a server, restart your game to host your own server");
             return;
         }
-        
-        if (networkManager.IsRunning)
+
+        if (IsRunning())
         {
             SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
             return;
@@ -51,13 +53,71 @@ public sealed class Server
 
         try
         {
+            listener = new EventBasedNetListener();
+            netManager = new NetManager(listener)
+            {
+                IPv6Enabled = enableIPv6,
+                ChannelsCount = NetChannels.Count,
+                UnconnectedMessagesEnabled = true,
+                PingInterval = 1000,
+                DisconnectTimeout = 10000
+            };
+
             packetManager.RegisterHandlers();
+
+            listener.ConnectionRequestEvent += request =>
+            {
+                var acceptedPeer = request.AcceptIfKey(ProtocolConstants.ConnectionKey);
+                if (acceptedPeer == null)
+                {
+                    SrLogger.LogWarning($"Rejected connection with wrong protocol key from {request.RemoteEndPoint}", SrLogTarget.Both);
+                    request.Reject();
+                }
+            };
+
+            listener.PeerConnectedEvent += peer =>
+            {
+                SrLogger.LogMessage($"Peer connected: {peer.Address}:{peer.Port}", SrLogTarget.Both);
+            };
+
+            listener.PeerDisconnectedEvent += (peer, info) =>
+            {
+                SrLogger.LogWarning($"Peer disconnected: {peer.Address}:{peer.Port} ({info.Reason})", SrLogTarget.Both);
+                clientManager.RemoveClient(peer);
+            };
+
+            listener.NetworkReceiveEvent += (peer, reader, channel, deliveryMethod) =>
+            {
+                packetManager.Handle(reader, peer);
+            };
+
+            listener.NetworkReceiveUnconnectedEvent += (remoteEndPoint, reader, messageType) =>
+            {
+                if (!ServerInfoProtocol.TryReadRequest(reader))
+                    return;
+
+                var players = playerManager
+                    .GetAllPlayers()
+                    .Select(player => (player.PlayerId, player.Username ?? string.Empty))
+                    .ToList();
+
+                var writer = new NetDataWriter();
+                ServerInfoProtocol.WriteResponse(writer, players);
+                netManager?.SendUnconnectedMessage(writer, remoteEndPoint);
+            };
+
+            listener.NetworkErrorEvent += (endPoint, socketError) =>
+            {
+                SrLogger.LogError($"Network error {socketError} from {endPoint}", SrLogTarget.Both);
+            };
+
+            netManager.Start(port);
+            Port = port;
+
             Application.quitting += new Action(Close);
-            networkManager.Start(port, enableIPv6);
-            this.Port = port;
-            // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             OnServerStarted?.Invoke();
+
             int randomComponent = UnityEngine.Random.Range(0, 999999999);
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
@@ -71,35 +131,23 @@ public sealed class Server
         }
     }
 
-    private void OnDataReceived(byte[] data, IPEndPoint clientEp)
+    public void PollEvents()
     {
-        SrLogger.LogPacketSize($"Received {data.Length} bytes from Client!",
-            $"Received {data.Length} bytes from {clientEp}.");
-
-        try
-        {
-            packetManager.HandlePacket(data, clientEp);
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}", SrLogTarget.Both);
-        }
+        netManager?.PollEvents();
     }
 
     private void OnClientRemoved(ClientInfo client)
     {
+        if (string.IsNullOrEmpty(client.PlayerId))
+            return;
+
         var leavePacket = new PlayerLeavePacket
         {
-            Type = PacketType.BroadcastPlayerLeave,
+            Kind = PacketType.BroadcastPlayerLeave,
             PlayerId = client.PlayerId
         };
 
-        using var writer = new PacketWriter();
-        writer.WritePacket(leavePacket);
-        byte[] data = writer.ToArray();
-        
-        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints);
+        SendToAll(leavePacket);
 
         SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
     }
@@ -118,9 +166,9 @@ public sealed class Server
 
     public void Close()
     {
-        if (!networkManager.IsRunning)
+        if (!IsRunning())
             return;
-        
+
         var closeChatMessage = new ChatMessagePacket
         {
             Username = "SYSTEM",
@@ -129,7 +177,7 @@ public sealed class Server
             MessageType = MultiplayerUI.SystemMessageClose
         };
         SendToAll(closeChatMessage);
-        
+
         MultiplayerUI.Instance.ClearChatMessages();
         int randomComponent = UnityEngine.Random.Range(0, 999999999);
         MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_{randomComponent}", MultiplayerUI.SystemMessageClose);
@@ -140,21 +188,8 @@ public sealed class Server
             timeoutTimer = null;
 
             var closePacket = new ClosePacket();
+            SendToAll(closePacket);
 
-            using var writer = new PacketWriter();
-            writer.WritePacket(closePacket);
-            byte[] data = writer.ToArray();
-            
-            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-            try
-            {
-                networkManager.Broadcast(data, endpoints);
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
-            }
-            
             var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
             foreach (var playerId in allPlayerIds)
             {
@@ -171,7 +206,10 @@ public sealed class Server
 
             clientManager.Clear();
             playerManager.Clear();
-            networkManager.Stop();
+
+            netManager?.Stop();
+            netManager = null;
+            listener = null;
 
             SrLogger.LogMessage("Server closed", SrLogTarget.Both);
         }
@@ -181,46 +219,52 @@ public sealed class Server
         }
     }
 
-    public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
+    public void SendToClient<T>(T packet, NetPeer peer) where T : PacketBase
     {
-        using var writer = new PacketWriter();
-        writer.WritePacket(packet);
-        networkManager.Send(writer.ToArray(), endPoint);
+        if (netManager == null)
+            return;
+
+        var writer = new NetDataWriter();
+        packetManager.Processor.WriteNetSerializable(writer, ref packet);
+        var delivery = NetDeliveryRegistry.Get<T>();
+        peer.Send(writer, delivery.Channel, delivery.Method);
     }
 
-    public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
+    public void SendToClient<T>(T packet, ClientInfo client) where T : PacketBase
     {
-        SendToClient(packet, client.EndPoint);
+        SendToClient(packet, client.Peer);
     }
 
-    public void SendToAll<T>(T packet) where T : IPacket
+    public void SendToAll<T>(T packet) where T : PacketBase
     {
-        using var writer = new PacketWriter();
-        writer.WritePacket(packet);
-        byte[] data = writer.ToArray();
-        
-        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints);
-    }
+        if (netManager == null)
+            return;
 
-    public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
-    {
-        using var writer = new PacketWriter();
-        writer.WritePacket(packet);
-        byte[] data = writer.ToArray();
+        var writer = new NetDataWriter();
+        packetManager.Processor.WriteNetSerializable(writer, ref packet);
+        var delivery = NetDeliveryRegistry.Get<T>();
 
         foreach (var client in clientManager.GetAllClients())
         {
-            if (client.GetClientInfo() != excludedClientInfo)
-            {
-                networkManager.Send(data, client.EndPoint);
-            }
+            client.Peer.Send(writer, delivery.Channel, delivery.Method);
         }
     }
 
-    public void SendToAllExcept<T>(T packet, IPEndPoint excludeEndPoint) where T : IPacket
+    public void SendToAllExcept<T>(T packet, NetPeer excludePeer) where T : PacketBase
     {
-        string clientInfo = $"{excludeEndPoint.Address}:{excludeEndPoint.Port}";
-        SendToAllExcept(packet, clientInfo);
+        if (netManager == null)
+            return;
+
+        var writer = new NetDataWriter();
+        packetManager.Processor.WriteNetSerializable(writer, ref packet);
+        var delivery = NetDeliveryRegistry.Get<T>();
+
+        foreach (var client in clientManager.GetAllClients())
+        {
+            if (client.Peer.Id == excludePeer.Id)
+                continue;
+
+            client.Peer.Send(writer, delivery.Channel, delivery.Method);
+        }
     }
 }

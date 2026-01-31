@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.Pedia;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -8,10 +8,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.PediaUnlock)]
 public sealed class PediaUnlockHandler : BasePacketHandler<PediaUnlockPacket>
 {
-    public PediaUnlockHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public PediaUnlockHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(PediaUnlockPacket packet, IPEndPoint senderEndPoint)
+    public override void Handle(PediaUnlockPacket packet, NetPeer senderEndPoint)
     {
         handlingPacket = true;
         SceneContext.Instance.PediaDirector.Unlock(

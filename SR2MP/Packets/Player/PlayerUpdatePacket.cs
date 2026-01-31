@@ -2,7 +2,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerUpdatePacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.Sequenced, channel: SR2MP.Networking.NetChannels.EntityPositions)]
+public sealed class PlayerUpdatePacket : PacketBase
 {
     public string PlayerId { get; set; }
     public Vector3 Position { get; set; }
@@ -17,9 +18,9 @@ public sealed class PlayerUpdatePacket : IPacket
     public bool Sprinting { get; set; }
     public float LookY { get; set; }
 
-    public PacketType Type => PacketType.PlayerUpdate;
+    public override PacketType Type => PacketType.PlayerUpdate;
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteString(PlayerId);
 
@@ -41,7 +42,7 @@ public sealed class PlayerUpdatePacket : IPacket
         writer.EndPackingBools();
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         PlayerId = reader.ReadString();
 

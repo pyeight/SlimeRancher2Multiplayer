@@ -1,7 +1,7 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Components.Player;
 using SR2MP.Components.UI;
-using SR2MP.Packets;
+using SR2MP.Packets.Player;
 using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -11,14 +11,14 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.PlayerJoin)]
 public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 {
-    public PlayerJoinHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public PlayerJoinHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
+    public override void Handle(PlayerJoinPacket packet, NetPeer clientPeer)
     {
         string playerId = packet.PlayerId;
 
-        string address = $"{clientEp.Address}:{clientEp.Port}";
+        string address = $"{clientPeer.Address}:{clientPeer.Port}";
 
         SrLogger.LogMessage($"Player join request received (PlayerId: {playerId})",
             $"Player join request from {address} (PlayerId: {playerId})");
@@ -33,7 +33,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 
         var joinPacket = new PlayerJoinPacket
         {
-            Type = PacketType.BroadcastPlayerJoin,
+            Kind = PacketType.BroadcastPlayerJoin,
             PlayerId = playerId,
             PlayerName = packet.PlayerName
         };
@@ -47,7 +47,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
         };
         
         Main.Server.SendToAll(joinPacket);
-        Main.Server.SendToAllExcept(joinChatPacket, playerId);
+        Main.Server.SendToAll(joinChatPacket);
         int randomComponent = UnityEngine.Random.Range(0, 999999999);
         MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{playerId}_{randomComponent}", MultiplayerUI.SystemMessageConnect);
     }

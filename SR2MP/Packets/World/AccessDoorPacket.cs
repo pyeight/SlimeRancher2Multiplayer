@@ -3,21 +3,22 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public sealed class AccessDoorPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class AccessDoorPacket : PacketBase
 {
-    public PacketType Type => PacketType.AccessDoor;
+    public override PacketType Type => PacketType.AccessDoor;
 
     public string ID { get; set; }
     
     public AccessDoor.State State { get; set; }
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
         writer.WriteEnum(State);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         ID = reader.ReadString();
         State = reader.ReadEnum<AccessDoor.State>();

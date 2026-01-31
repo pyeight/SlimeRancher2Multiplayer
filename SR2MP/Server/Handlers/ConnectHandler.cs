@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Event;
@@ -16,15 +16,15 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.Connect)]
 public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 {
-    public ConnectHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public ConnectHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(ConnectPacket packet, IPEndPoint clientEp)
+    public override void Handle(ConnectPacket packet, NetPeer clientPeer)
     {
         SrLogger.LogMessage($"Connect request received with PlayerId: {packet.PlayerId}",
-            $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
+            $"Connect request from {clientPeer} with PlayerId: {packet.PlayerId}");
 
-        clientManager.AddClient(clientEp, packet.PlayerId);
+        clientManager.AddClient(clientPeer, packet.PlayerId);
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(GameContext.Instance.LookupDirector._currencyList[0]
             .Cast<ICurrency>());
@@ -41,23 +41,23 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             AllowCheats = Main.AllowCheats
         };
 
-        Main.Server.SendToClient(ackPacket, clientEp);
+        Main.Server.SendToClient(ackPacket, clientPeer);
 
-        SendPlotsPacket(clientEp);
-        SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
-        SendUpgradesPacket(clientEp);
-        SendPediaPacket(clientEp);
-        SendMapPacket(clientEp);
-        SendAccessDoorsPacket(clientEp);
-        SendPricesPacket(clientEp);
-        SendGordosPacket(clientEp);
-        SendSwitchesPacket(clientEp);
+        SendPlotsPacket(clientPeer);
+        SendActorsPacket(clientPeer, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
+        SendUpgradesPacket(clientPeer);
+        SendPediaPacket(clientPeer);
+        SendMapPacket(clientPeer);
+        SendAccessDoorsPacket(clientPeer);
+        SendPricesPacket(clientPeer);
+        SendGordosPacket(clientPeer);
+        SendSwitchesPacket(clientPeer);
 
         SrLogger.LogMessage($"Player {packet.PlayerId} successfully connected",
-            $"Player {packet.PlayerId} successfully connected from {clientEp}");
+            $"Player {packet.PlayerId} successfully connected from {clientPeer}");
     }
 
-    private static void SendUpgradesPacket(IPEndPoint client)
+    private static void SendUpgradesPacket(NetPeer clientPeer)
     {
         var upgrades = new Dictionary<byte, sbyte>();
 
@@ -70,10 +70,10 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         {
             Upgrades = upgrades,
         };
-        Main.Server.SendToClient(upgradesPacket, client);
+        Main.Server.SendToClient(upgradesPacket, clientPeer);
     }
 
-    private static void SendPediaPacket(IPEndPoint client)
+    private static void SendPediaPacket(NetPeer clientPeer)
     {
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
 
@@ -87,10 +87,10 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Entries = unlockedIDs
         };
 
-        Main.Server.SendToClient(pediasPacket, client);
+        Main.Server.SendToClient(pediasPacket, clientPeer);
     }
 
-    private static void SendMapPacket(IPEndPoint client)
+    private static void SendMapPacket(NetPeer clientPeer)
     {
         if (!SceneContext.Instance.eventDirector._model.table.TryGetValue(MapEventKey, out var maps))
         {
@@ -108,10 +108,10 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             UnlockedNodes = mapsList
         };
 
-        Main.Server.SendToClient(mapPacket, client);
+        Main.Server.SendToClient(mapPacket, clientPeer);
     }
 
-    private static void SendAccessDoorsPacket(IPEndPoint client)
+    private static void SendAccessDoorsPacket(NetPeer clientPeer)
     {
         var doorsList = new List<InitialAccessDoorsPacket.Door>();
 
@@ -129,10 +129,10 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Doors = doorsList
         };
 
-        Main.Server.SendToClient(accessDoorsPacket, client);
+        Main.Server.SendToClient(accessDoorsPacket, clientPeer);
     }
 
-    private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
+    private static void SendActorsPacket(NetPeer clientPeer, ushort playerIndex)
     {
         var actorsList = new List<InitialActorsPacket.Actor>();
 
@@ -158,10 +158,10 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Actors = actorsList
         };
 
-        Main.Server.SendToClient(actorsPacket, client);
+        Main.Server.SendToClient(actorsPacket, clientPeer);
     }
 
-    private static void SendSwitchesPacket(IPEndPoint client)
+    private static void SendSwitchesPacket(NetPeer clientPeer)
     {
         var switchesList = new List<InitialSwitchesPacket.Switch>();
 
@@ -179,10 +179,10 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Switches = switchesList
         };
 
-        Main.Server.SendToClient(switchesPacket, client);
+        Main.Server.SendToClient(switchesPacket, clientPeer);
     }
 
-    private static void SendGordosPacket(IPEndPoint client)
+    private static void SendGordosPacket(NetPeer clientPeer)
     {
         var gordosList = new List<InitialGordosPacket.Gordo>();
 
@@ -208,10 +208,10 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Gordos = gordosList
         };
 
-        Main.Server.SendToClient(gordosPacket, client);
+        Main.Server.SendToClient(gordosPacket, clientPeer);
     }
 
-    private static void SendPlotsPacket(IPEndPoint client)
+    private static void SendPlotsPacket(NetPeer clientPeer)
     {
         var plotsList = new List<InitialLandPlotsPacket.BasePlot>();
 
@@ -248,16 +248,16 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Plots = plotsList
         };
 
-        Main.Server.SendToClient(plotsPacket, client);
+        Main.Server.SendToClient(plotsPacket, clientPeer);
     }
 
-    private static void SendPricesPacket(IPEndPoint client)
+    private static void SendPricesPacket(NetPeer clientPeer)
     {
         var pricesPacket = new MarketPricePacket()
         {
             Prices = MarketPricesArray!
         };
 
-        Main.Server.SendToClient(pricesPacket, client);
+        Main.Server.SendToClient(pricesPacket, clientPeer);
     }
 }

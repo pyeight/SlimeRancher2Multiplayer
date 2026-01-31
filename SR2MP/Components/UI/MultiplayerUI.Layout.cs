@@ -78,4 +78,43 @@ public sealed partial class MultiplayerUI
 
         return result;
     }
+
+    private MainTab DrawMainTabRow(string leftLabel, string rightLabel, MainTab tab)
+    {
+        bool leftSelected = tab == MainTab.Join;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 0), leftSelected, leftLabel, GUI.skin.button))
+            tab = MainTab.Join;
+
+        bool rightSelected = tab == MainTab.Host;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 1), rightSelected, rightLabel, GUI.skin.button))
+            tab = MainTab.Host;
+
+        return tab;
+    }
+
+    private JoinTab DrawJoinTabRow(string leftLabel, string rightLabel, JoinTab tab)
+    {
+        bool leftSelected = tab == JoinTab.Code;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 0), leftSelected, leftLabel, GUI.skin.button))
+            tab = JoinTab.Code;
+
+        bool rightSelected = tab == JoinTab.Manual;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 1), rightSelected, rightLabel, GUI.skin.button))
+            tab = JoinTab.Manual;
+
+        return tab;
+    }
+
+    private HostTab DrawHostTabRow(string leftLabel, string rightLabel, HostTab tab)
+    {
+        bool leftSelected = tab == HostTab.Automatic;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 0), leftSelected, leftLabel, GUI.skin.button))
+            tab = HostTab.Automatic;
+
+        bool rightSelected = tab == HostTab.Manual;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 1), rightSelected, rightLabel, GUI.skin.button))
+            tab = HostTab.Manual;
+
+        return tab;
+    }
 }

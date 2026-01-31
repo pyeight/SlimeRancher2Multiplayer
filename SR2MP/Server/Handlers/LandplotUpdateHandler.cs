@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.Landplot;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -8,14 +8,14 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.LandPlotUpdate)]
 public sealed class LandPlotUpdateHandler : BasePacketHandler<LandPlotUpdatePacket>
 {
-    public LandPlotUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public LandPlotUpdateHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(LandPlotUpdatePacket packet, IPEndPoint clientEp)
+    public override void Handle(LandPlotUpdatePacket packet, NetPeer clientPeer)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
 
         if (!packet.IsUpgrade)
         {

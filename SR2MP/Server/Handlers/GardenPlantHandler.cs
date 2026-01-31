@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.Landplot;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
@@ -8,10 +8,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.GardenPlant)]
 public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
 {
-    public GardenPlantHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public GardenPlantHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(GardenPlantPacket packet, IPEndPoint clientEp)
+    public override void Handle(GardenPlantPacket packet, NetPeer clientPeer)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 
@@ -46,6 +46,6 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
                 handlingPacket = false;
             }
         }
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

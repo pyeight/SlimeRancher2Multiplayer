@@ -2,7 +2,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialSwitchesPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class InitialSwitchesPacket : PacketBase
 {
     public sealed class Switch : INetObject
     {
@@ -24,9 +25,9 @@ public sealed class InitialSwitchesPacket : IPacket
 
     public List<Switch> Switches { get; set; }
 
-    public PacketType Type => PacketType.InitialSwitches;
+    public override PacketType Type => PacketType.InitialSwitches;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Func);
+    public override void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Func);
 
-    public void Deserialise(PacketReader reader) => Switches = reader.ReadList(PacketReaderDels.NetObject<Switch>.Func);
+    public override void Deserialise(PacketReader reader) => Switches = reader.ReadList(PacketReaderDels.NetObject<Switch>.Func);
 }

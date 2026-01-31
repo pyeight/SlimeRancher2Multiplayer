@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Gordo;
 using SR2MP.Server.Managers;
@@ -9,10 +9,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.GordoBurst)]
 public sealed class GordoBurstHandler : BasePacketHandler<GordoBurstPacket>
 {
-    public GordoBurstHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public GordoBurstHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(GordoBurstPacket packet, IPEndPoint clientEp)
+    public override void Handle(GordoBurstPacket packet, NetPeer clientPeer)
     {
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {
@@ -37,6 +37,6 @@ public sealed class GordoBurstHandler : BasePacketHandler<GordoBurstPacket>
             SceneContext.Instance.GameModel.gordos.Add(packet.ID, gordo);
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

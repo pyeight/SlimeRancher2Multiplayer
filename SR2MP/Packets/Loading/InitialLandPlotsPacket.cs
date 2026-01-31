@@ -2,7 +2,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialLandPlotsPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class InitialLandPlotsPacket : PacketBase
 {
     public sealed class BasePlot : INetObject
     {
@@ -46,7 +47,7 @@ public sealed class InitialLandPlotsPacket : IPacket
     {
         public int Crop { get; set; }
 
-        public readonly void Serialise(PacketWriter writer)
+        public void Serialise(PacketWriter writer)
         {
             writer.WriteInt(Crop);
         }
@@ -59,15 +60,15 @@ public sealed class InitialLandPlotsPacket : IPacket
     public struct SiloData : INetObject
     {
         // todo
-        public readonly void Serialise(PacketWriter writer) { }
+        public void Serialise(PacketWriter writer) { }
         public void Deserialise(PacketReader reader) { }
     }
 
     public List<BasePlot> Plots { get; set; }
 
-    public PacketType Type => PacketType.InitialPlots;
+    public override PacketType Type => PacketType.InitialPlots;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(Plots, PacketWriterDels.NetObject<BasePlot>.Func);
+    public override void Serialise(PacketWriter writer) => writer.WriteList(Plots, PacketWriterDels.NetObject<BasePlot>.Func);
 
-    public void Deserialise(PacketReader reader) => Plots = reader.ReadList(PacketReaderDels.NetObject<BasePlot>.Func);
+    public override void Deserialise(PacketReader reader) => Plots = reader.ReadList(PacketReaderDels.NetObject<BasePlot>.Func);
 }

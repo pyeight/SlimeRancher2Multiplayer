@@ -5,11 +5,13 @@ using Il2CppTMPro;
 using MelonLoader;
 using SR2E;
 using SR2E.Expansion;
+using SR2MP.Bootstrap;
 using UnityEngine.UI;
 
 // Don't modify beyond this point - Finn
 // I can and I will - Az
 // How dare you - Finn
+// Yeah sorry I also gotta - salt
 
 // Don't modify beyond this point
 // This was made for SR2EExpansionV3
@@ -17,6 +19,12 @@ using UnityEngine.UI;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 internal class MLEntrypoint : MelonMod
 {
+    static MLEntrypoint()
+    {
+        // We have to resolve the DLLs NOW otherwise everything will break
+        AssemblyResolver.Install();
+    }
+
     private SR2EExpansionV3 expansion;
     bool isCorrectSR2EInstalled = false;
     private string installedSR2Ver = "";

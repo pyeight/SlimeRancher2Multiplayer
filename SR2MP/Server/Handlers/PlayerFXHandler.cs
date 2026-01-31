@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.FX;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -9,10 +9,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.PlayerFX)]
 public sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 {
-    public PlayerFXHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public PlayerFXHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(PlayerFXPacket packet, IPEndPoint clientEp)
+    public override void Handle(PlayerFXPacket packet, NetPeer clientPeer)
     {
         if (!IsPlayerSoundDictionary[packet.FX])
         {
@@ -41,6 +41,6 @@ public sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
             }
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

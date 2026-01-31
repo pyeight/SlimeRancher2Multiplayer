@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.UI.Map;
 using SR2MP.Packets.FX;
@@ -12,10 +12,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.MapUnlock)]
 public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
 {
-    public MapUnlockHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public MapUnlockHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(MapUnlockPacket packet, IPEndPoint clientEp)
+    public override void Handle(MapUnlockPacket packet, NetPeer clientPeer)
     {
         var gameEvent = Resources.FindObjectsOfTypeAll<StaticGameEvent>().FirstOrDefault(x => x._dataKey == packet.NodeID);
         SceneContext.Instance.MapDirector.NotifyZoneUnlocked(gameEvent, false, 0);
@@ -43,6 +43,6 @@ public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
             updatedGameTime = 0,
         };
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

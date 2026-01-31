@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Packets.Economy;
 using SR2MP.Server.Managers;
@@ -9,10 +9,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.CurrencyAdjust)]
 public sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
 {
-    public CurrencyHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public CurrencyHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(CurrencyPacket packet, IPEndPoint clientEp)
+    public override void Handle(CurrencyPacket packet, NetPeer clientPeer)
     {
         var currency = GameContext.Instance.LookupDirector._currencyList._currencies[packet.CurrencyType - 1];
 
@@ -27,6 +27,6 @@ public sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
             SceneContext.Instance.PlayerState.AddCurrency(currencyDefinition, difference, packet.ShowUINotification);
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

@@ -1,5 +1,5 @@
 using SR2E.Utils;
-using SR2MP.Packets;
+using SR2MP.Packets.Player;
 
 namespace SR2MP.Components.UI;
 

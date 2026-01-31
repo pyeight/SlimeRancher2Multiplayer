@@ -1,6 +1,6 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Components.UI;
-using SR2MP.Packets;
+using SR2MP.Packets.Player;
 using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -10,21 +10,21 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.PlayerLeave)]
 public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 {
-    public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public PlayerLeaveHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(PlayerLeavePacket packet, IPEndPoint clientEp)
+    public override void Handle(PlayerLeavePacket packet, NetPeer clientPeer)
     {
         string playerId = packet.PlayerId;
 
-        string clientInfo = $"{clientEp.Address}:{clientEp.Port}";
+        string clientInfo = $"{clientPeer.Address}:{clientPeer.Port}";
 
         SrLogger.LogMessage($"Player leave request received (PlayerId: {playerId})",
             $"Player leave request from {clientInfo} (PlayerId: {playerId})");
 
         var leaveUsername = playerManager.GetPlayer(playerId)?.Username ?? "Unknown";
         
-        if (clientManager.RemoveClient(clientInfo))
+        if (clientManager.RemoveClient(clientPeer))
         {
             playerManager.RemovePlayer(playerId);
             
@@ -40,7 +40,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
             
             var leavePacket = new PlayerLeavePacket
             {
-                Type = PacketType.BroadcastPlayerLeave,
+                Kind = PacketType.BroadcastPlayerLeave,
                 PlayerId = playerId
             };
 

@@ -3,7 +3,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialAccessDoorsPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class InitialAccessDoorsPacket : PacketBase
 {
     public sealed class Door : INetObject
     {
@@ -25,9 +26,9 @@ public sealed class InitialAccessDoorsPacket : IPacket
 
     public List<Door> Doors { get; set; }
 
-    public PacketType Type => PacketType.InitialAccessDoors;
+    public override PacketType Type => PacketType.InitialAccessDoors;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(Doors, PacketWriterDels.NetObject<Door>.Func);
+    public override void Serialise(PacketWriter writer) => writer.WriteList(Doors, PacketWriterDels.NetObject<Door>.Func);
 
-    public void Deserialise(PacketReader reader) => Doors = reader.ReadList(PacketReaderDels.NetObject<Door>.Func);
+    public override void Deserialise(PacketReader reader) => Doors = reader.ReadList(PacketReaderDels.NetObject<Door>.Func);
 }

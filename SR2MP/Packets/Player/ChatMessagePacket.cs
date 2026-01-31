@@ -1,16 +1,17 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets;
+namespace SR2MP.Packets.Player;
 
-public sealed class ChatMessagePacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.Control)]
+public sealed class ChatMessagePacket : PacketBase
 {
     public string Username { get; set; }
     public string Message { get; set; }
     public string MessageID { get; set; }
-    public PacketType Type => PacketType.ChatMessage;
+    public override PacketType Type => PacketType.ChatMessage;
     public byte MessageType { get; set; } = 0;
     
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteString(Username);
         writer.WriteString(Message);
@@ -18,7 +19,7 @@ public sealed class ChatMessagePacket : IPacket
         writer.WriteByte(MessageType);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         Username = reader.ReadString();
         Message = reader.ReadString();

@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
@@ -9,10 +9,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.ActorTransfer)]
 public sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket>
 {
-    public ActorTransferHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public ActorTransferHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(ActorTransferPacket packet, IPEndPoint clientEp)
+    public override void Handle(ActorTransferPacket packet, NetPeer clientPeer)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return;
@@ -33,6 +33,6 @@ public sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket
 
         component.LocallyOwned = false;
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

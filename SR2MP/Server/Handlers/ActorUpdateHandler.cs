@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using SR2MP.Packets.Actor;
@@ -10,10 +10,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.ActorUpdate)]
 public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 {
-    public ActorUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public ActorUpdateHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(ActorUpdatePacket packet, IPEndPoint clientEp)
+    public override void Handle(ActorUpdatePacket packet, NetPeer clientPeer)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
         {
@@ -43,6 +43,6 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
             }
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

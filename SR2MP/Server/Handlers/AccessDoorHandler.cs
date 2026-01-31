@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿using LiteNetLib;
 using Il2CppMonomiPark.World;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -9,10 +9,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.AccessDoor)]
 public sealed class AccessDoorHandler : BasePacketHandler<AccessDoorPacket>
 {
-    public AccessDoorHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public AccessDoorHandler(ClientManager clientManager)
+        : base(clientManager) { }
     
-    public override void Handle(AccessDoorPacket packet, IPEndPoint senderEndPoint)
+    public override void Handle(AccessDoorPacket packet, NetPeer senderEndPoint)
     {
         var model = SceneContext.Instance.GameModel.doors[packet.ID];
         

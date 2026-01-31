@@ -2,7 +2,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.FX;
 
-public struct WorldFXPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.Unreliable, channel: SR2MP.Networking.NetChannels.Fx)]
+public sealed class WorldFXPacket : PacketBase
 {
     public enum WorldFXType : byte
     {
@@ -21,15 +22,15 @@ public struct WorldFXPacket : IPacket
 
     public WorldFXType FX { get; set; }
 
-    public readonly PacketType Type => PacketType.WorldFX;
+    public override PacketType Type => PacketType.WorldFX;
 
-    public readonly void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteEnum(FX);
         writer.WriteVector3(Position);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         FX = reader.ReadEnum<WorldFXType>();
         Position = reader.ReadVector3();

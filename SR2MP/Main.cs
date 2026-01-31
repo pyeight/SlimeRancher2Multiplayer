@@ -7,6 +7,7 @@ using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
 using SR2MP.Components.UI;
+using SR2MP.Networking;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
@@ -17,9 +18,9 @@ public sealed class Main : SR2EExpansionV3
 {
     public override void OnInitializeMelon()
     {
-        Main.LoadRPCAssembly();
+        Main.LoadBundledAssemblies();
     }
-    public static void SendToAllOrServer<T>(T packet) where T : IPacket
+    public static void SendToAllOrServer<T>(T packet) where T : PacketBase
     {
         if (Client.IsConnected)
         {
@@ -83,6 +84,9 @@ public sealed class Main : SR2EExpansionV3
 
                 var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
                 Object.DontDestroyOnLoad(forceTimeScale.gameObject);
+
+                var poller = new GameObject("SR2MP_NetworkPoller").AddComponent<NetworkPoller>();
+                Object.DontDestroyOnLoad(poller.gameObject);
 
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);
@@ -155,12 +159,25 @@ public sealed class Main : SR2EExpansionV3
         MelonPreferences.Save();
     }
 
-    private static void LoadRPCAssembly()
+    private static void LoadBundledAssemblies()
     {
-        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
-        byte[] array = new byte[manifestResourceStream.Length];
-        _ = manifestResourceStream.Read(array, 0, array.Length);
-        Assembly.Load(array);
+        LoadBundledAssemblyResource("SR2MP.DiscordRPC.dll");
+        LoadBundledAssemblyResource("SR2MP.LiteNetLib.dll");
+        LoadBundledAssemblyResource("SR2MP.SharpOpenNat.dll");
+    }
+
+    private static void LoadBundledAssemblyResource(string resourceName)
+    {
+        using Stream? manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream(resourceName);
+        if (manifestResourceStream == null)
+        {
+            SrLogger.LogWarning($"Missing embedded dependency: {resourceName}", SrLogTarget.Both);
+            return;
+        }
+
+        byte[] bytes = new byte[manifestResourceStream.Length];
+        _ = manifestResourceStream.Read(bytes, 0, bytes.Length);
+        Assembly.Load(bytes);
     }
 
     private static void InsertLicensesFile()

@@ -2,7 +2,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialGordosPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class InitialGordosPacket : PacketBase
 {
     public sealed class Gordo : INetObject
     {
@@ -37,9 +38,9 @@ public sealed class InitialGordosPacket : IPacket
 
     public List<Gordo> Gordos { get; set; }
 
-    public PacketType Type => PacketType.InitialGordos;
+    public override PacketType Type => PacketType.InitialGordos;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(Gordos, PacketWriterDels.NetObject<Gordo>.Func);
+    public override void Serialise(PacketWriter writer) => writer.WriteList(Gordos, PacketWriterDels.NetObject<Gordo>.Func);
 
-    public void Deserialise(PacketReader reader) => Gordos = reader.ReadList(PacketReaderDels.NetObject<Gordo>.Func);
+    public override void Deserialise(PacketReader reader) => Gordos = reader.ReadList(PacketReaderDels.NetObject<Gordo>.Func);
 }

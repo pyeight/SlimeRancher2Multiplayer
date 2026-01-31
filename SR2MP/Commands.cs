@@ -2,7 +2,7 @@ using System.Net;
 using SR2E;
 using SR2E.Utils;
 using SR2MP.Components.UI;
-using SR2MP.Packets;
+using SR2MP.Packets.Player;
 
 namespace SR2MP;
 

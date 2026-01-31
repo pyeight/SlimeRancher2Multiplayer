@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿using LiteNetLib;
 using SR2MP.Packets.Actor;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -8,10 +8,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.ResourceAttach)]
 public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAttachPacket>
 {
-    public GardenResourceAttachHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public GardenResourceAttachHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(ResourceAttachPacket packet, IPEndPoint clientEp)
+    public override void Handle(ResourceAttachPacket packet, NetPeer clientPeer)
     {
         if (packet.PlotID.Length < 1)
         {
@@ -22,7 +22,7 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                     spawnerModel = packet.Model;
                     SceneContext.Instance.GameModel.resourceSpawners.Add(packet.SpawnerID, spawnerModel);
 
-                    Main.Server.SendToAllExcept(packet, clientEp);
+                    Main.Server.SendToAllExcept(packet, clientPeer);
                     
                     return;
                 }
@@ -57,7 +57,7 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
             {
                 if (!SceneContext.Instance.GameModel.landPlots.TryGetValue(packet.PlotID, out var plotModel))
                 {
-                    Main.Server.SendToAllExcept(packet, clientEp);
+                    Main.Server.SendToAllExcept(packet, clientPeer);
                     return;
                 }
 
@@ -87,6 +87,6 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
             }
         }
         
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

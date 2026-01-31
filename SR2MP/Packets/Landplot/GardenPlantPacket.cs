@@ -2,20 +2,21 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Landplot;
 
-public sealed class GardenPlantPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class GardenPlantPacket : PacketBase
 {
-    public PacketType Type => PacketType.GardenPlant;
+    public override PacketType Type => PacketType.GardenPlant;
     
     public string ID { get; set; }
     public int ActorType { get; set; }
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
         writer.WriteInt(ActorType);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         ID = reader.ReadString();
         ActorType = reader.ReadInt();

@@ -13,8 +13,6 @@ public enum PacketType : byte
     PlayerUpdate = 8,             // Client -> Server                                                                   Update Player
     ChatMessage = 9,              // Client -> Server                                                                   Chat message
     BroadcastChatMessage = 10,    // Server -> All Clients                                                              Chat message on other Clients
-    Heartbeat = 11,               // Client -> Server                                                                   Check if Clients are alive
-    HeartbeatAck = 12,            // Server -> Client                                                                   Automatically time the Clients out if the Server crashes
     WorldTime = 13,               // Server -> All Clients                                                              Updates Time
     FastForward = 14,             // Client -> Server                                                                   On Sleep & Death
     BroadcastFastForward = 15,    // Server -> All Clients                                                              On Sleep & Death on other clients

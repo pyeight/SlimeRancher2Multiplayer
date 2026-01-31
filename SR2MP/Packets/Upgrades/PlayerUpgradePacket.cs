@@ -2,13 +2,14 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Upgrades;
 
-public struct PlayerUpgradePacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class PlayerUpgradePacket : PacketBase
 {
     public byte UpgradeID { get; set; }
 
-    public readonly PacketType Type => PacketType.PlayerUpgrade;
+    public override PacketType Type => PacketType.PlayerUpgrade;
 
-    public readonly void Serialise(PacketWriter writer) => writer.WriteByte(UpgradeID);
+    public override void Serialise(PacketWriter writer) => writer.WriteByte(UpgradeID);
 
-    public void Deserialise(PacketReader reader) => UpgradeID = reader.ReadByte();
+    public override void Deserialise(PacketReader reader) => UpgradeID = reader.ReadByte();
 }

@@ -3,7 +3,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Actor;
 
-public sealed class ResourceAttachPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class ResourceAttachPacket : PacketBase
 {
     public ActorId ActorId { get; set; }
     public string PlotID { get; set; }
@@ -12,9 +13,9 @@ public sealed class ResourceAttachPacket : IPacket
 
     public SpawnResourceModel Model { get; set; }
     
-    public PacketType Type => PacketType.ResourceAttach;
+    public override PacketType Type => PacketType.ResourceAttach;
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteLong(ActorId.Value);
         writer.WriteString(PlotID);
@@ -27,7 +28,7 @@ public sealed class ResourceAttachPacket : IPacket
         writer.WriteBool(Model.wasPreviouslyPlanted);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         ActorId = new ActorId(reader.ReadLong());
         PlotID = reader.ReadString();

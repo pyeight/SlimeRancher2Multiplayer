@@ -4,7 +4,8 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Actor;
 
-public struct ActorUpdatePacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.Sequenced, channel: SR2MP.Networking.NetChannels.EntityPositions)]
+public sealed class ActorUpdatePacket : PacketBase
 {
     public ActorId ActorId { get; set; }
     public float4 Emotions { get; set; }
@@ -12,9 +13,9 @@ public struct ActorUpdatePacket : IPacket
     public Vector3 Position { get; set; }
     public Vector3 Velocity { get; set; }
 
-    public readonly PacketType Type => PacketType.ActorUpdate;
+    public override PacketType Type => PacketType.ActorUpdate;
 
-    public readonly void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteLong(ActorId.Value);
         writer.WriteVector3(Position);
@@ -23,7 +24,7 @@ public struct ActorUpdatePacket : IPacket
         writer.WriteFloat4(Emotions);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         ActorId = new ActorId(reader.ReadLong());
         Position = reader.ReadVector3();

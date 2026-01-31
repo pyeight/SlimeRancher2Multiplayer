@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Components.Actor;
@@ -13,10 +13,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.SwitchActivate)]
 public sealed class WorldSwitchHandler : BasePacketHandler<WorldSwitchPacket>
 {
-    public WorldSwitchHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public WorldSwitchHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(WorldSwitchPacket packet, IPEndPoint clientEp)
+    public override void Handle(WorldSwitchPacket packet, NetPeer clientPeer)
     {
         var gameModel = SceneContext.Instance.GameModel;
 
@@ -50,6 +50,6 @@ public sealed class WorldSwitchHandler : BasePacketHandler<WorldSwitchPacket>
             gameModel.switches.Add(packet.ID, switchModel);
         }
         
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

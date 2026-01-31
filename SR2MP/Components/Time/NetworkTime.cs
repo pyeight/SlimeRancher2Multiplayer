@@ -28,7 +28,6 @@ public sealed class NetworkTime : MonoBehaviour
 
         var packet = new WorldTimePacket
         {
-            Type = PacketType.WorldTime,
             Time = timeDirector._worldModel.worldTime
         };
 

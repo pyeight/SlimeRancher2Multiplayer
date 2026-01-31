@@ -1,9 +1,10 @@
+using LiteNetLib;
+using LiteNetLib.Utils;
 using System.Net;
-using System.Net.Sockets;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
 using SR2MP.Components.UI;
-using SR2MP.Packets;
+using SR2MP.Networking;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
@@ -14,10 +15,9 @@ namespace SR2MP.Client;
 
 public sealed class Client
 {
-    private UdpClient? udpClient;
-    private IPEndPoint? serverEndPoint;
-    private Thread? receiveThread;
-    private Timer? heartbeatTimer;
+    private EventBasedNetListener? listener;
+    private NetManager? netManager;
+    private NetPeer? serverPeer;
 
     private volatile bool isConnected;
     private volatile bool connectionAcknowledged;
@@ -25,6 +25,7 @@ public sealed class Client
     private const int ConnectionTimeoutSeconds = 10;
 
     private readonly ClientPacketManager packetManager;
+    private Action<List<(string PlayerId, string Username)>>? pendingServerInfoCallback;
 
     public string OwnPlayerId { get; private set; } = string.Empty;
     public bool IsConnected => isConnected;
@@ -51,7 +52,7 @@ public sealed class Client
             SrLogger.LogWarning("You are already hosting a server, to connect to someone else, restart your game.");
             return;
         }
-        
+
         if (isConnected)
         {
             SrLogger.LogMessage("You are already connected to a Server!", SrLogTarget.Both);
@@ -60,64 +61,76 @@ public sealed class Client
 
         try
         {
-            IPAddress parsedIp = IPAddress.Parse(serverIp);
-
-            if (parsedIp.AddressFamily == AddressFamily.InterNetworkV6)
+            listener = new EventBasedNetListener();
+            netManager = new NetManager(listener)
             {
-                if (!Socket.OSSupportsIPv6)
-                {
-                    SrLogger.LogError("IPv6 is not supported on this machine! Please enable IPv6 or use an IPv4 address.", SrLogTarget.Both);
-                    throw new NotSupportedException("IPv6 is not available on this system");
-                }
-                udpClient = new UdpClient(AddressFamily.InterNetworkV6);
-                SrLogger.LogMessage("Using IPv6 connection", SrLogTarget.Both);
-            }
-            else
-            {
-                udpClient = new UdpClient(AddressFamily.InterNetwork);
-                SrLogger.LogMessage("Using IPv4 connection", SrLogTarget.Both);
-            }
-
-            serverEndPoint = new IPEndPoint(parsedIp, port);
-            udpClient.Connect(serverEndPoint);
-            
-            udpClient.Client.ReceiveBufferSize = 512 * 1024;
-            udpClient.Client.SendBufferSize = 512 * 1024;
-
-            OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
+                ChannelsCount = NetChannels.Count,
+                UnconnectedMessagesEnabled = true,
+                IPv6Enabled = true,
+                PingInterval = 1000,
+                DisconnectTimeout = 10000
+            };
 
             packetManager.RegisterHandlers();
 
+            listener.PeerConnectedEvent += OnPeerConnected;
+            listener.PeerDisconnectedEvent += OnPeerDisconnected;
+            listener.NetworkReceiveEvent += (peer, reader, channel, method) => packetManager.Handle(reader);
+            listener.NetworkReceiveUnconnectedEvent += OnNetworkReceiveUnconnected;
+            listener.NetworkErrorEvent += (endPoint, socketError) => SrLogger.LogError($"Network error {socketError} from {endPoint}", SrLogTarget.Both);
+
+            netManager.Start();
+            serverPeer = netManager.Connect(serverIp, port, ProtocolConstants.ConnectionKey);
+
             isConnected = true;
             connectionAcknowledged = false;
-
-            receiveThread = new Thread(new Action(ReceiveLoop))
-            {
-                IsBackground = true
-            };
-            receiveThread.Start();
 
             connectionTimeoutTimer = new Timer(CheckConnectionTimeout, null,
                 TimeSpan.FromSeconds(ConnectionTimeoutSeconds), Timeout.InfiniteTimeSpan);
 
             Application.quitting += new Action(Disconnect);
 
-            var connectPacket = new ConnectPacket
-            {
-                PlayerId = OwnPlayerId,
-                Username = Main.Username
-            };
-
-            SendPacket(connectPacket);
-
             SrLogger.LogMessage("Connecting to the Server...",
-                $"Connecting to {serverIp}:{port} as {OwnPlayerId}...");
+                $"Connecting to {serverIp}:{port}...");
         }
         catch (Exception ex)
         {
             SrLogger.LogError($"Error connecting to the Server: {ex}", SrLogTarget.Both);
             isConnected = false;
             throw;
+        }
+    }
+
+    private void OnPeerConnected(NetPeer peer)
+    {
+        serverPeer = peer;
+        OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
+
+        var connectPacket = new ConnectPacket
+        {
+            PlayerId = OwnPlayerId,
+            Username = Main.Username
+        };
+
+        SendPacket(connectPacket);
+    }
+
+    private void OnPeerDisconnected(NetPeer peer, DisconnectInfo info)
+    {
+        SrLogger.LogWarning($"Disconnected from server: {info.Reason}", SrLogTarget.Both);
+        Disconnect();
+    }
+
+    private void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
+    {
+        if (pendingServerInfoCallback == null)
+            return;
+
+        if (ServerInfoProtocol.TryReadResponse(reader, out var players))
+        {
+            var callback = pendingServerInfoCallback;
+            pendingServerInfoCallback = null;
+            callback?.Invoke(players);
         }
     }
 
@@ -130,82 +143,9 @@ public sealed class Client
         }
     }
 
-    private void ReceiveLoop()
+    internal void SendPacket<T>(T packet) where T : PacketBase
     {
-        if (udpClient == null)
-        {
-            SrLogger.LogError("UDP client is null in ReceiveLoop!", SrLogTarget.Both);
-            return;
-        }
-
-        SrLogger.LogMessage("Client ReceiveLoop started!", SrLogTarget.Both);
-
-        IPEndPoint remoteEp = udpClient.Client.AddressFamily switch
-        {
-            AddressFamily.InterNetwork     => new IPEndPoint(IPAddress.Any, 0),
-            AddressFamily.InterNetworkV6   => new IPEndPoint(IPAddress.IPv6Any, 0),
-            _ => throw new NotSupportedException("Unsupported address family")
-        };
-
-        while (isConnected)
-        {
-            try
-            {
-                byte[] data = udpClient.Receive(ref remoteEp);
-
-                if (data.Length == 0)
-                    continue;
-
-                packetManager.HandlePacket(data);
-                SrLogger.LogPacketSize($"Received {data.Length} bytes",
-                    $"Received {data.Length} bytes from {remoteEp}");
-            }
-            catch (SocketException ex)
-            {
-                // This prevents WSAEINTR from logging, this is correct
-                if (ex.ErrorCode != 10004 && ex.ErrorCode != 10054)
-                {
-                    SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}", SrLogTarget.Both);
-                }
-
-                if (ex.ErrorCode == 10054)
-                {
-                    SrLogger.LogError("The server is not running!\n" +
-                                      "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                      "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
-                }
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogError($"ReceiveLoop error: {ex}");
-            }
-        }
-
-        SrLogger.LogMessage("Client ReceiveLoop ended!", SrLogTarget.Both);
-    }
-
-    internal static void StartHeartbeat()
-    {
-        // Removed this temporarily because there are no Handlers
-        // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
-    }
-
-    private void SendHeartbeat(object? state)
-    {
-        if (!isConnected)
-            return;
-
-        var heartbeatPacket = new EmptyPacket
-        {
-            Type = PacketType.Heartbeat
-        };
-
-        SendPacket(heartbeatPacket);
-    }
-
-    internal void SendPacket<T>(T packet) where T : IPacket
-    {
-        if (udpClient == null || serverEndPoint == null || !isConnected)
+        if (serverPeer == null || netManager == null || !isConnected)
         {
             SrLogger.LogWarning("Cannot send packet: Not connected to a Server!");
             return;
@@ -213,25 +153,20 @@ public sealed class Client
 
         try
         {
-            using var writer = new PacketWriter();
-            writer.WritePacket(packet);
-            byte[] data = writer.ToArray();
-
-            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
-
-            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
-            foreach (var chunk in chunks)
-            {
-                udpClient.Send(chunk, chunk.Length);
-            }
-
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
-                SrLogTarget.Both);
+            var writer = new NetDataWriter();
+            packetManager.Processor.WriteNetSerializable(writer, ref packet);
+            var delivery = NetDeliveryRegistry.Get<T>();
+            serverPeer.Send(writer, delivery.Channel, delivery.Method);
         }
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
         }
+    }
+
+    public void PollEvents()
+    {
+        netManager?.PollEvents();
     }
 
     public void Disconnect()
@@ -248,7 +183,7 @@ public sealed class Client
             {
                 var leavePacket = new PlayerLeavePacket
                 {
-                    Type = PacketType.PlayerLeave,
+                    Kind = PacketType.PlayerLeave,
                     PlayerId = OwnPlayerId
                 };
 
@@ -261,31 +196,17 @@ public sealed class Client
 
             isConnected = false;
 
-            if (heartbeatTimer != null)
-            {
-                heartbeatTimer.Dispose();
-                heartbeatTimer = null;
-            }
-
             if (connectionTimeoutTimer != null)
             {
                 connectionTimeoutTimer.Dispose();
                 connectionTimeoutTimer = null;
             }
 
-            if (udpClient != null)
-            {
-                udpClient.Close();
-                udpClient = null;
-            }
-            
-            if (receiveThread is { IsAlive: true })
-            {
-                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
-            }
+            netManager?.Stop();
+            netManager = null;
+            listener = null;
+            serverPeer = null;
 
-            receiveThread = null;
-            
             var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
             foreach (var playerId in allPlayerIds)
             {
@@ -327,6 +248,27 @@ public sealed class Client
     public static RemotePlayer? GetRemotePlayer(string playerId)
     {
         return playerManager.GetPlayer(playerId);
+    }
+
+    public void QueryServerInfo(string serverIp, int port, Action<List<(string PlayerId, string Username)>> onSuccess)
+    {
+        if (netManager == null)
+        {
+            listener = new EventBasedNetListener();
+            netManager = new NetManager(listener)
+            {
+                UnconnectedMessagesEnabled = true,
+                IPv6Enabled = true
+            };
+
+            listener.NetworkReceiveUnconnectedEvent += OnNetworkReceiveUnconnected;
+            netManager.Start();
+        }
+
+        pendingServerInfoCallback = onSuccess;
+        var writer = new NetDataWriter();
+        ServerInfoProtocol.WriteRequest(writer);
+        netManager.SendUnconnectedMessage(writer, serverIp, port);
     }
 
     public static List<RemotePlayer> GetAllRemotePlayers()

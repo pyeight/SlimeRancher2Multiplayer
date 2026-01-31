@@ -3,7 +3,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Actor;
 
-public struct ActorSpawnPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class ActorSpawnPacket : PacketBase
 {
     public ActorId ActorId { get; set; }
     public Quaternion Rotation { get; set; }
@@ -11,9 +12,9 @@ public struct ActorSpawnPacket : IPacket
     public int ActorType { get; set; }
     public byte SceneGroup { get; set; }
 
-    public readonly PacketType Type => PacketType.ActorSpawn;
+    public override PacketType Type => PacketType.ActorSpawn;
 
-    public readonly void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteLong(ActorId.Value);
         writer.WriteVector3(Position);
@@ -22,7 +23,7 @@ public struct ActorSpawnPacket : IPacket
         writer.WriteByte(SceneGroup);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         ActorId = new ActorId(reader.ReadLong());
         Position = reader.ReadVector3();

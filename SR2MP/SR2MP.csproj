@@ -34,13 +34,32 @@
       <EmbeddedResource Include="Resources\*" />
 
 
-      <EmbeddedResource Include="DiscordRPC.dll" />
-      <Reference Include="DiscordRPC.dll">
+      <EmbeddedResource Include="Bundled\\DiscordRPC.dll">
+          <LogicalName>SR2MP.DiscordRPC.dll</LogicalName>
+      </EmbeddedResource>
+      <Reference Include="DiscordRPC">
+          <HintPath>Bundled\\DiscordRPC.dll</HintPath>
           <Private>false</Private>
       </Reference>
 
-      <None Remove="THIRD-PARTY-NOTICES.txt" />
+      <EmbeddedResource Include="Bundled\\LiteNetLib.dll">
+          <LogicalName>SR2MP.LiteNetLib.dll</LogicalName>
+      </EmbeddedResource>
+      <Reference Include="LiteNetLib">
+          <HintPath>Bundled\\LiteNetLib.dll</HintPath>
+          <Private>false</Private>
+      </Reference>
 
-      <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" />
+      <EmbeddedResource Include="Bundled\\SharpOpenNat.dll">
+          <LogicalName>SR2MP.SharpOpenNat.dll</LogicalName>
+      </EmbeddedResource>
+      <Reference Include="SharpOpenNat">
+          <HintPath>Bundled\\SharpOpenNat.dll</HintPath>
+          <Private>false</Private>
+      </Reference>
+
+      <None Remove="Bundled\\THIRD-PARTY-NOTICES.txt" />
+
+      <EmbeddedResource Include="Bundled\\THIRD-PARTY-NOTICES.txt" />
     </ItemGroup>
 </Project>

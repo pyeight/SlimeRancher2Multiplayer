@@ -2,7 +2,8 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Gordo;
 
-public sealed class GordoFeedPacket : IPacket
+[SR2MP.Networking.NetDelivery(LiteNetLib.DeliveryMethod.ReliableOrdered, channel: SR2MP.Networking.NetChannels.WorldState)]
+public sealed class GordoFeedPacket : PacketBase
 {
     public string ID { get; set; }
     public int NewFoodCount { get; set; }
@@ -11,9 +12,9 @@ public sealed class GordoFeedPacket : IPacket
     public int RequiredFoodCount { get; set; }
     public int GordoType { get; set; }
 
-    public PacketType Type => PacketType.GordoFeed;
+    public override PacketType Type => PacketType.GordoFeed;
 
-    public void Serialise(PacketWriter writer)
+    public override void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
         writer.WriteInt(NewFoodCount);
@@ -21,7 +22,7 @@ public sealed class GordoFeedPacket : IPacket
         writer.WriteInt(GordoType);
     }
 
-    public void Deserialise(PacketReader reader)
+    public override void Deserialise(PacketReader reader)
     {
         ID = reader.ReadString();
         NewFoodCount = reader.ReadInt();

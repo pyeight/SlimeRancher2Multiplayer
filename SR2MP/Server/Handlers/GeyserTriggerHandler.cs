@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.Geyser;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
@@ -8,10 +8,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.GeyserTrigger)]
 public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket>
 {
-    public GeyserTriggerHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public GeyserTriggerHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(GeyserTriggerPacket packet, IPEndPoint clientEp)
+    public override void Handle(GeyserTriggerPacket packet, NetPeer clientPeer)
     {
         var obj = GameObject.Find(packet.ObjectPath);
 
@@ -20,6 +20,6 @@ public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket
             obj.GetComponent<Geyser>().TriggerGeyser();
         handlingPacket = false;
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

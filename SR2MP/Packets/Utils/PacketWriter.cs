@@ -1,60 +1,63 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
+using LiteNetLib.Utils;
 using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
 public sealed class PacketWriter : IDisposable
 {
-    private readonly MemoryStream _stream;
-    private readonly BinaryWriter _writer;
+    private readonly NetDataWriter _writer;
 
     private byte _currentPackingByte;
     private int _currentBitIndex;
 
     public PacketWriter()
     {
-        _stream = new MemoryStream();
-        _writer = new BinaryWriter(_stream, Encoding.UTF8);
+        _writer = new NetDataWriter();
+    }
+
+    public PacketWriter(NetDataWriter writer)
+    {
+        _writer = writer;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteBool(bool value) => _writer.Write(value);
+    public void WriteBool(bool value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteSByte(sbyte value) => _writer.Write(value);
+    public void WriteSByte(sbyte value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteByte(byte value) => _writer.Write(value);
+    public void WriteByte(byte value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteShort(short value) => _writer.Write(value);
+    public void WriteShort(short value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUShort(ushort value) => _writer.Write(value);
+    public void WriteUShort(ushort value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteInt(int value) => _writer.Write(value);
+    public void WriteInt(int value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUInt(uint value) => _writer.Write(value);
+    public void WriteUInt(uint value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteLong(long value) => _writer.Write(value);
+    public void WriteLong(long value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteULong(ulong value) => _writer.Write(value);
+    public void WriteULong(ulong value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteFloat(float value) => _writer.Write(value);
+    public void WriteFloat(float value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteDouble(double value) => _writer.Write(value);
+    public void WriteDouble(double value) => _writer.Put(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteString(string? value) => _writer.Write(value ?? string.Empty);
+    public void WriteString(string? value) => _writer.Put(value ?? string.Empty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
@@ -63,47 +66,47 @@ public sealed class PacketWriter : IDisposable
     public void WriteNetObject<T>(T value) where T : INetObject => value.Serialise(this);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WritePacket<T>(T value) where T : IPacket
+    public void WritePacket<T>(T value) where T : PacketBase
     {
-        _writer.Write((byte)value.Type);
+        _writer.Put((byte)value.Type);
         value.Serialise(this);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector3(Vector3 value)
     {
-        _writer.Write(value.x);
-        _writer.Write(value.y);
-        _writer.Write(value.z);
+        _writer.Put(value.x);
+        _writer.Put(value.y);
+        _writer.Put(value.z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteQuaternion(Quaternion value)
     {
-        _writer.Write(value.x);
-        _writer.Write(value.y);
-        _writer.Write(value.z);
-        _writer.Write(value.w);
+        _writer.Put(value.x);
+        _writer.Put(value.y);
+        _writer.Put(value.z);
+        _writer.Put(value.w);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat4(float4 value)
     {
-        _writer.Write(value.x);
-        _writer.Write(value.y);
-        _writer.Write(value.z);
-        _writer.Write(value.w);
+        _writer.Put(value.x);
+        _writer.Put(value.y);
+        _writer.Put(value.z);
+        _writer.Put(value.w);
     }
 
     public void WriteArray<T>(T[] array, Action<PacketWriter, T> writer)
     {
         if (array == null)
         {
-            _writer.Write(0);
+            _writer.Put(0);
             return;
         }
 
-        _writer.Write(array.Length);
+        _writer.Put(array.Length);
 
         foreach (var item in array)
             writer(this, item);
@@ -113,11 +116,11 @@ public sealed class PacketWriter : IDisposable
     {
         if (list == null)
         {
-            _writer.Write(0);
+            _writer.Put(0);
             return;
         }
 
-        _writer.Write(list.Count);
+        _writer.Put(list.Count);
 
         foreach (var item in list)
             writer(this, item);
@@ -127,11 +130,11 @@ public sealed class PacketWriter : IDisposable
     {
         if (set == null)
         {
-            _writer.Write(0);
+            _writer.Put(0);
             return;
         }
 
-        _writer.Write(set.Count);
+        _writer.Put(set.Count);
 
         foreach (var item in set)
             writer(this, item);
@@ -141,11 +144,11 @@ public sealed class PacketWriter : IDisposable
     {
         if (list == null)
         {
-            _writer.Write(0);
+            _writer.Put(0);
             return;
         }
 
-        _writer.Write(list.Count);
+        _writer.Put(list.Count);
 
         foreach (var item in list)
             writer(this, item);
@@ -155,11 +158,11 @@ public sealed class PacketWriter : IDisposable
     {
         if (set == null)
         {
-            _writer.Write(0);
+            _writer.Put(0);
             return;
         }
 
-        _writer.Write(set.Count);
+        _writer.Put(set.Count);
 
         foreach (var item in set)
             writer(this, item);
@@ -169,11 +172,11 @@ public sealed class PacketWriter : IDisposable
     {
         if (dict == null)
         {
-            _writer.Write(0);
+            _writer.Put(0);
             return;
         }
 
-        _writer.Write(dict.Count);
+        _writer.Put(dict.Count);
 
         foreach (var (key, value) in dict)
         {
@@ -198,7 +201,7 @@ public sealed class PacketWriter : IDisposable
 
         if (_currentBitIndex == 8)
         {
-            _writer.Write(_currentPackingByte);
+            _writer.Put(_currentPackingByte);
             ResetPackingBools();
         }
     }
@@ -206,18 +209,16 @@ public sealed class PacketWriter : IDisposable
     public void EndPackingBools()
     {
         if (_currentBitIndex > 0)
-            _writer.Write(_currentPackingByte);
+            _writer.Put(_currentPackingByte);
 
         ResetPackingBools();
     }
 
-    public byte[] ToArray() => _stream.ToArray();
+    public byte[] ToArray() => _writer.CopyData();
 
     public void Dispose()
     {
-        _writer.Dispose();
-        _stream.Dispose();
-        // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
+        // NetDataWriter doesn't need disposal.
         GC.SuppressFinalize(this);
     }
 }
@@ -232,7 +233,7 @@ public static class PacketWriterDels
     public static readonly Action<PacketWriter, string> String = (writer, value) => writer.WriteString(value);
     public static readonly Action<PacketWriter, float> Float = (writer, value) => writer.WriteFloat(value);
 
-    public static class Packet<T> where T : IPacket
+    public static class Packet<T> where T : PacketBase
     {
         public static readonly Action<PacketWriter, T> Func = (writer, value) => writer.WritePacket(value);
     }

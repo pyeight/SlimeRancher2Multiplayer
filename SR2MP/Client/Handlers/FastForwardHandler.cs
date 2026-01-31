@@ -5,12 +5,12 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.BroadcastFastForward)]
-public sealed class FastForwardHandler : BaseClientPacketHandler<WorldTimePacket>
+public sealed class FastForwardHandler : BaseClientPacketHandler<FastForwardPacket>
 {
     public FastForwardHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(WorldTimePacket packet)
+    public override void Handle(FastForwardPacket packet)
     {
         handlingPacket = true;
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);

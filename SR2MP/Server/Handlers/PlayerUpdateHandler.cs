@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
@@ -8,10 +8,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.PlayerUpdate)]
 public sealed class PlayerUpdateHandler : BasePacketHandler<PlayerUpdatePacket>
 {
-    public PlayerUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public PlayerUpdateHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(PlayerUpdatePacket packet, IPEndPoint clientEp)
+    public override void Handle(PlayerUpdatePacket packet, NetPeer clientPeer)
     {
         // todo: This is temporary :3
         if (packet.PlayerId == "HOST")
@@ -32,6 +32,6 @@ public sealed class PlayerUpdateHandler : BasePacketHandler<PlayerUpdatePacket>
             packet.LookY
         );
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

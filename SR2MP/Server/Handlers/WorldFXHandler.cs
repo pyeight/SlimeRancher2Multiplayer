@@ -1,4 +1,4 @@
-using System.Net;
+using LiteNetLib;
 using SR2MP.Packets.FX;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
@@ -9,10 +9,10 @@ namespace SR2MP.Server.Handlers;
 [PacketHandler((byte)PacketType.WorldFX)]
 public sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
 {
-    public WorldFXHandler(NetworkManager networkManager, ClientManager clientManager)
-        : base(networkManager, clientManager) { }
+    public WorldFXHandler(ClientManager clientManager)
+        : base(clientManager) { }
 
-    public override void Handle(WorldFXPacket packet, IPEndPoint clientEp)
+    public override void Handle(WorldFXPacket packet, NetPeer clientPeer)
     {
         if (!IsWorldSoundDictionary[packet.FX])
         {
@@ -30,6 +30,6 @@ public sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
             RemoteFXManager.PlayTransientAudio(cue, packet.Position, WorldSoundVolumeDictionary[packet.FX]);
         }
 
-        Main.Server.SendToAllExcept(packet, clientEp);
+        Main.Server.SendToAllExcept(packet, clientPeer);
     }
 }

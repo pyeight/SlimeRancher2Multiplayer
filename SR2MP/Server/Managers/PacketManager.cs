@@ -1,20 +1,19 @@
-using System.Net;
 using System.Reflection;
+using LiteNetLib;
+using LiteNetLib.Utils;
 using SR2MP.Packets.Utils;
-using SR2MP.Shared.Managers;
+using SR2MP.Server.Handlers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server.Managers;
 
 public sealed class PacketManager
 {
-    private readonly Dictionary<byte, IPacketHandler> handlers = new();
-    private readonly NetworkManager networkManager;
     private readonly ClientManager clientManager;
+    private readonly NetPacketProcessor processor = new();
 
-    public PacketManager(NetworkManager networkManager, ClientManager clientManager)
+    public PacketManager(ClientManager clientManager)
     {
-        this.networkManager = networkManager;
         this.clientManager = clientManager;
     }
 
@@ -22,22 +21,18 @@ public sealed class PacketManager
     {
         var assembly = Assembly.GetExecutingAssembly();
         var handlerTypes = assembly.GetTypes()
-            .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                            && typeof(IPacketHandler).IsAssignableFrom(type)
-                            && !type.IsAbstract);
+            .Where(type => !type.IsAbstract && IsSubclassOfRawGeneric(typeof(BasePacketHandler<>), type));
 
         foreach (var type in handlerTypes)
         {
-            var attribute = type.GetCustomAttribute<PacketHandlerAttribute>();
-            if (attribute == null) continue;
-
             try
             {
-                if (Activator.CreateInstance(type, networkManager, clientManager) is IPacketHandler handler)
-                {
-                    handlers[attribute.PacketType] = handler;
-                    SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
-                }
+                var handler = Activator.CreateInstance(type, clientManager);
+                if (handler == null)
+                    continue;
+
+                RegisterHandler(handler);
+                SrLogger.LogMessage($"Registered server handler: {type.Name}", SrLogTarget.Both);
             }
             catch (Exception ex)
             {
@@ -45,45 +40,53 @@ public sealed class PacketManager
             }
         }
 
-        SrLogger.LogMessage($"Total handlers registered: {handlers.Count}", SrLogTarget.Both);
+        SrLogger.LogMessage("Server packet handlers registered", SrLogTarget.Both);
     }
 
-    public void HandlePacket(byte[] data, IPEndPoint clientEp)
+    public void Handle(NetDataReader reader, NetPeer peer)
     {
-        if (data.Length < 7)
+        try
         {
-            SrLogger.LogWarning($"Received packet too small for chunk header: {data.Length} bytes", SrLogTarget.Both);
-            return;
+            processor.ReadAllPackets(reader, peer);
         }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Error handling packet from {peer.Address}:{peer.Port}: {ex}", SrLogTarget.Both);
+        }
+    }
 
-        byte packetType = data[0];
-        ushort chunkIndex = (ushort)(data[1] | (data[2] << 8));
-        ushort totalChunks = (ushort)(data[3] | (data[4] << 8));
-        ushort packetId = (ushort)(data[5] | (data[6] << 8));
-        
-        byte[] chunkData = new byte[data.Length - 7];
-        Buffer.BlockCopy(data, 7, chunkData, 0, data.Length - 7);
-        
-        string senderKey = clientEp.ToString();
-        
-        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, 
-            totalChunks, packetId, senderKey, out data))
+    public NetPacketProcessor Processor => processor;
+
+    private void RegisterHandler(object handler)
+    {
+        var handlerType = handler.GetType();
+        var baseType = handlerType.BaseType;
+        if (baseType == null || !baseType.IsGenericType)
             return;
 
-        if (handlers.TryGetValue(packetType, out var handler))
+        var packetType = baseType.GetGenericArguments()[0];
+        var registerMethod = typeof(PacketManager).GetMethod(nameof(RegisterHandlerGeneric), BindingFlags.Instance | BindingFlags.NonPublic);
+        if (registerMethod == null)
+            return;
+
+        var generic = registerMethod.MakeGenericMethod(packetType);
+        generic.Invoke(this, new[] { handler });
+    }
+
+    private void RegisterHandlerGeneric<T>(BasePacketHandler<T> handler) where T : PacketBase, new()
+    {
+        processor.SubscribeNetSerializable<T, NetPeer>((packet, peer) => handler.Handle(packet, peer), () => new T());
+    }
+
+    private static bool IsSubclassOfRawGeneric(Type generic, Type? toCheck)
+    {
+        while (toCheck != null && toCheck != typeof(object))
         {
-            try
-            {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEp));
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogError($"Error handling packet type {packetType}: {ex}", SrLogTarget.Both);
-            }
+            var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+            if (generic == cur)
+                return true;
+            toCheck = toCheck.BaseType;
         }
-        else
-        {
-            SrLogger.LogWarning($"No handler found for packet type: {packetType}");
-        }
+        return false;
     }
 }
