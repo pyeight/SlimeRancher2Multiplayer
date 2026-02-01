@@ -1,4 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.UI;
+using Il2CppMonomiPark.SlimeRancher.Weather;
+using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Shared.Managers;
 using PriceDictionary = Il2CppSystem.Collections.Generic.Dictionary<Il2Cpp.IdentifiableType, Il2CppMonomiPark.SlimeRancher.Economy.PlortEconomyDirector.CurrValueEntry>;
 
@@ -13,7 +15,7 @@ public static class GlobalVariables
         "setwarp", "spawn", "speed", "strike", "timescale", "upgrade", "warp", "warplist", "weather",
     };
 
-    public static bool CheatsEnabled = false;
+    public static bool cheatsEnabled = false;
 
     internal static GameObject playerPrefab;
 
@@ -27,11 +29,14 @@ public static class GlobalVariables
 
     public static Dictionary<string, GameObject> landPlotObjects = new();
 
+    public static Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone;
+
+    public static Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames;
+    
     // To prevent stuff from being stuck in
     // an infinite sending loop
     public static bool handlingPacket = false;
-
-    // I love this indenting
+    
     public static string LocalID =>
         Main.Server.IsRunning()
             ? "HOST"

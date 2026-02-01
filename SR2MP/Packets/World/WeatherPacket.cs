@@ -3,7 +3,6 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using SR2E.Utils;
 using SR2MP.Packets.Utils;
-using UnityEngine;
 
 namespace SR2MP.Packets.World
 {
@@ -11,17 +10,17 @@ namespace SR2MP.Packets.World
     {
         public PacketType Type { get; set; }
 
-        public NetworkWeatherModel Model;
+        public NetworkWeatherModel model;
 
         public void Serialise(PacketWriter writer)
         {
-            Model.Write(writer);
+            model.Write(writer);
         }
 
         public void Deserialise(PacketReader reader)
         {
-            Model = new NetworkWeatherModel();
-            Model.Read(reader);
+            model = new NetworkWeatherModel();
+            model.Read(reader);
         }
 
         public static IEnumerator CreateFromModel(
@@ -32,7 +31,7 @@ namespace SR2MP.Packets.World
             var packet = new WeatherPacket
             {
                 Type = type,
-                Model = new NetworkWeatherModel
+                model = new NetworkWeatherModel
                 {
                     Zones = new Dictionary<byte, WeatherZoneData>()
                 }
@@ -62,7 +61,7 @@ namespace SR2MP.Packets.World
                     });
                 }
 
-                packet.Model.Zones.Add(zoneId++, zoneData);
+                packet.model.Zones.Add(zoneId++, zoneData);
                 yield return null;
             }
 
@@ -108,7 +107,7 @@ namespace SR2MP.Packets.World
 
         public void Write(PacketWriter writer)
         {
-            var stateName = State.name; // ← copy out of struct
+            var stateName = State.name;
 
             int index = 0;
             var defs = LookupEUtil.weatherStateDefinitions;

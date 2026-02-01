@@ -13,7 +13,9 @@ namespace SR2MP.Client.Handlers
     public sealed class InitialWeatherHandler : BaseClientPacketHandler<WeatherPacket>
     {
         public InitialWeatherHandler(Client client, RemotePlayerManager playerManager)
-            : base(client, playerManager) { }
+            : base(client, playerManager)
+        {
+        }
 
         public override void Handle(WeatherPacket packet)
         {
@@ -27,14 +29,8 @@ namespace SR2MP.Client.Handlers
             var registry = Resources.FindObjectsOfTypeAll<WeatherRegistry>().FirstOrDefault();
             var director = Resources.FindObjectsOfTypeAll<WeatherDirector>().FirstOrDefault();
 
-            if (registry == null || director == null)
-            {
-                handlingPacket = false;
-                yield break;
-            }
-            
             var zoneKeys = new List<ZoneDefinition>();
-            foreach (var zone in registry._zones)
+            foreach (var zone in registry!._zones)
             {
                 zoneKeys.Add(zone.Key);
                 yield return null;
@@ -43,32 +39,51 @@ namespace SR2MP.Client.Handlers
             byte zoneId = 0;
             foreach (var zoneKey in zoneKeys)
             {
-                if (!packet.Model.Zones.TryGetValue(zoneId++, out var data))
-                    continue;
+                packet.model.Zones.TryGetValue(zoneId, out var data);
 
                 var zone = registry._zones[zoneKey];
-                
+
                 var forecastCopy = new List<WeatherModel.ForecastEntry>();
                 for (int i = 0; i < zone.Forecast.Count; i++)
                     forecastCopy.Add(zone.Forecast[i]);
-
+                
                 foreach (var forecast in forecastCopy)
                 {
-                    if (forecast.Started)
+                    var patternInstance = registry.GetWeatherPatternInstance(
+                        zoneKey,
+                        forecast.Pattern
+                    );
+
+                    if (patternInstance == null)
                     {
-                        director.StopState(forecast.State.Cast<IWeatherState>(), zone.Parameters, true);
-                        yield return null;
+                        director!.StopState(
+                            forecast.State.Cast<IWeatherState>(),
+                            zone.Parameters
+                        );
                     }
+                    else
+                    {
+                        registry.StopPatternState(
+                            zoneKey,
+                            patternInstance,
+                            forecast.State
+                        );
+                    }
+                    
+                    yield return null;
                 }
-                
+
                 zone.Forecast.Clear();
                 zone.Parameters.WindDirection = data.WindSpeed;
-
+                
                 foreach (var forecast in data.WeatherForecasts)
                 {
+                    var pattern = WeatherUpdateHelper.GetPatternForZoneAndState(zoneKey, forecast.State.name);
+
                     zone.Forecast.Add(new WeatherModel.ForecastEntry
                     {
                         State = forecast.State.Cast<IWeatherState>(),
+                        Pattern = pattern,
                         Started = forecast.WeatherStarted,
                         StartTime = forecast.StartTime,
                         EndTime = forecast.EndTime
@@ -77,26 +92,42 @@ namespace SR2MP.Client.Handlers
                     yield return null;
                 }
 
+                zoneId++;
                 yield return null;
             }
-            
-            if (registry._zones.TryGetValue(director.Zone, out var activeZone))
+
+            registry._zones.TryGetValue(director!.Zone, out var activeZone);
             {
-                var activeForecastCopy = new List<WeatherModel.ForecastEntry>();
+                var activeCopy = new List<WeatherModel.ForecastEntry>();
                 for (int i = 0; i < activeZone.Forecast.Count; i++)
-                    activeForecastCopy.Add(activeZone.Forecast[i]);
-
-                foreach (var forecast in activeForecastCopy)
+                    activeCopy.Add(activeZone.Forecast[i]);
+                
+                foreach (var forecast in activeCopy)
                 {
-                    if (!forecast.Started)
-                        continue;
+                    var patternInstance = registry.GetWeatherPatternInstance(
+                        director.Zone,
+                        forecast.Pattern
+                    );
 
-                    director.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, true);
+                    if (patternInstance == null)
+                    {
+                        director.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, true);
+                    }
+                    else
+                    {
+                        registry.RunPatternState(
+                            director.Zone,
+                            patternInstance,
+                            forecast.State,
+                            true
+                        );
+                    }
+                    
                     yield return null;
                 }
-            }
 
-            handlingPacket = false;
+                handlingPacket = false;
+            }
         }
     }
 }
