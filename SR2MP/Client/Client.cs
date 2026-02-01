@@ -18,6 +18,7 @@ public sealed class Client
     private IPEndPoint? serverEndPoint;
     private Thread? receiveThread;
     private Timer? heartbeatTimer;
+    private ReliabilityManager? reliabilityManager;
 
     private volatile bool isConnected;
     private volatile bool connectionAcknowledged;
@@ -87,6 +88,10 @@ public sealed class Client
             udpClient.Client.SendBufferSize = 512 * 1024;
 
             OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
+
+            // Initialize reliability manager
+            reliabilityManager = new ReliabilityManager(SendRaw);
+            reliabilityManager.Start();
 
             packetManager.RegisterHandlers();
 
@@ -158,7 +163,7 @@ public sealed class Client
                 if (data.Length == 0)
                     continue;
 
-                packetManager.HandlePacket(data);
+                packetManager.HandlePacket(data, remoteEp);
                 SrLogger.LogPacketSize($"Received {data.Length} bytes",
                     $"Received {data.Length} bytes from {remoteEp}");
             }
@@ -176,7 +181,7 @@ public sealed class Client
                     {
                         SrLogger.LogError("The server is not running!\n" +
                                           "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                          "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
+                                          "If this is not the case, check your firewall settings", SrLogTarget.Both);
                         shownConnectionError = true;
                     }
                 }
@@ -227,11 +232,27 @@ public sealed class Client
             byte[] data = writer.ToArray();
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
+            
+            PacketReliability reliability = packet.Reliability;
+            ushort sequenceNumber = 0;
+            
+            // Get sequence number for ordered packets (pass packet type)
+            if (reliability == PacketReliability.ReliableOrdered)
+            {
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
+            }
 
-            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out ushort packetId);
+            
+            // Track reliability if needed
+            if (reliability != PacketReliability.Unreliable)
+            {
+                reliabilityManager?.TrackPacket(chunks, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
+            }
+            
             foreach (var chunk in chunks)
             {
-                udpClient.Send(chunk, chunk.Length);
+                SendRaw(chunk, serverEndPoint);
             }
 
             SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
@@ -241,6 +262,24 @@ public sealed class Client
         {
             SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
         }
+    }
+    
+    // Sends raww data without reliability tracking (used for resends)
+    private void SendRaw(byte[] data, IPEndPoint endPoint)
+    {
+        udpClient?.Send(data, data.Length);
+    }
+    
+    // Handle acknowledgment from server, used in client packet manager
+    public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
+    {
+        reliabilityManager?.HandleAck(sender, packetId, packetType);
+    }
+    
+    // Check if ordered packet should be processed
+    public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
+    {
+        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType) ?? true;
     }
 
     public void Disconnect()
@@ -283,6 +322,8 @@ public sealed class Client
                 connectionTimeoutTimer.Dispose();
                 connectionTimeoutTimer = null;
             }
+
+            reliabilityManager?.Stop();
 
             if (udpClient != null)
             {
@@ -344,4 +385,6 @@ public sealed class Client
     {
         return playerManager.GetAllPlayers();
     }
+
+    public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
 }

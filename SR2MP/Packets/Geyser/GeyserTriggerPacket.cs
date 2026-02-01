@@ -8,6 +8,7 @@ public sealed class GeyserTriggerPacket : IPacket
     public string ObjectPath { get; set; }
 
     public PacketType Type => PacketType.GeyserTrigger;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteString(ObjectPath);
 

@@ -8,16 +8,7 @@ using Il2CppMonomiPark.SlimeRancher.World;
 namespace SR2MP.Patches.Weather
 {
     // Weather Registry
-    
-    [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.Awake))]
-    public static class WeatherRegistryAwakePatch
-    {
-        public static void Postfix(WeatherRegistry __instance)
-        {
-            WeatherUpdateHelper.CreateWeatherPatternLookup(__instance);
-        }
-    }
-    
+
     [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.Update))]
     public static class WeatherRegistryUpdatePatch
     {
@@ -31,19 +22,19 @@ namespace SR2MP.Patches.Weather
             return true;
         }
     }
-    
+
     [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.RunPatternState))]
     public static class WeatherRegistryRunPatternStatePatch
     {
         public static bool Prefix()
         {
+            WeatherUpdateHelper.EnsureLookupInitialized();
+            
             if (Main.Client.IsConnected && !handlingPacket)
             {
-                SrLogger.LogPacketSize("Blocked weather registry RunPatternState", SrLogTarget.Both);
                 return false;
             }
 
-            SrLogger.LogPacketSize("Allowed weather registry RunPatternState", SrLogTarget.Both);
             return true;
         }
     }
@@ -51,36 +42,28 @@ namespace SR2MP.Patches.Weather
     [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.StopPatternState))]
     public static class WeatherRegistryStopPatternStatePatch
     {
-        public static bool Prefix(WeatherRegistry __instance, 
+        public static bool Prefix(
+            WeatherRegistry __instance,
             ZoneDefinition zone,
             IWeatherPattern pattern,
             IWeatherState state)
         {
-            if (__instance == null)
-            {
-                SrLogger.LogError("StopPatternState: WeatherRegistry instance is null", SrLogTarget.Both);
+            WeatherUpdateHelper.EnsureLookupInitialized();
+            
+            if (__instance == null || zone == null)
                 return false;
-            }
-
-            if (zone == null)
-            {
-                SrLogger.LogError("StopPatternState: Zone is null", SrLogTarget.Both);
-                return false;
-            }
-
+            
             if (Main.Client.IsConnected && !handlingPacket)
             {
-                SrLogger.LogPacketSize("Blocked weather registry StopPatternState", SrLogTarget.Both);
                 return false;
             }
 
-            SrLogger.LogPacketSize($"Allowed weather registry StopPatternState (Zone: {zone.name}, Pattern: {pattern}, State: {state})", SrLogTarget.Both);
             return true;
         }
     }
-    
+
     // Weather Director
-    
+
     [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.FixedUpdate))]
     public static class WeatherDirectorFixedUpdatePatch
     {
@@ -91,14 +74,6 @@ namespace SR2MP.Patches.Weather
 
             return true;
         }
-
-        public static void Postfix()
-        {
-            if (Main.Server.IsRunning())
-            {
-                WeatherUpdateHelper.Update();
-            }
-        }
     }
 
     [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
@@ -106,13 +81,13 @@ namespace SR2MP.Patches.Weather
     {
         public static bool Prefix()
         {
+            WeatherUpdateHelper.EnsureLookupInitialized();
+            
             if (Main.Client.IsConnected && !handlingPacket)
             {
-                SrLogger.LogPacketSize("Blocked client weather RunState", SrLogTarget.Both);
                 return false;
             }
 
-            SrLogger.LogPacketSize("Allowed client weather RunState", SrLogTarget.Both);
             return true;
         }
 
@@ -130,13 +105,13 @@ namespace SR2MP.Patches.Weather
     {
         public static bool Prefix()
         {
+            WeatherUpdateHelper.EnsureLookupInitialized();
+            
             if (Main.Client.IsConnected && !handlingPacket)
             {
-                SrLogger.LogPacketSize("Blocked weather StopState", SrLogTarget.Both);
                 return false;
             }
 
-            SrLogger.LogPacketSize("Allowed weather StopState", SrLogTarget.Both);
             return true;
         }
 
@@ -152,82 +127,116 @@ namespace SR2MP.Patches.Weather
 
 public static class WeatherUpdateHelper
 {
-    private static bool initializedWeatherPatternLookup = false;
-
-    private static float timeSinceLastUpdate;
-    private const float UpdateInterval = 1.0f;
-
-    public static void Update()
-    {
-        if (!Main.Server.IsRunning())
-            return;
-
-        timeSinceLastUpdate += Time.fixedDeltaTime;
-
-        if (timeSinceLastUpdate >= UpdateInterval)
-        {
-            timeSinceLastUpdate = 0f;
-            SendWeatherUpdate();
-        }
-    }
+    private static bool lookupInitialized = false;
+    private static readonly Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames = new();
+    private static readonly Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone = new();
 
     public static void CreateWeatherPatternLookup(WeatherRegistry registry)
     {
-        if (initializedWeatherPatternLookup)
-        {
-            SrLogger.LogWarning("Weather pattern lookup already initialized, skipping", SrLogTarget.Both);
-            return;
-        }
-
         if (registry == null)
         {
-            SrLogger.LogError("Cannot create weather pattern lookup: registry is null", SrLogTarget.Both);
+            SrLogger.LogError("WeatherRegistry is null in CreateWeatherPatternLookup", SrLogTarget.Both);
             return;
         }
-        
-        weatherPatternsFromStateNames.Clear();
-        weatherPatternsByZone.Clear();
 
-        int totalPatterns = 0;
-        int totalStates = 0;
-        int nullStates = 0;
-        int duplicateStates = 0;
-        int totalZones = 0;
-
-        foreach (var config in registry.ZoneConfigList)
+        try
         {
-            totalZones++;
-            SrLogger.LogPacketSize($"Processing zone: {config.Zone.name} with {config.Patterns.Count} patterns", SrLogTarget.Both);
+            weatherPatternsFromStateNames.Clear();
+            weatherPatternsByZone.Clear();
             
-            var zonePatternMap = new Dictionary<string, WeatherPatternDefinition>();
-
-            foreach (var pattern in config.Patterns)
+            if (registry.ZoneConfigList == null)
             {
-                totalPatterns++;
+                SrLogger.LogError("WeatherRegistry.ZoneConfigList is null", SrLogTarget.Both);
+                return;
+            }
 
-                foreach (var state in pattern._stateList)
+            foreach (var config in registry.ZoneConfigList)
+            {
+                if (config == null || config.Zone == null || config.Patterns == null)
                 {
-                    totalStates++;
-
-                    zonePatternMap[state.name] = pattern;
-                    
-                    if (!weatherPatternsFromStateNames.TryAdd(state.name, pattern))
-                        duplicateStates++;
+                    SrLogger.LogPacketSize("Skipping null weather config or patterns", SrLogTarget.Both);
+                    continue;
                 }
+
+                var zonePatternMap = new Dictionary<string, WeatherPatternDefinition>();
+
+                foreach (var pattern in config.Patterns)
+                {
+                    if (pattern == null || pattern._stateList == null)
+                    {
+                        SrLogger.LogPacketSize($"Skipping null pattern or state list in zone {config.Zone.name}", SrLogTarget.Both);
+                        continue;
+                    }
+
+                    foreach (var state in pattern._stateList)
+                    {
+                        if (state == null || string.IsNullOrEmpty(state.name))
+                        {
+                            SrLogger.LogPacketSize($"Skipping null state or state name in pattern {pattern.name}", SrLogTarget.Both);
+                            continue;
+                        }
+
+                        zonePatternMap[state.name] = pattern;
+                        weatherPatternsFromStateNames.TryAdd(state.name, pattern);
+                    }
+                }
+
+                weatherPatternsByZone[config.Zone] = zonePatternMap;
             }
             
-            weatherPatternsByZone[config.Zone] = zonePatternMap;
-            SrLogger.LogPacketSize($"Zone {config.Zone.name}: Mapped {zonePatternMap.Count} states to patterns", SrLogTarget.Both);
+            lookupInitialized = true;
+            SrLogger.LogPacketSize($"Weather pattern lookup initialized with {weatherPatternsFromStateNames.Count} states", SrLogTarget.Both);
         }
-        
-        SrLogger.LogMessage($"Initialized WeatherPatternLookup with {totalPatterns} patterns across {totalZones} zones", SrLogTarget.Both);
-        SrLogger.LogMessage($"{totalStates} weather states ({duplicateStates} duplicate, {nullStates} null)", SrLogTarget.Both);
-
-        initializedWeatherPatternLookup = true;
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Error in CreateWeatherPatternLookup: {ex}", SrLogTarget.Both);
+            lookupInitialized = false;
+        }
     }
     
-    public static WeatherPatternDefinition GetPatternForZoneAndState(ZoneDefinition zone, string stateName)
+    public static void EnsureLookupInitialized()
     {
+        if (lookupInitialized)
+            return;
+
+        try
+        {
+            var registry = Resources
+                .FindObjectsOfTypeAll<WeatherRegistry>()
+                .FirstOrDefault();
+
+            if (registry == null)
+            {
+                SrLogger.LogError("Could not find WeatherRegistry in scene", SrLogTarget.Both);
+                return;
+            }
+
+            CreateWeatherPatternLookup(registry);
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Error in EnsureLookupInitialized: {ex}", SrLogTarget.Both);
+        }
+    }
+
+    public static WeatherPatternDefinition GetPatternForZoneAndState(
+        ZoneDefinition zone,
+        string stateName)
+    {
+        EnsureLookupInitialized();
+
+        if (!lookupInitialized)
+        {
+            SrLogger.LogWarning("Weather pattern lookup not initialized", SrLogTarget.Both);
+            return null!;
+        }
+
+        if (zone == null || string.IsNullOrEmpty(stateName))
+        {
+            SrLogger.LogPacketSize($"Invalid zone or state name: zone={zone?.name}, state={stateName}", SrLogTarget.Both);
+            return null!;
+        }
+
         if (weatherPatternsByZone.TryGetValue(zone, out var zoneMap))
         {
             if (zoneMap.TryGetValue(stateName, out var pattern))
@@ -235,29 +244,58 @@ public static class WeatherUpdateHelper
                 return pattern;
             }
         }
-        
+
         if (weatherPatternsFromStateNames.TryGetValue(stateName, out var fallbackPattern))
         {
-            SrLogger.LogWarning($"Using fallback pattern for {zone.name} / {stateName}: {fallbackPattern.name}", SrLogTarget.Both);
+            SrLogger.LogWarning(
+                $"Using fallback pattern for {zone.name} / {stateName}: {fallbackPattern.name}",
+                SrLogTarget.Both
+            );
             return fallbackPattern;
         }
 
+        SrLogger.LogPacketSize(
+            $"No pattern found for zone {zone.name} / state {stateName}",
+            SrLogTarget.Both
+        );
+        
         return null!;
     }
-    
+
     public static void SendWeatherUpdate()
     {
         if (!Main.Server.IsRunning())
             return;
 
-        var weatherRegistry = Resources.FindObjectsOfTypeAll<WeatherRegistry>().FirstOrDefault();
+        try
+        {
+            var weatherRegistry = Resources
+                .FindObjectsOfTypeAll<WeatherRegistry>()
+                .FirstOrDefault();
 
-        MelonCoroutines.Start(
-            WeatherPacket.CreateFromModel(
-                weatherRegistry!._model,
-                PacketType.WeatherUpdate,
-                packet => Main.Server.SendToAll(packet)
-            )
-        );
+            if (weatherRegistry == null)
+            {
+                SrLogger.LogError("Could not find WeatherRegistry!", SrLogTarget.Both);
+                return;
+            }
+
+            if (weatherRegistry._model == null)
+            {
+                SrLogger.LogError("Could not find WeatherRegistry._model!", SrLogTarget.Both);
+                return;
+            }
+
+            MelonCoroutines.Start(
+                WeatherPacket.CreateFromModel(
+                    weatherRegistry._model,
+                    PacketType.WeatherUpdate,
+                    packet => Main.Server.SendToAll(packet)
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Error in SendWeatherUpdate: {ex}", SrLogTarget.Both);
+        }
     }
 }

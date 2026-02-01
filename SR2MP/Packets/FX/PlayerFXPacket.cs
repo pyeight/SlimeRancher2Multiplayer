@@ -26,6 +26,7 @@ public sealed class PlayerFXPacket : IPacket
     public string Player { get; set; }
 
     public PacketType Type => PacketType.PlayerFX;
+    public PacketReliability Reliability => PacketReliability.Unreliable;
 
     public void Serialise(PacketWriter writer)
     {

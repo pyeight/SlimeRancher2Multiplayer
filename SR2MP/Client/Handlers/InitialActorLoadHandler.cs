@@ -2,6 +2,8 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Packets.Actor; // NEW
+using UnityEngine;
 
 namespace SR2MP.Client.Handlers;
 
@@ -14,7 +16,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
     public override void Handle(InitialActorsPacket packet)
     {
         actorManager.Actors.Clear();
-        
+
         var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             SceneContext.Instance.GameModel.identifiables
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
@@ -30,11 +32,24 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
             SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor.value);
         }
 
-        SceneContext.Instance.GameModel._actorIdProvider._nextActorId = packet.StartingActorID;
+        SceneContext.Instance.GameModel._actorIdProvider._nextActorId =
+            packet.StartingActorID;
 
         foreach (var actor in packet.Actors)
         {
-            actorManager.TrySpawnNetworkActor(new ActorId(actor.ActorId), actor.Position, actor.Rotation, actor.ActorType, actor.Scene, out _);
+            if (!actorManager.TrySpawnNetworkActor(
+                    new ActorId(actor.ActorId),
+                    actor.Position,
+                    actor.Rotation,
+                    actor.ActorType,
+                    actor.Scene,
+                    out var spawnedActor))
+                continue;
+            
+            /*if (spawnedActor!.TryGetNetworkComponent(out var component))
+            {
+                component.LocallyOwned = true;
+            }*/
         }
     }
 }

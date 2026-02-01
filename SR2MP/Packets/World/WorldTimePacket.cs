@@ -6,6 +6,7 @@ public struct WorldTimePacket : IPacket
 {
     public double Time { get; set; }
     public PacketType Type { get; set; }
+    public PacketReliability Reliability => PacketReliability.Unreliable;
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteDouble(Time);
 

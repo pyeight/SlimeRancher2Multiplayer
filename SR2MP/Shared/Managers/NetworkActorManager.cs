@@ -121,12 +121,11 @@ public sealed class NetworkActorManager
         
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         
-        if (!ActorTypes.ContainsKey(typeId))
+        if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
             return false;
         }
-        var type = ActorTypes[typeId];
 
         if (!type.prefab)
             return false;

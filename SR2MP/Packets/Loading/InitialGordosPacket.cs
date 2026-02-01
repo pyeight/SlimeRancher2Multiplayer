@@ -38,6 +38,7 @@ public sealed class InitialGordosPacket : IPacket
     public List<Gordo> Gordos { get; set; }
 
     public PacketType Type => PacketType.InitialGordos;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(Gordos, PacketWriterDels.NetObject<Gordo>.Func);
 

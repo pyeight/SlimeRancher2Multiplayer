@@ -13,6 +13,7 @@ public struct ActorUpdatePacket : IPacket
     public Vector3 Velocity { get; set; }
 
     public readonly PacketType Type => PacketType.ActorUpdate;
+    public readonly PacketReliability Reliability => PacketReliability.Unreliable;
 
     public readonly void Serialise(PacketWriter writer)
     {

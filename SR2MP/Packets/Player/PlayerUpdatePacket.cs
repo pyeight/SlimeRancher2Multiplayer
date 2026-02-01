@@ -18,6 +18,7 @@ public sealed class PlayerUpdatePacket : IPacket
     public float LookY { get; set; }
 
     public PacketType Type => PacketType.PlayerUpdate;
+    public PacketReliability Reliability => PacketReliability.Unreliable;
 
     public void Serialise(PacketWriter writer)
     {

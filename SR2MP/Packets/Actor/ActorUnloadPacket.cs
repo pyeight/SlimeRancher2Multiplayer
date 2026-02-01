@@ -9,6 +9,7 @@ public struct ActorUnloadPacket : IPacket
     public ActorId ActorId { get; set; }
 
     public readonly PacketType Type => PacketType.ActorUnload;
+    public readonly PacketReliability Reliability => PacketReliability.Reliable;
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteLong(ActorId.Value);
 

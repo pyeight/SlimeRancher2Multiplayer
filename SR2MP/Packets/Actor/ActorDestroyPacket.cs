@@ -8,6 +8,7 @@ public struct ActorDestroyPacket : IPacket
     public ActorId ActorId { get; set; }
 
     public readonly PacketType Type => PacketType.ActorDestroy;
+    public readonly PacketReliability Reliability => PacketReliability.Reliable;
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteLong(ActorId.Value);
 

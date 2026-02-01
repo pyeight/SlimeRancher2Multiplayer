@@ -12,6 +12,7 @@ public sealed class ConnectAckPacket : IPacket
     public bool AllowCheats { get; set; }
 
     public PacketType Type => PacketType.ConnectAck;
+    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
     public void Serialise(PacketWriter writer)
     {

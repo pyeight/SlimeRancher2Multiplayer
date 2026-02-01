@@ -13,14 +13,18 @@ public static class PacketChunkManager
         public ushort totalChunks;
         public int receivedCount;
         public DateTime lastChunkTime;
+        public PacketReliability reliability;
+        public ushort sequenceNumber;
         
-        public IncompletePacket(ushort totalChunks)
+        public IncompletePacket(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
         {
             this.chunks = new byte[totalChunks][];
             this.received = new bool[totalChunks];
             this.totalChunks = totalChunks;
             this.receivedCount = 0;
             this.lastChunkTime = DateTime.UtcNow;
+            this.reliability = reliability;
+            this.sequenceNumber = sequenceNumber;
         }
     }
 
@@ -37,9 +41,13 @@ public static class PacketChunkManager
     private const int CleanupInterval = 100;
 
     internal static bool TryMergePacket(PacketType packetType, byte[] data, ushort chunkIndex, 
-        ushort totalChunks, ushort packetId, string senderKey, out byte[] fullData)
+        ushort totalChunks, ushort packetId, string senderKey, PacketReliability reliability,
+        ushort sequenceNumber, out byte[] fullData, out PacketReliability outReliability, 
+        out ushort outSequenceNumber)
     {
         fullData = null!;
+        outReliability = reliability;
+        outSequenceNumber = sequenceNumber;
         
         if (chunkIndex >= totalChunks)
         {
@@ -56,7 +64,8 @@ public static class PacketChunkManager
 
         string key = $"{(byte)packetType}_{packetId}_{senderKey}";
 
-        var packet = IncompletePackets.GetOrAdd(key, _ => new IncompletePacket(totalChunks));
+        var packet = IncompletePackets.GetOrAdd(key, _ => 
+            new IncompletePacket(totalChunks, reliability, sequenceNumber));
         
         if (packet.totalChunks != totalChunks)
         {
@@ -91,6 +100,9 @@ public static class PacketChunkManager
             offset += packet.chunks[i].Length;
         }
 
+        outReliability = packet.reliability;
+        outSequenceNumber = packet.sequenceNumber;
+
         IncompletePackets.TryRemove(key, out _);
         
         // Decompress if compressed
@@ -102,7 +114,8 @@ public static class PacketChunkManager
         return true;
     }
 
-    internal static byte[][] SplitPacket(byte[] data, out ushort packetId)
+    internal static byte[][] SplitPacket(byte[] data, PacketReliability reliability, 
+        ushort sequenceNumber, out ushort packetId)
     {
         var packetType = data[0];
         
@@ -136,8 +149,10 @@ public static class PacketChunkManager
             var offset = index * MaxChunkBytes;
             var chunkSize = Math.Min(MaxChunkBytes, data.Length - offset);
 
-            // Header - 7 bytes
-            var buffer = new byte[7 + chunkSize];
+            // 10 byte header:
+            var buffer = new byte[10 + chunkSize];
+            
+            // Packet Type
             buffer[0] = packetType;
             
             // Chunk index
@@ -151,8 +166,15 @@ public static class PacketChunkManager
             // Packet ID
             buffer[5] = (byte)(packetId & 0xFF);
             buffer[6] = (byte)((packetId >> 8) & 0xFF);
+            
+            // Reliability
+            buffer[7] = (byte)reliability;
+            
+            // Sequence number (for ordered packets)
+            buffer[8] = (byte)(sequenceNumber & 0xFF);
+            buffer[9] = (byte)((sequenceNumber >> 8) & 0xFF);
 
-            Buffer.BlockCopy(data, offset, buffer, 7, chunkSize);
+            Buffer.BlockCopy(data, offset, buffer, 10, chunkSize);
             result[index] = buffer;
         }
         
@@ -162,7 +184,9 @@ public static class PacketChunkManager
     private static void CleanupStalePackets()
     {
         var now = DateTime.UtcNow;
-        var keysToRemove = (from kvp in IncompletePackets where now - kvp.Value.lastChunkTime > PacketTimeout select kvp.Key).ToList();
+        var keysToRemove = (from kvp in IncompletePackets 
+                           where now - kvp.Value.lastChunkTime > PacketTimeout 
+                           select kvp.Key).ToList();
 
         foreach (var key in keysToRemove)
         {
@@ -176,7 +200,8 @@ public static class PacketChunkManager
     private static byte[] Compress(byte[] data)
     {
         using var output = new MemoryStream();
-        output.WriteByte(0xFF);
+        // (byte)PacketType.ReservedDoNotUse instead of 0xFF so shows as used in PacketType.cs
+        output.WriteByte((byte)PacketType.ReservedDoNotUse);
         output.WriteByte(data[0]);
         
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest))

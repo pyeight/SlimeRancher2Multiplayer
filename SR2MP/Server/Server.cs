@@ -93,12 +93,7 @@ public sealed class Server
             PlayerId = client.PlayerId
         };
 
-        using var writer = new PacketWriter();
-        writer.WritePacket(leavePacket);
-        byte[] data = writer.ToArray();
-        
-        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints);
+        SendToAll(leavePacket);
 
         SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
     }
@@ -139,14 +134,9 @@ public sealed class Server
 
             var closePacket = new ClosePacket();
 
-            using var writer = new PacketWriter();
-            writer.WritePacket(closePacket);
-            byte[] data = writer.ToArray();
-            
-            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
             try
             {
-                networkManager.Broadcast(data, endpoints);
+                SendToAll(closePacket);
             }
             catch (Exception ex)
             {
@@ -183,7 +173,7 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        networkManager.Send(writer.ToArray(), endPoint);
+        networkManager.Send(writer.ToArray(), endPoint, packet.Reliability);
     }
 
     public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
@@ -198,7 +188,7 @@ public sealed class Server
         byte[] data = writer.ToArray();
         
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints);
+        networkManager.Broadcast(data, endpoints, packet.Reliability);
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
@@ -211,7 +201,7 @@ public sealed class Server
         {
             if (client.GetClientInfo() != excludedClientInfo)
             {
-                networkManager.Send(data, client.EndPoint);
+                networkManager.Send(data, client.EndPoint, packet.Reliability);
             }
         }
     }
@@ -221,4 +211,6 @@ public sealed class Server
         string clientInfo = $"{excludeEndPoint.Address}:{excludeEndPoint.Port}";
         SendToAllExcept(packet, clientInfo);
     }
+
+    public int GetPendingReliablePackets() => networkManager.GetPendingReliablePackets();
 }

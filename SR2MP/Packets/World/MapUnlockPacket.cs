@@ -5,6 +5,7 @@ namespace SR2MP.Packets.World;
 public sealed class MapUnlockPacket : IPacket
 {
     public PacketType Type => PacketType.MapUnlock;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public string NodeID { get; set; }
 

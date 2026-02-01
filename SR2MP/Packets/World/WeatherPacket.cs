@@ -9,6 +9,7 @@ namespace SR2MP.Packets.World
     public class WeatherPacket : IPacket
     {
         public PacketType Type { get; set; }
+        public PacketReliability Reliability => PacketReliability.Reliable;
 
         public NetworkWeatherModel model;
 
