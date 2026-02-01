@@ -11,7 +11,7 @@ public static class ConsoleCheatPatch
         if (!(Main.Server.IsRunning() || Main.Client.IsConnected))
             return true;
 
-        if (CheatsEnabled)
+        if (cheatsEnabled)
             return true;
 
         var containsCheat = false;
