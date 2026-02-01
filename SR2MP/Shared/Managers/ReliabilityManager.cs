@@ -29,8 +29,8 @@ public sealed class ReliabilityManager
     private Thread? resendThread;
     private volatile bool isRunning;
     
-    private static readonly TimeSpan ResendInterval = TimeSpan.FromMilliseconds(200);
-    private static readonly TimeSpan MaxRetryTime = TimeSpan.FromSeconds(7);
+    private static readonly TimeSpan ResendInterval = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan MaxRetryTime = TimeSpan.FromSeconds(10);
     private const int MaxResendAttempts = 50;
 
     public ReliabilityManager(Action<byte[], IPEndPoint> sendRawCallback)
