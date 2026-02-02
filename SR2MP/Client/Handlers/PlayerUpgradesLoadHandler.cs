@@ -5,12 +5,12 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Client.Handlers;
 
 [PacketHandler((byte)PacketType.InitialPlayerUpgrades)]
-public sealed class PlayerUpgradesLoadHandler : BaseClientPacketHandler<UpgradesPacket>
+public sealed class PlayerUpgradesLoadHandler : BaseClientPacketHandler<InitialUpgradesPacket>
 {
     public PlayerUpgradesLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(UpgradesPacket packet)
+    public override void Handle(InitialUpgradesPacket packet)
     {
         var upgradesList = GameContext.Instance.LookupDirector._upgradeDefinitions;
         foreach (var upgradeLevel in packet.Upgrades)

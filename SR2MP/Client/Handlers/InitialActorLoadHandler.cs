@@ -2,8 +2,6 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
-using SR2MP.Packets.Actor; // NEW
-using UnityEngine;
 
 namespace SR2MP.Client.Handlers;
 

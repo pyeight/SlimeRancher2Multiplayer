@@ -63,10 +63,11 @@ public sealed class ClientPacketManager
         ushort packetId = (ushort)(data[5] | (data[6] << 8));
         PacketReliability reliability = (PacketReliability)data[7];
         ushort sequenceNumber = (ushort)(data[8] | (data[9] << 8));
-        
+
         byte[] chunkData = new byte[data.Length - 10];
-        Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
-        
+        Buffer.BlockCopy(data, 10, chunkData, 0, chunkData.Length);
+        // Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
+
         // Client uses "server" as sender key
         string senderKey = "server";
         
@@ -94,6 +95,15 @@ public sealed class ClientPacketManager
             SendAck(packetId, packetType);
         }
         
+        string packetTypeKey = ((PacketType)packetType).ToString();
+        string uniqueId = packetId.ToString();
+
+        if (PacketDeduplication.IsDuplicate(packetTypeKey, uniqueId))
+        {
+            SrLogger.LogPacketSize($"Duplicate packet ignored: {packetTypeKey} (packetId={packetId})", SrLogTarget.Both);
+            return;
+        }
+        
         if (packetReliability == PacketReliability.ReliableOrdered)
         {
             if (!client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetType))
@@ -119,8 +129,8 @@ public sealed class ClientPacketManager
 
     private void SendAck(ushort packetId, byte packetType)
     {
-        // So we don't send Ack's when disconnected
         if (!Main.Client.IsConnected) return;
+
         var ackPacket = new AckPacket
         {
             PacketId = packetId,

@@ -12,24 +12,22 @@ public sealed class PlayerLeaveHandler : BaseClientPacketHandler<PlayerLeavePack
 
     public override void Handle(PlayerLeavePacket packet)
     {
-        string playerId = packet.PlayerId;
-
-        SrLogger.LogMessage($"Player left! (PlayerId: {playerId})", SrLogTarget.Both);
-        
-        var player = playerManager.GetPlayer(playerId);
-        if (player != null)
+        if (playerManager.GetPlayer(packet.PlayerId) == null)
         {
-            playerManager.RemovePlayer(playerId);
+            SrLogger.LogMessage($"Player {packet.PlayerId} doesn't exist (already left?)", SrLogTarget.Both);
+            return;
         }
         
-        if (playerObjects.TryGetValue(playerId, out var playerObject))
+        playerManager.RemovePlayer(packet.PlayerId);
+        
+        if (playerObjects.TryGetValue(packet.PlayerId, out var playerObj))
         {
-            if (playerObject != null)
+            if (playerObj != null)
             {
-                Object.Destroy(playerObject);
-                SrLogger.LogMessage($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                Object.Destroy(playerObj);
+                SrLogger.LogPacketSize($"Destroyed player object for {packet.PlayerId}", SrLogTarget.Both);
             }
-            playerObjects.Remove(playerId);
+            playerObjects.Remove(packet.PlayerId);
         }
     }
 }

@@ -69,7 +69,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             upgrades.Add((byte)upgrade._uniqueId, (sbyte)SceneContext.Instance.PlayerState._model.upgradeModel.GetUpgradeLevel(upgrade));
         }
 
-        var upgradesPacket = new UpgradesPacket
+        var upgradesPacket = new InitialUpgradesPacket
         {
             Upgrades = upgrades,
         };

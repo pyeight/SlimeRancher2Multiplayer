@@ -17,6 +17,12 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
     public override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
     {
         string playerId = packet.PlayerId;
+        
+        if (playerManager.GetPlayer(playerId) != null)
+        {
+            SrLogger.LogWarning($"Player {playerId} already exists", SrLogTarget.Both);
+            return;
+        }
 
         string address = $"{clientEp.Address}:{clientEp.Port}";
 

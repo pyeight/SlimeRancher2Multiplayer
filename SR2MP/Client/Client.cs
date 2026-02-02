@@ -80,6 +80,8 @@ public sealed class Client
                 udpClient = new UdpClient(AddressFamily.InterNetwork);
                 SrLogger.LogMessage("Using IPv4 connection", SrLogTarget.Both);
             }
+            
+            PacketDeduplication.Clear();
 
             serverEndPoint = new IPEndPoint(parsedIp, port);
             udpClient.Connect(serverEndPoint);
@@ -308,6 +310,8 @@ public sealed class Client
             {
                 SrLogger.LogWarning($"Could not send leave packet: {ex.Message}");
             }
+            
+            PacketDeduplication.Clear();
 
             isConnected = false;
 

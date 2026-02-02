@@ -13,8 +13,11 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
 
     public override void Handle(ActorDestroyPacket packet, IPEndPoint clientEp)
     {
-        if (!actorManager.Actors.Remove(packet.ActorId.Value, out var actor))
+        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
+        {
+            SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} doesn't exist (already destroyed?)", SrLogTarget.Both);
             return;
+        }
 
         SceneContext.Instance.GameModel.identifiables.Remove(packet.ActorId);
         SceneContext.Instance.GameModel.identifiablesByIdent[actor.ident].Remove(actor);

@@ -16,6 +16,12 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
     public override void Handle(PlayerLeavePacket packet, IPEndPoint clientEp)
     {
         string playerId = packet.PlayerId;
+        
+        if (playerManager.GetPlayer(playerId) == null)
+        {
+            SrLogger.LogMessage($"Player {playerId} doesn't exist (already left?)", SrLogTarget.Both);
+            return;
+        }
 
         string clientInfo = $"{clientEp.Address}:{clientEp.Port}";
 

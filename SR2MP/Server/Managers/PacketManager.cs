@@ -24,8 +24,8 @@ public sealed class PacketManager
         var assembly = Assembly.GetExecutingAssembly();
         var handlerTypes = assembly.GetTypes()
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                            && typeof(IPacketHandler).IsAssignableFrom(type)
-                            && !type.IsAbstract);
+                        && typeof(IPacketHandler).IsAssignableFrom(type)
+                        && !type.IsAbstract);
 
         foreach (var type in handlerTypes)
         {
@@ -63,10 +63,11 @@ public sealed class PacketManager
         ushort packetId = (ushort)(data[5] | (data[6] << 8));
         PacketReliability reliability = (PacketReliability)data[7];
         ushort sequenceNumber = (ushort)(data[8] | (data[9] << 8));
-        
+
         byte[] chunkData = new byte[data.Length - 10];
-        Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
-        
+        Buffer.BlockCopy(data, 10, chunkData, 0, chunkData.Length);
+        // Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
+
         string senderKey = clientEp.ToString();
         
         if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, 
@@ -83,22 +84,35 @@ public sealed class PacketManager
                 reader.Skip(1);
                 ackPacket.Deserialise(reader);
             }
+
             networkManager.HandleAck(clientEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
             return;
         }
 
-        // Sends ACK for reliable packets
+        // Always ACK reliable packets (even duplicates)
+        // Otherwise clients will resend if the ACK packet was lost
         if (packetReliability != PacketReliability.Unreliable)
         {
             SendAck(clientEp, packetId, packetType);
         }
-        
+
+        // Packet deduplication (per client)
+        var packetTypeKey = ((PacketType)packetType).ToString();
+        var uniqueId = $"{senderKey}_{packetId}";
+
+        if (PacketDeduplication.IsDuplicate(packetTypeKey, uniqueId))
+        {
+            SrLogger.LogPacketSize($"Duplicate packet ignored from {senderKey}: {packetTypeKey} (packetId={packetId})", SrLogTarget.Both);
+            return;
+        }
+
+        // Ordered reliable packets must be processed in sequence
         if (packetReliability == PacketReliability.ReliableOrdered)
         {
             if (!networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetType))
                 return;
         }
-
+        
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try
@@ -118,8 +132,9 @@ public sealed class PacketManager
 
     private void SendAck(IPEndPoint clientEp, ushort packetId, byte packetType)
     {
-        // So we don't send Ack's to disconnected clients
-        if (!clientManager.TryGetClient(clientEp, out _)) return;
+        if (!clientManager.TryGetClient(clientEp, out _))
+            return;
+
         var ackPacket = new AckPacket
         {
             PacketId = packetId,

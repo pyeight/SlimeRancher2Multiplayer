@@ -5,6 +5,7 @@ using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
@@ -157,6 +158,7 @@ public sealed class Server
                 }
             }
 
+            PacketDeduplication.Clear();
             clientManager.Clear();
             playerManager.Clear();
             networkManager.Stop();

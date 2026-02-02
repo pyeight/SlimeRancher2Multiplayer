@@ -132,7 +132,7 @@ public sealed class NetworkActorManager
         
         if (type.isGadget())
         {
-            SrLogger.LogWarning($"Tried to spawn gadget over the network, this hasnt been implemented yet!\n\tActor {actorId.Value}: {type.name}");
+            SrLogger.LogWarning($"Tried to spawn gadget over the network, this has not been implemented yet!\n\tActor {actorId.Value}: {type.name}");
             return false;
         }
 
