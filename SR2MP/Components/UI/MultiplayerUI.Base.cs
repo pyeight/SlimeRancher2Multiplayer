@@ -56,6 +56,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         {
             if (!didUnfocus)
             {
+                shouldUnfocusChat = true;
                 UnfocusChat();
                 didUnfocus = true;
             }
