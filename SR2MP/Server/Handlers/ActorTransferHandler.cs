@@ -12,7 +12,7 @@ public sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket
     public ActorTransferHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ActorTransferPacket packet, IPEndPoint clientEp)
+    protected override void Handle(ActorTransferPacket packet, IPEndPoint clientEp)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return;

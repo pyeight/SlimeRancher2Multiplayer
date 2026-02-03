@@ -12,7 +12,7 @@ public sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
     public WorldFXHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(WorldFXPacket packet, IPEndPoint clientEp)
+    protected override void Handle(WorldFXPacket packet, IPEndPoint clientEp)
     {
         if (!IsWorldSoundDictionary[packet.FX])
         {

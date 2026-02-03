@@ -13,7 +13,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
     public PlayerLeaveHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(PlayerLeavePacket packet, IPEndPoint clientEp)
+    protected override void Handle(PlayerLeavePacket packet, IPEndPoint clientEp)
     {
         string playerId = packet.PlayerId;
 

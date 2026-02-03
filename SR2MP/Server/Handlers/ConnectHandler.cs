@@ -21,7 +21,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
     public ConnectHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ConnectPacket packet, IPEndPoint clientEp)
+    protected override void Handle(ConnectPacket packet, IPEndPoint clientEp)
     {
         SrLogger.LogMessage($"Connect request received with PlayerId: {packet.PlayerId}",
             $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
@@ -241,19 +241,16 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             var plot = plotKeyValuePair.Value;
             var id = plotKeyValuePair.Key;
 
-            INetObject? data = null;
-            if (plot.typeId == LandPlot.Id.GARDEN)
+            INetObject? data = plot.typeId switch
             {
-                data = new InitialLandPlotsPacket.GardenData()
+                LandPlot.Id.GARDEN => new InitialLandPlotsPacket.GardenData()
                 {
                     Crop = plot.resourceGrowerDefinition == null ? 9 : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
-                };
-            }
-            else if (plot.typeId == LandPlot.Id.SILO)
-            {
-                // todo
-                data = new InitialLandPlotsPacket.SiloData() { };
-            }
+                },
+                LandPlot.Id.SILO => new InitialLandPlotsPacket.SiloData()
+                    {},
+                _ => null
+            };
 
             plotsList.Add(new InitialLandPlotsPacket.BasePlot
             {

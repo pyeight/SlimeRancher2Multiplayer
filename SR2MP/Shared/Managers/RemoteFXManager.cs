@@ -145,7 +145,7 @@ public sealed class RemoteFXManager
 
     public bool TryGetFXType(SECTR_AudioCue cue, out WorldFXType fxType) => TryGetFXType(cue, WorldAudioCueMap, out fxType);
 
-    private static bool TryGetFXType<T>(SECTR_AudioCue cue, Dictionary<T, SECTR_AudioCue> cueMap, out T fxType) where T : struct, Enum
+    private static bool TryGetFXType<T>(SECTR_AudioCue cue, Dictionary<T, SECTR_AudioCue>? cueMap, out T fxType) where T : struct, Enum
     {
         fxType = default;
 

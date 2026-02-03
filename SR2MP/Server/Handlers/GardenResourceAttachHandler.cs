@@ -11,7 +11,7 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
     public GardenResourceAttachHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ResourceAttachPacket packet, IPEndPoint clientEp)
+    protected override void Handle(ResourceAttachPacket packet, IPEndPoint clientEp)
     {
         if (packet.PlotID.Length < 1)
         {
@@ -51,39 +51,36 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                 }
             }
         }
-        else
+        else if (actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
         {
-            if (actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
+            if (!SceneContext.Instance.GameModel.landPlots.TryGetValue(packet.PlotID, out var plotModel))
             {
-                if (!SceneContext.Instance.GameModel.landPlots.TryGetValue(packet.PlotID, out var plotModel))
+                Main.Server.SendToAllExcept(packet, clientEp);
+                return;
+            }
+
+            var spawner = plotModel.gameObj.GetComponentInChildren<SpawnResource>();
+            if (spawner)
+            {
+                var spawnerModel = spawner._model;
+                spawnerModel.nextSpawnRipens = packet.Model.nextSpawnRipens;
+                spawnerModel.nextSpawnTime = packet.Model.nextSpawnTime;
+                spawnerModel.storedWater = packet.Model.storedWater;
+                spawnerModel.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
+
+                var joint = spawner.SpawnJoints[packet.Joint];
+                if (joint!.connectedBody)
                 {
-                    Main.Server.SendToAllExcept(packet, clientEp);
+                    SceneContext.Instance.GameModel.identifiables.Remove(packet.ActorId);
+                    SceneContext.Instance.GameModel.identifiablesByIdent[model.ident].Remove(model);
+                    SceneContext.Instance.GameModel.DestroyIdentifiableModel(model);
+
+                    var obj = model.GetGameObject();
+                    if (obj)
+                        Destroyer.DestroyActor(model.GetGameObject(), "SR2MP.GardenResourceAttachHandler#2");
                     return;
                 }
-
-                var spawner = plotModel.gameObj.GetComponentInChildren<SpawnResource>();
-                if (spawner)
-                {
-                    var spawnerModel = spawner._model;
-                    spawnerModel.nextSpawnRipens = packet.Model.nextSpawnRipens;
-                    spawnerModel.nextSpawnTime = packet.Model.nextSpawnTime;
-                    spawnerModel.storedWater = packet.Model.storedWater;
-                    spawnerModel.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
-
-                    var joint = spawner.SpawnJoints[packet.Joint];
-                    if (joint!.connectedBody)
-                    {
-                        SceneContext.Instance.GameModel.identifiables.Remove(packet.ActorId);
-                        SceneContext.Instance.GameModel.identifiablesByIdent[model.ident].Remove(model);
-                        SceneContext.Instance.GameModel.DestroyIdentifiableModel(model);
-
-                        var obj = model.GetGameObject();
-                        if (obj)
-                            Destroyer.DestroyActor(model.GetGameObject(), "SR2MP.GardenResourceAttachHandler#2");
-                        return;
-                    }
-                    model.GetGameObject()?.GetComponent<ResourceCycle>().Attach(joint);
-                }
+                model.GetGameObject()?.GetComponent<ResourceCycle>().Attach(joint);
             }
         }
 

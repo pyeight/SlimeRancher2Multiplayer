@@ -12,7 +12,7 @@ public sealed class GordoBurstHandler : BasePacketHandler<GordoBurstPacket>
     public GordoBurstHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(GordoBurstPacket packet, IPEndPoint clientEp)
+    protected override void Handle(GordoBurstPacket packet, IPEndPoint clientEp)
     {
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {

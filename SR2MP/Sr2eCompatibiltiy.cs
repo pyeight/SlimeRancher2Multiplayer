@@ -16,11 +16,11 @@ using UnityEngine.UI;
 // This was made for SR2EExpansionV3
 // This is MLEntrypoint V2
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-internal class MLEntrypoint : MelonMod
+internal sealed class MLEntrypoint : MelonMod
 {
     private SR2EExpansionV3 expansion;
     bool isCorrectSR2EInstalled = false;
-    private string installedSR2Ver = "";
+    private string installedSR2Ver = string.Empty;
 
     private System.Collections.IEnumerator CheckForMainMenu(int message)
     {

@@ -94,13 +94,12 @@ public sealed class ReliabilityManager
     {
         var key = GetPacketKey(sender, packetId);
 
-        if (pendingPackets.TryRemove(key, out var packet))
-        {
-            var latency = DateTime.UtcNow - packet.FirstSendTime;
-            SrLogger.LogPacketSize(
-                $"ACK received for packet {packetId} (type={packetType}) after {packet.SendCount} sends, latency={latency.TotalMilliseconds:F1}ms",
-                SrLogTarget.Both);
-        }
+        if (!pendingPackets.TryRemove(key, out var packet))
+            return;
+        var latency = DateTime.UtcNow - packet.FirstSendTime;
+        SrLogger.LogPacketSize(
+            $"ACK received for packet {packetId} (type={packetType}) after {packet.SendCount} sends, latency={latency.TotalMilliseconds:F1}ms",
+            SrLogTarget.Both);
     }
 
     // Checks if an ordered packet should be processed based on sequence number

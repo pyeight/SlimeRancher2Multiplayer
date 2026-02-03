@@ -14,7 +14,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
     public PlayerJoinHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
+    protected override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
     {
         string playerId = packet.PlayerId;
 

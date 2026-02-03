@@ -25,12 +25,12 @@ public sealed class Client
     private Timer? connectionTimeoutTimer;
     private const int ConnectionTimeoutSeconds = 10;
 
-    private bool shownConnectionError = false;
+    private bool shownConnectionError;
 
     private readonly ClientPacketManager packetManager;
 
-    public string OwnPlayerId { get; private set; } = string.Empty;
     public bool IsConnected => isConnected;
+    public string OwnPlayerId { get; private set; } = string.Empty;
 
     public event Action<string>? OnConnected;
     public event Action? OnDisconnected;
@@ -132,11 +132,10 @@ public sealed class Client
 
     private void CheckConnectionTimeout(object? state)
     {
-        if (!connectionAcknowledged && isConnected)
-        {
-            SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
-            Disconnect();
-        }
+        if (connectionAcknowledged || !isConnected)
+            return;
+        SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
+        Disconnect();
     }
 
     private void ReceiveLoop()

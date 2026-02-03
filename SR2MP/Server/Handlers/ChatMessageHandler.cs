@@ -14,7 +14,7 @@ public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
     {
     }
 
-    public override void Handle(ChatMessagePacket packet, IPEndPoint clientEp)
+    protected override void Handle(ChatMessagePacket packet, IPEndPoint clientEp)
     {
         SrLogger.LogMessage($"Chat message from {packet.Username}: {packet.Message}",
             $"Chat message from {clientEp} ({packet.Username}): {packet.Message}");

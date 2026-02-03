@@ -11,7 +11,7 @@ public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket
     public GeyserTriggerHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(GeyserTriggerPacket packet, IPEndPoint clientEp)
+    protected override void Handle(GeyserTriggerPacket packet, IPEndPoint clientEp)
     {
         var obj = GameObject.Find(packet.ObjectPath);
 

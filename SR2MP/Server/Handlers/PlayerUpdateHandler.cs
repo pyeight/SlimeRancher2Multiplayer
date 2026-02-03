@@ -11,7 +11,7 @@ public sealed class PlayerUpdateHandler : BasePacketHandler<PlayerUpdatePacket>
     public PlayerUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(PlayerUpdatePacket packet, IPEndPoint clientEp)
+    protected override void Handle(PlayerUpdatePacket packet, IPEndPoint clientEp)
     {
         // todo: This is temporary :3
         if (packet.PlayerId == "HOST")

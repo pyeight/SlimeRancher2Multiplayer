@@ -22,12 +22,7 @@ public static class PacketDeduplication
             Cleanup();
         }
 
-        if (ProcessedPackets.TryAdd(key, DateTime.UtcNow))
-        {
-            return false;
-        }
-
-        return true;
+        return !ProcessedPackets.TryAdd(key, DateTime.UtcNow);
     }
 
     public static void MarkProcessed(string packetType, string uniqueId)

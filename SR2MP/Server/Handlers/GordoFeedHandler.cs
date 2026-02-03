@@ -12,7 +12,7 @@ public sealed class GordoFeedHandler : BasePacketHandler<GordoFeedPacket>
     public GordoFeedHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(GordoFeedPacket packet, IPEndPoint clientEp)
+    protected override void Handle(GordoFeedPacket packet, IPEndPoint clientEp)
     {
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {

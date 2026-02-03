@@ -11,7 +11,7 @@ public sealed class FastForwardHandler : BasePacketHandler<WorldTimePacket>
     public FastForwardHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(WorldTimePacket packet, IPEndPoint clientEp)
+    protected override void Handle(WorldTimePacket packet, IPEndPoint clientEp)
     {
         handlingPacket = true;
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);

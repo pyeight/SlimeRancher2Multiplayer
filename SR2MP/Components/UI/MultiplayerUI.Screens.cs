@@ -4,8 +4,8 @@ public sealed partial class MultiplayerUI
 {
     private bool multiplayerUIHidden;
     private string usernameInput = "Player";
-    private string ipInput = "";
-    private string portInput = "";
+    private string ipInput = string.Empty;
+    private string portInput = string.Empty;
     private string hostPortInput = "1919";
     private bool allowCheatsInput;
 

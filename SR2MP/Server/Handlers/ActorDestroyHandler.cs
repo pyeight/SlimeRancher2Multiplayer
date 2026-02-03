@@ -11,7 +11,7 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
     public ActorDestroyHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ActorDestroyPacket packet, IPEndPoint clientEp)
+    protected override void Handle(ActorDestroyPacket packet, IPEndPoint clientEp)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
         {

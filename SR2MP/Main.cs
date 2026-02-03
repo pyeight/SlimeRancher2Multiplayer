@@ -42,7 +42,7 @@ public sealed class Main : SR2EExpansionV3
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
 
-        preferences.CreateEntry("recent_port", "", is_hidden: true);
+        preferences.CreateEntry("recent_port", string.Empty, is_hidden: true);
         preferences.CreateEntry("recent_ip", "127.0.0.1", is_hidden: true);
         preferences.CreateEntry("host_port", "1919", is_hidden: true);
 

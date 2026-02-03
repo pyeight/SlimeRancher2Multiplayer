@@ -6,7 +6,7 @@ namespace SR2MP.Shared.Managers;
 
 public static class DiscordRPCManager
 {
-    private enum Zone
+    private enum Zone : byte
     {
         Conservatory,
         RainbowFields,
@@ -21,7 +21,7 @@ public static class DiscordRPCManager
         LabyrinthCore,
         MainMenu,
 
-        // Introduce at like, 0.4 or 1.0..?
+        // Introduce at like, 0.4 or 1.0.?
         FinalBoss,
         Ending,
     }

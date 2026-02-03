@@ -28,7 +28,7 @@ public static class OnResourceAttach
         {
             var index = spawner.SpawnJoints.IndexOf(joint);
 
-            var id = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? "";
+            var id = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? string.Empty;
 
             var packet = new ResourceAttachPacket()
             {

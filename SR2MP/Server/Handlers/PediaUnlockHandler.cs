@@ -11,7 +11,7 @@ public sealed class PediaUnlockHandler : BasePacketHandler<PediaUnlockPacket>
     public PediaUnlockHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(PediaUnlockPacket packet, IPEndPoint senderEndPoint)
+    protected override void Handle(PediaUnlockPacket packet, IPEndPoint senderEndPoint)
     {
         handlingPacket = true;
         SceneContext.Instance.PediaDirector.Unlock(

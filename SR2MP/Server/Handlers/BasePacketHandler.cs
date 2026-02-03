@@ -24,5 +24,5 @@ public abstract class BasePacketHandler<T> : IPacketHandler where T : IPacket, n
         Handle(packet, clientEp);
     }
 
-    public abstract void Handle(T packet, IPEndPoint clientEp);
+    protected abstract void Handle(T packet, IPEndPoint clientEp);
 }

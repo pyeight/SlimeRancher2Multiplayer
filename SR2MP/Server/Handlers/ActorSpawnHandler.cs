@@ -11,7 +11,7 @@ public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
     public ActorSpawnHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ActorSpawnPacket packet, IPEndPoint clientEp)
+    protected override void Handle(ActorSpawnPacket packet, IPEndPoint clientEp)
     {
         if (actorManager.Actors.ContainsKey(packet.ActorId.Value))
         {

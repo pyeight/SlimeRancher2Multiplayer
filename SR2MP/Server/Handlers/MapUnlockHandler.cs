@@ -13,7 +13,7 @@ public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
     public MapUnlockHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(MapUnlockPacket packet, IPEndPoint clientEp)
+    protected override void Handle(MapUnlockPacket packet, IPEndPoint clientEp)
     {
         var gameEvent = Resources.FindObjectsOfTypeAll<StaticGameEvent>().FirstOrDefault(x => x._dataKey == packet.NodeID);
         SceneContext.Instance.MapDirector.NotifyZoneUnlocked(gameEvent, false, 0);

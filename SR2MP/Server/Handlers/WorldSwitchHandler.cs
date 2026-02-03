@@ -13,7 +13,7 @@ public sealed class WorldSwitchHandler : BasePacketHandler<WorldSwitchPacket>
     public WorldSwitchHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(WorldSwitchPacket packet, IPEndPoint clientEp)
+    protected override void Handle(WorldSwitchPacket packet, IPEndPoint clientEp)
     {
         var gameModel = SceneContext.Instance.GameModel;
 

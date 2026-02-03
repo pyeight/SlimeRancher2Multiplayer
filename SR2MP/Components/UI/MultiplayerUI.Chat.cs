@@ -9,7 +9,7 @@ public sealed partial class MultiplayerUI
     private Queue<Action> pendingMessageRegistrations = new();
     private HashSet<string> processedMessageIds = new();
 
-    private string chatInput = "";
+    private string chatInput = string.Empty;
     private bool isChatFocused;
     private bool wasChatFocused;
     private const string ChatInputName = "ChatInput";
@@ -211,7 +211,7 @@ public sealed partial class MultiplayerUI
 
     private void ClearChatInput()
     {
-        chatInput = "";
+        chatInput = string.Empty;
     }
 
     public void ClearChatMessages()

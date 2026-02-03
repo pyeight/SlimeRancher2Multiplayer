@@ -11,7 +11,7 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
     public GardenPlantHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(GardenPlantPacket packet, IPEndPoint clientEp)
+    protected override void Handle(GardenPlantPacket packet, IPEndPoint clientEp)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 

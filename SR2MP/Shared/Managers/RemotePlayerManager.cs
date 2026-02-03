@@ -104,7 +104,6 @@ public sealed class RemotePlayerManager
         player.Sprinting = sprinting;
         player.LastLookY = player.LookY;
         player.LookY = lookY;
-        player.LastUpdate = DateTime.UtcNow;
         OnPlayerUpdated?.Invoke(playerId, player);
     }
 

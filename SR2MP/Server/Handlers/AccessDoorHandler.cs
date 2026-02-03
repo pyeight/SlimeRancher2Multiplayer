@@ -12,7 +12,7 @@ public sealed class AccessDoorHandler : BasePacketHandler<AccessDoorPacket>
     public AccessDoorHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(AccessDoorPacket packet, IPEndPoint senderEndPoint)
+    protected override void Handle(AccessDoorPacket packet, IPEndPoint senderEndPoint)
     {
         var model = SceneContext.Instance.GameModel.doors[packet.ID];
 

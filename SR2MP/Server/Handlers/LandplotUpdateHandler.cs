@@ -11,7 +11,7 @@ public sealed class LandPlotUpdateHandler : BasePacketHandler<LandPlotUpdatePack
     public LandPlotUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(LandPlotUpdatePacket packet, IPEndPoint clientEp)
+    protected override void Handle(LandPlotUpdatePacket packet, IPEndPoint clientEp)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 

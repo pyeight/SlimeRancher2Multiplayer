@@ -27,7 +27,7 @@ public sealed class NetworkActorManager
         MelonCoroutines.Start(ZoneLoadingLoop());
     }
 
-    internal IEnumerator ZoneLoadingLoop()
+    private IEnumerator ZoneLoadingLoop()
     {
         while (true)
         {
@@ -55,14 +55,13 @@ public sealed class NetworkActorManager
                     continue;
 
                 var obj = actor.value.GetGameObject();
-                if (obj)
-                {
-                    Object.Destroy(obj);
-                    Actors.Remove(actor.value.actorId.Value);
-                }
+                if (!obj)
+                    continue;
+                Object.Destroy(obj);
+                Actors.Remove(actor.value.actorId.Value);
             }
 
-            foreach (var actor2 in gameModel!.identifiables)
+            foreach (var actor2 in gameModel.identifiables)
             {
                 if (actor2.value.ident.IsPlayer)
                     continue;
@@ -75,24 +74,23 @@ public sealed class NetworkActorManager
                 if (!model.ident.prefab)
                     continue;
 
-                if (actor2.value.sceneGroup == scene)
-                {
-                    handlingPacket = true;
-                    var obj = InstantiationHelpers.InstantiateActorFromModel(model);
-                    handlingPacket = false;
+                if (actor2.value.sceneGroup != scene)
+                    continue;
+                handlingPacket = true;
+                var obj = InstantiationHelpers.InstantiateActorFromModel(model);
+                handlingPacket = false;
 
-                    if (!obj)
-                        continue;
+                if (!obj)
+                    continue;
 
-                    var networkComponent = obj.AddComponent<NetworkActor>();
+                var networkComponent = obj.AddComponent<NetworkActor>();
 
-                    networkComponent.previousPosition = model.lastPosition;
-                    networkComponent.nextPosition = model.lastPosition;
-                    networkComponent.previousRotation = model.lastRotation;
-                    networkComponent.nextRotation = model.lastRotation;
+                networkComponent.previousPosition = model.lastPosition;
+                networkComponent.nextPosition = model.lastPosition;
+                networkComponent.previousRotation = model.lastRotation;
+                networkComponent.nextRotation = model.lastRotation;
 
-                    actorManager.Actors.Add(model.actorId.Value, model);
-                }
+                actorManager.Actors.Add(model.actorId.Value, model);
             }
         }
     }
@@ -100,13 +98,7 @@ public sealed class NetworkActorManager
     private static bool ActorIDAlreadyInUse(ActorId id)
     {
         var gameModel = SceneContext.Instance?.GameModel;
-
-        if (!gameModel)
-        {
-            return false;
-        }
-
-        return gameModel!.TryGetIdentifiableModel(id, out _);
+        return gameModel && gameModel!.TryGetIdentifiableModel(id, out _);
     }
 
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out ActorModel? actorModel)
@@ -162,16 +154,15 @@ public sealed class NetworkActorManager
         var actor = InstantiationHelpers.InstantiateActorFromModel(actorModel);
         handlingPacket = false;
 
-        if (actor)
-        {
-            var networkComponent = actor.AddComponent<NetworkActor>();
-            networkComponent.previousPosition = position;
-            networkComponent.nextPosition = position;
-            networkComponent.previousRotation = rotation;
-            networkComponent.nextRotation = rotation;
-            actor.transform.position = position;
-            actorManager.Actors[actorId.Value] = actorModel;
-        }
+        if (!actor)
+            return true;
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        actorManager.Actors[actorId.Value] = actorModel;
 
         return true;
     }
@@ -182,12 +173,11 @@ public sealed class NetworkActorManager
         foreach (var actor in SceneContext.Instance.GameModel.identifiables)
         {
             var id = actor.value.actorId.Value;
-            if (id >= min && id < max)
+            if (id < min || id >= max)
+                continue;
+            if (id > result)
             {
-                if (id > result)
-                {
-                    result = id;
-                }
+                result = id;
             }
         }
         return result;
