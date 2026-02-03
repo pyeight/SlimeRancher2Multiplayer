@@ -17,7 +17,7 @@ public sealed class InitialLandPlotsPacket : IPacket
         public CppCollections.HashSet<LandPlot.Upgrade> Upgrades { get; set; }
 
         public INetObject? Data { get; set; }
-        
+
         public void Serialise(PacketWriter writer)
         {
             writer.WriteString(ID);

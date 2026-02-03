@@ -66,7 +66,7 @@ public sealed class NetworkActor : MonoBehaviour
                     return new ActorId(0);
                 }
             }
-            
+
             try
             {
                 return identifiable.GetActorId();
@@ -111,7 +111,7 @@ public sealed class NetworkActor : MonoBehaviour
                 Destroy(this);
                 return;
             }
-            
+
             emotions = GetComponent<SlimeEmotions>();
             cachedLocallyOwned = LocallyOwned;
             rigidbody = GetComponent<Rigidbody>();

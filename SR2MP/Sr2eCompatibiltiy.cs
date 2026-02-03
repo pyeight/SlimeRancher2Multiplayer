@@ -337,5 +337,4 @@ internal class MLEntrypoint : MelonMod
     {
         if (isCorrectSR2EInstalled) Sr2EDeinit();
     }
-
 }

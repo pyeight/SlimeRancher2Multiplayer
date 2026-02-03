@@ -1,5 +1,4 @@
-﻿using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2MP.Packets.Actor;
+﻿using SR2MP.Packets.Actor;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 
@@ -29,7 +28,7 @@ public sealed class GardenResourceAttachHandler : BaseClientPacketHandler<Resour
                 spawnerModel.nextSpawnTime = packet.Model.nextSpawnTime;
                 spawnerModel.storedWater = packet.Model.storedWater;
                 spawnerModel.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
-                
+
                 var spawner = spawnerModel.part.Cast<SpawnResource>();
                 if (spawner)
                 {
@@ -66,7 +65,7 @@ public sealed class GardenResourceAttachHandler : BaseClientPacketHandler<Resour
                     spawnerModel.nextSpawnTime = packet.Model.nextSpawnTime;
                     spawnerModel.storedWater = packet.Model.storedWater;
                     spawnerModel.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
-                    
+
                     var joint = spawner.SpawnJoints[packet.Joint];
                     if (joint!.connectedBody)
                     {

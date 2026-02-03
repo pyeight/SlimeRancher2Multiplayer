@@ -18,7 +18,7 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler<PlayerJoinPacket
             SrLogger.LogPacketSize($"Player {packet.PlayerId} already exists", SrLogTarget.Both);
             return;
         }
-        
+
         if (packet.PlayerId.Equals(Client.OwnPlayerId))
         {
             SrLogger.LogMessage("Player join request accepted!", SrLogTarget.Both);

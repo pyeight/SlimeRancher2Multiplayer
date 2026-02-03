@@ -20,7 +20,7 @@ public static class DiscordRPCManager
         LabyrinthTerrarium,
         LabyrinthCore,
         MainMenu,
-        
+
         // Introduce at like, 0.4 or 1.0..?
         FinalBoss,
         Ending,
@@ -106,10 +106,10 @@ public static class DiscordRPCManager
     {
         rpcClient?.Dispose();
     }
-    
+
     public static ZoneDefinition? currentZone;
     public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
-    
+
     internal static void UpdatePresence()
     {
         var online = Main.Server.IsRunning() || Main.Client.IsConnected;

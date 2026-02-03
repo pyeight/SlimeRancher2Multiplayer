@@ -50,5 +50,5 @@ public enum PacketType : byte
     WeatherUpdate = 45,           // Server -> All Clients                                                              On Weather Update
     InitialWeather = 46,          // Server -> Client                                                                   Weather on Load
     ReservedAck = 254,
-    ReservedDoNotUse = 255,       
+    ReservedDoNotUse = 255,
 }

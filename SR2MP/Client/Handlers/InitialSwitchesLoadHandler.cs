@@ -31,7 +31,7 @@ public sealed class SwitchesLoadHandler : BaseClientPacketHandler<InitialSwitche
                     var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
                     var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
                     var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
-                    
+
                     handlingPacket = true;
                     primary?.SetStateForAll(worldSwitch.State, true);
                     secondary?.SetState(worldSwitch.State, true);

@@ -23,7 +23,7 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                     SceneContext.Instance.GameModel.resourceSpawners.Add(packet.SpawnerID, spawnerModel);
 
                     Main.Server.SendToAllExcept(packet, clientEp);
-                    
+
                     return;
                 }
 
@@ -31,7 +31,7 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                 spawnerModel.nextSpawnTime = packet.Model.nextSpawnTime;
                 spawnerModel.storedWater = packet.Model.storedWater;
                 spawnerModel.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
-                
+
                 var spawner = spawnerModel.part.Cast<SpawnResource>();
                 if (spawner)
                 {
@@ -69,7 +69,7 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                     spawnerModel.nextSpawnTime = packet.Model.nextSpawnTime;
                     spawnerModel.storedWater = packet.Model.storedWater;
                     spawnerModel.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
-                    
+
                     var joint = spawner.SpawnJoints[packet.Joint];
                     if (joint!.connectedBody)
                     {
@@ -86,7 +86,7 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                 }
             }
         }
-        
+
         Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

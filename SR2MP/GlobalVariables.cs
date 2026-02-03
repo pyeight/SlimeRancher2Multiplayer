@@ -32,11 +32,11 @@ public static class GlobalVariables
     public static Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone;
 
     public static Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames;
-    
+
     // To prevent stuff from being stuck in
     // an infinite sending loop
     public static bool handlingPacket = false;
-    
+
     public static string LocalID =>
         Main.Server.IsRunning()
             ? "HOST"

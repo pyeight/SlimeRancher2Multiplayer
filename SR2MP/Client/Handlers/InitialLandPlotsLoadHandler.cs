@@ -15,7 +15,7 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler<InitialLandPlotsP
         foreach (var plot in packet.Plots)
         {
             var model = SceneContext.Instance.GameModel.landPlots[plot.ID];
-            
+
             if (model.gameObj)
             {
                 handlingPacket = true;

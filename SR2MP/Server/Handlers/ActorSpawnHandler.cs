@@ -2,7 +2,6 @@ using System.Net;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
-using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server.Handlers;
 

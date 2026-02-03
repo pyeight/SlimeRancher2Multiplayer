@@ -69,9 +69,9 @@ public sealed class PacketManager
         // Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
 
         string senderKey = clientEp.ToString();
-        
-        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, 
-            totalChunks, packetId, senderKey, reliability, sequenceNumber, 
+
+        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex,
+            totalChunks, packetId, senderKey, reliability, sequenceNumber,
             out data, out var packetReliability, out var packetSequenceNumber))
             return;
 
@@ -112,7 +112,7 @@ public sealed class PacketManager
             if (!networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetType))
                 return;
         }
-        
+
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try

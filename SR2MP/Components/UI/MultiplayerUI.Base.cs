@@ -34,7 +34,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
     {
         Instance = null!;
     }
-    
+
     private void OnGUI()
     {
         if (Event.current.type == EventType.Layout)
@@ -62,7 +62,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
             }
         }
     }
-    
+
     private void DrawWindow()
     {
         if (state == MenuState.Hidden) return;

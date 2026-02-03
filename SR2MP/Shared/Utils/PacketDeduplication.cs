@@ -6,12 +6,12 @@ public static class PacketDeduplication
 {
     // Key format: "PacketType_UniqueId"
     private static readonly ConcurrentDictionary<string, DateTime> ProcessedPackets = new();
-    
+
     private static readonly TimeSpan PacketMemoryDuration = TimeSpan.FromSeconds(30);
-    
+
     private static int processCounter = 0;
     private const int CleanupInterval = 100;
-    
+
     public static bool IsDuplicate(string packetType, string uniqueId)
     {
         var key = $"{packetType}_{uniqueId}";
@@ -29,7 +29,7 @@ public static class PacketDeduplication
         
         return true;
     }
-    
+
     public static void MarkProcessed(string packetType, string uniqueId)
     {
         var key = $"{packetType}_{uniqueId}";
@@ -42,7 +42,7 @@ public static class PacketDeduplication
         SrLogger.LogPacketSize("Packet deduplication cache cleared", SrLogTarget.Both);
         Cleanup();
     }
-    
+
     private static void Cleanup()
     {
         var now = DateTime.UtcNow;

@@ -54,7 +54,7 @@ public sealed class Client
             SrLogger.LogWarning("You can not join a world while hosting a server.", SrLogTarget.Both);
             return;
         }
-        
+
         if (isConnected)
         {
             SrLogger.LogWarning("You are already connected to a Server!", SrLogTarget.Both);
@@ -80,12 +80,12 @@ public sealed class Client
                 udpClient = new UdpClient(AddressFamily.InterNetwork);
                 SrLogger.LogMessage("Using IPv4 connection", SrLogTarget.Both);
             }
-            
+
             PacketDeduplication.Clear();
 
             serverEndPoint = new IPEndPoint(parsedIp, port);
             udpClient.Connect(serverEndPoint);
-            
+
             udpClient.Client.ReceiveBufferSize = 512 * 1024;
             udpClient.Client.SendBufferSize = 512 * 1024;
 
@@ -187,7 +187,7 @@ public sealed class Client
                         shownConnectionError = true;
                     }
                 }
-                
+
                 MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
                 Disconnect();
             }
@@ -234,10 +234,10 @@ public sealed class Client
             byte[] data = writer.ToArray();
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
-            
+
             PacketReliability reliability = packet.Reliability;
             ushort sequenceNumber = 0;
-            
+
             // Get sequence number for ordered packets (pass packet type)
             if (reliability == PacketReliability.ReliableOrdered)
             {
@@ -245,13 +245,13 @@ public sealed class Client
             }
 
             var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out ushort packetId);
-            
+
             // Track reliability if needed
             if (reliability != PacketReliability.Unreliable)
             {
                 reliabilityManager?.TrackPacket(chunks, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
             }
-            
+
             foreach (var chunk in chunks)
             {
                 SendRaw(chunk, serverEndPoint);
@@ -265,19 +265,19 @@ public sealed class Client
             SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
         }
     }
-    
+
     // Sends raww data without reliability tracking (used for resends)
     private void SendRaw(byte[] data, IPEndPoint endPoint)
     {
         udpClient?.Send(data, data.Length);
     }
-    
+
     // Handle acknowledgment from server, used in client packet manager
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
     {
         reliabilityManager?.HandleAck(sender, packetId, packetType);
     }
-    
+
     // Check if ordered packet should be processed
     public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
     {
@@ -310,7 +310,7 @@ public sealed class Client
             {
                 SrLogger.LogWarning($"Could not send leave packet: {ex.Message}");
             }
-            
+
             PacketDeduplication.Clear();
 
             isConnected = false;
@@ -334,14 +334,14 @@ public sealed class Client
                 udpClient.Close();
                 udpClient = null;
             }
-            
+
             if (receiveThread is { IsAlive: true })
             {
                 SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
             }
 
             receiveThread = null;
-            
+
             var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
             foreach (var playerId in allPlayerIds)
             {

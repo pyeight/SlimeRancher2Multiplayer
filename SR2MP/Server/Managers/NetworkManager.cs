@@ -38,11 +38,11 @@ public sealed class NetworkManager
                 udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
                 SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogTarget.Both);
             }
-            
+
             udpClient.Client.ReceiveBufferSize = 512 * 1024;
             udpClient.Client.SendBufferSize = 512 * 1024;
             udpClient.Client.ReceiveTimeout = 0;
-            
+
             reliabilityManager = new ReliabilityManager(SendRaw);
             reliabilityManager.Start();
 
@@ -108,19 +108,19 @@ public sealed class NetworkManager
         {
             PacketReliability packetReliability = reliability ?? PacketReliability.Unreliable;
             ushort sequenceNumber = 0;
-            
+
             if (packetReliability == PacketReliability.ReliableOrdered)
             {
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
             }
-            
+
             var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out ushort packetId);
-            
+
             if (packetReliability != PacketReliability.Unreliable)
             {
                 reliabilityManager?.TrackPacket(chunks, endPoint, packetId, data[0], packetReliability, sequenceNumber);
             }
-            
+
             foreach (var chunk in chunks)
             {
                 SendRaw(chunk, endPoint);
@@ -131,7 +131,7 @@ public sealed class NetworkManager
             SrLogger.LogError($"Send failed to {endPoint}: {ex}", SrLogTarget.Both);
         }
     }
-    
+
     // Broadcast to multiple endpoints efficiently
     public void Broadcast(byte[] data, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
     {
@@ -145,15 +145,15 @@ public sealed class NetworkManager
         {
             PacketReliability finalReliability = reliability ?? PacketReliability.Unreliable;
             ushort sequenceNumber = 0;
-            
+
             if (finalReliability == PacketReliability.ReliableOrdered)
             {
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
             }
-            
+
             // Split once, send to many
             var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out ushort packetId);
-            
+
             foreach (var endpoint in endpoints)
             {
                 // Track for reliability if needed
@@ -161,7 +161,7 @@ public sealed class NetworkManager
                 {
                     reliabilityManager?.TrackPacket(chunks, endpoint, packetId, data[0], finalReliability, sequenceNumber);
                 }
-                
+
                 foreach (var chunk in chunks)
                 {
                     SendRaw(chunk, endpoint);
@@ -179,7 +179,7 @@ public sealed class NetworkManager
     {
         udpClient?.Send(data, data.Length, endPoint);
     }
-    
+
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
     {
         reliabilityManager?.HandleAck(sender, packetId, packetType);

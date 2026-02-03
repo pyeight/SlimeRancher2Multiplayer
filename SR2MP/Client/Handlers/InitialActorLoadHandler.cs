@@ -43,7 +43,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
                     actor.Scene,
                     out var spawnedActor))
                 continue;
-            
+
             /*if (spawnedActor!.TryGetNetworkComponent(out var component))
             {
                 component.LocallyOwned = true;

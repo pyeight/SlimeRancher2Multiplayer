@@ -1,11 +1,9 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.UI.Map;
-using SR2MP.Packets.FX;
 using SR2MP.Packets.World;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
-using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Handlers;
 

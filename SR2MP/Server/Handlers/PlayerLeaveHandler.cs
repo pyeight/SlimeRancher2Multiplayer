@@ -16,7 +16,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
     public override void Handle(PlayerLeavePacket packet, IPEndPoint clientEp)
     {
         string playerId = packet.PlayerId;
-        
+
         if (playerManager.GetPlayer(playerId) == null)
         {
             SrLogger.LogMessage($"Player {playerId} doesn't exist (already left?)", SrLogTarget.Both);
@@ -29,11 +29,11 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
             $"Player leave request from {clientInfo} (PlayerId: {playerId})");
 
         var leaveUsername = playerManager.GetPlayer(playerId)?.Username ?? "Unknown";
-        
+
         if (clientManager.RemoveClient(clientInfo))
         {
             playerManager.RemovePlayer(playerId);
-            
+
             if (playerObjects.TryGetValue(playerId, out var playerObject))
             {
                 if (playerObject != null)
@@ -43,7 +43,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
                 }
                 playerObjects.Remove(playerId);
             }
-            
+
             var leavePacket = new PlayerLeavePacket
             {
                 Type = PacketType.BroadcastPlayerLeave,
@@ -54,7 +54,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 
             SrLogger.LogMessage($"Player {playerId} left the server",
                 $"Player {playerId} left from {clientInfo}");
-            
+
             var leaveChatPacket = new ChatMessagePacket
             {
                 Username = "SYSTEM",
@@ -62,7 +62,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
                 MessageID = $"SYSTEM_LEAVE_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
                 MessageType = MultiplayerUI.SystemMessageDisconnect
             };
-            
+
             Main.Server.SendToAll(leaveChatPacket);
             MultiplayerUI.Instance.RegisterSystemMessage($"{leaveUsername} left the world!", $"SYSTEM_LEAVE_HOST_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
         }

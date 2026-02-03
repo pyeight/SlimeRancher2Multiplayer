@@ -22,7 +22,7 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
             if (model.gameObj)
             {
                 var plot = model.gameObj.GetComponentInChildren<LandPlot>();
-                
+
                 handlingPacket = true;
                 plot.DestroyAttached();
                 handlingPacket = false;
@@ -31,7 +31,7 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
         else
         {
             var actor = actorManager.ActorTypes[packet.ActorType];
-        
+
             model.resourceGrowerDefinition =
                 GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation.RawLookupDictionary._entries.FirstOrDefault(x =>
                     x.value._primaryResourceType == actor)!.value;

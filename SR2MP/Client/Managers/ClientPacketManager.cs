@@ -70,8 +70,8 @@ public sealed class ClientPacketManager
 
         // Client uses "server" as sender key
         string senderKey = "server";
-        
-        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex, 
+
+        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex,
             totalChunks, packetId, senderKey, reliability, sequenceNumber,
             out data, out var packetReliability, out var packetSequenceNumber))
             return;
@@ -94,7 +94,7 @@ public sealed class ClientPacketManager
         {
             SendAck(packetId, packetType);
         }
-        
+
         string packetTypeKey = ((PacketType)packetType).ToString();
         string uniqueId = packetId.ToString();
 
@@ -103,7 +103,7 @@ public sealed class ClientPacketManager
             SrLogger.LogPacketSize($"Duplicate packet ignored: {packetTypeKey} (packetId={packetId})", SrLogTarget.Both);
             return;
         }
-        
+
         if (packetReliability == PacketReliability.ReliableOrdered)
         {
             if (!client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetType))

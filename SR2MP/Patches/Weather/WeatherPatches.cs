@@ -29,7 +29,7 @@ namespace SR2MP.Patches.Weather
         public static bool Prefix()
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
-            
+
             if (Main.Client.IsConnected && !handlingPacket)
             {
                 return false;
@@ -49,10 +49,10 @@ namespace SR2MP.Patches.Weather
             IWeatherState state)
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
-            
+
             if (__instance == null || zone == null)
                 return false;
-            
+
             if (Main.Client.IsConnected && !handlingPacket)
             {
                 return false;
@@ -82,7 +82,7 @@ namespace SR2MP.Patches.Weather
         public static bool Prefix()
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
-            
+
             if (Main.Client.IsConnected && !handlingPacket)
             {
                 return false;
@@ -106,7 +106,7 @@ namespace SR2MP.Patches.Weather
         public static bool Prefix()
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
-            
+
             if (Main.Client.IsConnected && !handlingPacket)
             {
                 return false;
@@ -143,7 +143,7 @@ public static class WeatherUpdateHelper
         {
             weatherPatternsFromStateNames.Clear();
             weatherPatternsByZone.Clear();
-            
+
             if (registry.ZoneConfigList == null)
             {
                 SrLogger.LogError("WeatherRegistry.ZoneConfigList is null", SrLogTarget.Both);
@@ -183,7 +183,7 @@ public static class WeatherUpdateHelper
 
                 weatherPatternsByZone[config.Zone] = zonePatternMap;
             }
-            
+
             lookupInitialized = true;
             SrLogger.LogPacketSize($"Weather pattern lookup initialized with {weatherPatternsFromStateNames.Count} states", SrLogTarget.Both);
         }
@@ -193,7 +193,7 @@ public static class WeatherUpdateHelper
             lookupInitialized = false;
         }
     }
-    
+
     public static void EnsureLookupInitialized()
     {
         if (lookupInitialized)

@@ -10,7 +10,7 @@ public sealed partial class MultiplayerUI
     {
         GUI.Label(CalculateTextLayout(6, text, horizontalShare, horizontalIndex), text);
     }
-    
+
     private Rect CalculateTextLayout(float originalX, string text, int horizontalShare = 1, int horizontalIndex = 0)
     {
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);

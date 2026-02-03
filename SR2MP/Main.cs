@@ -52,7 +52,7 @@ public sealed class Main : SR2EExpansionV3
     public override void OnLateInitializeMelon()
     {
         InsertLicensesFile();
-        
+
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
@@ -131,7 +131,7 @@ public sealed class Main : SR2EExpansionV3
                 playerPrefab.AddComponent<NetworkPlayerFootstep>().spawnAtTransform = footstepFX.transform;
 
                 Object.DontDestroyOnLoad(playerPrefab);
-                
+
                 break;
         }
     }

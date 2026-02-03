@@ -28,11 +28,11 @@ public sealed class RemoteFXManager
         {
             return true;
         }
-        
+
         // VAC SFX
         if (cue.name.Contains("VacAmmoSelect"))
             return false;
-        
+
         if (cue.name.Contains("Vac")
             || cue.name.Contains("vac"))
         {

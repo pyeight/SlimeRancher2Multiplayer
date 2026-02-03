@@ -21,14 +21,14 @@ public sealed class ReliabilityManager
 
     private readonly ConcurrentDictionary<string, PendingPacket> pendingPackets = new();
     private readonly ConcurrentDictionary<string, ushort> lastProcessedSequence = new();
-    
+
     private readonly ConcurrentDictionary<byte, int> sequenceNumbersByType = new();
-    
+
     private readonly Action<byte[], IPEndPoint> sendRawCallback;
-    
+
     private Thread? resendThread;
     private volatile bool isRunning;
-    
+
     private static readonly TimeSpan ResendInterval = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan MaxRetryTime = TimeSpan.FromSeconds(10);
     private const int MaxResendAttempts = 50;
@@ -66,8 +66,8 @@ public sealed class ReliabilityManager
         
         SrLogger.LogMessage("ReliabilityManager stopped", SrLogTarget.Both);
     }
-    
-    public void TrackPacket(byte[][] chunks, IPEndPoint destination, ushort packetId, 
+
+    public void TrackPacket(byte[][] chunks, IPEndPoint destination, ushort packetId,
         byte packetType, PacketReliability reliability, ushort sequenceNumber)
     {
         if (reliability == PacketReliability.Unreliable)
@@ -89,7 +89,7 @@ public sealed class ReliabilityManager
 
         pendingPackets[key] = packet;
     }
-    
+
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
     {
         var key = GetPacketKey(sender, packetId);
@@ -102,7 +102,7 @@ public sealed class ReliabilityManager
                 SrLogTarget.Both);
         }
     }
-    
+
     // Checks if an ordered packet should be processed based on sequence number
     public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
     {
@@ -133,7 +133,7 @@ public sealed class ReliabilityManager
         
         return false;
     }
-    
+
     // Gets the next sequence number for ReliableOrdered packets
     public ushort GetNextSequenceNumber(byte packetType)
     {
@@ -158,7 +158,7 @@ public sealed class ReliabilityManager
                 foreach (var kvp in pendingPackets)
                 {
                     var packet = kvp.Value;
-                    
+
                     // Checks if packet has timed out
                     if (now - packet.FirstSendTime > MaxRetryTime || packet.SendCount >= MaxResendAttempts)
                     {
@@ -176,10 +176,10 @@ public sealed class ReliabilityManager
                         {
                             sendRawCallback(chunk, packet.Destination);
                         }
-                        
+
                         packet.LastSendTime = now;
                         packet.SendCount++;
-                        
+
                         if (packet.SendCount % 10 == 0)
                         {
                             SrLogger.LogWarning(

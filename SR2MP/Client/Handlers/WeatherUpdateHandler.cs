@@ -46,7 +46,7 @@ namespace SR2MP.Client.Handlers
                 var forecastCopy = new List<WeatherModel.ForecastEntry>();
                 for (int i = 0; i < zone.Forecast.Count; i++)
                     forecastCopy.Add(zone.Forecast[i]);
-                
+
                 foreach (var forecast in forecastCopy)
                 {
                     var patternInstance = registry.GetWeatherPatternInstance(
@@ -69,13 +69,13 @@ namespace SR2MP.Client.Handlers
                             forecast.State
                         );
                     }
-                    
+
                     yield return null;
                 }
 
                 zone.Forecast.Clear();
                 zone.Parameters.WindDirection = data.WindSpeed;
-                
+
                 foreach (var forecast in data.WeatherForecasts)
                 {
                     var pattern = WeatherUpdateHelper.GetPatternForZoneAndState(zoneKey, forecast.State.name);
@@ -88,7 +88,7 @@ namespace SR2MP.Client.Handlers
                         StartTime = forecast.StartTime,
                         EndTime = forecast.EndTime
                     });
-                    
+
                     yield return null;
                 }
 
@@ -101,7 +101,7 @@ namespace SR2MP.Client.Handlers
                 var activeCopy = new List<WeatherModel.ForecastEntry>();
                 for (int i = 0; i < activeZone.Forecast.Count; i++)
                     activeCopy.Add(activeZone.Forecast[i]);
-                
+
                 foreach (var forecast in activeCopy)
                 {
                     var patternInstance = registry.GetWeatherPatternInstance(
@@ -122,7 +122,7 @@ namespace SR2MP.Client.Handlers
                             false
                         );
                     }
-                    
+
                     yield return null;
                 }
 

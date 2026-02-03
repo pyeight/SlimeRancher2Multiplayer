@@ -75,7 +75,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         };
         Main.Server.SendToClient(upgradesPacket, client);
     }
-    
+
     private static void SendWeatherPacket(IPEndPoint client)
     {
         var weatherRegistry = Resources.FindObjectsOfTypeAll<WeatherRegistry>().FirstOrDefault();
@@ -244,8 +244,8 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             INetObject? data = null;
             if (plot.typeId == LandPlot.Id.GARDEN)
             {
-                data = new InitialLandPlotsPacket.GardenData() 
-                { 
+                data = new InitialLandPlotsPacket.GardenData()
+                {
                     Crop = plot.resourceGrowerDefinition == null ? 9 : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
                 };
             }

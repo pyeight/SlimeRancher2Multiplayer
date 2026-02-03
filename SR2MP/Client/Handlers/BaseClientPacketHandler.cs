@@ -18,12 +18,12 @@ public abstract class BaseClientPacketHandler<T> : IClientPacketHandler where T 
     {
         using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<T>();
-        
+
         Handle(packet);
     }
 
     public abstract void Handle(T packet);
-    
+
     protected void SendPacket<TOther>(TOther packet) where TOther : IPacket
     {
         Client.SendPacket(packet);

@@ -6,7 +6,7 @@ public sealed class GardenPlantPacket : IPacket
 {
     public PacketType Type => PacketType.GardenPlant;
     public PacketReliability Reliability => PacketReliability.Reliable;
-    
+
     public string ID { get; set; }
     public int ActorType { get; set; }
 

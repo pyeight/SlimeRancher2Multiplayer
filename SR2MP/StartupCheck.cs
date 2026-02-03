@@ -1,9 +1,5 @@
-﻿using System;
-using System.Net.Http;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 using MelonLoader;
-using UnityEngine;
 
 namespace SR2MP
 {

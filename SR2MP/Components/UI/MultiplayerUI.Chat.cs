@@ -1,4 +1,3 @@
-using SR2E.Utils;
 using SR2MP.Packets;
 
 namespace SR2MP.Components.UI;
@@ -9,18 +8,18 @@ public sealed partial class MultiplayerUI
     private List<ChatMessage> chatMessages = new();
     private Queue<Action> pendingMessageRegistrations = new();
     private HashSet<string> processedMessageIds = new();
-    
+
     private string chatInput = "";
     private bool isChatFocused;
     private bool wasChatFocused;
     private const string ChatInputName = "ChatInput";
-    
+
     private bool shouldUnfocusChat;
     private bool internalChatToggle;
     private bool shouldFocusChat;
 
     private bool disabledInput = false;
-    
+
     public sealed class ChatMessage
     {
         public string message;
@@ -46,7 +45,7 @@ public sealed partial class MultiplayerUI
             var timeString = dateTime.ToString("HH:mm:ss");
             var formattedMessage = $"[{timeString}] {playerName}: {trimmedMessage}";
             var lineInfo = CalculateMessageHeight(formattedMessage);
-            
+
             chatMessages.Add(new ChatMessage
             {
                 message = trimmedMessage,
@@ -57,9 +56,9 @@ public sealed partial class MultiplayerUI
                 isSystemMessage = false,
                 systemMessageType = 0
             });
-            
+
             processedMessageIds.Add(messageId);
-            
+
             if (processedMessageIds.Count > 1000)
             {
                 var toRemove = processedMessageIds.Take(500).ToList();
@@ -70,7 +69,7 @@ public sealed partial class MultiplayerUI
             }
         });
     }
-    
+
     public void RegisterSystemMessage(string message, string messageId, byte type)
     {
         if (processedMessageIds.Contains(messageId))
@@ -85,7 +84,7 @@ public sealed partial class MultiplayerUI
             var timeString = dateTime.ToString("HH:mm:ss");
             var formattedMessage = $"[{timeString}] SYSTEM: {trimmedMessage}";
             var lineInfo = CalculateMessageHeight(formattedMessage);
-            
+
             chatMessages.Add(new ChatMessage
             {
                 message = trimmedMessage,
@@ -96,9 +95,9 @@ public sealed partial class MultiplayerUI
                 isSystemMessage = true,
                 systemMessageType = type
             });
-            
+
             processedMessageIds.Add(messageId);
-            
+
             if (processedMessageIds.Count > 1000)
             {
                 var toRemove = processedMessageIds.Take(500).ToList();
@@ -127,7 +126,7 @@ public sealed partial class MultiplayerUI
         }
         return total;
     }
-    
+
     private void TrimOldMessages()
     {
         int totalLines = CalculateTotalLinesInUse();
@@ -153,7 +152,7 @@ public sealed partial class MultiplayerUI
     {
         var dateTime = DateTimeOffset.FromUnixTimeSeconds(message.time).ToLocalTime();
         var timeString = dateTime.ToString("HH:mm:ss");
-        
+
         string formattedMessage;
         if (message.isSystemMessage)
         {
@@ -164,14 +163,14 @@ public sealed partial class MultiplayerUI
                 SystemMessageClose => ColorSystemClose,
                 _ => ColorSystemNormal
             };
-            
+
             formattedMessage = $"<color={systemColor}>[{timeString}] SYSTEM: {message.message}</color>";
         }
         else
         {
             formattedMessage = $"[{timeString}] {message.playerName}: {message.message}";
         }
-        
+
         GUI.Label(CalculateChatMessageRect(formattedMessage), formattedMessage);
     }
 
@@ -196,13 +195,13 @@ public sealed partial class MultiplayerUI
         if (string.IsNullOrWhiteSpace(message)) return;
 
         message = message.Trim();
-        
+
         string messageId = $"{Main.Username}_{message.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-        
+
         RegisterChatMessage(message, Main.Username, messageId);
-        
+
         Main.SendToAllOrServer(new ChatMessagePacket()
-        { 
+        {
             Message = message,
             Username = Main.Username,
             MessageID = messageId,
@@ -247,7 +246,7 @@ public sealed partial class MultiplayerUI
         {
             GUI.FocusControl(ChatInputName);
             shouldFocusChat = false;
-            
+
             if (!disabledInput)
             {
                 DisableInput();
@@ -258,7 +257,7 @@ public sealed partial class MultiplayerUI
         {
             GUI.FocusControl(null);
             shouldUnfocusChat = false;
-            
+
             if (disabledInput)
             {
                 EnableInput();
@@ -299,7 +298,7 @@ public sealed partial class MultiplayerUI
         
         float chatY = Screen.height / 2;
         
-        GUI.Box(new Rect(6, chatY, ChatWidth, ChatHeight), 
+        GUI.Box(new Rect(6, chatY, ChatWidth, ChatHeight),
                 "Chat (F5 to toggle)");
         
         ProcessPendingMessages();
@@ -318,11 +317,11 @@ public sealed partial class MultiplayerUI
         {
             GUIStyle placeholderStyle = new(GUI.skin.textField);
             placeholderStyle.normal.textColor = Color.gray;
-            
+
             GUI.Label(
-                new Rect(6 + HorizontalSpacing, 
-                         chatY + ChatHeight - InputHeight - 5, 
-                         ChatWidth - (HorizontalSpacing * 2), 
+                new Rect(6 + HorizontalSpacing,
+                         chatY + ChatHeight - InputHeight - 5,
+                         ChatWidth - (HorizontalSpacing * 2),
                          InputHeight),
                 "Press Enter to chat...",
                 placeholderStyle
@@ -330,10 +329,10 @@ public sealed partial class MultiplayerUI
         }
         
         string newChatInput = GUI.TextField(
-            new Rect(6 + HorizontalSpacing, 
-                     chatY + ChatHeight - InputHeight - 5, 
-                     ChatWidth - (HorizontalSpacing * 2), 
-                     InputHeight), 
+            new Rect(6 + HorizontalSpacing,
+                     chatY + ChatHeight - InputHeight - 5,
+                     ChatWidth - (HorizontalSpacing * 2),
+                     InputHeight),
             chatInput,
             MaxChatMessageLength
         );

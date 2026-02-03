@@ -43,7 +43,7 @@ public sealed class Server
             SrLogger.LogWarning("You are already connected to a server, restart your game to host your own server");
             return;
         }
-        
+
         if (networkManager.IsRunning)
         {
             SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
@@ -115,7 +115,7 @@ public sealed class Server
     {
         if (!networkManager.IsRunning)
             return;
-        
+
         var closeChatMessage = new ChatMessagePacket
         {
             Username = "SYSTEM",
@@ -124,7 +124,7 @@ public sealed class Server
             MessageType = MultiplayerUI.SystemMessageClose
         };
         SendToAll(closeChatMessage);
-        
+
         MultiplayerUI.Instance.ClearChatMessages();
         MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
 
@@ -143,7 +143,7 @@ public sealed class Server
             {
                 SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
             }
-            
+
             var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
             foreach (var playerId in allPlayerIds)
             {
