@@ -124,14 +124,7 @@ public sealed partial class MultiplayerUI
 
         foreach (var player in players)
         {
-            if (!string.IsNullOrEmpty(player.Username))
-            {
-                DrawText(player.Username);
-            }
-            else
-            {
-                DrawText("Invalid username.");
-            }
+            DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }
     }
 
@@ -143,14 +136,7 @@ public sealed partial class MultiplayerUI
         var players = playerManager.GetAllPlayers();
         foreach (var player in players)
         {
-            if (!string.IsNullOrEmpty(player.Username))
-            {
-                DrawText(player.Username);
-            }
-            else
-            {
-                DrawText("Invalid username.");
-            }
+            DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }
     }
 }

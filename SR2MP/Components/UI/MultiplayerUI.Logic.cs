@@ -77,22 +77,20 @@ public sealed partial class MultiplayerUI
 
     private void HandleChatToggle()
     {
-        if (KeyCode.F5.OnKeyDown())
+        if (!KeyCode.F5.OnKeyDown())
+            return;
+        if (isChatFocused)
         {
-            if (isChatFocused)
-            {
-                UnfocusChat();
-            }
-
-            chatHidden = !chatHidden;
-            internalChatToggle = true;
-
-            if (chatHidden && disabledInput)
-            {
-                EnableInput();
-                disabledInput = false;
-            }
+            UnfocusChat();
         }
+
+        chatHidden = !chatHidden;
+        internalChatToggle = true;
+
+        if (!chatHidden || !disabledInput)
+            return;
+        EnableInput();
+        disabledInput = false;
     }
 
     private void HandleChatInput()

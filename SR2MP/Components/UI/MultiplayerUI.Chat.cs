@@ -1,3 +1,4 @@
+using Il2CppInterop.Runtime.Attributes;
 using SR2MP.Packets;
 
 namespace SR2MP.Components.UI;
@@ -59,13 +60,12 @@ public sealed partial class MultiplayerUI
 
             processedMessageIds.Add(messageId);
 
-            if (processedMessageIds.Count > 1000)
+            if (processedMessageIds.Count <= 1000)
+                return;
+            var toRemove = processedMessageIds.Take(500).ToList();
+            foreach (var id in toRemove)
             {
-                var toRemove = processedMessageIds.Take(500).ToList();
-                foreach (var id in toRemove)
-                {
-                    processedMessageIds.Remove(id);
-                }
+                processedMessageIds.Remove(id);
             }
         });
     }
@@ -148,6 +148,7 @@ public sealed partial class MultiplayerUI
         return (lineCount, height);
     }
 
+    [HideFromIl2Cpp]
     private void RenderChatMessage(ChatMessage message)
     {
         var dateTime = DateTimeOffset.FromUnixTimeSeconds(message.time).ToLocalTime();

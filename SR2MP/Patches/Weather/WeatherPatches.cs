@@ -8,7 +8,7 @@ using Il2CppMonomiPark.SlimeRancher.World;
 namespace SR2MP.Patches.Weather;
 
 // Weather Registry
-[HarmonyPatch]
+[HarmonyPatch(typeof(WeatherRegistry))]
 public static class WeatherReigstryPatches
 {
     [HarmonyPatch(nameof(WeatherRegistry.Update)), HarmonyPrefix]

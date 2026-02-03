@@ -2,6 +2,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
+using Il2CppInterop.Runtime.Attributes;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.World;
 using MelonLoader;
@@ -144,7 +145,8 @@ public sealed class NetworkActor : MonoBehaviour
         }
     }
 
-    IEnumerator WaitOneFrameOnHibernationChange(bool value)
+    [HideFromIl2Cpp]
+    private IEnumerator WaitOneFrameOnHibernationChange(bool value)
     {
         yield return null;
 

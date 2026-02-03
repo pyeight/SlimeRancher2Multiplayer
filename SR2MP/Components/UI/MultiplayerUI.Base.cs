@@ -52,14 +52,11 @@ public sealed partial class MultiplayerUI : MonoBehaviour
             DrawWindow();
             DrawChat();
         }
-        else
+        else if (!didUnfocus)
         {
-            if (!didUnfocus)
-            {
-                shouldUnfocusChat = true;
-                UnfocusChat();
-                didUnfocus = true;
-            }
+            shouldUnfocusChat = true;
+            UnfocusChat();
+            didUnfocus = true;
         }
     }
 
