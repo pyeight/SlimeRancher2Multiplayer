@@ -18,6 +18,8 @@ public sealed class Main : SR2EExpansionV3
     public static Client.Client Client { get; private set; }
     public static Server.Server Server { get; private set; }
 
+    public static readonly Assembly Core = typeof(Main).Assembly;
+
     static MelonPreferences_Category preferences;
 
     public static string Username => preferences.GetEntry<string>("username").Value;
@@ -158,7 +160,7 @@ public sealed class Main : SR2EExpansionV3
 
     private static void LoadRPCAssembly()
     {
-        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
+        Stream manifestResourceStream = Core.GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Assembly.Load(array);
@@ -166,7 +168,7 @@ public sealed class Main : SR2EExpansionV3
 
     private static void InsertLicensesFile()
     {
-        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
+        Stream manifestResourceStream = Core.GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));

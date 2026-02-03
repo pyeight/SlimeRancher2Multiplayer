@@ -21,8 +21,7 @@ public sealed class PacketManager
 
     public void RegisterHandlers()
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        var handlerTypes = assembly.GetTypes()
+        var handlerTypes = Main.Core.GetTypes()
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
                         && typeof(IPacketHandler).IsAssignableFrom(type)
                         && !type.IsAbstract);
