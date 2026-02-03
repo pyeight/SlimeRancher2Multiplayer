@@ -12,15 +12,7 @@ namespace SR2MP.Patches.Weather
     [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.Update))]
     public static class WeatherRegistryUpdatePatch
     {
-        public static bool Prefix()
-        {
-            if (Main.Client.IsConnected)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        public static bool Prefix() => !Main.Client.IsConnected;
     }
 
     [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.RunPatternState))]
@@ -29,13 +21,7 @@ namespace SR2MP.Patches.Weather
         public static bool Prefix()
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
-
-            if (Main.Client.IsConnected && !handlingPacket)
-            {
-                return false;
-            }
-
-            return true;
+            return !Main.Client.IsConnected || handlingPacket;
         }
     }
 
@@ -44,21 +30,14 @@ namespace SR2MP.Patches.Weather
     {
         public static bool Prefix(
             WeatherRegistry __instance,
-            ZoneDefinition zone,
-            IWeatherPattern pattern,
-            IWeatherState state)
+            ZoneDefinition zone)
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
 
             if (__instance == null || zone == null)
                 return false;
 
-            if (Main.Client.IsConnected && !handlingPacket)
-            {
-                return false;
-            }
-
-            return true;
+            return !Main.Client.IsConnected || handlingPacket;
         }
     }
 
@@ -67,13 +46,7 @@ namespace SR2MP.Patches.Weather
     [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.FixedUpdate))]
     public static class WeatherDirectorFixedUpdatePatch
     {
-        public static bool Prefix()
-        {
-            if (Main.Client.IsConnected)
-                return false;
-
-            return true;
-        }
+        public static bool Prefix() => !Main.Client.IsConnected;
     }
 
     [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
@@ -82,13 +55,7 @@ namespace SR2MP.Patches.Weather
         public static bool Prefix()
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
-
-            if (Main.Client.IsConnected && !handlingPacket)
-            {
-                return false;
-            }
-
-            return true;
+            return !Main.Client.IsConnected || handlingPacket;
         }
 
         public static void Postfix()
@@ -106,13 +73,7 @@ namespace SR2MP.Patches.Weather
         public static bool Prefix()
         {
             WeatherUpdateHelper.EnsureLookupInitialized();
-
-            if (Main.Client.IsConnected && !handlingPacket)
-            {
-                return false;
-            }
-
-            return true;
+            return !Main.Client.IsConnected || handlingPacket;
         }
 
         public static void Postfix()
@@ -127,9 +88,9 @@ namespace SR2MP.Patches.Weather
 
 public static class WeatherUpdateHelper
 {
-    private static bool lookupInitialized = false;
-    private static readonly Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames = new();
-    private static readonly Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone = new();
+    private static bool lookupInitialized;
+    private static readonly Dictionary<string, WeatherPatternDefinition> WeatherPatternsFromStateNames = new();
+    private static readonly Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> WeatherPatternsByZone = new();
 
     public static void CreateWeatherPatternLookup(WeatherRegistry registry)
     {
@@ -141,8 +102,8 @@ public static class WeatherUpdateHelper
 
         try
         {
-            weatherPatternsFromStateNames.Clear();
-            weatherPatternsByZone.Clear();
+            WeatherPatternsFromStateNames.Clear();
+            WeatherPatternsByZone.Clear();
 
             if (registry.ZoneConfigList == null)
             {
@@ -177,15 +138,15 @@ public static class WeatherUpdateHelper
                         }
 
                         zonePatternMap[state.name] = pattern;
-                        weatherPatternsFromStateNames.TryAdd(state.name, pattern);
+                        WeatherPatternsFromStateNames.TryAdd(state.name, pattern);
                     }
                 }
 
-                weatherPatternsByZone[config.Zone] = zonePatternMap;
+                WeatherPatternsByZone[config.Zone] = zonePatternMap;
             }
 
             lookupInitialized = true;
-            SrLogger.LogPacketSize($"Weather pattern lookup initialized with {weatherPatternsFromStateNames.Count} states", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Weather pattern lookup initialized with {WeatherPatternsFromStateNames.Count} states", SrLogTarget.Both);
         }
         catch (Exception ex)
         {
@@ -237,7 +198,7 @@ public static class WeatherUpdateHelper
             return null!;
         }
 
-        if (weatherPatternsByZone.TryGetValue(zone, out var zoneMap))
+        if (WeatherPatternsByZone.TryGetValue(zone, out var zoneMap))
         {
             if (zoneMap.TryGetValue(stateName, out var pattern))
             {
@@ -245,7 +206,7 @@ public static class WeatherUpdateHelper
             }
         }
 
-        if (weatherPatternsFromStateNames.TryGetValue(stateName, out var fallbackPattern))
+        if (WeatherPatternsFromStateNames.TryGetValue(stateName, out var fallbackPattern))
         {
             SrLogger.LogWarning(
                 $"Using fallback pattern for {zone.name} / {stateName}: {fallbackPattern.name}",

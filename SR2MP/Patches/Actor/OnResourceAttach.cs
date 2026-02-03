@@ -24,22 +24,21 @@ public static class OnResourceAttach
         }
 
         var spawner = joint.gameObject.GetComponentInParent<SpawnResource>();
-        if (spawner)
+        if (!spawner)
+            return;
+        var index = spawner.SpawnJoints.IndexOf(joint);
+
+        var id = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? string.Empty;
+
+        var packet = new ResourceAttachPacket()
         {
-            var index = spawner.SpawnJoints.IndexOf(joint);
+            ActorId = __instance._model.actorId,
+            Joint = index,
+            PlotID = id,
+            SpawnerID = spawner.transform.position,
+            Model = spawner._model,
+        };
 
-            var id = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? string.Empty;
-
-            var packet = new ResourceAttachPacket()
-            {
-                ActorId = __instance._model.actorId,
-                Joint = index,
-                PlotID = id,
-                SpawnerID = spawner.transform.position,
-                Model = spawner._model,
-            };
-
-            // Main.SendToAllOrServer(packet);
-        }
+        // Main.SendToAllOrServer(packet);
     }
 }
