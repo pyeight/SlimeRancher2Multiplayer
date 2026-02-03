@@ -34,7 +34,8 @@ public abstract class BaseWeatherHandler : BaseClientPacketHandler<WeatherPacket
         byte zoneId = 0;
         foreach (var zoneKey in zoneKeys)
         {
-            packet.model.Zones.TryGetValue(zoneId, out var data);
+            if (!packet.Zones.TryGetValue(zoneId, out var data))
+                continue;
 
             var zone = registry._zones[zoneKey];
 
@@ -91,37 +92,37 @@ public abstract class BaseWeatherHandler : BaseClientPacketHandler<WeatherPacket
             yield return null;
         }
 
-        registry._zones.TryGetValue(director!.Zone, out var activeZone);
+        if (!registry._zones.TryGetValue(director!.Zone, out var activeZone))
+            yield break;
+
+        var activeCopy = new List<WeatherModel.ForecastEntry>();
+        for (var i = 0; i < activeZone.Forecast.Count; i++)
+            activeCopy.Add(activeZone.Forecast[i]);
+
+        foreach (var forecast in activeCopy)
         {
-            var activeCopy = new List<WeatherModel.ForecastEntry>();
-            for (var i = 0; i < activeZone.Forecast.Count; i++)
-                activeCopy.Add(activeZone.Forecast[i]);
+            var patternInstance = registry.GetWeatherPatternInstance(
+                director.Zone,
+                forecast.Pattern
+            );
 
-            foreach (var forecast in activeCopy)
+            if (patternInstance == null)
             {
-                var patternInstance = registry.GetWeatherPatternInstance(
+                director.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
+            }
+            else
+            {
+                registry.RunPatternState(
                     director.Zone,
-                    forecast.Pattern
+                    patternInstance,
+                    forecast.State,
+                    immediate
                 );
-
-                if (patternInstance == null)
-                {
-                    director.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
-                }
-                else
-                {
-                    registry.RunPatternState(
-                        director.Zone,
-                        patternInstance,
-                        forecast.State,
-                        immediate
-                    );
-                }
-
-                yield return null;
             }
 
-            handlingPacket = false;
+            yield return null;
         }
+
+        handlingPacket = false;
     }
 }
