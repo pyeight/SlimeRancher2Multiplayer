@@ -30,9 +30,9 @@ public sealed class ChatCommand : SR2ECommand
     {
         if (args.Length < 1)
             SendError("Not enough arguments");
-        
+
         var msg = string.Join(" ", args);
-        
+
         var chatPacket = new ChatMessagePacket
         {
             Username = Main.Username,
@@ -40,11 +40,11 @@ public sealed class ChatCommand : SR2ECommand
         };
 
         Main.SendToAllOrServer(chatPacket);
-        
+
         string messageId = $"{Main.Username}_{msg.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-        
+
         MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
-        
+
         return true;
     }
 }

@@ -12,7 +12,7 @@ public sealed partial class MultiplayerUI
     private bool chatShown = false;
     private MenuState previousState = MenuState.Hidden;
 
-    private bool GetIsLoading()
+    private static bool GetIsLoading()
     {
         switch (SystemContext.Instance.SceneLoader.CurrentSceneGroup.name)
         {

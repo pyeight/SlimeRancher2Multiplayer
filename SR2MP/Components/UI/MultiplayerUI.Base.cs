@@ -45,7 +45,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
         previousLayoutHorizontalIndex = 0;
-        
+
         if (!MenuEUtil.isAnyMenuOpen)
         {
             didUnfocus = false;
@@ -66,9 +66,9 @@ public sealed partial class MultiplayerUI : MonoBehaviour
     private void DrawWindow()
     {
         if (state == MenuState.Hidden) return;
-        
+
         GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to toggle)");
-        
+
         switch (state)
         {
             case MenuState.SettingsInitial:
@@ -93,7 +93,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
                 UnimplementedScreen();
                 break;
         }
-        
+
         AdjustInputValues();
     }
 }

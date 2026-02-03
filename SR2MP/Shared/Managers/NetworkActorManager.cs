@@ -32,7 +32,7 @@ public sealed class NetworkActorManager
         while (true)
         {
             yield return new WaitForSceneGroupLoad(false);
-            yield return new WaitForSceneGroupLoad(true);
+            yield return new WaitForSceneGroupLoad();
 
             if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
                 continue;
@@ -97,7 +97,7 @@ public sealed class NetworkActorManager
         }
     }
 
-    private bool ActorIDAlreadyInUse(ActorId id)
+    private static bool ActorIDAlreadyInUse(ActorId id)
     {
         var gameModel = SceneContext.Instance?.GameModel;
 

@@ -147,7 +147,7 @@ public sealed class NetworkActor : MonoBehaviour
     IEnumerator WaitOneFrameOnHibernationChange(bool value)
     {
         yield return null;
-        
+
         if (!isValid || isDestroyed || this == null || gameObject == null)
         {
             yield break;

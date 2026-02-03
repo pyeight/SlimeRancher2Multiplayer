@@ -15,7 +15,7 @@ public sealed partial class MultiplayerUI
 
         DrawText("Please select an username to play multiplayer.");
 
-        DrawText("Username:", 2, 0);
+        DrawText("Username:", 2);
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
         if (string.IsNullOrWhiteSpace(usernameInput))
@@ -26,7 +26,7 @@ public sealed partial class MultiplayerUI
 
         if (!valid) return;
         if (!GUI.Button(CalculateButtonLayout(6), "Save settings")) return;
-        
+
         firstTime = false;
         Main.SetConfigValue("internal_setup_ui", false);
         Main.SetConfigValue("username", usernameInput);
@@ -36,10 +36,10 @@ public sealed partial class MultiplayerUI
     {
         bool validUsername = true;
 
-        DrawText("Username:", 2, 0);
+        DrawText("Username:", 2);
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
-        DrawText("Allow Cheats:", 2, 0);
+        DrawText("Allow Cheats:", 2);
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
         {
             allowCheatsInput = !allowCheatsInput;
@@ -53,7 +53,7 @@ public sealed partial class MultiplayerUI
 
         if (!validUsername) return;
         if (!GUI.Button(CalculateButtonLayout(6), "Save")) return;
-        
+
         Main.SetConfigValue("username", usernameInput);
         Main.SetConfigValue("allow_cheats", allowCheatsInput);
         viewingSettings = false;
@@ -75,10 +75,10 @@ public sealed partial class MultiplayerUI
 
         DrawText("Join a world:");
 
-        DrawText("IP", 2, 0);
+        DrawText("IP", 2);
         ipInput = GUI.TextField(CalculateInputLayout(6, 2, 1), ipInput);
 
-        DrawText("Port", 2, 0);
+        DrawText("Port", 2);
         portInput = GUI.TextField(CalculateInputLayout(6, 2, 1), portInput);
 
         var validPort = ushort.TryParse(portInput, out var port);
@@ -94,7 +94,7 @@ public sealed partial class MultiplayerUI
 
         DrawText("Host a world:");
 
-        DrawText("Port", 2, 0);
+        DrawText("Port", 2);
         hostPortInput = GUI.TextField(CalculateInputLayout(6, 2, 1), hostPortInput);
 
         var validHostPort = ushort.TryParse(hostPortInput, out var hostPort);

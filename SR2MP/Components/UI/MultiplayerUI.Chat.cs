@@ -139,7 +139,7 @@ public sealed partial class MultiplayerUI
         }
     }
 
-    private (int lines, float height) CalculateMessageHeight(string text)
+    private static (int lines, float height) CalculateMessageHeight(string text)
     {
         var style = GUI.skin.label;
         var maxWidth = ChatWidth - (HorizontalSpacing * 2);
@@ -178,15 +178,15 @@ public sealed partial class MultiplayerUI
     {
         var maxWidth = ChatWidth - (HorizontalSpacing * 2);
         var messageInfo = CalculateMessageHeight(text);
-        
+
         float x = 6 + HorizontalSpacing;
         float y = previousLayoutChatRect.y + previousLayoutChatRect.height;
         float w = maxWidth;
         float h = messageInfo.height;
-        
+
         var rect = new Rect(x, y, w, h);
         previousLayoutChatRect = rect;
-        
+
         return rect;
     }
 
@@ -224,7 +224,7 @@ public sealed partial class MultiplayerUI
     {
         chatMessages.Clear();
         processedMessageIds.Clear();
-        
+
         RegisterSystemMessage("Welcome to SR2MP!", $"SYSTEM_WELCOME_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", SystemMessageNormal);
     }
 
@@ -271,7 +271,7 @@ public sealed partial class MultiplayerUI
         string currentChatFocus = GUI.GetNameOfFocusedControl();
         bool wasPreviouslyFocused = isChatFocused;
         isChatFocused = currentChatFocus == ChatInputName;
-        
+
         if (isChatFocused && !wasPreviouslyFocused)
         {
             if (!disabledInput)
@@ -295,24 +295,24 @@ public sealed partial class MultiplayerUI
     private void DrawChat()
     {
         if (state == MenuState.DisconnectedMainMenu || chatHidden) return;
-        
+
         float chatY = Screen.height / 2;
-        
+
         GUI.Box(new Rect(6, chatY, ChatWidth, ChatHeight),
                 "Chat (F5 to toggle)");
-        
+
         ProcessPendingMessages();
         TrimOldMessages();
-        
+
         previousLayoutChatRect = new Rect(6, chatY + ChatHeaderHeight, ChatWidth, 0);
-        
+
         foreach (var message in chatMessages)
         {
             RenderChatMessage(message);
         }
-        
+
         GUI.SetNextControlName(ChatInputName);
-        
+
         if (string.IsNullOrEmpty(chatInput) && !isChatFocused)
         {
             GUIStyle placeholderStyle = new(GUI.skin.textField);
@@ -327,7 +327,7 @@ public sealed partial class MultiplayerUI
                 placeholderStyle
             );
         }
-        
+
         string newChatInput = GUI.TextField(
             new Rect(6 + HorizontalSpacing,
                      chatY + ChatHeight - InputHeight - 5,
@@ -336,9 +336,9 @@ public sealed partial class MultiplayerUI
             chatInput,
             MaxChatMessageLength
         );
-        
+
         chatInput = newChatInput;
-        
+
         UpdateChatFocusState();
         ProcessFocusRequests();
     }

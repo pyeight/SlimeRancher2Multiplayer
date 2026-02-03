@@ -45,8 +45,8 @@ public sealed partial class MultiplayerUI
         Main.SetConfigValue("recent_port", portInput);
     }
 
-    public void Kick(string player)
-    { 
+    public static void Kick(string player)
+    {
         // TODO: Implement kick functionality
     }
 
@@ -57,12 +57,12 @@ public sealed partial class MultiplayerUI
         HandleChatInput();
     }
 
-    private void DisableInput()
+    private static void DisableInput()
     {
         GameContext.Instance.InputDirector._mainGame.Map.Disable();
     }
 
-    private void EnableInput()
+    private static void EnableInput()
     {
         GameContext.Instance.InputDirector._mainGame.Map.Enable();
     }

@@ -177,7 +177,7 @@ internal class MLEntrypoint : MelonMod
         }
     }
 
-    ColorBlock buttonColorBlock
+    static ColorBlock buttonColorBlock
     {
         get
         {
@@ -287,7 +287,7 @@ internal class MLEntrypoint : MelonMod
                 { Info.Name, Info.Author, Info.Version, Info.DownloadLink, MelonAssembly.Assembly, errorMessage });
     }
 
-    bool IsSameOrNewer(string v1, string v2)
+    static bool IsSameOrNewer(string v1, string v2)
     {
         bool TryParse(string s, out int[] parts)
         {

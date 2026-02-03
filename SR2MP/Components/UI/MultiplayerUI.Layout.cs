@@ -16,14 +16,14 @@ public sealed partial class MultiplayerUI
         var maxWidth = WindowWidth - (HorizontalSpacing * 2);
         var style = GUI.skin.label;
         var height = style.CalcHeight(new GUIContent(text), maxWidth / horizontalShare);
-        
+
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
         float w = maxWidth / horizontalShare;
         float h = height;
 
         x += horizontalIndex * w;
-        
+
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
@@ -45,7 +45,7 @@ public sealed partial class MultiplayerUI
         float h = InputHeight;
 
         x += horizontalIndex * w;
-        
+
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
@@ -67,7 +67,7 @@ public sealed partial class MultiplayerUI
         float h = ButtonHeight;
 
         x += horizontalIndex * w;
-        
+
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
