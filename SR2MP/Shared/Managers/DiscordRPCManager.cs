@@ -30,7 +30,7 @@ public static class DiscordRPCManager
     private static DiscordRpcClient rpcClient;
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
-        new(new Dictionary<Zone, string>()
+        new(new Dictionary<Zone, string>
         {
             {Zone.Conservatory, "Ranching at the Conservatory"},
             {Zone.RainbowFields, "Exploring the Rainbow Fields"},
@@ -49,7 +49,7 @@ public static class DiscordRPCManager
         });
 
     private static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
-        new(new Dictionary<string, Zone>()
+        new(new Dictionary<string, Zone>
         {
             {"Conservatory", Zone.Conservatory},
             {"Labyrinth hub", Zone.LabyrinthHub},
@@ -71,7 +71,7 @@ public static class DiscordRPCManager
         });
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
-        new(new Dictionary<Zone, string>()
+        new(new Dictionary<Zone, string>
         {
             {Zone.Conservatory, "conservatory"},
             {Zone.RainbowFields, "rainbowfields"},

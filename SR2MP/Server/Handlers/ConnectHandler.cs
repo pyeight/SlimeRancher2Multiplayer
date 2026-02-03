@@ -124,7 +124,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         foreach (var map in maps)
             mapsList.Add(map.Key);
 
-        var mapPacket = new InitialMapPacket()
+        var mapPacket = new InitialMapPacket
         {
             UnlockedNodes = mapsList
         };
@@ -145,7 +145,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             });
         }
 
-        var accessDoorsPacket = new InitialAccessDoorsPacket()
+        var accessDoorsPacket = new InitialAccessDoorsPacket
         {
             Doors = doorsList
         };
@@ -195,7 +195,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             });
         }
 
-        var switchesPacket = new InitialSwitchesPacket()
+        var switchesPacket = new InitialSwitchesPacket
         {
             Switches = switchesList
         };
@@ -243,11 +243,11 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
             INetObject? data = plot.typeId switch
             {
-                LandPlot.Id.GARDEN => new InitialLandPlotsPacket.GardenData()
+                LandPlot.Id.GARDEN => new InitialLandPlotsPacket.GardenData
                 {
                     Crop = plot.resourceGrowerDefinition == null ? 9 : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
                 },
-                LandPlot.Id.SILO => new InitialLandPlotsPacket.SiloData()
+                LandPlot.Id.SILO => new InitialLandPlotsPacket.SiloData
                     {},
                 _ => null
             };
@@ -271,7 +271,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
     private static void SendPricesPacket(IPEndPoint client)
     {
-        var pricesPacket = new MarketPricePacket()
+        var pricesPacket = new MarketPricePacket
         {
             Prices = MarketPricesArray!
         };

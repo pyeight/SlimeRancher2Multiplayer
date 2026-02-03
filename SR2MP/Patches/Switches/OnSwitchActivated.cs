@@ -27,7 +27,7 @@ public static class OnSwitchActivated
     {
         if (handlingPacket) return;
 
-        Main.SendToAllOrServer(new WorldSwitchPacket()
+        Main.SendToAllOrServer(new WorldSwitchPacket
         {
             ID = id,
             State = state,

@@ -15,7 +15,7 @@ public static class PriceResetPatch
         if (!Main.Server.IsRunning())
             return;
 
-        var packet = new MarketPricePacket() { Prices = MarketPricesArray! };
+        var packet = new MarketPricePacket { Prices = MarketPricesArray! };
 
         Main.SendToAllOrServer(packet);
     }

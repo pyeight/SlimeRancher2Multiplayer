@@ -200,7 +200,7 @@ public sealed partial class MultiplayerUI
 
         RegisterChatMessage(message, Main.Username, messageId);
 
-        Main.SendToAllOrServer(new ChatMessagePacket()
+        Main.SendToAllOrServer(new ChatMessagePacket
         {
             Message = message,
             Username = Main.Username,

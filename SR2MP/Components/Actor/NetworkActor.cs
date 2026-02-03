@@ -34,7 +34,7 @@ public sealed class NetworkActor : MonoBehaviour
         get
         {
             // FIXED: Check if this component or gameObject is destroyed first
-            if (isDestroyed || this == null || gameObject == null)
+            if (isDestroyed)
             {
                 isValid = false;
                 return new ActorId(0);
@@ -148,7 +148,7 @@ public sealed class NetworkActor : MonoBehaviour
     {
         yield return null;
 
-        if (!isValid || isDestroyed || this == null || gameObject == null)
+        if (!isValid || isDestroyed)
         {
             yield break;
         }
@@ -165,7 +165,7 @@ public sealed class NetworkActor : MonoBehaviour
                     yield break;
                 }
 
-                var packet = new ActorUnloadPacket() { ActorId = actorId };
+                var packet = new ActorUnloadPacket { ActorId = actorId };
                 Main.SendToAllOrServer(packet);
             }
             else
@@ -195,7 +195,7 @@ public sealed class NetworkActor : MonoBehaviour
 
     public void HibernationChanged(bool value)
     {
-        if (!isValid || isDestroyed || this == null || gameObject == null)
+        if (!isValid || isDestroyed)
             return;
 
         try
@@ -211,7 +211,7 @@ public sealed class NetworkActor : MonoBehaviour
     private void UpdateInterpolation()
     {
         if (LocallyOwned) return;
-        if (isDestroyed || this == null || gameObject == null) return;
+        if (isDestroyed) return;
 
         var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
         timer = Mathf.Clamp01(timer);
@@ -222,7 +222,7 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void Update()
     {
-        if (isDestroyed || this == null || gameObject == null)
+        if (isDestroyed)
             return;
 
         if (!isValid)
@@ -293,7 +293,7 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void SetRigidbodyState(bool enableConstraints)
     {
-        if (!rigidbody || isDestroyed || this == null || gameObject == null)
+        if (!rigidbody || isDestroyed)
             return;
 
         try

@@ -10,7 +10,7 @@ public static class OnAccessDoorUnlock
 {
     public static void Postfix(AccessDoorUIRoot __instance)
     {
-        var packet = new AccessDoorPacket()
+        var packet = new AccessDoorPacket
         {
             ID = __instance._door.Id,
             State = AccessDoor.State.OPEN

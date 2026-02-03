@@ -12,7 +12,7 @@ public static class OnGeyserFire
 
         if (__instance.__1__state != 0) return;
 
-        var packet = new GeyserTriggerPacket() { ObjectPath = __instance.__4__this.gameObject.GetGameObjectPath() };
+        var packet = new GeyserTriggerPacket { ObjectPath = __instance.__4__this.gameObject.GetGameObjectPath() };
         Main.SendToAllOrServer(packet);
     }
 }

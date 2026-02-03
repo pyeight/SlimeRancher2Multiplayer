@@ -5,83 +5,50 @@ using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;
 using Il2CppMonomiPark.SlimeRancher.World;
 
-namespace SR2MP.Patches.Weather
+namespace SR2MP.Patches.Weather;
+
+// Weather Registry
+[HarmonyPatch]
+public static class WeatherReigstryPatches
 {
-    // Weather Registry
+    [HarmonyPatch(nameof(WeatherRegistry.Update)), HarmonyPrefix]
+    public static bool UpdatePrefix() => !Main.Client.IsConnected;
 
-    [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.Update))]
-    public static class WeatherRegistryUpdatePatch
+    [HarmonyPatch(nameof(WeatherRegistry.RunPatternState)), HarmonyPrefix]
+    public static bool RunPatternStatePrefix()
     {
-        public static bool Prefix() => !Main.Client.IsConnected;
+        WeatherUpdateHelper.EnsureLookupInitialized();
+        return !Main.Client.IsConnected || handlingPacket;
     }
 
-    [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.RunPatternState))]
-    public static class WeatherRegistryRunPatternStatePatch
+    [HarmonyPatch(nameof(WeatherRegistry.StopPatternState)), HarmonyPrefix]
+    public static bool StopPatternStatePrefix(WeatherRegistry __instance, ZoneDefinition zone)
     {
-        public static bool Prefix()
-        {
-            WeatherUpdateHelper.EnsureLookupInitialized();
-            return !Main.Client.IsConnected || handlingPacket;
-        }
+        WeatherUpdateHelper.EnsureLookupInitialized();
+
+        if (__instance == null || zone == null)
+            return false;
+
+        return !Main.Client.IsConnected || handlingPacket;
+    }
+}
+
+// Weather Director
+
+[HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.StopState))]
+public static class WeatherDirectorStopStatePatch
+{
+    public static bool Prefix()
+    {
+        WeatherUpdateHelper.EnsureLookupInitialized();
+        return !Main.Client.IsConnected || handlingPacket;
     }
 
-    [HarmonyPatch(typeof(WeatherRegistry), nameof(WeatherRegistry.StopPatternState))]
-    public static class WeatherRegistryStopPatternStatePatch
+    public static void Postfix()
     {
-        public static bool Prefix(
-            WeatherRegistry __instance,
-            ZoneDefinition zone)
+        if (Main.Server.IsRunning() && !handlingPacket)
         {
-            WeatherUpdateHelper.EnsureLookupInitialized();
-
-            if (__instance == null || zone == null)
-                return false;
-
-            return !Main.Client.IsConnected || handlingPacket;
-        }
-    }
-
-    // Weather Director
-
-    [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.FixedUpdate))]
-    public static class WeatherDirectorFixedUpdatePatch
-    {
-        public static bool Prefix() => !Main.Client.IsConnected;
-    }
-
-    [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
-    public static class WeatherDirectorRunStatePatch
-    {
-        public static bool Prefix()
-        {
-            WeatherUpdateHelper.EnsureLookupInitialized();
-            return !Main.Client.IsConnected || handlingPacket;
-        }
-
-        public static void Postfix()
-        {
-            if (Main.Server.IsRunning() && !handlingPacket)
-            {
-                WeatherUpdateHelper.SendWeatherUpdate();
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.StopState))]
-    public static class WeatherDirectorStopStatePatch
-    {
-        public static bool Prefix()
-        {
-            WeatherUpdateHelper.EnsureLookupInitialized();
-            return !Main.Client.IsConnected || handlingPacket;
-        }
-
-        public static void Postfix()
-        {
-            if (Main.Server.IsRunning() && !handlingPacket)
-            {
-                WeatherUpdateHelper.SendWeatherUpdate();
-            }
+            WeatherUpdateHelper.SendWeatherUpdate();
         }
     }
 }

@@ -30,7 +30,7 @@ public static class OnResourceAttach
 
         var id = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? string.Empty;
 
-        var packet = new ResourceAttachPacket()
+        var packet = new ResourceAttachPacket
         {
             ActorId = __instance._model.actorId,
             Joint = index,
