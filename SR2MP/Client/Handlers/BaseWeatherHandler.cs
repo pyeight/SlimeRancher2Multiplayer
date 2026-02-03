@@ -4,6 +4,7 @@ using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
 using MelonLoader;
 using SR2MP.Packets.World;
+using SR2MP.Patches.Weather;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Client.Handlers;
