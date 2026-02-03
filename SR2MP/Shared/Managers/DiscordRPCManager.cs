@@ -114,7 +114,7 @@ public static class DiscordRPCManager
     {
         var online = Main.Server.IsRunning() || Main.Client.IsConnected;
         var solo = playerManager.PlayerCount < 2;
-        
+
         var details = online
             ? solo
                 ? DetailsStringOnlineSolo
@@ -124,7 +124,7 @@ public static class DiscordRPCManager
 
         //if (IsInEndingCutscene)
         //    currentLocation = Zone.Ending;
-        
+
         var status = ZoneToStatus[currentLocation];
         var icon = ZoneToIcon[currentLocation];
 

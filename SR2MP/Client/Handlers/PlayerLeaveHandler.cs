@@ -17,9 +17,9 @@ public sealed class PlayerLeaveHandler : BaseClientPacketHandler<PlayerLeavePack
             SrLogger.LogMessage($"Player {packet.PlayerId} doesn't exist (already left?)", SrLogTarget.Both);
             return;
         }
-        
+
         playerManager.RemovePlayer(packet.PlayerId);
-        
+
         if (playerObjects.TryGetValue(packet.PlayerId, out var playerObj))
         {
             if (playerObj != null)

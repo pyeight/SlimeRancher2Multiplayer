@@ -8,7 +8,6 @@ public struct AckPacket : IPacket
     public byte OriginalPacketType { get; set; }
 
     public readonly PacketType Type => PacketType.ReservedAck;
-
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
 
     public readonly void Serialise(PacketWriter writer)

@@ -112,13 +112,13 @@ public sealed class NetworkActorManager
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out ActorModel? actorModel)
     {
         actorModel = null;
-        
-        
+
+
         if (Main.RockPlortBug)
             typeId = 25;
-        
+
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        
+
         if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
@@ -127,7 +127,7 @@ public sealed class NetworkActorManager
 
         if (!type.prefab)
             return false;
-        
+
         if (type.isGadget())
         {
             SrLogger.LogWarning($"Tried to spawn gadget over the network, this has not been implemented yet!\n\tActor {actorId.Value}: {type.name}");
@@ -136,17 +136,17 @@ public sealed class NetworkActorManager
 
         if (ActorIDAlreadyInUse(actorId))
             return false;
-        
+
         actorModel = SceneContext.Instance.GameModel.CreateActorModel(
                 actorId,
                 type,
                 scene,
                 position,
                 rotation);
-        
+
         if (actorModel == null)
             return false;
-        
+
         SceneContext.Instance.GameModel.identifiables[actorId] = actorModel;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
         {
@@ -158,7 +158,7 @@ public sealed class NetworkActorManager
             actors.Add(actorModel);
             SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
         }
-        
+
         handlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(actorModel);
         handlingPacket = false;
@@ -173,7 +173,7 @@ public sealed class NetworkActorManager
             actor.transform.position = position;
             actorManager.Actors[actorId.Value] = actorModel;
         }
-        
+
         return true;
     }
 

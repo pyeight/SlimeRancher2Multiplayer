@@ -50,7 +50,7 @@ public sealed class ReliabilityManager
             Name = "ReliabilityResendThread"
         };
         resendThread.Start();
-        
+
         SrLogger.LogMessage("ReliabilityManager started", SrLogTarget.Both);
     }
 
@@ -63,7 +63,7 @@ public sealed class ReliabilityManager
         pendingPackets.Clear();
         lastProcessedSequence.Clear();
         sequenceNumbersByType.Clear();
-        
+
         SrLogger.LogMessage("ReliabilityManager stopped", SrLogTarget.Both);
     }
 
@@ -93,7 +93,7 @@ public sealed class ReliabilityManager
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
     {
         var key = GetPacketKey(sender, packetId);
-        
+
         if (pendingPackets.TryRemove(key, out var packet))
         {
             var latency = DateTime.UtcNow - packet.FirstSendTime;
@@ -107,7 +107,7 @@ public sealed class ReliabilityManager
     public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
     {
         var key = GetSequenceKey(sender, packetType);
-        
+
         if (!lastProcessedSequence.TryGetValue(key, out var lastSequence))
         {
             // First packet from this sender for this type
@@ -117,20 +117,20 @@ public sealed class ReliabilityManager
 
         // Checks if this is the next expected sequence number
         ushort expectedSequence = (ushort)(lastSequence + 1);
-        
+
         if (sequenceNumber == expectedSequence)
         {
             lastProcessedSequence[key] = sequenceNumber;
             return true;
         }
-        
+
         if (IsSequenceNewer(sequenceNumber, lastSequence))
         {
             SrLogger.LogWarning(
                 $"Out-of-order packet dropped: expected seq={expectedSequence}, got seq={sequenceNumber}, type={packetType}",
                 SrLogTarget.Both);
         }
-        
+
         return false;
     }
 
@@ -142,7 +142,7 @@ public sealed class ReliabilityManager
             1,
             (_, current) => (current >= ushort.MaxValue) ? 1 : current + 1
         );
-        
+
         return (ushort)seq;
     }
 

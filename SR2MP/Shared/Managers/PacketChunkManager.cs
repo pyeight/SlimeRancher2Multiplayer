@@ -48,7 +48,7 @@ public static class PacketChunkManager
         fullData = null!;
         outReliability = reliability;
         outSequenceNumber = sequenceNumber;
-        
+
         if (chunkIndex >= totalChunks)
         {
             SrLogger.LogWarning($"Invalid chunk: index={chunkIndex} >= total={totalChunks}", SrLogTarget.Both);
@@ -66,7 +66,7 @@ public static class PacketChunkManager
 
         var packet = IncompletePackets.GetOrAdd(key, _ =>
             new IncompletePacket(totalChunks, reliability, sequenceNumber));
-        
+
         if (packet.totalChunks != totalChunks)
         {
             SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.totalChunks} got={totalChunks}", SrLogTarget.Both);
@@ -104,7 +104,7 @@ public static class PacketChunkManager
         outSequenceNumber = packet.sequenceNumber;
 
         IncompletePackets.TryRemove(key, out _);
-        
+
         // Decompress if compressed
         if (fullData.Length > 0 && fullData[0] == 0xFF)
         {
@@ -203,12 +203,12 @@ public static class PacketChunkManager
         // (byte)PacketType.ReservedDoNotUse instead of 0xFF so shows as used in PacketType.cs
         output.WriteByte((byte)PacketType.ReservedDoNotUse);
         output.WriteByte(data[0]);
-        
+
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest))
         {
             gzip.Write(data, 1, data.Length - 1);
         }
-        
+
         return output.ToArray();
     }
 
@@ -217,15 +217,15 @@ public static class PacketChunkManager
         using var input = new MemoryStream(data);
         input.ReadByte();
         var packetType = (byte)input.ReadByte();
-        
+
         using var output = new MemoryStream();
         output.WriteByte(packetType);
-        
+
         using (var gzip = new GZipStream(input, CompressionMode.Decompress))
         {
             gzip.CopyTo(output);
         }
-        
+
         return output.ToArray();
     }
 }

@@ -92,7 +92,7 @@ public sealed class NetworkManager
                     SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
             }
         }
-        
+
         SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
     }
 

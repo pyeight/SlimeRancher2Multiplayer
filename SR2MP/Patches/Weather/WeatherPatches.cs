@@ -258,7 +258,7 @@ public static class WeatherUpdateHelper
             $"No pattern found for zone {zone.name} / state {stateName}",
             SrLogTarget.Both
         );
-        
+
         return null!;
     }
 

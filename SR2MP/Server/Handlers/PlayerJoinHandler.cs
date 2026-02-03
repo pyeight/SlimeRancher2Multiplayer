@@ -17,7 +17,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
     public override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
     {
         string playerId = packet.PlayerId;
-        
+
         if (playerManager.GetPlayer(playerId) != null)
         {
             SrLogger.LogWarning($"Player {playerId} already exists", SrLogTarget.Both);
@@ -51,7 +51,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
             MessageID = $"SYSTEM_JOIN_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
             MessageType = MultiplayerUI.SystemMessageConnect
         };
-        
+
         Main.Server.SendToAll(joinPacket);
         Main.Server.SendToAllExcept(joinChatPacket, playerId);
         MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageConnect);

@@ -55,7 +55,7 @@ public partial class NetworkPlayer : MonoBehaviour
     public void SetUsername(string username)
     {
         username = username.Trim();
-        
+
         usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
         usernamePanel.text = username;
         usernamePanel.alignment = TextAlignmentOptions.Center;

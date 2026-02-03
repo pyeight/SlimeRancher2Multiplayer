@@ -15,18 +15,18 @@ public static class PacketDeduplication
     public static bool IsDuplicate(string packetType, string uniqueId)
     {
         var key = $"{packetType}_{uniqueId}";
-        
+
         if (++processCounter >= CleanupInterval)
         {
             processCounter = 0;
             Cleanup();
         }
-        
+
         if (ProcessedPackets.TryAdd(key, DateTime.UtcNow))
         {
             return false;
         }
-        
+
         return true;
     }
 

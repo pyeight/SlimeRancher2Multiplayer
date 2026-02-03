@@ -5,6 +5,7 @@ namespace SR2MP.Packets.World;
 public struct WorldTimePacket : IPacket
 {
     public double Time { get; set; }
+
     public PacketType Type { get; set; }
     public PacketReliability Reliability => PacketReliability.Unreliable;
 

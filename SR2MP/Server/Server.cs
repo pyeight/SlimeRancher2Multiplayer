@@ -188,7 +188,7 @@ public sealed class Server
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
         byte[] data = writer.ToArray();
-        
+
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
         networkManager.Broadcast(data, endpoints, packet.Reliability);
     }

@@ -13,14 +13,14 @@ public sealed class MapUnlockHandler : BaseClientPacketHandler<MapUnlockPacket>
         : base(client, playerManager) { }
 
     public override void Handle(MapUnlockPacket packet)
-    {   
+    {
         var gameEvent = Resources.FindObjectsOfTypeAll<StaticGameEvent>().FirstOrDefault(x => x._dataKey == packet.NodeID);
         SceneContext.Instance.MapDirector.NotifyZoneUnlocked(gameEvent, false, 0);
 
         var activator = Resources.FindObjectsOfTypeAll<MapNodeActivator>().FirstOrDefault(x => x._fogRevealEvent._dataKey == packet.NodeID);
         activator?.StartCoroutine(activator.ActivateHologramAnimation());
-        
-        
+
+
         var eventDirModel = SceneContext.Instance.eventDirector._model;
         if (!eventDirModel.table.TryGetValue(MapEventKey, out var table))
         {

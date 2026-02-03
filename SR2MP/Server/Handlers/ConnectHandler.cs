@@ -120,7 +120,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         }
 
         var mapsList = new List<string>();
-        
+
         foreach (var map in maps)
             mapsList.Add(map.Key);
 

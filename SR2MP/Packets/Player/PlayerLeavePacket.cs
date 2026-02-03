@@ -5,6 +5,7 @@ namespace SR2MP.Packets.Player;
 public sealed class PlayerLeavePacket : IPacket
 {
     public string PlayerId { get; set; }
+
     public PacketType Type { get; set; }
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 

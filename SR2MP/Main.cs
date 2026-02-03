@@ -15,23 +15,6 @@ namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
-    public override void OnInitializeMelon()
-    {
-        Main.LoadRPCAssembly();
-    }
-    public static void SendToAllOrServer<T>(T packet) where T : IPacket
-    {
-        if (Client.IsConnected)
-        {
-            Client.SendPacket(packet);
-        }
-
-        if (Server.IsRunning())
-        {
-            Server.SendToAll(packet);
-        }
-    }
-
     public static Client.Client Client { get; private set; }
     public static Server.Server Server { get; private set; }
 
@@ -70,6 +53,24 @@ public sealed class Main : SR2EExpansionV3
 
         Client = new Client.Client();
         Server = new Server.Server();
+    }
+
+    public override void OnInitializeMelon()
+    {
+        LoadRPCAssembly();
+    }
+
+    public static void SendToAllOrServer<T>(T packet) where T : IPacket
+    {
+        if (Client.IsConnected)
+        {
+            Client.SendPacket(packet);
+        }
+
+        if (Server.IsRunning())
+        {
+            Server.SendToAll(packet);
+        }
     }
 
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)

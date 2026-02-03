@@ -95,7 +95,7 @@ public sealed class PacketWriter : IDisposable
         _writer.Write(value.w);
     }
 
-    public void WriteArray<T>(T[] array, Action<PacketWriter, T> writer)
+    public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)
     {
         if (array == null)
         {
@@ -109,7 +109,7 @@ public sealed class PacketWriter : IDisposable
             writer(this, item);
     }
 
-    public void WriteList<T>(List<T> list, Action<PacketWriter, T> writer)
+    public void WriteList<T>(List<T>? list, Action<PacketWriter, T> writer)
     {
         if (list == null)
         {
@@ -123,7 +123,7 @@ public sealed class PacketWriter : IDisposable
             writer(this, item);
     }
 
-    public void WriteSet<T>(HashSet<T> set, Action<PacketWriter, T> writer)
+    public void WriteSet<T>(HashSet<T>? set, Action<PacketWriter, T> writer)
     {
         if (set == null)
         {
@@ -137,7 +137,7 @@ public sealed class PacketWriter : IDisposable
             writer(this, item);
     }
 
-    public void WriteCppList<T>(CppCollections.List<T> list, Action<PacketWriter, T> writer)
+    public void WriteCppList<T>(CppCollections.List<T>? list, Action<PacketWriter, T> writer)
     {
         if (list == null)
         {
@@ -151,7 +151,7 @@ public sealed class PacketWriter : IDisposable
             writer(this, item);
     }
 
-    public void WriteCppSet<T>(CppCollections.HashSet<T> set, Action<PacketWriter, T> writer)
+    public void WriteCppSet<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer)
     {
         if (set == null)
         {
@@ -165,7 +165,7 @@ public sealed class PacketWriter : IDisposable
             writer(this, item);
     }
 
-    public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
+    public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
     {
         if (dict == null)
         {
@@ -196,11 +196,11 @@ public sealed class PacketWriter : IDisposable
 
         _currentBitIndex++;
 
-        if (_currentBitIndex == 8)
-        {
-            _writer.Write(_currentPackingByte);
-            ResetPackingBools();
-        }
+        if (_currentBitIndex != 8)
+            return;
+
+        _writer.Write(_currentPackingByte);
+        ResetPackingBools();
     }
 
     public void EndPackingBools()

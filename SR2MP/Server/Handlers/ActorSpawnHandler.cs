@@ -18,7 +18,7 @@ public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
             SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} already exists", SrLogTarget.Both);
             return;
         }
-        
+
         actorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out _);
 
         Main.Server.SendToAllExcept(packet, clientEp);

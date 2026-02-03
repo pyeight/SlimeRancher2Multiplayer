@@ -27,7 +27,7 @@ public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
         {
             MultiplayerUI.Instance.RegisterChatMessage(packet.Message, packet.Username, packet.MessageID);
         }
-        
+
         Main.Server.SendToAllExcept(packet, clientEp);
     }
 }
