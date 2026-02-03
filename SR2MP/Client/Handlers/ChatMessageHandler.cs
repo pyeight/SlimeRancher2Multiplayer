@@ -11,7 +11,7 @@ public sealed class ChatMessageHandler : BaseClientPacketHandler<ChatMessagePack
     public ChatMessageHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ChatMessagePacket packet)
+    protected override void Handle(ChatMessagePacket packet)
     {
         if (packet.Username == "SYSTEM")
         {

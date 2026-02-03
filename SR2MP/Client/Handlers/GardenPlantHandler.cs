@@ -10,7 +10,7 @@ public sealed class GardenPlantHandler : BaseClientPacketHandler<GardenPlantPack
     public GardenPlantHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(GardenPlantPacket packet)
+    protected override void Handle(GardenPlantPacket packet)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 
@@ -18,14 +18,13 @@ public sealed class GardenPlantHandler : BaseClientPacketHandler<GardenPlantPack
         {
             model.resourceGrowerDefinition = null;
 
-            if (model.gameObj)
-            {
-                var plot = model.gameObj.GetComponentInChildren<LandPlot>();
+            if (!model.gameObj)
+                return;
 
-                handlingPacket = true;
-                plot.DestroyAttached();
-                handlingPacket = false;
-            }
+            var plot = model.gameObj.GetComponentInChildren<LandPlot>();
+
+            handlingPacket = true;
+            plot.DestroyAttached();
         }
         else
         {
@@ -35,15 +34,15 @@ public sealed class GardenPlantHandler : BaseClientPacketHandler<GardenPlantPack
                 GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation.RawLookupDictionary._entries.FirstOrDefault(x =>
                     x.value._primaryResourceType == actor)!.value;
 
-            if (model.gameObj)
-            {
-                var garden = model.gameObj.GetComponentInChildren<GardenCatcher>();
+            if (!model.gameObj)
+                return;
 
-                handlingPacket = true;
-                if (garden.CanAccept(actor))
-                    garden.Plant(actor, true);
-                handlingPacket = false;
-            }
+            var garden = model.gameObj.GetComponentInChildren<GardenCatcher>();
+
+            handlingPacket = true;
+            if (garden.CanAccept(actor))
+                garden.Plant(actor, true);
         }
+        handlingPacket = false;
     }
 }

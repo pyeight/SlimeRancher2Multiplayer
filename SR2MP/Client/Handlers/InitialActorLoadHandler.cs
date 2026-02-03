@@ -11,7 +11,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
     public ActorsLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialActorsPacket packet)
+    protected override void Handle(InitialActorsPacket packet)
     {
         actorManager.Actors.Clear();
 

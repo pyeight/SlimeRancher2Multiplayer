@@ -10,7 +10,7 @@ public sealed class PlayerUpgradeHandler : BaseClientPacketHandler<PlayerUpgrade
     public PlayerUpgradeHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(PlayerUpgradePacket packet)
+    protected override void Handle(PlayerUpgradePacket packet)
     {
         var model = SceneContext.Instance.PlayerState._model.upgradeModel;
 

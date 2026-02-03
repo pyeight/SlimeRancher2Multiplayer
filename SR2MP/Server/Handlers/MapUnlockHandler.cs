@@ -21,7 +21,6 @@ public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
         var activator = Resources.FindObjectsOfTypeAll<MapNodeActivator>().FirstOrDefault(x => x._fogRevealEvent._dataKey == packet.NodeID);
         activator?.StartCoroutine(activator.ActivateHologramAnimation());
 
-
         var eventDirModel = SceneContext.Instance.eventDirector._model;
         if (!eventDirModel.table.TryGetValue(MapEventKey, out var table))
         {

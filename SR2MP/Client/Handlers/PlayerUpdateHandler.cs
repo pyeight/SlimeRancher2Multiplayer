@@ -10,7 +10,7 @@ public sealed class PlayerUpdateHandler : BaseClientPacketHandler<PlayerUpdatePa
     public PlayerUpdateHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(PlayerUpdatePacket packet)
+    protected override void Handle(PlayerUpdatePacket packet)
     {
         // Don't update our own player
         if (packet.PlayerId == Client.OwnPlayerId)

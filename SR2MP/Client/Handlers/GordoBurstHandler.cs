@@ -11,7 +11,7 @@ public sealed class GordoBurstHandler : BaseClientPacketHandler<GordoBurstPacket
     public GordoBurstHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(GordoBurstPacket packet)
+    protected override void Handle(GordoBurstPacket packet)
     {
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {

@@ -11,7 +11,7 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler<InitialGordosPac
     public GordosLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialGordosPacket packet)
+    protected override void Handle(InitialGordosPacket packet)
     {
         var gameModel = SceneContext.Instance.GameModel;
 
@@ -22,14 +22,13 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler<InitialGordosPac
                 gordoModel.GordoEatenCount = gordo.EatenCount;
                 gordoModel.targetCount = gordo.RequiredEatCount;
 
-                if (gordoModel.gameObj)
-                {
-                    var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
+                if (!gordoModel.gameObj)
+                    continue;
+                var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
 
-                    gordoComponent.SetModel(gordoModel);
+                gordoComponent.SetModel(gordoModel);
 
-                    gordoModel.gameObj.SetActive(gordo.EatenCount < gordo.RequiredEatCount);
-                }
+                gordoModel.gameObj.SetActive(gordo.EatenCount < gordo.RequiredEatCount);
             }
             else
             {

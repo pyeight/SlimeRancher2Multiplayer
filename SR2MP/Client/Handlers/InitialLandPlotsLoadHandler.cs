@@ -10,7 +10,7 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler<InitialLandPlotsP
     public PlotsLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialLandPlotsPacket packet)
+    protected override void Handle(InitialLandPlotsPacket packet)
     {
         foreach (var plot in packet.Plots)
         {
@@ -31,35 +31,35 @@ public sealed class PlotsLoadHandler : BaseClientPacketHandler<InitialLandPlotsP
             model.typeId = plot.Type;
             model.upgrades = plot.Upgrades;
 
-            if (plot.Data is InitialLandPlotsPacket.GardenData garden)
+            switch (plot.Data)
             {
-                if (garden.Crop == 9)
+                case InitialLandPlotsPacket.GardenData { Crop: 9 }:
                 {
                     model.resourceGrowerDefinition = null;
-                    if (model.gameObj)
-                    {
-                        var gardenPlot = model.gameObj.GetComponentInChildren<LandPlot>();
-                        gardenPlot.DestroyAttached();
-                    }
+                    if (!model.gameObj)
+                        continue;
+                    var gardenPlot = model.gameObj.GetComponentInChildren<LandPlot>();
+                    gardenPlot.DestroyAttached();
+                    break;
                 }
-                else
+                case InitialLandPlotsPacket.GardenData garden:
                 {
                     var actor = actorManager.ActorTypes[garden.Crop];
                     model.resourceGrowerDefinition =
                         GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation
-                            .RawLookupDictionary._entries.FirstOrDefault(x =>
+                           .RawLookupDictionary._entries.FirstOrDefault(x =>
                                 x.value._primaryResourceType == actor)!.value;
 
-                    if (model.gameObj)
-                    {
-                        var gardenCatcher = model.gameObj.GetComponentInChildren<GardenCatcher>();
+                    if (!model.gameObj)
+                        continue;
+                    var gardenCatcher = model.gameObj.GetComponentInChildren<GardenCatcher>();
 
-                        if (gardenCatcher.CanAccept(actor))
-                            gardenCatcher.Plant(actor, true);
-                    }
+                    if (gardenCatcher.CanAccept(actor))
+                        gardenCatcher.Plant(actor, true);
+                    break;
                 }
+                case InitialLandPlotsPacket.SiloData silo: break; // todo
             }
-            else if (plot.Data is InitialLandPlotsPacket.SiloData silo) { } // todo
         }
     }
 }

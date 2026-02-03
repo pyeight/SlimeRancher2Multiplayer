@@ -11,7 +11,7 @@ public sealed class InitialMapLoadHandler : BaseClientPacketHandler<InitialMapPa
     public InitialMapLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialMapPacket packet)
+    protected override void Handle(InitialMapPacket packet)
     {
         var eventModel = SceneContext.Instance.eventDirector._model;
 

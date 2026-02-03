@@ -11,7 +11,7 @@ public sealed class ActorTransferHandler : BaseClientPacketHandler<ActorTransfer
     public ActorTransferHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ActorTransferPacket packet)
+    protected override void Handle(ActorTransferPacket packet)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return;

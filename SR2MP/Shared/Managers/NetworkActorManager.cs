@@ -113,7 +113,6 @@ public sealed class NetworkActorManager
     {
         actorModel = null;
 
-
         if (Main.RockPlortBug)
             typeId = 25;
 

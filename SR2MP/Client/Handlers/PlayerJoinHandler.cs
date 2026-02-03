@@ -11,7 +11,7 @@ public sealed class PlayerJoinHandler : BaseClientPacketHandler<PlayerJoinPacket
     public PlayerJoinHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(PlayerJoinPacket packet)
+    protected override void Handle(PlayerJoinPacket packet)
     {
         if (playerManager.GetPlayer(packet.PlayerId) != null)
         {

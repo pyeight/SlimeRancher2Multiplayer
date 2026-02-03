@@ -11,7 +11,7 @@ public sealed class AccessDoorHandler : BaseClientPacketHandler<AccessDoorPacket
     public AccessDoorHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(AccessDoorPacket packet)
+    protected override void Handle(AccessDoorPacket packet)
     {
         var model = SceneContext.Instance.GameModel.doors[packet.ID];
 

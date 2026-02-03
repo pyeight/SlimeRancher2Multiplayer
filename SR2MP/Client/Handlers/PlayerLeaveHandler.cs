@@ -10,7 +10,7 @@ public sealed class PlayerLeaveHandler : BaseClientPacketHandler<PlayerLeavePack
     public PlayerLeaveHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(PlayerLeavePacket packet)
+    protected override void Handle(PlayerLeavePacket packet)
     {
         if (playerManager.GetPlayer(packet.PlayerId) == null)
         {
@@ -20,14 +20,13 @@ public sealed class PlayerLeaveHandler : BaseClientPacketHandler<PlayerLeavePack
 
         playerManager.RemovePlayer(packet.PlayerId);
 
-        if (playerObjects.TryGetValue(packet.PlayerId, out var playerObj))
+        if (!playerObjects.TryGetValue(packet.PlayerId, out var playerObj))
+            return;
+        if (playerObj)
         {
-            if (playerObj != null)
-            {
-                Object.Destroy(playerObj);
-                SrLogger.LogPacketSize($"Destroyed player object for {packet.PlayerId}", SrLogTarget.Both);
-            }
-            playerObjects.Remove(packet.PlayerId);
+            Object.Destroy(playerObj);
+            SrLogger.LogPacketSize($"Destroyed player object for {packet.PlayerId}", SrLogTarget.Both);
         }
+        playerObjects.Remove(packet.PlayerId);
     }
 }

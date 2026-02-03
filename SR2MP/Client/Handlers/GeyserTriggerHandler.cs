@@ -10,7 +10,7 @@ public sealed class GeyserTriggerHandler : BaseClientPacketHandler<GeyserTrigger
     public GeyserTriggerHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(GeyserTriggerPacket packet)
+    protected override void Handle(GeyserTriggerPacket packet)
     {
         var obj = GameObject.Find(packet.ObjectPath);
 

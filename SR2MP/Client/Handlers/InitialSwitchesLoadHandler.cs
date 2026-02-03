@@ -12,7 +12,7 @@ public sealed class SwitchesLoadHandler : BaseClientPacketHandler<InitialSwitche
     public SwitchesLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialSwitchesPacket packet)
+    protected override void Handle(InitialSwitchesPacket packet)
     {
         var gameModel = SceneContext.Instance.GameModel;
 
@@ -22,22 +22,21 @@ public sealed class SwitchesLoadHandler : BaseClientPacketHandler<InitialSwitche
             {
                 switchModel.state = worldSwitch.State;
 
-                if (switchModel.gameObj)
-                {
-                    var switchComponentBase = switchModel.gameObj.GetComponent<WorldSwitchModel.Participant>();
+                if (!switchModel.gameObj)
+                    continue;
+                var switchComponentBase = switchModel.gameObj.GetComponent<WorldSwitchModel.Participant>();
 
-                    switchComponentBase.SetModel(switchModel);
+                switchComponentBase.SetModel(switchModel);
 
-                    var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
-                    var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
-                    var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
+                var primary = switchComponentBase.TryCast<WorldStatePrimarySwitch>();
+                var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
+                var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
 
-                    handlingPacket = true;
-                    primary?.SetStateForAll(worldSwitch.State, true);
-                    secondary?.SetState(worldSwitch.State, true);
-                    invisible?.SetStateForAll(worldSwitch.State, true);
-                    handlingPacket = false;
-                }
+                handlingPacket = true;
+                primary?.SetStateForAll(worldSwitch.State, true);
+                secondary?.SetState(worldSwitch.State, true);
+                invisible?.SetStateForAll(worldSwitch.State, true);
+                handlingPacket = false;
             }
             else
             {

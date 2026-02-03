@@ -22,7 +22,7 @@ public abstract class BaseClientPacketHandler<T> : IClientPacketHandler where T 
         Handle(packet);
     }
 
-    public abstract void Handle(T packet);
+    protected abstract void Handle(T packet);
 
     protected void SendPacket<TOther>(TOther packet) where TOther : IPacket
     {

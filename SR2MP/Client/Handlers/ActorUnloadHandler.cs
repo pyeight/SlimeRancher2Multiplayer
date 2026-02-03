@@ -10,7 +10,7 @@ public sealed class ActorUnloadHandler : BaseClientPacketHandler<ActorUnloadPack
     public ActorUnloadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ActorUnloadPacket packet)
+    protected override void Handle(ActorUnloadPacket packet)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return;

@@ -11,7 +11,7 @@ public sealed class CurrencyHandler : BaseClientPacketHandler<CurrencyPacket>
     public CurrencyHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(CurrencyPacket packet)
+    protected override void Handle(CurrencyPacket packet)
     {
         var currency = GameContext.Instance.LookupDirector._currencyList._currencies[packet.CurrencyType - 1];
 

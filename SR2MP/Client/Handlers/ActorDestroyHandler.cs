@@ -10,7 +10,7 @@ public sealed class ActorDestroyHandler : BaseClientPacketHandler<ActorDestroyPa
     public ActorDestroyHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ActorDestroyPacket packet)
+    protected override void Handle(ActorDestroyPacket packet)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
         {

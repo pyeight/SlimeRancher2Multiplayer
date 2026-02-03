@@ -10,7 +10,7 @@ public sealed class PlayerUpgradesLoadHandler : BaseClientPacketHandler<InitialU
     public PlayerUpgradesLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialUpgradesPacket packet)
+    protected override void Handle(InitialUpgradesPacket packet)
     {
         var upgradesList = GameContext.Instance.LookupDirector._upgradeDefinitions;
         foreach (var upgradeLevel in packet.Upgrades)

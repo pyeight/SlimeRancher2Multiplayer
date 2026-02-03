@@ -10,7 +10,7 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler<MarketPricePack
     public MarketPriceHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(MarketPricePacket packet)
+    protected override void Handle(MarketPricePacket packet)
     {
         var economy = SceneContext.Instance.PlortEconomyDirector;
 
@@ -25,8 +25,7 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler<MarketPricePack
         {
             if (price.value != null)
             {
-                price.value.CurrValue = packet.Prices[i].Current;
-                price.value.PrevValue = packet.Prices[i].Previous;
+                (price.value.CurrValue, price.value.PrevValue) = packet.Prices[i];
             }
 
             i++;

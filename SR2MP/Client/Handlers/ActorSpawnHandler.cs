@@ -10,7 +10,7 @@ public sealed class ActorSpawnHandler : BaseClientPacketHandler<ActorSpawnPacket
     public ActorSpawnHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ActorSpawnPacket packet)
+    protected override void Handle(ActorSpawnPacket packet)
     {
         if (actorManager.Actors.ContainsKey(packet.ActorId.Value))
         {

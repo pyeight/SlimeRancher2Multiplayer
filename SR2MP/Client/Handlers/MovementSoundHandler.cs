@@ -10,7 +10,7 @@ public sealed class MovementSoundHandler : BaseClientPacketHandler<MovementSound
     public MovementSoundHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(MovementSoundPacket packet)
+    protected override void Handle(MovementSoundPacket packet)
     {
         RemoteFXManager.PlayTransientAudio(fxManager.AllCues[packet.CueName], packet.Position, 0.8f);
     }

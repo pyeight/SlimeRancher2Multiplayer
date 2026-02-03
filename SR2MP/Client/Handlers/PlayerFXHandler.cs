@@ -10,7 +10,7 @@ public sealed class PlayerFXHandler : BaseClientPacketHandler<PlayerFXPacket>
     public PlayerFXHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(PlayerFXPacket packet)
+    protected override void Handle(PlayerFXPacket packet)
     {
         handlingPacket = true;
         try
