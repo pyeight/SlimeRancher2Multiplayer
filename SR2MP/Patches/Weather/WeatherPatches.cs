@@ -26,7 +26,7 @@ public static class WeatherReigstryPatches
     {
         WeatherUpdateHelper.EnsureLookupInitialized();
 
-        if (__instance == null || zone == null)
+        if (!zone)
             return false;
 
         return !Main.Client.IsConnected || handlingPacket;
