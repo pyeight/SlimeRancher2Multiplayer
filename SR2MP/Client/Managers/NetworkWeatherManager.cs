@@ -53,6 +53,12 @@ public static class NetworkWeatherManager
         }
     }
 
+    public static void CheckInitialized()
+    {
+        if (weatherStates.Count == 0)
+            Initialize();
+    }
+
     public static int GetPersistentID(WeatherStateDefinition state)
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
             .GetPersistenceId(state.Cast<IWeatherState>());

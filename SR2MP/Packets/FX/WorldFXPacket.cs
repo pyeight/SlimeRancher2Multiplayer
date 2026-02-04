@@ -15,8 +15,8 @@ public struct WorldFXPacket : IPacket
         FavoriteFoodEaten, // Also applies to gordo slimes.
         GordoFoodEaten,
         GordoFoodEatenSound,
-        FabricatorPurchaseGadget,
-        FabricatorPurchaseUpgrade,
+        // FabricatorPurchaseGadget,
+        // FabricatorPurchaseUpgrade,
     }
 
     public Vector3 Position { get; set; }

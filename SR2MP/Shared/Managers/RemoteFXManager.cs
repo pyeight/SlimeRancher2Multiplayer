@@ -95,8 +95,8 @@ public sealed class RemoteFXManager
             { WorldFXType.SellPlortDroneSound, AllCues["SiloRewardDrone"]},
             { WorldFXType.GordoFoodEatenSound, AllCues["GordoGulp"] },
            // { WorldFXType.FabricatorPurchaseGadget, AllCues["PurchaseGadget"] },
-            { WorldFXType.FabricatorPurchaseGadget, AllCues["Click3"] },
-            { WorldFXType.FabricatorPurchaseUpgrade, AllCues["PurchaseFabricatorUpgrade"] },
+           // { WorldFXType.FabricatorPurchaseGadget, AllCues["Click3"] },
+           // { WorldFXType.FabricatorPurchaseUpgrade, AllCues["PurchaseFabricatorUpgrade"] },
         };
 
         foreach (var (playerFX, obj) in PlayerFXMap)

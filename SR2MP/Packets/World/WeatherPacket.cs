@@ -38,7 +38,6 @@ public sealed class WeatherPacket : IPacket
                 WeatherForecasts = new List<WeatherForecast>(),
                 WindSpeed = zone.Value.Parameters.WindDirection
             };
-
             foreach (var forecast in zone.Value.Forecast)
             {
                 if (!forecast.Started)
@@ -51,11 +50,14 @@ public sealed class WeatherPacket : IPacket
                     StartTime = forecast.StartTime,
                     EndTime = forecast.EndTime
                 });
-                yield return null;
-                yield return null;
             }
 
             packet.Zones.Add(zoneId++, zoneData);
+            
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
             yield return null;
             yield return null;
         }
@@ -99,9 +101,12 @@ public sealed class WeatherForecast : INetObject
 
     public void Deserialise(PacketReader reader)
     {
+        NetworkWeatherManager.CheckInitialized();
         State = NetworkWeatherManager.weatherStates[reader.ReadInt()];
         WeatherStarted = reader.ReadBool();
         StartTime = reader.ReadDouble();
         EndTime = reader.ReadDouble();
     }
 }
+
+// ZoomedOutUI -> zoneMarkers -> 
