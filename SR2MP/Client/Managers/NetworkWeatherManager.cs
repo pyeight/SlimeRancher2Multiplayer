@@ -77,6 +77,7 @@ public static class NetworkWeatherManager
                 }
 
                 yield return null;
+                yield return null;
             }
 
             zone.Forecast.Clear();
@@ -96,9 +97,11 @@ public static class NetworkWeatherManager
                 });
 
                 yield return null;
+                yield return null;
             }
 
             zoneId++;
+            yield return null;
             yield return null;
         }
 
@@ -109,6 +112,8 @@ public static class NetworkWeatherManager
         for (var i = 0; i < activeZone.Forecast.Count; i++)
             activeCopy.Add(activeZone.Forecast[i]);
 
+        yield return null;
+        
         foreach (var forecast in activeCopy)
         {
             var patternInstance = registry.GetWeatherPatternInstance(
@@ -130,6 +135,8 @@ public static class NetworkWeatherManager
                 );
             }
 
+            yield return null;
+            yield return null;
             yield return null;
         }
 

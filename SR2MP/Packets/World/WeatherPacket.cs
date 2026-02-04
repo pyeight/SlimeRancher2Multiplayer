@@ -50,9 +50,12 @@ public sealed class WeatherPacket : IPacket
                     StartTime = forecast.StartTime,
                     EndTime = forecast.EndTime
                 });
+                yield return null;
+                yield return null;
             }
 
             packet.Zones.Add(zoneId++, zoneData);
+            yield return null;
             yield return null;
         }
 

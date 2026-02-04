@@ -52,6 +52,23 @@ public static class WeatherDirectorStopStatePatch
         }
     }
 }
+[HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
+public static class WeatherDirectorRunStatePatch
+{
+    public static bool Prefix()
+    {
+        WeatherUpdateHelper.EnsureLookupInitialized();
+        return !Main.Client.IsConnected || handlingPacket;
+    }
+
+    public static void Postfix()
+    {
+        if (Main.Server.IsRunning() && !handlingPacket)
+        {
+            WeatherUpdateHelper.SendWeatherUpdate();
+        }
+    }
+}
 
 public static class WeatherUpdateHelper
 {

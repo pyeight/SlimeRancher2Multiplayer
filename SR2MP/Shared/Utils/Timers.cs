@@ -6,7 +6,7 @@ public static class Timers
     private static float timeSyncTimer = 0.85f;
     private static float actorSyncTimer = 0.125f;
     private static float playerSyncTimer = 0.125f;
-    private static float weatherSyncTimer = 1f;
+    private static float weatherSyncTimer = 4.5f;
     private static float playerInventorySyncTimer = 5f;
     private static float planterSyncTimer = 2.5f;
 
