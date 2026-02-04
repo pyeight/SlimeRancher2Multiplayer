@@ -1,74 +1,10 @@
-﻿using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Weather;
+using Il2CppMonomiPark.SlimeRancher.World;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;
-using Il2CppMonomiPark.SlimeRancher.World;
 
-namespace SR2MP.Patches.Weather;
-
-// Weather Registry
-[HarmonyPatch(typeof(WeatherRegistry))]
-public static class WeatherReigstryPatches
-{
-    [HarmonyPatch(nameof(WeatherRegistry.Update)), HarmonyPrefix]
-    public static bool UpdatePrefix() => !Main.Client.IsConnected;
-
-    [HarmonyPatch(nameof(WeatherRegistry.RunPatternState)), HarmonyPrefix]
-    public static bool RunPatternStatePrefix()
-    {
-        WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
-    }
-
-    [HarmonyPatch(nameof(WeatherRegistry.StopPatternState)), HarmonyPrefix]
-    public static bool StopPatternStatePrefix(WeatherRegistry __instance, ZoneDefinition zone)
-    {
-        WeatherUpdateHelper.EnsureLookupInitialized();
-
-        if (!zone)
-            return false;
-
-        return !Main.Client.IsConnected || handlingPacket;
-    }
-}
-
-// Weather Director
-
-[HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.StopState))]
-public static class WeatherDirectorStopStatePatch
-{
-    public static bool Prefix()
-    {
-        WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
-    }
-
-    public static void Postfix()
-    {
-        if (Main.Server.IsRunning() && !handlingPacket)
-        {
-            WeatherUpdateHelper.SendWeatherUpdate();
-        }
-    }
-}
-[HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
-public static class WeatherDirectorRunStatePatch
-{
-    public static bool Prefix()
-    {
-        WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
-    }
-
-    public static void Postfix()
-    {
-        if (Main.Server.IsRunning() && !handlingPacket)
-        {
-            WeatherUpdateHelper.SendWeatherUpdate();
-        }
-    }
-}
+namespace SR2MP.Server.Managers;
 
 public static class WeatherUpdateHelper
 {
@@ -97,7 +33,7 @@ public static class WeatherUpdateHelper
 
             foreach (var config in registry.ZoneConfigList)
             {
-                if (config == null || config.Zone == null || config.Patterns == null)
+                if (!config || !config.Zone || config.Patterns == null)
                 {
                     SrLogger.LogPacketSize("Skipping null weather config or patterns", SrLogTarget.Both);
                     continue;
@@ -107,7 +43,7 @@ public static class WeatherUpdateHelper
 
                 foreach (var pattern in config.Patterns)
                 {
-                    if (pattern == null || pattern._stateList == null)
+                    if (!pattern || pattern._stateList == null)
                     {
                         SrLogger.LogPacketSize($"Skipping null pattern or state list in zone {config.Zone.name}", SrLogTarget.Both);
                         continue;
@@ -115,7 +51,7 @@ public static class WeatherUpdateHelper
 
                     foreach (var state in pattern._stateList)
                     {
-                        if (state == null || string.IsNullOrEmpty(state.name))
+                        if (!state || string.IsNullOrEmpty(state.name))
                         {
                             SrLogger.LogPacketSize($"Skipping null state or state name in pattern {pattern.name}", SrLogTarget.Both);
                             continue;
@@ -146,11 +82,9 @@ public static class WeatherUpdateHelper
 
         try
         {
-            var registry = Resources
-                .FindObjectsOfTypeAll<WeatherRegistry>()
-                .FirstOrDefault();
+            var registry = SceneContext.Instance.WeatherRegistry;
 
-            if (registry == null)
+            if (!registry)
             {
                 SrLogger.LogError("Could not find WeatherRegistry in scene", SrLogTarget.Both);
                 return;
@@ -176,7 +110,7 @@ public static class WeatherUpdateHelper
             return null!;
         }
 
-        if (zone == null || string.IsNullOrEmpty(stateName))
+        if (!zone || string.IsNullOrEmpty(stateName))
         {
             SrLogger.LogPacketSize($"Invalid zone or state name: zone={zone?.name}, state={stateName}", SrLogTarget.Both);
             return null!;
@@ -214,11 +148,9 @@ public static class WeatherUpdateHelper
 
         try
         {
-            var weatherRegistry = Resources
-                .FindObjectsOfTypeAll<WeatherRegistry>()
-                .FirstOrDefault();
+            var weatherRegistry = SceneContext.Instance.WeatherRegistry;
 
-            if (weatherRegistry == null)
+            if (!weatherRegistry)
             {
                 SrLogger.LogError("Could not find WeatherRegistry!", SrLogTarget.Both);
                 return;
