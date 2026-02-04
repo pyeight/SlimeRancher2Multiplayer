@@ -33,11 +33,8 @@ public sealed class RemoteFXManager
         if (cue.name.Contains("VacAmmoSelect"))
             return false;
 
-        if (cue.name.Contains("Vac")
-            || cue.name.Contains("vac"))
-        {
+        if (cue.name.Contains("vac", StringComparison.InvariantCultureIgnoreCase))
             return true;
-        }
 
         return false;
     };
@@ -97,6 +94,9 @@ public sealed class RemoteFXManager
             { WorldFXType.SellPlortSound, AllCues["SiloReward"]},
             { WorldFXType.SellPlortDroneSound, AllCues["SiloRewardDrone"]},
             { WorldFXType.GordoFoodEatenSound, AllCues["GordoGulp"] },
+           // { WorldFXType.FabricatorPurchaseGadget, AllCues["PurchaseGadget"] },
+            { WorldFXType.FabricatorPurchaseGadget, AllCues["Click3"] },
+            { WorldFXType.FabricatorPurchaseUpgrade, AllCues["PurchaseFabricatorUpgrade"] },
         };
 
         foreach (var (playerFX, obj) in PlayerFXMap)
