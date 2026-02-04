@@ -1,4 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using MelonLoader;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
@@ -49,5 +50,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
                 component.LocallyOwned = true;
             }*/
         }
+
+        MelonCoroutines.Start(actorManager.TakeOwnershipOfNearby());
     }
 }

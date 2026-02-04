@@ -30,7 +30,7 @@ public sealed class NetworkActor : MonoBehaviour
     private bool isValid = true;
     private bool isDestroyed = false;
 
-    private ActorId ActorId
+    public ActorId ActorId
     {
         get
         {
