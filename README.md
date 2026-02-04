@@ -17,7 +17,7 @@
 |  Map Expansions   |   🟩   |                               Fully functional                                |
 |      Slimes       |   🟩   |                               Fully functional                                |
 |  Actors (Items)   |   🟩   |                               Fully functional                                |
-|     Landplots     |   🟨   |               Gardens (🟧) and Silos (🟥) missing functionality              |
+|     Landplots     |   🟨   |  Gardens (🟧), Silos, Plort collectors & Auto-feeders missing functionality   |
 | Landplot upgrades |   🟩   |                               Fully functional                                |
 |    Slimepedia     |   🟩   |                               Fully functional                                |
 |      Gadgets      |   🟥   |                                Not implemented                                |
