@@ -4,8 +4,9 @@ using SR2MP.Server.Managers;
 
 namespace SR2MP.Patches.Weather;
 
+[HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.StopState))]
 [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
-public static class WeatherDirectorRunStatePatch
+public static class WeatherDirectorStatePatches
 {
     public static bool Prefix()
     {
