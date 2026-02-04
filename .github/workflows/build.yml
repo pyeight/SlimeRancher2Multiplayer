@@ -9,6 +9,7 @@ on:
     branches:
       - development
       - shark
+      - pinktarr
 
   workflow_dispatch:
     inputs:
