@@ -15,7 +15,7 @@ public sealed class NetworkPlayerSound : MonoBehaviour
     public bool IsPlaying => audioSource.IsPlaying && !audioSource.instance.Paused;
     public SECTR_AudioCue AudioCue => audioSource.Cue;
 
-    private void Start()
+    private void Awake()
     {
         audioSource = GetComponent<SECTR_PointSource>();
     }

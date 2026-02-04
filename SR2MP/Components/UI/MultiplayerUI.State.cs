@@ -14,15 +14,7 @@ public sealed partial class MultiplayerUI
 
     private static bool GetIsLoading()
     {
-        switch (SystemContext.Instance.SceneLoader.CurrentSceneGroup.name)
-        {
-            case "StandaloneStart":
-            case "CompanyLogo":
-            case "LoadScene":
-                return true;
-        }
-
-        return false;
+        return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is "StandaloneStart" or "CompanyLogo" or "LoadScene";
     }
 
     private MenuState GetState()

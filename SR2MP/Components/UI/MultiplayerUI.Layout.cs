@@ -13,7 +13,7 @@ public sealed partial class MultiplayerUI
 
     private Rect CalculateTextLayout(float originalX, string text, int horizontalShare = 1, int horizontalIndex = 0)
     {
-        var maxWidth = WindowWidth - (HorizontalSpacing * 2);
+        const float maxWidth = WindowWidth - (HorizontalSpacing * 2);
         var style = GUI.skin.label;
         var height = style.CalcHeight(new GUIContent(text), maxWidth / horizontalShare);
 
@@ -37,12 +37,12 @@ public sealed partial class MultiplayerUI
 
     private Rect CalculateInputLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
     {
-        var maxWidth = WindowWidth - (HorizontalSpacing * 2);
+        const float maxWidth = WindowWidth - (HorizontalSpacing * 2);
 
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
         float w = maxWidth / horizontalShare;
-        float h = InputHeight;
+        const float h = InputHeight;
 
         x += horizontalIndex * w;
 
@@ -59,12 +59,12 @@ public sealed partial class MultiplayerUI
 
     private Rect CalculateButtonLayout(float originalX, int horizontalShare = 1, int horizontalIndex = 0)
     {
-        var maxWidth = WindowWidth - (HorizontalSpacing * 2);
+        const float maxWidth = WindowWidth - (HorizontalSpacing * 2);
 
         float x = originalX + HorizontalSpacing;
         float y = previousLayoutRect.y;
         float w = maxWidth / horizontalShare;
-        float h = ButtonHeight;
+        const float h = ButtonHeight;
 
         x += horizontalIndex * w;
 

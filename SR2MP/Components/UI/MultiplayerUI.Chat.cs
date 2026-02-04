@@ -6,9 +6,9 @@ namespace SR2MP.Components.UI;
 public sealed partial class MultiplayerUI
 {
     private bool chatHidden = true;
-    private List<ChatMessage> chatMessages = new();
-    private Queue<Action> pendingMessageRegistrations = new();
-    private HashSet<string> processedMessageIds = new();
+    private readonly List<ChatMessage> chatMessages = new();
+    private readonly Queue<Action> pendingMessageRegistrations = new();
+    private readonly HashSet<string> processedMessageIds = new();
 
     private string chatInput = string.Empty;
     private bool isChatFocused;
@@ -21,7 +21,7 @@ public sealed partial class MultiplayerUI
 
     private bool disabledInput = false;
 
-    public sealed class ChatMessage
+    private sealed class ChatMessage
     {
         public string message;
         public string playerName;
@@ -33,78 +33,42 @@ public sealed partial class MultiplayerUI
     }
 
     public void RegisterChatMessage(string message, string playerName, string messageId)
+        => RegisterMessageInternal(message, playerName, messageId, false, 0);
+
+    public void RegisterSystemMessage(string message, string messageId, byte type)
+        => RegisterMessageInternal(message, "SYSTEM", messageId, true, type);
+
+    private void RegisterMessageInternal(string message, string displayName, string messageId, bool isSystem, byte systemType)
     {
-        if (processedMessageIds.Contains(messageId))
-        {
-            return;
-        }
+        if (processedMessageIds.Contains(messageId)) return;
 
         pendingMessageRegistrations.Enqueue(() =>
         {
             var trimmedMessage = message.Trim();
             var dateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var timeString = dateTime.ToString("HH:mm:ss");
-            var formattedMessage = $"[{timeString}] {playerName}: {trimmedMessage}";
-            var lineInfo = CalculateMessageHeight(formattedMessage);
+            var formattedMessage = $"[{timeString}] {displayName}: {trimmedMessage}";
+            var (lines, _) = CalculateMessageHeight(formattedMessage);
 
             chatMessages.Add(new ChatMessage
             {
                 message = trimmedMessage,
-                playerName = playerName,
-                lines = lineInfo.lines,
-                time = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                playerName = displayName,
+                lines = lines,
+                time = dateTime,
                 messageId = messageId,
-                isSystemMessage = false,
-                systemMessageType = 0
+                isSystemMessage = isSystem,
+                systemMessageType = systemType
             });
 
             processedMessageIds.Add(messageId);
 
             if (processedMessageIds.Count <= 1000)
                 return;
-            var toRemove = processedMessageIds.Take(500).ToList();
-            foreach (var id in toRemove)
+
+            foreach (var id in processedMessageIds.Take(500))
             {
                 processedMessageIds.Remove(id);
-            }
-        });
-    }
-
-    public void RegisterSystemMessage(string message, string messageId, byte type)
-    {
-        if (processedMessageIds.Contains(messageId))
-        {
-            return;
-        }
-
-        pendingMessageRegistrations.Enqueue(() =>
-        {
-            var trimmedMessage = message.Trim();
-            var dateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var timeString = dateTime.ToString("HH:mm:ss");
-            var formattedMessage = $"[{timeString}] SYSTEM: {trimmedMessage}";
-            var lineInfo = CalculateMessageHeight(formattedMessage);
-
-            chatMessages.Add(new ChatMessage
-            {
-                message = trimmedMessage,
-                playerName = "SYSTEM",
-                lines = lineInfo.lines,
-                time = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                messageId = messageId,
-                isSystemMessage = true,
-                systemMessageType = type
-            });
-
-            processedMessageIds.Add(messageId);
-
-            if (processedMessageIds.Count > 1000)
-            {
-                var toRemove = processedMessageIds.Take(500).ToList();
-                foreach (var id in toRemove)
-                {
-                    processedMessageIds.Remove(id);
-                }
             }
         });
     }
@@ -139,10 +103,10 @@ public sealed partial class MultiplayerUI
         }
     }
 
-    private static (int lines, float height) CalculateMessageHeight(string text)
+    private static (int, float) CalculateMessageHeight(string text)
     {
         var style = GUI.skin.label;
-        var maxWidth = ChatWidth - (HorizontalSpacing * 2);
+        const float maxWidth = ChatWidth - (HorizontalSpacing * 2);
         var height = style.CalcHeight(new GUIContent(text), maxWidth);
         var lineCount = Mathf.CeilToInt(height / style.lineHeight);
         return (lineCount, height);
@@ -177,13 +141,13 @@ public sealed partial class MultiplayerUI
 
     private Rect CalculateChatMessageRect(string text)
     {
-        var maxWidth = ChatWidth - (HorizontalSpacing * 2);
-        var messageInfo = CalculateMessageHeight(text);
+        const float maxWidth = ChatWidth - (HorizontalSpacing * 2);
+        var (_, height) = CalculateMessageHeight(text);
 
-        float x = 6 + HorizontalSpacing;
+        const float x = 6 + HorizontalSpacing;
         float y = previousLayoutChatRect.y + previousLayoutChatRect.height;
         float w = maxWidth;
-        float h = messageInfo.height;
+        float h = height;
 
         var rect = new Rect(x, y, w, h);
         previousLayoutChatRect = rect;
@@ -223,47 +187,45 @@ public sealed partial class MultiplayerUI
 
     public void ClearAndWelcome()
     {
-        chatMessages.Clear();
-        processedMessageIds.Clear();
+        ClearChatMessages();
 
         RegisterSystemMessage("Welcome to SR2MP!", $"SYSTEM_WELCOME_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", SystemMessageNormal);
     }
 
-    private void FocusChat()
-    {
-        shouldFocusChat = true;
-        shouldUnfocusChat = false;
-    }
+    private void FocusChat() => FocusUnfocusChat(true);
 
-    private void UnfocusChat()
+    private void UnfocusChat() => FocusUnfocusChat(false);
+
+    private void FocusUnfocusChat(bool focus)
     {
-        shouldUnfocusChat = true;
-        shouldFocusChat = false;
+        shouldFocusChat = focus;
+        shouldUnfocusChat = !focus;
     }
 
     private void ProcessFocusRequests()
     {
         if (shouldFocusChat && Event.current.type == EventType.Repaint)
-        {
-            GUI.FocusControl(ChatInputName);
-            shouldFocusChat = false;
-
-            if (!disabledInput)
-            {
-                DisableInput();
-                disabledInput = true;
-            }
-        }
+            SetChatFocus(true);
         else if (shouldUnfocusChat)
-        {
-            GUI.FocusControl(null);
-            shouldUnfocusChat = false;
+            SetChatFocus(false);
+    }
 
-            if (disabledInput)
-            {
-                EnableInput();
-                disabledInput = false;
-            }
+    private void SetChatFocus(bool focus)
+    {
+        GUI.FocusControl(focus ? ChatInputName : null);
+
+        if (focus) shouldFocusChat = false;
+        else shouldUnfocusChat = false;
+
+        if (focus && !disabledInput)
+        {
+            DisableInput();
+            disabledInput = true;
+        }
+        else if (!focus && disabledInput)
+        {
+            EnableInput();
+            disabledInput = false;
         }
     }
 
@@ -329,7 +291,7 @@ public sealed partial class MultiplayerUI
             );
         }
 
-        string newChatInput = GUI.TextField(
+        chatInput = GUI.TextField(
             new Rect(6 + HorizontalSpacing,
                      chatY + ChatHeight - InputHeight - 5,
                      ChatWidth - (HorizontalSpacing * 2),
@@ -337,8 +299,6 @@ public sealed partial class MultiplayerUI
             chatInput,
             MaxChatMessageLength
         );
-
-        chatInput = newChatInput;
 
         UpdateChatFocusState();
         ProcessFocusRequests();
