@@ -2,6 +2,7 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using SR2E.Utils;
+using SR2MP.Client.Managers;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
@@ -90,18 +91,7 @@ public sealed class WeatherForecast : INetObject
 
     public void Serialise(PacketWriter writer)
     {
-        var stateName = State.name;
-        var defs = LookupEUtil.weatherStateDefinitions;
-
-        for (var i = 0; i < defs.Length; i++)
-        {
-            if (defs[i].name != stateName)
-                continue;
-
-            writer.WriteInt(i);
-            break;
-        }
-
+        writer.WriteInt(NetworkWeatherManager.GetPersistentID(State));
         writer.WriteBool(WeatherStarted);
         writer.WriteDouble(StartTime);
         writer.WriteDouble(EndTime);
@@ -109,7 +99,7 @@ public sealed class WeatherForecast : INetObject
 
     public void Deserialise(PacketReader reader)
     {
-        State = LookupEUtil.weatherStateDefinitions[reader.ReadInt()];
+        State = NetworkWeatherManager.weatherStates[reader.ReadInt()];
         WeatherStarted = reader.ReadBool();
         StartTime = reader.ReadDouble();
         EndTime = reader.ReadDouble();

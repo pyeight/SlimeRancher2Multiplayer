@@ -1,19 +1,22 @@
 ﻿using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Shop;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Packets.World;
 using SR2MP.Patches.Weather;
 using SR2MP.Server.Managers;
+using UnityEngine.Windows.Speech;
 
 namespace SR2MP.Client.Managers;
 
 public static class NetworkWeatherManager
 {
     public static WeatherRegistry Registry => SceneContext.Instance.WeatherRegistry;
-    public static WeatherDirector? Director 
+
+    public static WeatherDirector? Director
     {
-        get    
+        get
         {
             if (!director)
             {
@@ -21,12 +24,12 @@ public static class NetworkWeatherManager
             }
 
             return director;
-        } 
+        }
     }
 
-    public static LightningStrike Lightning 
+    public static LightningStrike Lightning
     {
-        get    
+        get
         {
             if (!lightning)
             {
@@ -34,11 +37,25 @@ public static class NetworkWeatherManager
             }
 
             return lightning;
-        } 
+        }
     }
 
     private static LightningStrike lightning;
     private static WeatherDirector director;
+    public static Dictionary<int, WeatherStateDefinition> weatherStates = new();
+
+    internal static void Initialize()
+    {
+        var refer = GameContext.Instance.AutoSaveDirector._saveReferenceTranslation;
+        foreach (var state in refer._weatherStateTranslation.RawLookupDictionary)
+        {
+            weatherStates.Add(refer.GetPersistenceId(state.value), state.value.TryCast<WeatherStateDefinition>()!);
+        }
+    }
+
+    public static int GetPersistentID(WeatherStateDefinition state)
+        => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
+            .GetPersistenceId(state.Cast<IWeatherState>());
     
     internal static IEnumerator Apply(WeatherPacket packet, bool immediate) 
     {
