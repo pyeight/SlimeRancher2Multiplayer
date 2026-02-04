@@ -10,7 +10,18 @@ namespace SR2MP.Client.Managers;
 public static class NetworkWeatherManager
 {
     public static WeatherRegistry Registry => SceneContext.Instance.WeatherRegistry;
-    public static WeatherDirector Director => Resources.FindObjectsOfTypeAll<WeatherDirector>().FirstOrDefault()!; // todo: find a better way
+    public static WeatherDirector Director 
+    {
+        get    
+        {
+            if (!director)
+            {
+                director = Resources.FindObjectsOfTypeAll<WeatherDirector>().FirstOrDefault();
+            }
+
+            return director;
+        } 
+    }
 
     public static LightningStrike Lightning 
     {
@@ -26,6 +37,7 @@ public static class NetworkWeatherManager
     }
 
     private static LightningStrike lightning;
+    private static WeatherDirector director;
     
     internal static IEnumerator Apply(WeatherPacket packet, bool immediate) 
     {
