@@ -9,7 +9,7 @@ namespace SR2MP.Patches.Weather;
 
 // Weather Registry
 [HarmonyPatch(typeof(WeatherRegistry))]
-public static class WeatherReigstryPatches
+public static class WeatherRegistryPatches
 {
     [HarmonyPatch(nameof(WeatherRegistry.Update)), HarmonyPrefix]
     public static bool UpdatePrefix() => !Main.Client.IsConnected;
@@ -22,7 +22,7 @@ public static class WeatherReigstryPatches
     }
 
     [HarmonyPatch(nameof(WeatherRegistry.StopPatternState)), HarmonyPrefix]
-    public static bool StopPatternStatePrefix(WeatherRegistry __instance, ZoneDefinition zone)
+    public static bool StopPatternStatePrefix(ZoneDefinition zone)
     {
         WeatherUpdateHelper.EnsureLookupInitialized();
 
@@ -36,24 +36,8 @@ public static class WeatherReigstryPatches
 // Weather Director
 
 [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.StopState))]
-public static class WeatherDirectorStopStatePatch
-{
-    public static bool Prefix()
-    {
-        WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
-    }
-
-    public static void Postfix()
-    {
-        if (Main.Server.IsRunning() && !handlingPacket)
-        {
-            WeatherUpdateHelper.SendWeatherUpdate();
-        }
-    }
-}
 [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
-public static class WeatherDirectorRunStatePatch
+public static class WeatherDirectorStatePatch
 {
     public static bool Prefix()
     {
