@@ -8,11 +8,18 @@ public static class OnGeyserFire
 {
     public static void Prefix(Il2Cpp.Geyser._RunGeyser_d__30 __instance)
     {
-        if (handlingPacket) return;
+        if (__instance.__1__state != 0)
+            return;
 
-        if (__instance.__1__state != 0) return;
+        if (handlingPacket)
+            return;
+        
+        var packet = new GeyserTriggerPacket
+        {
+             ObjectPath = __instance.__4__this.gameObject.GetGameObjectPath(),
+             Duration = __instance.duration
+        };
 
-        var packet = new GeyserTriggerPacket { ObjectPath = __instance.__4__this.gameObject.GetGameObjectPath() };
         Main.SendToAllOrServer(packet);
     }
 }
