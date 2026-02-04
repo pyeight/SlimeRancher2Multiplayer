@@ -35,6 +35,7 @@
 |        Map        |   🟩   |                               Fully functional                                |
 |    Teleporters    |   🟩   |                               Fully functional                                |
 |      Weather      |   🟩   |                               Fully functional                                |
+|     Lightning     |   🟩   |                               Fully functional                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
