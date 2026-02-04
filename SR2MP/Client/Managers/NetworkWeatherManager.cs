@@ -10,13 +10,13 @@ namespace SR2MP.Client.Managers;
 public static class NetworkWeatherManager
 {
     public static WeatherRegistry Registry => SceneContext.Instance.WeatherRegistry;
-    public static WeatherDirector Director 
+    public static WeatherDirector? Director 
     {
         get    
         {
             if (!director)
             {
-                director = Resources.FindObjectsOfTypeAll<WeatherDirector>().FirstOrDefault();
+                director = Resources.FindObjectsOfTypeAll<WeatherDirector>().FirstOrDefault()!;
             }
 
             return director;
