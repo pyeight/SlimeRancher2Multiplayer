@@ -26,6 +26,7 @@ public static class StartupCheck
     private const uint MB_ICONERROR = 0x00000010;
     private const uint MB_ICONWARNING = 0x00000030;
     private const int SW_SHOWNORMAL = 1;
+    private const float TIMEOUT = 30f;
 
     private static volatile bool shouldQuit = false;
 
@@ -41,40 +42,39 @@ public static class StartupCheck
 
         int comparison = CompareVersions(installedGameVersion, RequiredGameVersion);
 
-        if (comparison < 0)
+        switch (comparison)
         {
-            ShowMessageBox(
-                "SR2MP is incompatible with this game version.\n\n" +
-                $"Required: {RequiredGameVersion}\n" +
-                $"Detected: {installedGameVersion}",
-                "SR2MP – Incompatible Game Version",
-                MB_OK | MB_ICONERROR, true
-            );
-            Application.Quit();
-            return;
-        }
-        else if (comparison > 0)
-        {
-            ShowMessageBox(
-                "You are running a newer game version than SR2MP was built for.\n\n" +
-                $"Required: {RequiredGameVersion}\n" +
-                $"Detected: {installedGameVersion}\n\n" +
-                "The mod may still work, but issues are possible.",
-                "SR2MP – Newer Game Version Detected",
-                MB_OK | MB_ICONWARNING, false
-            );
+            case < 0:
+                ShowMessageBox(
+                    "SR2MP is incompatible with this game version.\n\n" +
+                    $"Required: {RequiredGameVersion}\n" +
+                    $"Detected: {installedGameVersion}",
+                    "SR2MP – Incompatible Game Version",
+                    MB_OK | MB_ICONERROR, true
+                );
+                Application.Quit();
+                return;
+            case > 0:
+                ShowMessageBox(
+                    "You are running a newer game version than SR2MP was built for.\n\n" +
+                    $"Required: {RequiredGameVersion}\n" +
+                    $"Detected: {installedGameVersion}\n\n" +
+                    "The mod may still work, but issues are possible.",
+                    "SR2MP – Newer Game Version Detected",
+                    MB_OK | MB_ICONWARNING, false
+                );
+                break;
         }
 
-        Task.Run(async () => await CheckModVersion());
+        Task.Run(async () => await CheckModVersionAsync());
         MelonCoroutines.Start(QuitCoroutine());
     }
 
     private static System.Collections.IEnumerator QuitCoroutine()
     {
-        float timeout = 30f;
         float elapsed = 0f;
 
-        while (!shouldQuit && elapsed < timeout)
+        while (!shouldQuit && elapsed < TIMEOUT)
         {
             elapsed += Time.deltaTime;
             yield return null;
@@ -86,21 +86,21 @@ public static class StartupCheck
         }
     }
 
-    private static async Task CheckModVersion()
+    private static async Task CheckModVersionAsync()
     {
         try
         {
-            using (var client = new HttpClient())
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(5);
+
+            const string currentModVersion = BuildInfo.DisplayVersion;
+            string latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
+
+            int comparison = CompareVersions(currentModVersion, latestVersion);
+
+            switch (comparison)
             {
-                client.Timeout = TimeSpan.FromSeconds(5);
-
-                string currentModVersion = BuildInfo.DisplayVersion;
-                string latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
-
-                int comparison = CompareVersions(currentModVersion, latestVersion);
-
-                if (comparison < 0)
-                {
+                case < 0:
                     ShowMessageBox(
                         "Your SR2MP mod is outdated!\n\n" +
                         $"Your version: {currentModVersion}\n" +
@@ -113,9 +113,9 @@ public static class StartupCheck
 
                     OpenUrl(DiscordUrl);
                     shouldQuit = true;
-                }
-                else if (comparison > 0)
-                {
+                    break;
+
+                case > 0:
                     ShowMessageBox(
                         "Your SR2MP mod version is newer than the latest release.\n\n" +
                         $"Your version: {currentModVersion}\n" +
@@ -124,7 +124,7 @@ public static class StartupCheck
                         "SR2MP – Unsupported Version",
                         MB_OK | MB_ICONWARNING, false
                     );
-                }
+                    break;
             }
         }
         catch (TaskCanceledException)
@@ -145,7 +145,9 @@ public static class StartupCheck
     {
         try
         {
+#pragma warning disable CA1806
             MessageBoxW(IntPtr.Zero, text, caption, type);
+#pragma warning restore CA1806
             if (error)
                 SrLogger.LogError($"{caption}\n{text}", SrLogTarget.Both);
             else
