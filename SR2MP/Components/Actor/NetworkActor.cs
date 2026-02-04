@@ -34,7 +34,6 @@ public sealed class NetworkActor : MonoBehaviour
     {
         get
         {
-            // FIXED: Check if this component or gameObject is destroyed first
             if (isDestroyed)
             {
                 isValid = false;
