@@ -11,6 +11,7 @@ public sealed class MovementSoundPacket : IPacket
     public string CueName { get; set; }
 
     public PacketType Type => PacketType.MovementSound;
+    public PacketReliability Reliability => PacketReliability.Unreliable;
 
     public void Serialise(PacketWriter writer)
     {

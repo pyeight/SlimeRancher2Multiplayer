@@ -13,7 +13,7 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
     public ActorUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ActorUpdatePacket packet, IPEndPoint clientEp)
+    protected override void Handle(ActorUpdatePacket packet, IPEndPoint clientEp)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
         {

@@ -10,7 +10,7 @@ public sealed class CloseHandler : BaseClientPacketHandler<ClosePacket>
     public CloseHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ClosePacket packet)
+    protected override void Handle(ClosePacket packet)
     {
         SrLogger.LogMessage("Server closed, disconnecting!", SrLogTarget.Both);
 

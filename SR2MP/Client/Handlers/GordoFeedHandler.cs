@@ -11,7 +11,7 @@ public sealed class GordoFeedHandler : BaseClientPacketHandler<GordoFeedPacket>
     public GordoFeedHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(GordoFeedPacket packet)
+    protected override void Handle(GordoFeedPacket packet)
     {
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))
         {

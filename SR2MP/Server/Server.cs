@@ -5,6 +5,7 @@ using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
@@ -42,7 +43,7 @@ public sealed class Server
             SrLogger.LogWarning("You are already connected to a server, restart your game to host your own server");
             return;
         }
-        
+
         if (networkManager.IsRunning)
         {
             SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
@@ -93,12 +94,7 @@ public sealed class Server
             PlayerId = client.PlayerId
         };
 
-        using var writer = new PacketWriter();
-        writer.WritePacket(leavePacket);
-        byte[] data = writer.ToArray();
-        
-        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints);
+        SendToAll(leavePacket);
 
         SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
     }
@@ -119,7 +115,7 @@ public sealed class Server
     {
         if (!networkManager.IsRunning)
             return;
-        
+
         var closeChatMessage = new ChatMessagePacket
         {
             Username = "SYSTEM",
@@ -128,7 +124,7 @@ public sealed class Server
             MessageType = MultiplayerUI.SystemMessageClose
         };
         SendToAll(closeChatMessage);
-        
+
         MultiplayerUI.Instance.ClearChatMessages();
         MultiplayerUI.Instance.RegisterSystemMessage("You closed the server!", $"SYSTEM_CLOSE_HOST_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
 
@@ -139,20 +135,15 @@ public sealed class Server
 
             var closePacket = new ClosePacket();
 
-            using var writer = new PacketWriter();
-            writer.WritePacket(closePacket);
-            byte[] data = writer.ToArray();
-            
-            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
             try
             {
-                networkManager.Broadcast(data, endpoints);
+                SendToAll(closePacket);
             }
             catch (Exception ex)
             {
                 SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
             }
-            
+
             var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
             foreach (var playerId in allPlayerIds)
             {
@@ -167,6 +158,7 @@ public sealed class Server
                 }
             }
 
+            PacketDeduplication.Clear();
             clientManager.Clear();
             playerManager.Clear();
             networkManager.Stop();
@@ -183,7 +175,7 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        networkManager.Send(writer.ToArray(), endPoint);
+        networkManager.Send(writer.ToArray(), endPoint, packet.Reliability);
     }
 
     public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
@@ -196,9 +188,9 @@ public sealed class Server
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
         byte[] data = writer.ToArray();
-        
+
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints);
+        networkManager.Broadcast(data, endpoints, packet.Reliability);
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
@@ -211,7 +203,7 @@ public sealed class Server
         {
             if (client.GetClientInfo() != excludedClientInfo)
             {
-                networkManager.Send(data, client.EndPoint);
+                networkManager.Send(data, client.EndPoint, packet.Reliability);
             }
         }
     }
@@ -221,4 +213,6 @@ public sealed class Server
         string clientInfo = $"{excludeEndPoint.Address}:{excludeEndPoint.Port}";
         SendToAllExcept(packet, clientInfo);
     }
+
+    public int GetPendingReliablePackets() => networkManager.GetPendingReliablePackets();
 }

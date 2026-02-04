@@ -10,7 +10,7 @@ public sealed class PediaUnlockHandler : BaseClientPacketHandler<PediaUnlockPack
     public PediaUnlockHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(PediaUnlockPacket packet)
+    protected override void Handle(PediaUnlockPacket packet)
     {
         handlingPacket = true;
         SceneContext.Instance.PediaDirector.Unlock(

@@ -12,7 +12,7 @@ public sealed class DoorsLoadHandler : BaseClientPacketHandler<InitialAccessDoor
     public DoorsLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialAccessDoorsPacket packet)
+    protected override void Handle(InitialAccessDoorsPacket packet)
     {
         var gameModel = SceneContext.Instance.GameModel;
 

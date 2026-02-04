@@ -10,7 +10,7 @@ public sealed class WorldFXHandler : BaseClientPacketHandler<WorldFXPacket>
     public WorldFXHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(WorldFXPacket packet)
+    protected override void Handle(WorldFXPacket packet)
     {
         if (!IsWorldSoundDictionary[packet.FX])
         {

@@ -5,11 +5,11 @@ namespace SR2MP.Packets.World;
 
 public sealed class AccessDoorPacket : IPacket
 {
-    public PacketType Type => PacketType.AccessDoor;
-
     public string ID { get; set; }
-    
     public AccessDoor.State State { get; set; }
+
+    public PacketType Type => PacketType.AccessDoor;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

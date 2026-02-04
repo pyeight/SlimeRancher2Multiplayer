@@ -6,7 +6,7 @@ namespace SR2MP.Shared.Managers;
 
 public static class DiscordRPCManager
 {
-    private enum Zone
+    private enum Zone : byte
     {
         Conservatory,
         RainbowFields,
@@ -20,8 +20,8 @@ public static class DiscordRPCManager
         LabyrinthTerrarium,
         LabyrinthCore,
         MainMenu,
-        
-        // Introduce at like, 0.4 or 1.0..?
+
+        // Introduce at like, 0.4 or 1.0.?
         FinalBoss,
         Ending,
     }
@@ -30,7 +30,7 @@ public static class DiscordRPCManager
     private static DiscordRpcClient rpcClient;
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
-        new(new Dictionary<Zone, string>()
+        new(new Dictionary<Zone, string>
         {
             {Zone.Conservatory, "Ranching at the Conservatory"},
             {Zone.RainbowFields, "Exploring the Rainbow Fields"},
@@ -49,7 +49,7 @@ public static class DiscordRPCManager
         });
 
     private static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
-        new(new Dictionary<string, Zone>()
+        new(new Dictionary<string, Zone>
         {
             {"Conservatory", Zone.Conservatory},
             {"Labyrinth hub", Zone.LabyrinthHub},
@@ -71,7 +71,7 @@ public static class DiscordRPCManager
         });
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
-        new(new Dictionary<Zone, string>()
+        new(new Dictionary<Zone, string>
         {
             {Zone.Conservatory, "conservatory"},
             {Zone.RainbowFields, "rainbowfields"},
@@ -106,15 +106,15 @@ public static class DiscordRPCManager
     {
         rpcClient?.Dispose();
     }
-    
+
     public static ZoneDefinition? currentZone;
     public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
-    
+
     internal static void UpdatePresence()
     {
         var online = Main.Server.IsRunning() || Main.Client.IsConnected;
         var solo = playerManager.PlayerCount < 2;
-        
+
         var details = online
             ? solo
                 ? DetailsStringOnlineSolo
@@ -124,7 +124,7 @@ public static class DiscordRPCManager
 
         //if (IsInEndingCutscene)
         //    currentLocation = Zone.Ending;
-        
+
         var status = ZoneToStatus[currentLocation];
         var icon = ZoneToIcon[currentLocation];
 

@@ -15,25 +15,10 @@ namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
-    public override void OnInitializeMelon()
-    {
-        Main.LoadRPCAssembly();
-    }
-    public static void SendToAllOrServer<T>(T packet) where T : IPacket
-    {
-        if (Client.IsConnected)
-        {
-            Client.SendPacket(packet);
-        }
-
-        if (Server.IsRunning())
-        {
-            Server.SendToAll(packet);
-        }
-    }
-
     public static Client.Client Client { get; private set; }
     public static Server.Server Server { get; private set; }
+
+    public static readonly Assembly Core = typeof(Main).Assembly;
 
     static MelonPreferences_Category preferences;
 
@@ -52,12 +37,12 @@ public sealed class Main : SR2EExpansionV3
     public override void OnLateInitializeMelon()
     {
         InsertLicensesFile();
-        
+
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
 
-        preferences.CreateEntry("recent_port", "", is_hidden: true);
+        preferences.CreateEntry("recent_port", string.Empty, is_hidden: true);
         preferences.CreateEntry("recent_ip", "127.0.0.1", is_hidden: true);
         preferences.CreateEntry("host_port", "1919", is_hidden: true);
 
@@ -70,6 +55,24 @@ public sealed class Main : SR2EExpansionV3
 
         Client = new Client.Client();
         Server = new Server.Server();
+    }
+
+    public override void OnInitializeMelon()
+    {
+        LoadRPCAssembly();
+    }
+
+    public static void SendToAllOrServer<T>(T packet) where T : IPacket
+    {
+        if (Client.IsConnected)
+        {
+            Client.SendPacket(packet);
+        }
+
+        if (Server.IsRunning())
+        {
+            Server.SendToAll(packet);
+        }
     }
 
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
@@ -87,7 +90,7 @@ public sealed class Main : SR2EExpansionV3
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);
 
-                Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
+                Server.OnServerStarted += () => cheatsEnabled = AllowCheats;
 
                 Application.quitting += new Action(() =>
                 {
@@ -131,7 +134,7 @@ public sealed class Main : SR2EExpansionV3
                 playerPrefab.AddComponent<NetworkPlayerFootstep>().spawnAtTransform = footstepFX.transform;
 
                 Object.DontDestroyOnLoad(playerPrefab);
-                
+
                 break;
         }
     }
@@ -157,7 +160,7 @@ public sealed class Main : SR2EExpansionV3
 
     private static void LoadRPCAssembly()
     {
-        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
+        Stream manifestResourceStream = Core.GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Assembly.Load(array);
@@ -165,7 +168,7 @@ public sealed class Main : SR2EExpansionV3
 
     private static void InsertLicensesFile()
     {
-        Stream manifestResourceStream = Assembly.GetCallingAssembly().GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
+        Stream manifestResourceStream = Core.GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
         byte[] array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));

@@ -14,7 +14,7 @@ public sealed class PediaLoadHandler : BaseClientPacketHandler<InitialPediaPacke
     public PediaLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialPediaPacket packet)
+    protected override void Handle(InitialPediaPacket packet)
     {
         var unlocked = packet.Entries.ConvertAll(entry =>
             GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._pediaEntryLookup[entry]);

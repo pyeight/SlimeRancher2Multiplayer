@@ -12,9 +12,11 @@ public struct WorldFXPacket : IPacket
         SellPlort,
         SellPlortSound,
         SellPlortDroneSound,
-        FavoriteFoodEaten, // Also applies to gordos.
+        FavoriteFoodEaten, // Also applies to gordo slimes.
         GordoFoodEaten,
         GordoFoodEatenSound,
+        // FabricatorPurchaseGadget,
+        // FabricatorPurchaseUpgrade,
     }
 
     public Vector3 Position { get; set; }
@@ -22,6 +24,7 @@ public struct WorldFXPacket : IPacket
     public WorldFXType FX { get; set; }
 
     public readonly PacketType Type => PacketType.WorldFX;
+    public readonly PacketReliability Reliability => PacketReliability.Unreliable;
 
     public readonly void Serialise(PacketWriter writer)
     {

@@ -9,6 +9,7 @@ public sealed class ActorTransferPacket : IPacket
     public string OwnerPlayer { get; set; }
 
     public PacketType Type => PacketType.ActorTransfer;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

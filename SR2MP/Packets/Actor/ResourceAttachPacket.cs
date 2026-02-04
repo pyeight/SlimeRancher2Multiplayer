@@ -11,8 +11,9 @@ public sealed class ResourceAttachPacket : IPacket
     public Vector3 SpawnerID { get; set; }
 
     public SpawnResourceModel Model { get; set; }
-    
+
     public PacketType Type => PacketType.ResourceAttach;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {
@@ -20,7 +21,7 @@ public sealed class ResourceAttachPacket : IPacket
         writer.WriteString(PlotID);
         writer.WriteInt(Joint);
         writer.WriteVector3(SpawnerID);
-        
+
         writer.WriteBool(Model.nextSpawnRipens);
         writer.WriteDouble(Model.nextSpawnTime);
         writer.WriteFloat(Model.storedWater);

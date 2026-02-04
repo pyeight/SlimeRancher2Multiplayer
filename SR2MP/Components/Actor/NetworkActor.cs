@@ -2,6 +2,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
+using Il2CppInterop.Runtime.Attributes;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.World;
 using MelonLoader;
@@ -27,30 +28,52 @@ public sealed class NetworkActor : MonoBehaviour
 
     private byte attemptedGetIdentifiable = 0;
     private bool isValid = true;
+    private bool isDestroyed = false;
 
-    private ActorId ActorId
+    public ActorId ActorId
     {
         get
         {
+            if (isDestroyed)
+            {
+                isValid = false;
+                return new ActorId(0);
+            }
+
             if (!identifiable)
             {
-                identifiable = GetComponent<Identifiable>();
+                try
+                {
+                    identifiable = GetComponent<Identifiable>();
+                }
+                catch (Exception ex)
+                {
+                    SrLogger.LogWarning($"Failed to get Identifiable component: {ex.Message}", SrLogTarget.Both);
+                    isValid = false;
+                    return new ActorId(0);
+                }
+
                 attemptedGetIdentifiable++;
 
                 if (attemptedGetIdentifiable >= 10)
                 {
+                    SrLogger.LogWarning("Failed to get Identifiable after 10 attempts", SrLogTarget.Both);
                     isValid = false;
                 }
 
-                return new ActorId(0);
+                if (!identifiable)
+                {
+                    return new ActorId(0);
+                }
             }
-            
+
             try
             {
                 return identifiable.GetActorId();
             }
-            catch
+            catch (Exception ex)
             {
+                SrLogger.LogWarning($"Failed to get ActorId: {ex.Message}", SrLogTarget.Both);
                 isValid = false;
                 return new ActorId(0);
             }
@@ -75,71 +98,121 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void Start()
     {
-        if (GetComponent<Gadget>())
+        try
         {
-            Destroy(this);
-            return;
-        }
-        if (GetComponent<SRCharacterController>())
-        {
-            Destroy(this);
-            return;
-        }
-        
-        emotions = GetComponent<SlimeEmotions>();
-        cachedLocallyOwned = LocallyOwned;
-        rigidbody = GetComponent<Rigidbody>();
-        identifiable = GetComponent<Identifiable>();
+            // Check for components that shouldn't have NetworkActor
+            if (GetComponent<Gadget>())
+            {
+                Destroy(this);
+                return;
+            }
+            if (GetComponent<SRCharacterController>())
+            {
+                Destroy(this);
+                return;
+            }
 
-        regionMember = GetComponent<RegionMember>();
+            emotions = GetComponent<SlimeEmotions>();
+            cachedLocallyOwned = LocallyOwned;
+            rigidbody = GetComponent<Rigidbody>();
+            identifiable = GetComponent<Identifiable>();
 
-        if (regionMember)
+            regionMember = GetComponent<RegionMember>();
+
+            if (regionMember)
+            {
+                try
+                {
+                    regionMember.add_BeforeHibernationChanged(
+                        Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
+                                .GetEvent("BeforeHibernationChanged").EventHandlerType,
+                            this.Cast<Il2CppSystem.Object>(),
+                            nameof(HibernationChanged),
+                            true)
+                            .Cast<RegionMember.OnHibernationChange>());
+                }
+                catch (Exception ex)
+                {
+                    SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
+                }
+            }
+        }
+        catch (Exception ex)
         {
-            regionMember.add_BeforeHibernationChanged(
-                Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
-                        .GetEvent("BeforeHibernationChanged").EventHandlerType,
-                    this.Cast<Il2CppSystem.Object>(),
-                    nameof(HibernationChanged),
-                    true)
-                    .Cast<RegionMember.OnHibernationChange>());
+            SrLogger.LogError($"NetworkActor.Start error: {ex}", SrLogTarget.Both);
+            isValid = false;
         }
     }
 
-    IEnumerator WaitOneFrameOnHibernationChange(bool value)
+    [HideFromIl2Cpp]
+    private IEnumerator WaitOneFrameOnHibernationChange(bool value)
     {
         yield return null;
 
-        if (!isValid) yield break;
-
-        if (value)
+        if (!isValid || isDestroyed)
         {
-            LocallyOwned = false;
-
-            var packet = new ActorUnloadPacket() { ActorId = ActorId };
-            Main.SendToAllOrServer(packet);
+            yield break;
         }
-        else
-        {
-            LocallyOwned = true;
 
-            var packet = new ActorTransferPacket
+        try
+        {
+            if (value)
             {
-                ActorId = ActorId,
-                OwnerPlayer = LocalID,
-            };
-            Main.SendToAllOrServer(packet);
+                LocallyOwned = false;
+
+                var actorId = ActorId;
+                if (actorId.Value == 0)
+                {
+                    yield break;
+                }
+
+                var packet = new ActorUnloadPacket { ActorId = actorId };
+                Main.SendToAllOrServer(packet);
+            }
+            else
+            {
+                LocallyOwned = true;
+
+                var actorId = ActorId;
+                if (actorId.Value == 0)
+                {
+                    yield break;
+                }
+
+                var packet = new ActorTransferPacket
+                {
+                    ActorId = actorId,
+                    OwnerPlayer = LocalID,
+                };
+                Main.SendToAllOrServer(packet);
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"WaitOneFrameOnHibernationChange error: {ex}", SrLogTarget.Both);
+            isValid = false;
         }
     }
 
     public void HibernationChanged(bool value)
     {
-        if (!isValid) return;
-        MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
+        if (!isValid || isDestroyed)
+            return;
+
+        try
+        {
+            MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"HibernationChanged error: {ex}", SrLogTarget.Both);
+        }
     }
 
     private void UpdateInterpolation()
     {
         if (LocallyOwned) return;
+        if (isDestroyed) return;
 
         var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
         timer = Mathf.Clamp01(timer);
@@ -150,65 +223,96 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void Update()
     {
+        if (isDestroyed)
+            return;
+
         if (!isValid)
         {
+            isDestroyed = true;
             Destroy(this);
             return;
         }
 
-        if (cachedLocallyOwned != LocallyOwned)
+        try
         {
-            SetRigidbodyState(LocallyOwned);
-
-            if (LocallyOwned && rigidbody)
-                rigidbody.velocity = SavedVelocity;
-        }
-
-        cachedLocallyOwned = LocallyOwned;
-        syncTimer -= UnityEngine.Time.unscaledDeltaTime;
-
-        UpdateInterpolation();
-
-        if (syncTimer >= 0) return;
-
-        if (LocallyOwned)
-        {
-            syncTimer = Timers.ActorTimer;
-
-            previousPosition = transform.position;
-            previousRotation = transform.rotation;
-            nextPosition = transform.position;
-            nextRotation = transform.rotation;
-
-            var packet = new ActorUpdatePacket
+            if (cachedLocallyOwned != LocallyOwned)
             {
-                ActorId = ActorId,
-                Position = transform.position,
-                Rotation = transform.rotation,
-                Velocity = rigidbody ? rigidbody.velocity : Vector3.zero,
-                Emotions = EmotionsFloat
-            };
+                SetRigidbodyState(LocallyOwned);
 
-            Main.SendToAllOrServer(packet);
+                if (LocallyOwned && rigidbody)
+                    rigidbody.velocity = SavedVelocity;
+            }
+
+            cachedLocallyOwned = LocallyOwned;
+            syncTimer -= UnityEngine.Time.unscaledDeltaTime;
+
+            UpdateInterpolation();
+
+            if (syncTimer >= 0) return;
+
+            if (LocallyOwned)
+            {
+                syncTimer = Timers.ActorTimer;
+
+                previousPosition = transform.position;
+                previousRotation = transform.rotation;
+                nextPosition = transform.position;
+                nextRotation = transform.rotation;
+
+                var actorId = ActorId;
+                if (actorId.Value == 0)
+                {
+                    return;
+                }
+
+                var packet = new ActorUpdatePacket
+                {
+                    ActorId = actorId,
+                    Position = transform.position,
+                    Rotation = transform.rotation,
+                    Velocity = rigidbody ? rigidbody.velocity : Vector3.zero,
+                    Emotions = EmotionsFloat
+                };
+
+                Main.SendToAllOrServer(packet);
+            }
+            else
+            {
+                previousPosition = transform.position;
+                previousRotation = transform.rotation;
+
+                interpolationStart = UnityEngine.Time.unscaledTime;
+                interpolationEnd = UnityEngine.Time.unscaledTime + Timers.ActorTimer;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            previousPosition = transform.position;
-            previousRotation = transform.rotation;
-
-            interpolationStart = UnityEngine.Time.unscaledTime;
-            interpolationEnd = UnityEngine.Time.unscaledTime + Timers.ActorTimer;
+            SrLogger.LogError($"NetworkActor.Update error: {ex}", SrLogTarget.Both);
+            isValid = false;
         }
     }
 
     private void SetRigidbodyState(bool enableConstraints)
     {
-        if (!rigidbody)
+        if (!rigidbody || isDestroyed)
             return;
 
-        rigidbody.constraints =
-            enableConstraints
-                ? RigidbodyConstraints.None
-                : RigidbodyConstraints.FreezeAll;
+        try
+        {
+            rigidbody.constraints =
+                enableConstraints
+                    ? RigidbodyConstraints.None
+                    : RigidbodyConstraints.FreezeAll;
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"SetRigidbodyState error: {ex.Message}", SrLogTarget.Both);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        isDestroyed = true;
+        isValid = false;
     }
 }

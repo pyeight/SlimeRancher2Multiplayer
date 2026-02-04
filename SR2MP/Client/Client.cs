@@ -18,18 +18,19 @@ public sealed class Client
     private IPEndPoint? serverEndPoint;
     private Thread? receiveThread;
     private Timer? heartbeatTimer;
+    private ReliabilityManager? reliabilityManager;
 
     private volatile bool isConnected;
     private volatile bool connectionAcknowledged;
     private Timer? connectionTimeoutTimer;
     private const int ConnectionTimeoutSeconds = 10;
 
-    private bool shownConnectionError = false;
+    private bool shownConnectionError;
 
     private readonly ClientPacketManager packetManager;
 
-    public string OwnPlayerId { get; private set; } = string.Empty;
     public bool IsConnected => isConnected;
+    public string OwnPlayerId { get; private set; } = string.Empty;
 
     public event Action<string>? OnConnected;
     public event Action? OnDisconnected;
@@ -53,7 +54,7 @@ public sealed class Client
             SrLogger.LogWarning("You can not join a world while hosting a server.", SrLogTarget.Both);
             return;
         }
-        
+
         if (isConnected)
         {
             SrLogger.LogWarning("You are already connected to a Server!", SrLogTarget.Both);
@@ -80,13 +81,19 @@ public sealed class Client
                 SrLogger.LogMessage("Using IPv4 connection", SrLogTarget.Both);
             }
 
+            PacketDeduplication.Clear();
+
             serverEndPoint = new IPEndPoint(parsedIp, port);
             udpClient.Connect(serverEndPoint);
-            
+
             udpClient.Client.ReceiveBufferSize = 512 * 1024;
             udpClient.Client.SendBufferSize = 512 * 1024;
 
             OwnPlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
+
+            // Initialize reliability manager
+            reliabilityManager = new ReliabilityManager(SendRaw);
+            reliabilityManager.Start();
 
             packetManager.RegisterHandlers();
 
@@ -125,11 +132,10 @@ public sealed class Client
 
     private void CheckConnectionTimeout(object? state)
     {
-        if (!connectionAcknowledged && isConnected)
-        {
-            SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
-            Disconnect();
-        }
+        if (connectionAcknowledged || !isConnected)
+            return;
+        SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
+        Disconnect();
     }
 
     private void ReceiveLoop()
@@ -158,7 +164,7 @@ public sealed class Client
                 if (data.Length == 0)
                     continue;
 
-                packetManager.HandlePacket(data);
+                packetManager.HandlePacket(data, remoteEp);
                 SrLogger.LogPacketSize($"Received {data.Length} bytes",
                     $"Received {data.Length} bytes from {remoteEp}");
             }
@@ -176,11 +182,11 @@ public sealed class Client
                     {
                         SrLogger.LogError("The server is not running!\n" +
                                           "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                          "(If this is not the case, check your firewall settings)", SrLogTarget.Both);
+                                          "If this is not the case, check your firewall settings", SrLogTarget.Both);
                         shownConnectionError = true;
                     }
                 }
-                
+
                 MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
                 Disconnect();
             }
@@ -228,10 +234,26 @@ public sealed class Client
 
             SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
 
-            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
+            PacketReliability reliability = packet.Reliability;
+            ushort sequenceNumber = 0;
+
+            // Get sequence number for ordered packets (pass packet type)
+            if (reliability == PacketReliability.ReliableOrdered)
+            {
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
+            }
+
+            var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out ushort packetId);
+
+            // Track reliability if needed
+            if (reliability != PacketReliability.Unreliable)
+            {
+                reliabilityManager?.TrackPacket(chunks, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
+            }
+
             foreach (var chunk in chunks)
             {
-                udpClient.Send(chunk, chunk.Length);
+                SendRaw(chunk, serverEndPoint);
             }
 
             SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
@@ -241,6 +263,24 @@ public sealed class Client
         {
             SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
         }
+    }
+
+    // Sends raww data without reliability tracking (used for resends)
+    private void SendRaw(byte[] data, IPEndPoint endPoint)
+    {
+        udpClient?.Send(data, data.Length);
+    }
+
+    // Handle acknowledgment from server, used in client packet manager
+    public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
+    {
+        reliabilityManager?.HandleAck(sender, packetId, packetType);
+    }
+
+    // Check if ordered packet should be processed
+    public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
+    {
+        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType) ?? true;
     }
 
     public void Disconnect()
@@ -270,6 +310,8 @@ public sealed class Client
                 SrLogger.LogWarning($"Could not send leave packet: {ex.Message}");
             }
 
+            PacketDeduplication.Clear();
+
             isConnected = false;
 
             if (heartbeatTimer != null)
@@ -284,19 +326,21 @@ public sealed class Client
                 connectionTimeoutTimer = null;
             }
 
+            reliabilityManager?.Stop();
+
             if (udpClient != null)
             {
                 udpClient.Close();
                 udpClient = null;
             }
-            
+
             if (receiveThread is { IsAlive: true })
             {
                 SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
             }
 
             receiveThread = null;
-            
+
             var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
             foreach (var playerId in allPlayerIds)
             {
@@ -344,4 +388,6 @@ public sealed class Client
     {
         return playerManager.GetAllPlayers();
     }
+
+    public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
 }

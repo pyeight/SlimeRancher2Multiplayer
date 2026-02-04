@@ -12,7 +12,7 @@ public sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
     public PlayerFXHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(PlayerFXPacket packet, IPEndPoint clientEp)
+    protected override void Handle(PlayerFXPacket packet, IPEndPoint clientEp)
     {
         if (!IsPlayerSoundDictionary[packet.FX])
         {

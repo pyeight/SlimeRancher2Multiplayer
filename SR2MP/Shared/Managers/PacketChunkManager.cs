@@ -13,34 +13,42 @@ public static class PacketChunkManager
         public ushort totalChunks;
         public int receivedCount;
         public DateTime lastChunkTime;
-        
-        public IncompletePacket(ushort totalChunks)
+        public PacketReliability reliability;
+        public ushort sequenceNumber;
+
+        public IncompletePacket(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
         {
             this.chunks = new byte[totalChunks][];
             this.received = new bool[totalChunks];
             this.totalChunks = totalChunks;
             this.receivedCount = 0;
             this.lastChunkTime = DateTime.UtcNow;
+            this.reliability = reliability;
+            this.sequenceNumber = sequenceNumber;
         }
     }
 
     // Format: PacketType_PacketId_Sender
     private static readonly ConcurrentDictionary<string, IncompletePacket> IncompletePackets = new();
-    
+
     private static int nextPacketId = 1;
 
     private const int MaxChunkBytes = 500;
     private const int CompressionThreshold = 30;
     private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(30);
-    
+
     private static int packetCounter = 0;
     private const int CleanupInterval = 100;
 
-    internal static bool TryMergePacket(PacketType packetType, byte[] data, ushort chunkIndex, 
-        ushort totalChunks, ushort packetId, string senderKey, out byte[] fullData)
+    internal static bool TryMergePacket(PacketType packetType, byte[] data, ushort chunkIndex,
+        ushort totalChunks, ushort packetId, string senderKey, PacketReliability reliability,
+        ushort sequenceNumber, out byte[] fullData, out PacketReliability outReliability,
+        out ushort outSequenceNumber)
     {
         fullData = null!;
-        
+        outReliability = reliability;
+        outSequenceNumber = sequenceNumber;
+
         if (chunkIndex >= totalChunks)
         {
             SrLogger.LogWarning($"Invalid chunk: index={chunkIndex} >= total={totalChunks}", SrLogTarget.Both);
@@ -56,8 +64,9 @@ public static class PacketChunkManager
 
         string key = $"{(byte)packetType}_{packetId}_{senderKey}";
 
-        var packet = IncompletePackets.GetOrAdd(key, _ => new IncompletePacket(totalChunks));
-        
+        var packet = IncompletePackets.GetOrAdd(key, _ =>
+            new IncompletePacket(totalChunks, reliability, sequenceNumber));
+
         if (packet.totalChunks != totalChunks)
         {
             SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.totalChunks} got={totalChunks}", SrLogTarget.Both);
@@ -91,8 +100,11 @@ public static class PacketChunkManager
             offset += packet.chunks[i].Length;
         }
 
+        outReliability = packet.reliability;
+        outSequenceNumber = packet.sequenceNumber;
+
         IncompletePackets.TryRemove(key, out _);
-        
+
         // Decompress if compressed
         if (fullData.Length > 0 && fullData[0] == 0xFF)
         {
@@ -102,22 +114,23 @@ public static class PacketChunkManager
         return true;
     }
 
-    internal static byte[][] SplitPacket(byte[] data, out ushort packetId)
+    internal static byte[][] SplitPacket(byte[] data, PacketReliability reliability,
+        ushort sequenceNumber, out ushort packetId)
     {
         var packetType = data[0];
-        
+
         // Thread-safe packet ID generation
         int id = Interlocked.Increment(ref nextPacketId);
-        
+
         // Reset to 1 if we've exceeded ushort range
         if (id > ushort.MaxValue)
         {
             Interlocked.CompareExchange(ref nextPacketId, 1, id);
             id = Interlocked.Increment(ref nextPacketId);
         }
-        
+
         packetId = (ushort)id;
-        
+
         // Compress if threshold is reached
         if (data.Length > CompressionThreshold)
         {
@@ -127,7 +140,7 @@ public static class PacketChunkManager
                 data = compressed;
             }
         }
-        
+
         var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
         var result = new byte[chunkCount][];
 
@@ -136,33 +149,44 @@ public static class PacketChunkManager
             var offset = index * MaxChunkBytes;
             var chunkSize = Math.Min(MaxChunkBytes, data.Length - offset);
 
-            // Header - 7 bytes
-            var buffer = new byte[7 + chunkSize];
+            // 10 byte header:
+            var buffer = new byte[10 + chunkSize];
+
+            // Packet Type
             buffer[0] = packetType;
-            
+
             // Chunk index
             buffer[1] = (byte)(index & 0xFF);
             buffer[2] = (byte)((index >> 8) & 0xFF);
-            
+
             // Total chunks
             buffer[3] = (byte)(chunkCount & 0xFF);
             buffer[4] = (byte)((chunkCount >> 8) & 0xFF);
-            
+
             // Packet ID
             buffer[5] = (byte)(packetId & 0xFF);
             buffer[6] = (byte)((packetId >> 8) & 0xFF);
 
-            Buffer.BlockCopy(data, offset, buffer, 7, chunkSize);
+            // Reliability
+            buffer[7] = (byte)reliability;
+
+            // Sequence number (for ordered packets)
+            buffer[8] = (byte)(sequenceNumber & 0xFF);
+            buffer[9] = (byte)((sequenceNumber >> 8) & 0xFF);
+
+            Buffer.BlockCopy(data, offset, buffer, 10, chunkSize);
             result[index] = buffer;
         }
-        
+
         return result;
     }
 
     private static void CleanupStalePackets()
     {
         var now = DateTime.UtcNow;
-        var keysToRemove = (from kvp in IncompletePackets where now - kvp.Value.lastChunkTime > PacketTimeout select kvp.Key).ToList();
+        var keysToRemove = (from kvp in IncompletePackets
+                           where now - kvp.Value.lastChunkTime > PacketTimeout
+                           select kvp.Key).ToList();
 
         foreach (var key in keysToRemove)
         {
@@ -176,14 +200,15 @@ public static class PacketChunkManager
     private static byte[] Compress(byte[] data)
     {
         using var output = new MemoryStream();
-        output.WriteByte(0xFF);
+        // (byte)PacketType.ReservedDoNotUse instead of 0xFF so shows as used in PacketType.cs
+        output.WriteByte((byte)PacketType.ReservedDoNotUse);
         output.WriteByte(data[0]);
-        
+
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest))
         {
             gzip.Write(data, 1, data.Length - 1);
         }
-        
+
         return output.ToArray();
     }
 
@@ -192,15 +217,15 @@ public static class PacketChunkManager
         using var input = new MemoryStream(data);
         input.ReadByte();
         var packetType = (byte)input.ReadByte();
-        
+
         using var output = new MemoryStream();
         output.WriteByte(packetType);
-        
+
         using (var gzip = new GZipStream(input, CompressionMode.Decompress))
         {
             gzip.CopyTo(output);
         }
-        
+
         return output.ToArray();
     }
 }

@@ -2,168 +2,111 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using SR2E.Utils;
+using SR2MP.Client.Managers;
 using SR2MP.Packets.Utils;
-using UnityEngine;
 
-namespace SR2MP.Packets.World
+namespace SR2MP.Packets.World;
+
+public sealed class WeatherPacket : IPacket
 {
-    public class WeatherPacket : IPacket
+    public Dictionary<byte, WeatherZoneData> Zones;
+
+    public PacketType Type { get; private init; }
+    public PacketReliability Reliability => PacketReliability.Reliable;
+
+    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Zones, PacketWriterDels.Byte, PacketWriterDels.NetObject<WeatherZoneData>.Func);
+
+    public void Deserialise(PacketReader reader) => Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Func);
+
+    public static IEnumerator CreateFromModel(
+        WeatherModel model,
+        PacketType type,
+        Action<WeatherPacket>? onComplete)
     {
-        public PacketType Type { get; set; }
-
-        public NetworkWeatherModel Model;
-
-        public void Serialise(PacketWriter writer)
+        var packet = new WeatherPacket
         {
-            Model.Write(writer);
-        }
+            Type = type,
+            Zones = new Dictionary<byte, WeatherZoneData>()
+        };
 
-        public void Deserialise(PacketReader reader)
-        {
-            Model = new NetworkWeatherModel();
-            Model.Read(reader);
-        }
+        byte zoneId = 0;
 
-        public static IEnumerator CreateFromModel(
-            WeatherModel model,
-            PacketType type,
-            System.Action<WeatherPacket> onComplete)
+        foreach (var zone in model._zoneDatas)
         {
-            var packet = new WeatherPacket
+            var zoneData = new WeatherZoneData
             {
-                Type = type,
-                Model = new NetworkWeatherModel
-                {
-                    Zones = new Dictionary<byte, WeatherZoneData>()
-                }
+                WeatherForecasts = new List<WeatherForecast>(),
+                WindSpeed = zone.Value.Parameters.WindDirection
             };
-
-            byte zoneId = 0;
-
-            foreach (var zone in model._zoneDatas)
+            foreach (var forecast in zone.Value.Forecast)
             {
-                var zoneData = new WeatherZoneData
+                if (!forecast.Started)
+                    continue;
+
+                zoneData.WeatherForecasts.Add(new WeatherForecast
                 {
-                    WeatherForecasts = new List<WeatherForecast>(),
-                    WindSpeed = zone.Value.Parameters.WindDirection
-                };
-
-                foreach (var forecast in zone.Value.Forecast)
-                {
-                    if (!forecast.Started)
-                        continue;
-
-                    zoneData.WeatherForecasts.Add(new WeatherForecast
-                    {
-                        State = forecast.State.Cast<WeatherStateDefinition>(),
-                        WeatherStarted = true,
-                        StartTime = forecast.StartTime,
-                        EndTime = forecast.EndTime
-                    });
-                }
-
-                packet.Model.Zones.Add(zoneId++, zoneData);
-                yield return null;
+                    State = forecast.State.Cast<WeatherStateDefinition>(),
+                    WeatherStarted = true,
+                    StartTime = forecast.StartTime,
+                    EndTime = forecast.EndTime
+                });
             }
 
-            onComplete?.Invoke(packet);
-        }
-    }
-
-    public struct NetworkWeatherModel
-    {
-        public Dictionary<byte, WeatherZoneData> Zones;
-
-        public void Write(PacketWriter writer)
-        {
-            writer.WriteInt(Zones.Count);
-            foreach (var zone in Zones)
-            {
-                writer.WriteByte(zone.Key);
-                zone.Value.Write(writer);
-            }
+            packet.Zones.Add(zoneId++, zoneData);
+            
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
         }
 
-        public void Read(PacketReader reader)
-        {
-            Zones = new Dictionary<byte, WeatherZoneData>();
-            var count = reader.ReadInt();
-
-            for (int i = 0; i < count; i++)
-            {
-                var id = reader.ReadByte();
-                var data = new WeatherZoneData();
-                data.Read(reader);
-                Zones.Add(id, data);
-            }
-        }
-    }
-
-    public struct WeatherForecast
-    {
-        public WeatherStateDefinition State;
-        public bool WeatherStarted;
-        public double StartTime;
-        public double EndTime;
-
-        public void Write(PacketWriter writer)
-        {
-            var stateName = State.name; // ← copy out of struct
-
-            int index = 0;
-            var defs = LookupEUtil.weatherStateDefinitions;
-
-            for (int i = 0; i < defs.Length; i++)
-            {
-                if (defs[i].name == stateName)
-                {
-                    index = i;
-                    break;
-                }
-            }
-
-            writer.WriteInt(index);
-            writer.WriteBool(WeatherStarted);
-            writer.WriteDouble(StartTime);
-            writer.WriteDouble(EndTime);
-        }
-
-        public void Read(PacketReader reader)
-        {
-            State = LookupEUtil.weatherStateDefinitions[reader.ReadInt()];
-            WeatherStarted = reader.ReadBool();
-            StartTime = reader.ReadDouble();
-            EndTime = reader.ReadDouble();
-        }
-    }
-
-    public struct WeatherZoneData
-    {
-        public List<WeatherForecast> WeatherForecasts;
-        public Vector3 WindSpeed;
-
-        public void Write(PacketWriter writer)
-        {
-            writer.WriteInt(WeatherForecasts.Count);
-            foreach (var f in WeatherForecasts)
-                f.Write(writer);
-
-            writer.WriteVector3(WindSpeed);
-        }
-
-        public void Read(PacketReader reader)
-        {
-            var count = reader.ReadInt();
-            WeatherForecasts = new List<WeatherForecast>();
-
-            for (int i = 0; i < count; i++)
-            {
-                var f = new WeatherForecast();
-                f.Read(reader);
-                WeatherForecasts.Add(f);
-            }
-
-            WindSpeed = reader.ReadVector3();
-        }
+        onComplete?.Invoke(packet);
     }
 }
+
+public sealed class WeatherZoneData : INetObject
+{
+    public List<WeatherForecast> WeatherForecasts;
+    public Vector3 WindSpeed;
+
+    public void Serialise(PacketWriter writer)
+    {
+        writer.WriteList(WeatherForecasts, PacketWriterDels.NetObject<WeatherForecast>.Func);
+        writer.WriteVector3(WindSpeed);
+    }
+
+    public void Deserialise(PacketReader reader)
+    {
+        WeatherForecasts = reader.ReadList(PacketReaderDels.NetObject<WeatherForecast>.Func);
+        WindSpeed = reader.ReadVector3();
+    }
+}
+
+public sealed class WeatherForecast : INetObject
+{
+    public WeatherStateDefinition State;
+    public bool WeatherStarted;
+    public double StartTime;
+    public double EndTime;
+
+    public void Serialise(PacketWriter writer)
+    {
+        writer.WriteInt(NetworkWeatherManager.GetPersistentID(State));
+        writer.WriteBool(WeatherStarted);
+        writer.WriteDouble(StartTime);
+        writer.WriteDouble(EndTime);
+    }
+
+    public void Deserialise(PacketReader reader)
+    {
+        NetworkWeatherManager.CheckInitialized();
+        State = NetworkWeatherManager.weatherStates[reader.ReadInt()];
+        WeatherStarted = reader.ReadBool();
+        StartTime = reader.ReadDouble();
+        EndTime = reader.ReadDouble();
+    }
+}
+
+// ZoomedOutUI -> zoneMarkers -> 

@@ -25,6 +25,7 @@ public sealed class InitialSwitchesPacket : IPacket
     public List<Switch> Switches { get; set; }
 
     public PacketType Type => PacketType.InitialSwitches;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Func);
 

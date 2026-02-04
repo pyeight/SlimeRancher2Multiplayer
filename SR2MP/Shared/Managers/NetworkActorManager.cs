@@ -1,18 +1,20 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.SceneManagement;
-using Il2CppSystem.Security.Util;
+using Il2CppMonomiPark.SlimeRancher.Regions;
+using Il2CppMonomiPark.SlimeRancher.Util;
 using MelonLoader;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
+using SR2MP.Packets.Actor;
+using UnityEngine.SceneManagement;
 
 namespace SR2MP.Shared.Managers;
 
 public sealed class NetworkActorManager
 {
-    public readonly Dictionary<long, IdentifiableModel> Actors              = new();
-    public readonly Dictionary<int, IdentifiableType> ActorTypes            = new();
-    
+    public readonly Dictionary<long, IdentifiableModel> Actors    = new();
+    public readonly Dictionary<int, IdentifiableType> ActorTypes  = new();
+
     public static int GetPersistentID(IdentifiableType type)
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation.GetPersistenceId(type);
 
@@ -29,13 +31,13 @@ public sealed class NetworkActorManager
         MelonCoroutines.Start(ZoneLoadingLoop());
     }
 
-    internal IEnumerator ZoneLoadingLoop()
+    private IEnumerator ZoneLoadingLoop()
     {
         while (true)
         {
             yield return new WaitForSceneGroupLoad(false);
-            yield return new WaitForSceneGroupLoad(true);
-            
+            yield return new WaitForSceneGroupLoad();
+
             if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
                 continue;
 
@@ -43,113 +45,105 @@ public sealed class NetworkActorManager
                 continue;
 
             var gameModel = SceneContext.Instance?.GameModel;
-            if (!gameModel) 
+            if (!gameModel)
                 continue;
 
             var scene = SystemContext.Instance.SceneLoader.CurrentSceneGroup;
-            
+
             foreach (var actor in gameModel!.identifiables)
             {
                 if (actor.value.ident.IsPlayer)
                     continue;
-                
+
                 if (actor.value.TryCast<ActorModel>() == null)
                     continue;
-                
+
                 var obj = actor.value.GetGameObject();
-                if (obj)
-                {
-                    Object.Destroy(obj);
-                    Actors.Remove(actor.value.actorId.Value);
-                }
+                if (!obj)
+                    continue;
+                Object.Destroy(obj);
+                Actors.Remove(actor.value.actorId.Value);
             }
-            
-            foreach (var actor2 in gameModel!.identifiables)
+
+            foreach (var actor2 in gameModel.identifiables)
             {
                 if (actor2.value.ident.IsPlayer)
                     continue;
-                
+
                 var model = actor2.value.TryCast<ActorModel>();
 
                 if (model == null)
                     continue;
-                
+
                 if (!model.ident.prefab)
                     continue;
 
-                if (actor2.value.sceneGroup == scene)
-                {
-                    handlingPacket = true;
-                    var obj = InstantiationHelpers.InstantiateActorFromModel(model);
-                    handlingPacket = false;
-                    
-                    if (!obj)
-                        continue;
+                if (actor2.value.sceneGroup != scene)
+                    continue;
+                handlingPacket = true;
+                var obj = InstantiationHelpers.InstantiateActorFromModel(model);
+                handlingPacket = false;
 
-                    var networkComponent = obj.AddComponent<NetworkActor>();
+                if (!obj)
+                    continue;
 
-                    networkComponent.previousPosition = model.lastPosition;
-                    networkComponent.nextPosition = model.lastPosition;
-                    networkComponent.previousRotation = model.lastRotation;
-                    networkComponent.nextRotation = model.lastRotation;
+                var networkComponent = obj.AddComponent<NetworkActor>();
 
-                    actorManager.Actors.Add(model.actorId.Value, model);
-                }
+                networkComponent.previousPosition = model.lastPosition;
+                networkComponent.nextPosition = model.lastPosition;
+                networkComponent.previousRotation = model.lastRotation;
+                networkComponent.nextRotation = model.lastRotation;
+
+                actorManager.Actors.Add(model.actorId.Value, model);
             }
+
+            yield return TakeOwnershipOfNearby();
         }
     }
 
-    private bool ActorIDAlreadyInUse(ActorId id)
+    private static bool ActorIDAlreadyInUse(ActorId id)
     {
         var gameModel = SceneContext.Instance?.GameModel;
-
-        if (!gameModel)
-        {
-            return false;
-        }
-
-        return gameModel!.TryGetIdentifiableModel(id, out _);
+        return gameModel && gameModel!.TryGetIdentifiableModel(id, out _);
     }
-    
+
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out ActorModel? actorModel)
     {
         actorModel = null;
-        
-        
+
         if (Main.RockPlortBug)
             typeId = 25;
-        
+
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        
-        if (!ActorTypes.ContainsKey(typeId))
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
             return false;
         }
-        var type = ActorTypes[typeId];
 
         if (!type.prefab)
             return false;
-        
+
         if (type.isGadget())
         {
-            SrLogger.LogWarning($"Tried to spawn gadget over the network, this hasnt been implemented yet!\n\tActor {actorId.Value}: {type.name}");
+            SrLogger.LogWarning($"Tried to spawn gadget over the network, this has not been implemented yet!\n\tActor {actorId.Value}: {type.name}");
             return false;
         }
 
         if (ActorIDAlreadyInUse(actorId))
             return false;
-        
+
         actorModel = SceneContext.Instance.GameModel.CreateActorModel(
                 actorId,
                 type,
                 scene,
                 position,
                 rotation);
-        
+
         if (actorModel == null)
             return false;
-        
+
         SceneContext.Instance.GameModel.identifiables[actorId] = actorModel;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
         {
@@ -161,22 +155,21 @@ public sealed class NetworkActorManager
             actors.Add(actorModel);
             SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
         }
-        
+
         handlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(actorModel);
         handlingPacket = false;
 
-        if (actor)
-        {
-            var networkComponent = actor.AddComponent<NetworkActor>();
-            networkComponent.previousPosition = position;
-            networkComponent.nextPosition = position;
-            networkComponent.previousRotation = rotation;
-            networkComponent.nextRotation = rotation;
-            actor.transform.position = position;
-            actorManager.Actors[actorId.Value] = actorModel;
-        }
-        
+        if (!actor)
+            return true;
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        actorManager.Actors[actorId.Value] = actorModel;
+
         return true;
     }
 
@@ -186,14 +179,57 @@ public sealed class NetworkActorManager
         foreach (var actor in SceneContext.Instance.GameModel.identifiables)
         {
             var id = actor.value.actorId.Value;
-            if (id >= min && id < max)
+            if (id < min || id >= max)
+                continue;
+            if (id > result)
             {
-                if (id > result)
-                {
-                    result = id;
-                }
-            }    
+                result = id;
+            }
         }
         return result;
+    }
+
+    internal IEnumerator TakeOwnershipOfNearby()
+    {
+        const int Max = 12;
+
+        var player = SceneContext.Instance.player;
+       
+        var bounds = new Bounds(player.transform.position, new Vector3(325, 1000, 325));
+
+        int i = 0;
+        foreach (var actor in Actors)
+        {
+            if (actor.Value == null)
+                continue;
+            
+            if (!bounds.Contains(actor.Value.lastPosition))
+                continue;
+
+            if (actor.Value.TryGetNetworkComponent(out var netActor))
+                continue;
+
+            netActor.LocallyOwned = true;
+
+            var actorId = netActor.ActorId;
+            if (actorId.Value == 0)
+            {
+                yield break;
+            }
+
+            var packet = new ActorTransferPacket
+            {
+                ActorId = actorId,
+                OwnerPlayer = LocalID,
+            };
+            Main.SendToAllOrServer(packet);
+            i++;
+
+            if (i > Max)
+            {
+                yield return null;
+                i = 0;
+            }
+        }
     }
 }

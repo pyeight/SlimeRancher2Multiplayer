@@ -12,6 +12,7 @@ public struct ActorSpawnPacket : IPacket
     public byte SceneGroup { get; set; }
 
     public readonly PacketType Type => PacketType.ActorSpawn;
+    public readonly PacketReliability Reliability => PacketReliability.Reliable;
 
     public readonly void Serialise(PacketWriter writer)
     {

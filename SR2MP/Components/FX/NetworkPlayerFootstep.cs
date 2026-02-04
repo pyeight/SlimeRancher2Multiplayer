@@ -17,7 +17,7 @@ public sealed class NetworkPlayerFootstep : MonoBehaviour
 
     private float groundCheckDistance = 0.15f;
 
-    private void Start()
+    private void Awake()
     {
         spawnAtTransform = transform.GetChild(2);
         footstepFX = fxManager.FootstepFX;

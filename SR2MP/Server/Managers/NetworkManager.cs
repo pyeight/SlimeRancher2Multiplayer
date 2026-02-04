@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Shared.Managers;
+using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Managers;
 
@@ -9,6 +10,7 @@ public sealed class NetworkManager
     private UdpClient? udpClient;
     private volatile bool isRunning;
     private Thread? receiveThread;
+    private ReliabilityManager? reliabilityManager;
 
     public event Action<byte[], IPEndPoint>? OnDataReceived;
 
@@ -36,10 +38,13 @@ public sealed class NetworkManager
                 udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
                 SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogTarget.Both);
             }
-            
+
             udpClient.Client.ReceiveBufferSize = 512 * 1024;
             udpClient.Client.SendBufferSize = 512 * 1024;
             udpClient.Client.ReceiveTimeout = 0;
+
+            reliabilityManager = new ReliabilityManager(SendRaw);
+            reliabilityManager.Start();
 
             isRunning = true;
 
@@ -87,11 +92,11 @@ public sealed class NetworkManager
                     SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
             }
         }
-        
+
         SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
     }
 
-    public void Send(byte[] data, IPEndPoint endPoint)
+    public void Send(byte[] data, IPEndPoint endPoint, PacketReliability? reliability = null)
     {
         if (udpClient == null || !isRunning)
         {
@@ -101,12 +106,24 @@ public sealed class NetworkManager
 
         try
         {
-            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
-            
-            // Send all chunks
+            PacketReliability packetReliability = reliability ?? PacketReliability.Unreliable;
+            ushort sequenceNumber = 0;
+
+            if (packetReliability == PacketReliability.ReliableOrdered)
+            {
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
+            }
+
+            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out ushort packetId);
+
+            if (packetReliability != PacketReliability.Unreliable)
+            {
+                reliabilityManager?.TrackPacket(chunks, endPoint, packetId, data[0], packetReliability, sequenceNumber);
+            }
+
             foreach (var chunk in chunks)
             {
-                udpClient.Send(chunk, chunk.Length, endPoint);
+                SendRaw(chunk, endPoint);
             }
         }
         catch (Exception ex)
@@ -114,9 +131,9 @@ public sealed class NetworkManager
             SrLogger.LogError($"Send failed to {endPoint}: {ex}", SrLogTarget.Both);
         }
     }
-    
+
     // Broadcast to multiple endpoints efficiently
-    public void Broadcast(byte[] data, IEnumerable<IPEndPoint> endpoints)
+    public void Broadcast(byte[] data, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
     {
         if (udpClient == null || !isRunning)
         {
@@ -126,14 +143,28 @@ public sealed class NetworkManager
 
         try
         {
+            PacketReliability finalReliability = reliability ?? PacketReliability.Unreliable;
+            ushort sequenceNumber = 0;
+
+            if (finalReliability == PacketReliability.ReliableOrdered)
+            {
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
+            }
+
             // Split once, send to many
-            var chunks = PacketChunkManager.SplitPacket(data, out ushort packetId);
-            
+            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out ushort packetId);
+
             foreach (var endpoint in endpoints)
             {
+                // Track for reliability if needed
+                if (finalReliability != PacketReliability.Unreliable)
+                {
+                    reliabilityManager?.TrackPacket(chunks, endpoint, packetId, data[0], finalReliability, sequenceNumber);
+                }
+
                 foreach (var chunk in chunks)
                 {
-                    udpClient.Send(chunk, chunk.Length, endpoint);
+                    SendRaw(chunk, endpoint);
                 }
             }
         }
@@ -141,6 +172,23 @@ public sealed class NetworkManager
         {
             SrLogger.LogError($"Broadcast failed: {ex}", SrLogTarget.Both);
         }
+    }
+
+    // Sends raw data without reliability tracking (used for resends or internally)
+    private void SendRaw(byte[] data, IPEndPoint endPoint)
+    {
+        udpClient?.Send(data, data.Length, endPoint);
+    }
+
+    public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
+    {
+        reliabilityManager?.HandleAck(sender, packetId, packetType);
+    }
+
+    // Check if ordered packet should be processed
+    public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
+    {
+        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType) ?? true;
     }
 
     public void Stop()
@@ -152,6 +200,7 @@ public sealed class NetworkManager
 
         try
         {
+            reliabilityManager?.Stop();
             udpClient?.Close();
 
             if (receiveThread is { IsAlive: true })
@@ -166,4 +215,6 @@ public sealed class NetworkManager
             SrLogger.LogError($"Error stopping Server: {ex}", SrLogTarget.Both);
         }
     }
+
+    public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
 }

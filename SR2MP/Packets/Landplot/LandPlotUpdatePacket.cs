@@ -10,6 +10,7 @@ public sealed class LandPlotUpdatePacket : IPacket
     public LandPlot.Upgrade PlotUpgrade { get; set; }
 
     public PacketType Type => PacketType.LandPlotUpdate;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

@@ -45,8 +45,8 @@ public sealed partial class MultiplayerUI
         Main.SetConfigValue("recent_port", portInput);
     }
 
-    public void Kick(string player) 
-    { 
+    public static void Kick(string player)
+    {
         // TODO: Implement kick functionality
     }
 
@@ -57,16 +57,16 @@ public sealed partial class MultiplayerUI
         HandleChatInput();
     }
 
-    private void DisableInput()
+    private static void DisableInput()
     {
         GameContext.Instance.InputDirector._mainGame.Map.Disable();
     }
 
-    private void EnableInput()
+    private static void EnableInput()
     {
         GameContext.Instance.InputDirector._mainGame.Map.Enable();
     }
-    
+
     private void HandleUIToggle()
     {
         if (KeyCode.F4.OnKeyDown() && !isChatFocused)
@@ -77,22 +77,20 @@ public sealed partial class MultiplayerUI
 
     private void HandleChatToggle()
     {
-        if (KeyCode.F5.OnKeyDown())
+        if (!KeyCode.F5.OnKeyDown())
+            return;
+        if (isChatFocused)
         {
-            if (isChatFocused)
-            {
-                UnfocusChat();
-            }
-            
-            chatHidden = !chatHidden;
-            internalChatToggle = true;
-            
-            if (chatHidden && disabledInput)
-            {
-                EnableInput();
-                disabledInput = false;
-            }
+            UnfocusChat();
         }
+
+        chatHidden = !chatHidden;
+        internalChatToggle = true;
+
+        if (!chatHidden || !disabledInput)
+            return;
+        EnableInput();
+        disabledInput = false;
     }
 
     private void HandleChatInput()

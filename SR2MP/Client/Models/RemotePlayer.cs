@@ -2,12 +2,11 @@ namespace SR2MP.Client.Models;
 
 public sealed class RemotePlayer
 {
-    public string PlayerId { get; set; }
+    public string PlayerId { get; }
     public string Username { get; set; }
 
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
-    public DateTime LastUpdate { get; set; }
 
     // Animation stuff
     public int AirborneState { get; set; }
@@ -22,9 +21,5 @@ public sealed class RemotePlayer
     public float LookY { get; set; }
     public float LastLookY { get; set; }
 
-    public RemotePlayer(string playerId)
-    {
-        PlayerId = playerId;
-        LastUpdate = DateTime.UtcNow;
-    }
+    public RemotePlayer(string playerId) => PlayerId = playerId;
 }

@@ -11,7 +11,7 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
     public GardenPlantHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(GardenPlantPacket packet, IPEndPoint clientEp)
+    protected override void Handle(GardenPlantPacket packet, IPEndPoint clientEp)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
 
@@ -22,7 +22,7 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
             if (model.gameObj)
             {
                 var plot = model.gameObj.GetComponentInChildren<LandPlot>();
-                
+
                 handlingPacket = true;
                 plot.DestroyAttached();
                 handlingPacket = false;
@@ -31,7 +31,7 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
         else
         {
             var actor = actorManager.ActorTypes[packet.ActorType];
-        
+
             model.resourceGrowerDefinition =
                 GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation.RawLookupDictionary._entries.FirstOrDefault(x =>
                     x.value._primaryResourceType == actor)!.value;

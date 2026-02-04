@@ -11,7 +11,7 @@ public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
     public ActorUnloadHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ActorUnloadPacket packet, IPEndPoint clientEp)
+    protected override void Handle(ActorUnloadPacket packet, IPEndPoint clientEp)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return;

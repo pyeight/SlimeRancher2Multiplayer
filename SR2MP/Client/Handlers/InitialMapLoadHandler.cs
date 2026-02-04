@@ -1,21 +1,17 @@
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppMonomiPark.SlimeRancher.Event;
-using Il2CppMonomiPark.SlimeRancher.Pedia;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
-using Enumerable = Il2CppSystem.Linq.Enumerable;
-
 namespace SR2MP.Client.Handlers;
 
-[PacketHandler((byte)PacketType.InitialMap)]
-public sealed class MapLoadHandler : BaseClientPacketHandler<InitialMapPacket>
+[PacketHandler((byte)PacketType.InitialMapEntries)]
+public sealed class InitialMapLoadHandler : BaseClientPacketHandler<InitialMapPacket>
 {
-    public MapLoadHandler(Client client, RemotePlayerManager playerManager)
+    public InitialMapLoadHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(InitialMapPacket packet)
+    protected override void Handle(InitialMapPacket packet)
     {
         var eventModel = SceneContext.Instance.eventDirector._model;
 

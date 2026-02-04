@@ -12,7 +12,7 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler<ActorUpdatePack
     public ActorUpdateHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ActorUpdatePacket packet)
+    protected override void Handle(ActorUpdatePacket packet)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
         {
@@ -32,12 +32,6 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler<ActorUpdatePack
         networkComponent.SavedVelocity = packet.Velocity;
         networkComponent.nextPosition = packet.Position;
         networkComponent.nextRotation = packet.Rotation;
-        
-        if (networkComponent.regionMember?._hibernating == true)
-        {
-            networkComponent.transform.position = packet.Position;
-            networkComponent.transform.rotation = packet.Rotation;
-        }
 
         if (networkComponent.regionMember?._hibernating == true)
         {

@@ -9,6 +9,7 @@ public struct CurrencyPacket : IPacket
     public bool ShowUINotification { get; set; }
 
     public readonly PacketType Type => PacketType.CurrencyAdjust;
+    public readonly PacketReliability Reliability => PacketReliability.Reliable;
 
     public readonly void Serialise(PacketWriter writer)
     {

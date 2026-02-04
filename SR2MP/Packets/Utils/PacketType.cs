@@ -42,12 +42,14 @@ public enum PacketType : byte
     ActorUnload = 37,             // Both Ways                                                                          On Actor unloaded
     GeyserTrigger = 38,           // Both Ways                                                                          On Geyser Fired
     MapUnlock = 39,               // Both Ways                                                                          On Geyser Fired
-    InitialMap = 40,              // Server -> Client                                                                   Map on Load
+    InitialMapEntries = 40,       // Server -> Client                                                                   Map on Load
     GardenPlant = 41,             // Both Ways                                                                          On Food Planted
     AccessDoor = 42,              // Both Ways                                                                          On Map Extension bought
     InitialAccessDoors = 43,      // Both Ways                                                                          Access Doors on Load
     ResourceAttach = 44,          // Both Ways                                                                          On Resource Attach
     WeatherUpdate = 45,           // Server -> All Clients                                                              On Weather Update
     InitialWeather = 46,          // Server -> Client                                                                   Weather on Load
-    ReservedDoNotUse = 255,       
+    LightningStrike = 47,         // Both Ways                                                                          On Lightning Strike
+    ReservedAck = 254,
+    ReservedDoNotUse = 255,
 }

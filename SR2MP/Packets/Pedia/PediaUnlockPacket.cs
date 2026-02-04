@@ -8,6 +8,7 @@ public sealed class PediaUnlockPacket : IPacket
     public bool Popup { get; set; }
 
     public PacketType Type => PacketType.PediaUnlock;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

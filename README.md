@@ -14,10 +14,10 @@
 | Player Visual FX  |   🟨   |               Water splash particle + Vac suction trail missing               |
 | Player Inventory  |   🟥   |                                Not implemented                                |
 | Initial Save load |   🟩   | Everything that is ___currently___ synchronised will be loaded on Player join |
-|   Map Expansions  |   🟩   |                               Fully functional                                |
+|  Map Expansions   |   🟩   |                               Fully functional                                |
 |      Slimes       |   🟩   |                               Fully functional                                |
 |  Actors (Items)   |   🟩   |                               Fully functional                                |
-|     Landplots     |   🟨   |                    Gardens (🟧) and Silos (🟥) missing functionality         |
+|     Landplots     |   🟨   |               Gardens (🟧) and Silos (🟥) missing functionality               |
 | Landplot upgrades |   🟩   |                               Fully functional                                |
 |    Slimepedia     |   🟩   |                               Fully functional                                |
 |      Gadgets      |   🟥   |                                Not implemented                                |
@@ -25,15 +25,17 @@
 |       Money       |   🟩   |                               Fully functional                                |
 |       Time        |   🟩   |                               Fully functional                                |
 |    Decorations    |   🟥   |                                Not implemented                                |
-|  Gray Labyrinth   |   🟨   |                           Switches are functional                             |
+|  Gray Labyrinth   |   🟨   |                            Switches are functional                            |
 |   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
 |      Plot FX      |   🟩   |                               Fully functional                                |
 |     Market FX     |   🟩   |                               Fully functional                                |
 |  Resource Nodes   |   🟥   |                                Not implemented                                |
 |   Gordo Slimes    |   🟩   |                               Fully functional                                |
-|      Geysers      |   🟨   |                   The time they stop shooting isn't synced                    |
-|        Map        |   🟩   |                              Fully functional                                 |
-|    Teleporters    |   🟩   |                              Fully functional                                 |
+|      Geysers      |   🟩   |                               Fully functional                                |
+|        Map        |   🟩   |                               Fully functional                                |
+|    Teleporters    |   🟩   |                               Fully functional                                |
+|      Weather      |   🟩   |                               Fully functional                                |
+|     Lightning     |   🟩   |                               Fully functional                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠

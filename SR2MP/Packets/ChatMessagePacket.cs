@@ -7,9 +7,11 @@ public sealed class ChatMessagePacket : IPacket
     public string Username { get; set; }
     public string Message { get; set; }
     public string MessageID { get; set; }
+    public byte MessageType { get; set; }
+
     public PacketType Type => PacketType.ChatMessage;
-    public byte MessageType { get; set; } = 0;
-    
+    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(Username);

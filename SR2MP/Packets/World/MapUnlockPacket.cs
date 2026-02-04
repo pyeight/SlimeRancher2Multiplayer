@@ -4,17 +4,12 @@ namespace SR2MP.Packets.World;
 
 public sealed class MapUnlockPacket : IPacket
 {
-    public PacketType Type => PacketType.MapUnlock;
-
     public string NodeID { get; set; }
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteString(NodeID);
-    }
+    public PacketType Type => PacketType.MapUnlock;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
-    public void Deserialise(PacketReader reader)
-    {
-        NodeID = reader.ReadString();
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteString(NodeID);
+
+    public void Deserialise(PacketReader reader) => NodeID = reader.ReadString();
 }

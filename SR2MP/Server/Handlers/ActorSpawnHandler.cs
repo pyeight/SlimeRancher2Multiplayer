@@ -11,8 +11,14 @@ public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
     public ActorSpawnHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    public override void Handle(ActorSpawnPacket packet, IPEndPoint clientEp)
+    protected override void Handle(ActorSpawnPacket packet, IPEndPoint clientEp)
     {
+        if (actorManager.Actors.ContainsKey(packet.ActorId.Value))
+        {
+            SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} already exists", SrLogTarget.Both);
+            return;
+        }
+
         actorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out _);
 
         Main.Server.SendToAllExcept(packet, clientEp);

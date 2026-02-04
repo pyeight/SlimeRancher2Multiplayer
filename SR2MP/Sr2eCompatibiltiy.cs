@@ -10,21 +10,22 @@ using UnityEngine.UI;
 // Don't modify beyond this point - Finn
 // I can and I will - Az
 // How dare you - Finn
+// Why did you mess up the formatting again :( - Az
 
 // Don't modify beyond this point
 // This was made for SR2EExpansionV3
 // This is MLEntrypoint V2
 [SuppressMessage("ReSharper", "InconsistentNaming")]
-internal class MLEntrypoint : MelonMod
+internal sealed class MLEntrypoint : MelonMod
 {
     private SR2EExpansionV3 expansion;
     bool isCorrectSR2EInstalled = false;
-    private string installedSR2Ver = "";
+    private string installedSR2Ver = string.Empty;
 
     private System.Collections.IEnumerator CheckForMainMenu(int message)
     {
-        yield return new WaitForSeconds(0.1f);        
-        
+        yield return new WaitForSeconds(0.1f);
+
         if (SystemContext.Instance.SceneLoader.IsCurrentSceneGroupMainMenu()) ShowIncompatibilityPopup(message);
         else MelonCoroutines.Start(CheckForMainMenu(message));
     }
@@ -33,14 +34,14 @@ internal class MLEntrypoint : MelonMod
     {
         Time.timeScale = 0;
         GameObject canvas = new GameObject("SR2EExpansionICV1");
-        GameObject.DontDestroyOnLoad(canvas);
+        Object.DontDestroyOnLoad(canvas);
         canvas.tag = "Finish";
         var c = canvas.AddComponent<Canvas>();
         canvas.AddComponent<CanvasScaler>();
         canvas.AddComponent<GraphicRaycaster>();
         c.sortingOrder = 20000;
         c.renderMode = RenderMode.ScreenSpaceOverlay;
-        
+
         var superPR = new GameObject("SuperBackground");
         superPR.transform.SetParent(canvas.transform);
         superPR.transform.localScale = new Vector3(1, 1, 1);
@@ -49,7 +50,7 @@ internal class MLEntrypoint : MelonMod
         var rectTPR = superPR.AddComponent<RectTransform>();
         superPR.AddComponent<Image>().color = new Color(0.1059f, 0.1059f, 0.1137f, 1f);
         rectTPR.sizeDelta = new Vector2(Screen.currentResolution.width, Screen.currentResolution.height);
-        
+
         var pr = new GameObject("Background");
         pr.transform.SetParent(canvas.transform);
         pr.transform.localScale = new Vector3(1, 1, 1);
@@ -58,7 +59,7 @@ internal class MLEntrypoint : MelonMod
         var rectT = pr.AddComponent<RectTransform>();
         pr.AddComponent<Image>().color = new Color(0.1882f, 0.2196f, 0.2745f, 1f);
         rectT.sizeDelta = new Vector2(Screen.currentResolution.width / 1.23f, Screen.currentResolution.height / 1.23f);
-        
+
         var titleObj = new GameObject("TitleText");
         titleObj.transform.SetParent(pr.transform);
         var titleRT = titleObj.AddComponent<RectTransform>();
@@ -74,7 +75,7 @@ internal class MLEntrypoint : MelonMod
         titleTMP.color = Color.white;
         titleTMP.fontSizeMax = 9999;
         titleTMP.alignment = TextAlignmentOptions.Center;
-        
+
         var msgObj = new GameObject("MessageText");
         msgObj.transform.SetParent(pr.transform);
         var msgRT = msgObj.AddComponent<RectTransform>();
@@ -88,7 +89,7 @@ internal class MLEntrypoint : MelonMod
         msgTMP.alignment = TextAlignmentOptions.TopLeft;
         msgTMP.enableWordWrapping = true;
         msgTMP.color = Color.white;
-        
+
         var buttonObj = new GameObject("Button");
         buttonObj.transform.SetParent(pr.transform, false);
         var quitRT = buttonObj.AddComponent<RectTransform>();
@@ -101,13 +102,13 @@ internal class MLEntrypoint : MelonMod
         try
         {
             var pillTex = Resources.FindObjectsOfTypeAll<AssetBundle>().FirstOrDefault((x) => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle")!.LoadAsset("Assets/UI/Textures/MenuDemo/whitePillBg.png").Cast<Texture2D>();
-            pill = Sprite.Create(pillTex, new Rect(0f, 0f, (float)pillTex.width, (float)pillTex.height), new Vector2(0.5f, 0.5f), 1f);
+            pill = Sprite.Create(pillTex, new Rect(0f, 0f, pillTex.width, pillTex.height), new Vector2(0.5f, 0.5f), 1f);
         }catch { }
         var img = buttonObj.AddComponent<Image>();
         img.color = new Color(0.2f, 0.2f, 0.2f, 1f);
         img.sprite = pill;
         var btn = buttonObj.AddComponent<Button>();
-        
+
         GameObject textObj = new GameObject("Text");
         btn.colors = buttonColorBlock;
         textObj.transform.SetParent(buttonObj.transform, false);
@@ -121,7 +122,7 @@ internal class MLEntrypoint : MelonMod
         textRT.offsetMin = Vector2.zero;
         textRT.offsetMax = Vector2.zero;
 
-        if (message == 0 || message == 1)
+        if (message is 0 or 1)
         {
             AddButton(pill, pr, new Vector2(0.005f, 0.105f), new Vector2(0.3333f, 0.2f),
                 () => Application.OpenURL("https://github.com/ThatFinnDev/SR2E/releases"), "GitHub");
@@ -130,20 +131,20 @@ internal class MLEntrypoint : MelonMod
             AddButton(pill, pr, new Vector2(0.6666f, 0.105f), new Vector2(0.995f, 0.2f),
                 () => Application.OpenURL("https://sr2e.sr2.dev/downloads"), "SR2E Website");
         }
-        
+
         msgTMP.text = "An error occured with the mod <b>'" + BuildInfo.Name + "'</b>!\n\n";
         if (message == 0)
         {
             msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
                            "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via Nexusmods, GitHub or the SR2E website.";
-            btn.onClick.AddListener((System.Action)(() => Application.Quit()));
+            btn.onClick.AddListener((Action)Application.Quit);
             tmp.text = "Quit";
         }
         else if (message == 1)
         {
             msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
                            $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via Nexusmods, GitHub or the SR2E website.";
-            btn.onClick.AddListener((System.Action)(() =>
+            btn.onClick.AddListener((Action)(() =>
             {
                 bool fixTime = true;
                 foreach (var obj in GameObject.FindGameObjectsWithTag("Finish"))
@@ -154,7 +155,7 @@ internal class MLEntrypoint : MelonMod
                     }
 
                 if (fixTime) Time.timeScale = 1f;
-                GameObject.Destroy(canvas);
+                Object.Destroy(canvas);
             }));
             tmp.text = "Continue without this mod";
         }
@@ -163,7 +164,7 @@ internal class MLEntrypoint : MelonMod
             var gameVer = Application.version.Split(" ")[0];
             msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
                            $"', you need update the game! A minimum of <b>{BuildInfo.RequiredGameVersion}</b> is required. You have <b>{gameVer}</b>.";
-            btn.onClick.AddListener((System.Action)(() => Application.Quit()));
+            btn.onClick.AddListener((Action)(() => Application.Quit()));
             tmp.text = "Quit";
         }
         else if (message == 3)
@@ -171,12 +172,12 @@ internal class MLEntrypoint : MelonMod
             var gameVer = Application.version.Split(" ")[0];
             msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
                            $"', you need to use a different game version! The game version <b>{BuildInfo.RequiredGameVersion}</b> is required. You have <b>{gameVer}</b>.";
-            btn.onClick.AddListener((System.Action)(() => Application.Quit()));
+            btn.onClick.AddListener((Action)(() => Application.Quit()));
             tmp.text = "Quit";
         }
     }
 
-    ColorBlock buttonColorBlock
+    static ColorBlock buttonColorBlock
     {
         get
         {
@@ -192,7 +193,7 @@ internal class MLEntrypoint : MelonMod
         }
     }
 
-    void AddButton(Sprite pill, GameObject pr, Vector2 anchorMin, Vector2 anchorMax, System.Action action, string text)
+    void AddButton(Sprite pill, GameObject pr, Vector2 anchorMin, Vector2 anchorMax, Action action, string text)
     {
         var buttonObj = new GameObject("Button");
         buttonObj.transform.SetParent(pr.transform, false);
@@ -202,21 +203,21 @@ internal class MLEntrypoint : MelonMod
         quitRT.pivot = new Vector2(0.5f, 0.5f);
         quitRT.offsetMin = Vector2.zero;
         quitRT.offsetMax = Vector2.zero;
-        
+
         var img = buttonObj.AddComponent<Image>();
         img.color = new Color(0.2f, 0.2f, 0.2f, 1f);
         img.sprite = pill;
         var btn = buttonObj.AddComponent<Button>();
-        
+
         GameObject textObj = new GameObject("Text");
         btn.colors = buttonColorBlock;
         textObj.transform.SetParent(buttonObj.transform, false);
-        
+
         var tmp = textObj.AddComponent<TextMeshProUGUI>();
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.fontSize = 36;
         tmp.color = Color.white;
-        
+
         var textRT = tmp.GetComponent<RectTransform>();
         textRT.anchorMin = Vector2.zero;
         textRT.anchorMax = Vector2.one;
@@ -276,17 +277,17 @@ internal class MLEntrypoint : MelonMod
 
     void RegisterBrokenInSR2E(string errorMessage)
     {
-        var SR2EEntryPoint = System.Type.GetType("SR2E.SR2EEntryPoint, SR2E");
+        var SR2EEntryPoint = Type.GetType("SR2E.SR2EEntryPoint, SR2E");
         if (SR2EEntryPoint == null) return;
         var AddBrokenExpansion = SR2EEntryPoint.GetMethod("AddBrokenExpansion",
-            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            BindingFlags.Static | BindingFlags.NonPublic);
         if (AddBrokenExpansion == null) return;
         AddBrokenExpansion.Invoke(null,
             new object[]
                 { Info.Name, Info.Author, Info.Version, Info.DownloadLink, MelonAssembly.Assembly, errorMessage });
     }
 
-    bool IsSameOrNewer(string v1, string v2)
+    static bool IsSameOrNewer(string v1, string v2)
     {
         bool TryParse(string s, out int[] parts)
         {
@@ -316,7 +317,7 @@ internal class MLEntrypoint : MelonMod
         var type = GetEntrypointType.type;
         if (typeof(SR2EExpansionV3).IsAssignableFrom(type))
         {
-            expansion = FormatterServices.GetUninitializedObject(type) as SR2EExpansionV3;
+            expansion = (FormatterServices.GetUninitializedObject(type) as SR2EExpansionV3)!;
         }
         else
         {
@@ -327,7 +328,7 @@ internal class MLEntrypoint : MelonMod
             return;
         }
 
-        typeof(SR2EExpansionV3).GetField("_melonBase", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(expansion, this);
+        typeof(SR2EExpansionV3).GetField("_melonBase", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(expansion, this);
         SR2EEntryPoint.LoadExpansion(expansion);
     }
 
@@ -337,5 +338,4 @@ internal class MLEntrypoint : MelonMod
     {
         if (isCorrectSR2EInstalled) Sr2EDeinit();
     }
-
 }

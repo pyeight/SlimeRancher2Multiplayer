@@ -7,6 +7,7 @@ using SR2MP.Client.Models;
 using SR2MP.Components.FX;
 using SR2MP.Components.Utils;
 using SR2MP.Shared.Managers;
+
 using static SR2E.ContextShortcuts;
 using static SR2MP.Shared.Utils.Timers;
 
@@ -52,10 +53,11 @@ public partial class NetworkPlayer : MonoBehaviour
     public bool IsLocal { get; internal set; }
 
     private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
+
     public void SetUsername(string username)
     {
         username = username.Trim();
-        
+
         usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
         usernamePanel.text = username;
         usernamePanel.alignment = TextAlignmentOptions.Center;

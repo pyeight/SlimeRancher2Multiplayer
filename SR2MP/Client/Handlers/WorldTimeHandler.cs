@@ -10,7 +10,7 @@ public sealed class WorldTimeHandler : BaseClientPacketHandler<WorldTimePacket>
     public WorldTimeHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(WorldTimePacket packet)
+    protected override void Handle(WorldTimePacket packet)
     {
         SceneContext.Instance.TimeDirector._worldModel.worldTime = packet.Time;
     }

@@ -13,7 +13,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler<ConnectAckPacket
     public ConnectAckHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(ConnectAckPacket packet)
+    protected override void Handle(ConnectAckPacket packet)
     {
         var joinPacket = new PlayerJoinPacket
         {
@@ -33,7 +33,7 @@ public sealed class ConnectAckHandler : BaseClientPacketHandler<ConnectAckPacket
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
 
-        CheatsEnabled = packet.AllowCheats;
+        cheatsEnabled = packet.AllowCheats;
 
         foreach (var (id, username) in packet.OtherPlayers)
         {

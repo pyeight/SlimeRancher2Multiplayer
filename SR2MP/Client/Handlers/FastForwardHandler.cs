@@ -10,7 +10,7 @@ public sealed class FastForwardHandler : BaseClientPacketHandler<WorldTimePacket
     public FastForwardHandler(Client client, RemotePlayerManager playerManager)
         : base(client, playerManager) { }
 
-    public override void Handle(WorldTimePacket packet)
+    protected override void Handle(WorldTimePacket packet)
     {
         handlingPacket = true;
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);

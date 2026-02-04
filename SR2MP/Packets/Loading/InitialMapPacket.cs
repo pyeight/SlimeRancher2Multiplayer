@@ -4,9 +4,10 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class InitialMapPacket : IPacket
 {
-    public PacketType Type => PacketType.InitialMap;
-
     public List<string> UnlockedNodes { get; set; }
+
+    public PacketType Type => PacketType.InitialMapEntries;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     // todo: Add navigation marker data later.
 

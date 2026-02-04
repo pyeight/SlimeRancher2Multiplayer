@@ -12,17 +12,9 @@ public sealed partial class MultiplayerUI
     private bool chatShown = false;
     private MenuState previousState = MenuState.Hidden;
 
-    private bool GetIsLoading()
+    private static bool GetIsLoading()
     {
-        switch (SystemContext.Instance.SceneLoader.CurrentSceneGroup.name)
-        {
-            case "StandaloneStart":
-            case "CompanyLogo":
-            case "LoadScene":
-                return true;
-        }
-
-        return false;
+        return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is "StandaloneStart" or "CompanyLogo" or "LoadScene";
     }
 
     private MenuState GetState()
@@ -47,9 +39,9 @@ public sealed partial class MultiplayerUI
     private void UpdateChatVisibility()
     {
         bool isInGame = state is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
-        
+
         bool isMainMenu = state == MenuState.DisconnectedMainMenu;
-        
+
         if (isMainMenu)
         {
             chatHidden = true;
@@ -57,20 +49,20 @@ public sealed partial class MultiplayerUI
             internalChatToggle = false;
             return;
         }
-        
+
         if (internalChatToggle) return;
-        
+
         if (isInGame && !chatShown)
         {
             chatHidden = false;
             chatShown = true;
-            
+
             if (previousState == MenuState.DisconnectedMainMenu || previousState == MenuState.Hidden)
             {
                 ClearAndWelcome();
             }
         }
-        
+
         previousState = state;
     }
 }
