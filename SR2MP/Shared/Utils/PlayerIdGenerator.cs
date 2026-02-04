@@ -32,8 +32,8 @@ public static class PlayerIdGenerator
     public static ushort GetPlayerIDNumber(string id)
     {
         ushort number = 12345;
-        foreach (char c in id.Substring(7))
-            number = (ushort)(((number << 5) + number) + c);
+        foreach (char c in id[7..])
+            number = (ushort)((number << 5) + number + c);
         return number;
     }
 
