@@ -9,8 +9,8 @@ namespace SR2MP.Client.Managers;
 
 public static class NetworkWeatherManager
 {
-    public static WeatherRegistry Registry { get; } = SceneContext.Instance.WeatherRegistry;
-    public static WeatherDirector Director { get; } = Resources.FindObjectsOfTypeAll<WeatherDirector>().FirstOrDefault()!; // todo: find a better way
+    public static WeatherRegistry Registry => SceneContext.Instance.WeatherRegistry;
+    public static WeatherDirector Director => Resources.FindObjectsOfTypeAll<WeatherDirector>().FirstOrDefault()!; // todo: find a better way
 
     public static LightningStrike Lightning 
     {
