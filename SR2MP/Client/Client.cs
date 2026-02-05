@@ -260,7 +260,7 @@ public sealed class Client
             SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
                 SrLogTarget.Both);
 
-            ArrayPool<byte>.Shared.Return(data);
+            // ArrayPool<byte>.Shared.Return(data);
         }
         catch (Exception ex)
         {

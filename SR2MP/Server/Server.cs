@@ -194,7 +194,7 @@ public sealed class Server
 
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
         networkManager.Broadcast(data, endpoints, packet.Reliability);
-        ArrayPool<byte>.Shared.Return(data);
+        //ArrayPool<byte>.Shared.Return(data);
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
