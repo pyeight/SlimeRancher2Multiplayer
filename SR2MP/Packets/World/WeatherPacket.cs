@@ -52,8 +52,7 @@ public sealed class WeatherPacket : IPacket
             }
 
             packet.Zones.Add(zoneId++, zoneData);
-            
-            
+
             yield return new WaitFrames(6);
         }
 
