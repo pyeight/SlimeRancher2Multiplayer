@@ -155,7 +155,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
-        var actorsList = new List<InitialActorsPacket.Actor>();
+        var actorsList = new List<InitialActorsPacket.ActorBase>();
 
         foreach (var actorKeyValuePair in SceneContext.Instance.GameModel.identifiables)
         {
@@ -163,7 +163,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             var model = actor.TryCast<ActorModel>();
             var rotation = model?.lastRotation ?? Quaternion.identity;
             var id = actor.actorId.Value;
-            actorsList.Add(new InitialActorsPacket.Actor
+            actorsList.Add(new InitialActorsPacket.ActorBase
             {
                 ActorId = id,
                 ActorType = NetworkActorManager.GetPersistentID(actor.ident),
