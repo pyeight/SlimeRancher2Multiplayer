@@ -313,7 +313,12 @@ public sealed class PacketWriter : PacketBase
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte[] ToArray() => buffer.AsSpan(0, position).ToArray();
+    public byte[] ToArray()
+    {
+        var result = ArrayPool<byte>.Shared.Rent(position);
+        buffer.CopyTo(result, 0);
+        return result;
+    }
 }
 
 /// <summary>

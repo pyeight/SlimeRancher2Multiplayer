@@ -3,6 +3,9 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using MelonLoader;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
+using SR2MP.Packets.Loading;
+using SR2MP.Shared.Utils;
+using UnityEngine.SceneManagement;
 
 namespace SR2MP.Shared.Managers;
 
@@ -124,7 +127,7 @@ public sealed partial class NetworkActorManager
         const int Max = 12;
 
         var player = SceneContext.Instance.player;
-       
+
         var bounds = new Bounds(player.transform.position, new Vector3(325, 1000, 325));
 
         int i = 0;
@@ -132,7 +135,7 @@ public sealed partial class NetworkActorManager
         {
             if (actor.Value == null)
                 continue;
-            
+
             if (!bounds.Contains(actor.Value.lastPosition))
                 continue;
 

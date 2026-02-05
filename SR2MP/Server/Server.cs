@@ -6,6 +6,7 @@ using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
 using SR2MP.Shared.Utils;
+using System.Buffers;
 
 namespace SR2MP.Server;
 
@@ -175,7 +176,9 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        networkManager.Send(writer.ToArray(), endPoint, packet.Reliability);
+        var data = writer.ToArray();
+        networkManager.Send(data, endPoint, packet.Reliability);
+        ArrayPool<byte>.Shared.Return(data);
     }
 
     public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
@@ -191,6 +194,7 @@ public sealed class Server
 
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
         networkManager.Broadcast(data, endpoints, packet.Reliability);
+        ArrayPool<byte>.Shared.Return(data);
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
@@ -206,6 +210,8 @@ public sealed class Server
                 networkManager.Send(data, client.EndPoint, packet.Reliability);
             }
         }
+
+        ArrayPool<byte>.Shared.Return(data);
     }
 
     public void SendToAllExcept<T>(T packet, IPEndPoint excludeEndPoint) where T : IPacket
