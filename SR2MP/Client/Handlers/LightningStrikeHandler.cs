@@ -1,5 +1,4 @@
 ﻿using SR2MP.Client.Managers;
-using SR2MP.Packets.FX;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;

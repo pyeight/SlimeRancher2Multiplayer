@@ -1,5 +1,4 @@
 using System.Net;
-using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using SR2MP.Server.Managers;

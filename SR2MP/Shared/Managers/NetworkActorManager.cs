@@ -1,14 +1,11 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.Regions;
-using Il2CppMonomiPark.SlimeRancher.Util;
 using MelonLoader;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
-using UnityEngine.SceneManagement;
 
 namespace SR2MP.Shared.Managers;
 
@@ -249,7 +246,7 @@ public sealed class NetworkActorManager
         return CreateInitialActorBase(actor);
     }
 
-    private static InitialActorsPacket.ActorBase CreateInitialActorBase(IdentifiableModel model) => new InitialActorsPacket.ActorBase
+    private static InitialActorsPacket.ActorBase CreateInitialActorBase(IdentifiableModel model) => new()
     {
         ActorId = model.actorId.Value,
         ActorTypeId = GetPersistentID(model.ident),
@@ -258,7 +255,7 @@ public sealed class NetworkActorManager
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
     };
 
-    private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model) => new InitialActorsPacket.Slime
+    private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model) => new()
     {
         ActorId = model.actorId.Value,
         ActorTypeId = GetPersistentID(model.ident),
@@ -268,7 +265,7 @@ public sealed class NetworkActorManager
         Emotions = model.Emotions
     };
 
-    private static InitialActorsPacket.Plort CreateInitialPlort(PlortModel model) => new InitialActorsPacket.Plort
+    private static InitialActorsPacket.Plort CreateInitialPlort(PlortModel model) => new()
     {
         ActorId = model.actorId.Value,
         ActorTypeId = GetPersistentID(model.ident),
@@ -280,7 +277,7 @@ public sealed class NetworkActorManager
         InvulnerablePeriod = model._invulnerability.InvulnerabilityPeriod
     };
 
-    private static InitialActorsPacket.Resource CreateInitialResource(ResourceModel model) => new InitialActorsPacket.Resource
+    private static InitialActorsPacket.Resource CreateInitialResource(ResourceModel model) => new()
     {
         ActorId = model.actorId.Value,
         ActorTypeId = GetPersistentID(model.ident),
@@ -300,8 +297,6 @@ public sealed class NetworkActorManager
         var sceneId = actorData.Scene;
         var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
 
         if (Main.RockPlortBug)
             typeId = 25;
@@ -325,6 +320,9 @@ public sealed class NetworkActorManager
 
         if (ActorIDAlreadyInUse(actorId))
             return false;
+
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
 
         model = SceneContext.Instance.GameModel.CreateActorModel(
                 actorId,
@@ -372,9 +370,6 @@ public sealed class NetworkActorManager
         var sceneId = actorData.Scene;
         var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-        var emotions = actorData.Emotions;
 
         if (Main.RockPlortBug)
             typeId = 25;
@@ -392,6 +387,10 @@ public sealed class NetworkActorManager
 
         if (ActorIDAlreadyInUse(actorId))
             return false;
+
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var emotions = actorData.Emotions;
 
         model = SceneContext.Instance.GameModel.CreateSlimeActorModel(
                 actorId,
