@@ -157,20 +157,9 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
     {
         var actorsList = new List<InitialActorsPacket.ActorBase>();
 
-        foreach (var actorKeyValuePair in SceneContext.Instance.GameModel.identifiables)
+        foreach (var (_, model) in SceneContext.Instance.GameModel.identifiables)
         {
-            var actor = actorKeyValuePair.Value;
-            var model = actor.TryCast<ActorModel>();
-            var rotation = model?.lastRotation ?? Quaternion.identity;
-            var id = actor.actorId.Value;
-            actorsList.Add(new InitialActorsPacket.ActorBase
-            {
-                ActorId = id,
-                ActorType = NetworkActorManager.GetPersistentID(actor.ident),
-                Position = actor.lastPosition,
-                Rotation = rotation,
-                Scene = NetworkSceneManager.GetPersistentID(actor.sceneGroup)
-            });
+            actorsList.Add(actorManager.CreateInitialActor(model));
         }
 
         var actorsPacket = new InitialActorsPacket

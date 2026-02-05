@@ -1,6 +1,6 @@
 internal static class BuildInfo
 {
-    internal const string Name = "Ranch Together";
+    internal const string Name = "Ranching Together";
     internal const string Description = "Adds Multiplayer to Slime Rancher 2";
     internal const string Author = "Shark";
     internal const string CoAuthors = "";

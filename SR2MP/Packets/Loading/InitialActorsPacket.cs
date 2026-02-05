@@ -8,7 +8,7 @@ public sealed partial class InitialActorsPacket : IPacket
     {
         var actorTypeEnum = reader.ReadEnum<ActorType>();
 
-        var actorType = actorTypes[actorTypeEnum];
+        var actorType = actorTypes![actorTypeEnum];
         var actor = (ActorBase)Activator.CreateInstance(actorType)!;
 
         actor.Deserialise(reader);
