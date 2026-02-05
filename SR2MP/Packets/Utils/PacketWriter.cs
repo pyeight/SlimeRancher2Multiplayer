@@ -316,7 +316,7 @@ public sealed class PacketWriter : PacketBase
     public byte[] ToArray()
     {
         var result = ArrayPool<byte>.Shared.Rent(position);
-        buffer.CopyTo(result, 0);
+        Array.Copy(buffer, buffer.GetLowerBound(0), result, 0, position);
         return result;
     }
 }
