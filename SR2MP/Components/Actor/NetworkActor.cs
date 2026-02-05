@@ -2,6 +2,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
+using Il2CppDG.Tweening;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.World;
@@ -9,7 +10,6 @@ using MelonLoader;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Utils;
 using Unity.Mathematics;
-
 using Delegate = Il2CppSystem.Delegate;
 using Type = Il2CppSystem.Type;
 
@@ -20,6 +20,7 @@ public sealed class NetworkActor : MonoBehaviour
 {
     internal RegionMember regionMember;
     private Identifiable identifiable;
+    private ResourceCycle? cycle;
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
 
@@ -93,8 +94,8 @@ public sealed class NetworkActor : MonoBehaviour
     private float interpolationEnd;
 
     private float4 EmotionsFloat => emotions
-                                    ? emotions._model.Emotions
-                                    : new float4(0, 0, 0, 0);
+        ? emotions._model.Emotions
+        : new float4(0, 0, 0, 0);
 
     private void Start()
     {
@@ -106,6 +107,7 @@ public sealed class NetworkActor : MonoBehaviour
                 Destroy(this);
                 return;
             }
+
             if (GetComponent<SRCharacterController>())
             {
                 Destroy(this);
@@ -116,6 +118,7 @@ public sealed class NetworkActor : MonoBehaviour
             cachedLocallyOwned = LocallyOwned;
             rigidbody = GetComponent<Rigidbody>();
             identifiable = GetComponent<Identifiable>();
+            cycle = GetComponent<ResourceCycle>();
 
             regionMember = GetComponent<RegionMember>();
 
@@ -125,10 +128,10 @@ public sealed class NetworkActor : MonoBehaviour
                 {
                     regionMember.add_BeforeHibernationChanged(
                         Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
-                                .GetEvent("BeforeHibernationChanged").EventHandlerType,
-                            this.Cast<Il2CppSystem.Object>(),
-                            nameof(HibernationChanged),
-                            true)
+                                    .GetEvent("BeforeHibernationChanged").EventHandlerType,
+                                this.Cast<Il2CppSystem.Object>(),
+                                nameof(HibernationChanged),
+                                true)
                             .Cast<RegionMember.OnHibernationChange>());
                 }
                 catch (Exception ex)
@@ -179,11 +182,7 @@ public sealed class NetworkActor : MonoBehaviour
                     yield break;
                 }
 
-                var packet = new ActorTransferPacket
-                {
-                    ActorId = actorId,
-                    OwnerPlayer = LocalID,
-                };
+                var packet = new ActorTransferPacket { ActorId = actorId, OwnerPlayer = LocalID, };
                 Main.SendToAllOrServer(packet);
             }
         }
@@ -271,7 +270,9 @@ public sealed class NetworkActor : MonoBehaviour
                     Position = transform.position,
                     Rotation = transform.rotation,
                     Velocity = rigidbody ? rigidbody.velocity : Vector3.zero,
-                    Emotions = EmotionsFloat
+                    Emotions = EmotionsFloat,
+                    ResourceProgress = cycle?._model.progressTime ?? 0f,
+                    ResourceState = cycle?._model.state ?? ResourceCycle.State.EDIBLE,
                 };
 
                 Main.SendToAllOrServer(packet);
@@ -314,5 +315,74 @@ public sealed class NetworkActor : MonoBehaviour
     {
         isDestroyed = true;
         isValid = false;
+    }
+
+    private ResourceCycle.State prevState;
+
+    public void SetResourceState(ResourceCycle.State state, double progress)
+    {
+        if (prevState == state)
+            return;
+        if (!cycle)
+            return;
+        cycle!._model.progressTime = progress;
+        if (state == ResourceCycle.State.UNRIPE)
+        {
+            cycle.Ripen();
+            if (cycle.VacuumableWhenRipe)
+            {
+                cycle._vacuumable.enabled = false;
+            }
+
+            base.gameObject.transform.localScale = cycle._defaultScale * 0.33f;
+        }
+        else if (state == ResourceCycle.State.RIPE)
+        {
+            cycle.Ripen();
+            if (cycle.VacuumableWhenRipe)
+            {
+                cycle._vacuumable.enabled = true;
+            }
+
+            if (base.gameObject.transform.localScale.x < cycle._defaultScale.x * 0.33f)
+            {
+                base.gameObject.transform.localScale = cycle._defaultScale * 0.33f;
+            }
+
+            TweenUtil.ScaleTo(base.gameObject, cycle._defaultScale, 4f);
+        }
+        else if (state == ResourceCycle.State.EDIBLE)
+        {
+            cycle.MakeEdible();
+            cycle._additionalRipenessDelegate = null;
+            rigidbody.isKinematic = false;
+            if (cycle._preparingToRelease)
+            {
+                cycle._preparingToRelease = false;
+                cycle._releaseAt = 0f;
+                cycle.ToShake.localPosition = cycle._toShakeDefaultPos;
+                if (cycle.ReleaseCue != null)
+                {
+                    SECTR_PointSource component = base.GetComponent<SECTR_PointSource>();
+                    component.Cue = cycle.ReleaseCue;
+                    component.Play();
+                }
+            }
+
+            rigidbody.WakeUp();
+            cycle.Eject(rigidbody);
+            cycle.DetachFromJoint();
+            if (cycle._hasVacuumable)
+            {
+                cycle._vacuumable.Pending = false;
+            }
+        }
+        else if (state == ResourceCycle.State.ROTTEN)
+        {
+            cycle.Rot();
+            cycle.SetRotten(false);
+        }
+
+        prevState = state;
     }
 }

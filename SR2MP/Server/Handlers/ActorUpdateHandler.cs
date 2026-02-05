@@ -27,20 +27,30 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
         var slime = actor.TryCast<SlimeModel>();
         if (slime != null)
             slime.Emotions = packet.Emotions;
-        if (actor.TryGetNetworkComponent(out var networkComponent))
+        var resource = actor.TryCast<ProduceModel>();
+        if (resource != null)
         {
-            networkComponent.SavedVelocity = packet.Velocity;
-            networkComponent.nextPosition = packet.Position;
-            networkComponent.nextRotation = packet.Rotation;
+            resource.state = packet.ResourceState;
+            resource.progressTime = packet.ResourceProgress;
+        }
+        if (!actor.TryGetNetworkComponent(out var networkComponent))
+            return;
 
-            if (slime != null)
-                networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
+        networkComponent.SavedVelocity = packet.Velocity;
+        networkComponent.nextPosition = packet.Position;
+        networkComponent.nextRotation = packet.Rotation;
 
-            if (networkComponent.regionMember?._hibernating == true)
-            {
-                networkComponent.transform.position = packet.Position;
-                networkComponent.transform.rotation = packet.Rotation;
-            }
+        if (networkComponent.regionMember?._hibernating == true)
+        {
+            networkComponent.transform.position = packet.Position;
+            networkComponent.transform.rotation = packet.Rotation;
+        }
+
+        if (slime != null)
+            networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
+        if (resource != null)
+        {
+            networkComponent.SetResourceState(packet.ResourceState, packet.ResourceProgress);
         }
 
         Main.Server.SendToAllExcept(packet, clientEp);

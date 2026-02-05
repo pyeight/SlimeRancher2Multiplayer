@@ -315,10 +315,7 @@ public sealed class PacketWriter : PacketBase
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte[] ToArray()
     {
-        // Can't use ArrayPool<byte>.Shared because 
-        // it is causing errors on .Return (??) for some reason.
-        //var result = ArrayPool<byte>.Shared.Rent(position);
-        var result = new byte[position];
+        var result = ArrayPool<byte>.Shared.Rent(position);
         Array.Copy(buffer, buffer.GetLowerBound(0), result, 0, position);
         return result;
     }

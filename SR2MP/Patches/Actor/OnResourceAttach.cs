@@ -18,6 +18,8 @@ public static class OnResourceAttach
             SceneContext.Instance.GameModel.identifiablesByIdent[other._model.ident].Remove(other._model);
             SceneContext.Instance.GameModel.DestroyIdentifiableModel(other._model);
 
+            SrLogger.LogMessage("destroy");
+            
             Destroyer.DestroyActor(other.gameObject, "SR2MP.OnResourceAttach");
             joint.connectedBody = null;
             return;
@@ -39,6 +41,6 @@ public static class OnResourceAttach
             Model = spawner._model,
         };
 
-        // Main.SendToAllOrServer(packet);
+        Main.SendToAllOrServer(packet);
     }
 }

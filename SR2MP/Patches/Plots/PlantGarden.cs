@@ -1,4 +1,4 @@
-/*using HarmonyLib;
+using HarmonyLib;
 using SR2MP.Packets.Landplot;
 using SR2MP.Shared.Managers;
 
@@ -18,6 +18,6 @@ public static class PlantGarden
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id
         };
         
-        // Main.SendToAllOrServer(packet);
+        Main.SendToAllOrServer(packet);
     }
-}*/
+}

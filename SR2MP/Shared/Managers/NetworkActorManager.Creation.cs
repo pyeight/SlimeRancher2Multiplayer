@@ -47,8 +47,8 @@ public sealed partial class NetworkActorManager
         Rotation = model.lastRotation,
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
         DestroyTime = model.destroyTime,
-        Invulnerable = model._invulnerability.IsInvulnerable,
-        InvulnerablePeriod = model._invulnerability.InvulnerabilityPeriod
+        Invulnerable = model._invulnerability?.IsInvulnerable ?? false,
+        InvulnerablePeriod = model._invulnerability?.InvulnerabilityPeriod ?? 0f
     };
 
     private static InitialActorsPacket.Resource CreateInitialResource(ProduceModel model) => new()

@@ -164,7 +164,8 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         var actorsPacket = new InitialActorsPacket
         {
             StartingActorID = (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * 10000, (playerIndex * 10000) + 10000),
-            Actors = actorsList
+            Actors = actorsList,
+            WorldTime = SceneContext.Instance.GameModel.world.worldTime
         };
 
         Main.Server.SendToClient(actorsPacket, client);

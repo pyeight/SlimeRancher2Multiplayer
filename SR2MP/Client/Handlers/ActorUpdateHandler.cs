@@ -26,6 +26,12 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler<ActorUpdatePack
         var slime = actor.TryCast<SlimeModel>();
         if (slime != null)
             slime.Emotions = packet.Emotions;
+        var resource = actor.TryCast<ProduceModel>();
+        if (resource != null)
+        {
+            resource.state = packet.ResourceState;
+            resource.progressTime = packet.ResourceProgress;
+        }
         if (!actor.TryGetNetworkComponent(out var networkComponent))
             return;
 
@@ -41,5 +47,9 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler<ActorUpdatePack
 
         if (slime != null)
             networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
+        if (resource != null)
+        {
+            networkComponent.SetResourceState(packet.ResourceState, packet.ResourceProgress);
+        }    
     }
 }

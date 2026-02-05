@@ -33,6 +33,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
 
         SceneContext.Instance.GameModel._actorIdProvider._nextActorId =
             packet.StartingActorID;
+        SceneContext.Instance.GameModel.world.worldTime = packet.WorldTime;
 
         foreach (var actor in packet.Actors)
         {

@@ -7,10 +7,14 @@ namespace SR2MP.Packets.Actor;
 public struct ActorUpdatePacket : IPacket
 {
     public ActorId ActorId { get; set; }
-    public float4 Emotions { get; set; }
     public Quaternion Rotation { get; set; }
     public Vector3 Position { get; set; }
     public Vector3 Velocity { get; set; }
+    
+    public float4 Emotions { get; set; }
+
+    public double ResourceProgress { get; set; }
+    public ResourceCycle.State ResourceState { get; set; }
 
     public readonly PacketType Type => PacketType.ActorUpdate;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
@@ -22,6 +26,8 @@ public struct ActorUpdatePacket : IPacket
         writer.WriteQuaternion(Rotation);
         writer.WriteVector3(Velocity);
         writer.WriteFloat4(Emotions);
+        writer.WriteDouble(ResourceProgress);
+        writer.WriteEnum<ResourceCycle.State>(ResourceState);
     }
 
     public void Deserialise(PacketReader reader)
@@ -31,5 +37,7 @@ public struct ActorUpdatePacket : IPacket
         Rotation = reader.ReadQuaternion();
         Velocity = reader.ReadVector3();
         Emotions = reader.ReadFloat4();
+        ResourceProgress = reader.ReadDouble();
+        ResourceState = reader.ReadEnum<ResourceCycle.State>();
     }
 }

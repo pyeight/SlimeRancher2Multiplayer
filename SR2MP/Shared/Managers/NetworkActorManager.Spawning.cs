@@ -70,6 +70,8 @@ public sealed partial class NetworkActorManager
         actor.transform.position = position;
         actorManager.Actors[actorId.Value] = actorModel;
 
+        actor.GetComponent<ResourceCycle>()?.AttachToNearest();
+        
         return true;
     }
 
@@ -271,8 +273,9 @@ public sealed partial class NetworkActorManager
         }
 
         plortModel.destroyTime = destroyTime;
-        plortModel._invulnerability.IsInvulnerable = invulnerable;
-        plortModel._invulnerability.InvulnerabilityPeriod = invulnerablePeriod;
+        
+        //plortModel._invulnerability.IsInvulnerable = invulnerable;
+        //plortModel._invulnerability.InvulnerabilityPeriod = invulnerablePeriod;
 
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -300,6 +303,13 @@ public sealed partial class NetworkActorManager
         actor.transform.position = position;
         actorManager.Actors[actorId.Value] = model;
 
+        var plortInvulnerability = actor.GetComponent<PlortInvulnerability>();
+        if (plortInvulnerability)
+        {
+            plortInvulnerability.IsInvulnerable = invulnerable;
+            plortInvulnerability.InvulnerabilityPeriod = invulnerablePeriod;
+        }
+        
         return true;
     }
     private bool TrySpawnInitialResource(InitialActorsPacket.Resource actorData, out IdentifiableModel? model)
@@ -340,7 +350,11 @@ public sealed partial class NetworkActorManager
                 rotation);
 
         if (model == null)
+        {
+            SrLogger.LogWarning(
+                $"Resource Actor failed to initialize: Did not create any models successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
             return false;
+        }
 
         var produceModel = model.TryCast<ProduceModel>();
         if (produceModel == null)
@@ -351,8 +365,8 @@ public sealed partial class NetworkActorManager
         }
 
         produceModel.destroyTime = destroyTime;
-        produceModel.state = state;
-        produceModel.progressTime = progress;
+        //produceModel.state = state;
+        //produceModel.progressTime = progress;
 
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -380,6 +394,8 @@ public sealed partial class NetworkActorManager
         actor.transform.position = position;
         actorManager.Actors[actorId.Value] = model;
 
+        // todo: actor.GetComponent<ResourceCycle>()?.SetInitState(state, progress);
+        
         return true;
     }
 }

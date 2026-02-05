@@ -17,6 +17,7 @@ public sealed partial class InitialActorsPacket : IPacket
         return actor;
     };
 
+    public double WorldTime { get; set; }
     public uint StartingActorID { get; set; } = 10000;
     public List<ActorBase> Actors { get; set; }
 
@@ -26,12 +27,14 @@ public sealed partial class InitialActorsPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteUInt(StartingActorID);
+        writer.WriteDouble(WorldTime);
         writer.WriteList(Actors, PacketWriterDels.NetObject<ActorBase>.Func);
     }
 
     public void Deserialise(PacketReader reader)
     {
         StartingActorID = reader.ReadUInt();
+        WorldTime = reader.ReadDouble();
         Actors = reader.ReadList(readFunction);
     }
 }
