@@ -14,24 +14,10 @@ public sealed partial class InitialActorsPacket : IPacket
         actor.Deserialise(reader);
 
         SrLogger.LogMessage($"{actorTypeEnum} Actor: {actor.ActorId}");
-        
+
         return actor;
     };
 
-    private static Action<PacketWriter, ActorBase> writeFunction = (writer, actor) =>
-    {
-        ActorType actorType = ActorType.Basic;
-        if (actor is Slime)
-            actorType = ActorType.Slime;
-        else if (actor is Plort)
-            actorType = ActorType.Plort;
-        else if (actor is Resource)
-            actorType = ActorType.Resource;
-        writer.WriteEnum(actorType);
-
-        actor.Serialise(writer);
-    };
-    
     public uint StartingActorID { get; set; } = 10000;
     public List<ActorBase> Actors { get; set; }
 
@@ -41,7 +27,7 @@ public sealed partial class InitialActorsPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteUInt(StartingActorID);
-        writer.WriteList(Actors, writeFunction);
+        writer.WriteList(Actors, PacketWriterDels.NetObject<ActorBase>.Func);
     }
 
     public void Deserialise(PacketReader reader)

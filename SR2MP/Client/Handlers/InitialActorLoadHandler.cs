@@ -40,7 +40,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
                     new ActorId(actor.ActorId),
                     actor.Position,
                     actor.Rotation,
-                    actor.ActorType,
+                    actor.ActorTypeId,
                     actor.Scene,
                     out var spawnedActor))
                 continue;

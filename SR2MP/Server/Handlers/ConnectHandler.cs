@@ -166,7 +166,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             actorsList.Add(new InitialActorsPacket.ActorBase
             {
                 ActorId = id,
-                ActorType = NetworkActorManager.GetPersistentID(actor.ident),
+                ActorTypeId = NetworkActorManager.GetPersistentID(actor.ident),
                 Position = actor.lastPosition,
                 Rotation = rotation,
                 Scene = NetworkSceneManager.GetPersistentID(actor.sceneGroup)

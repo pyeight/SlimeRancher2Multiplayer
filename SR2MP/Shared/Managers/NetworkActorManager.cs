@@ -7,6 +7,7 @@ using SR2E.Utils;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
+using SR2MP.Shared.Utils;
 using UnityEngine.SceneManagement;
 
 namespace SR2MP.Shared.Managers;
@@ -195,7 +196,7 @@ public sealed class NetworkActorManager
         const int Max = 12;
 
         var player = SceneContext.Instance.player;
-       
+
         var bounds = new Bounds(player.transform.position, new Vector3(325, 1000, 325));
 
         int i = 0;
@@ -203,7 +204,7 @@ public sealed class NetworkActorManager
         {
             if (actor.Value == null)
                 continue;
-            
+
             if (!bounds.Contains(actor.Value.lastPosition))
                 continue;
 
@@ -234,62 +235,58 @@ public sealed class NetworkActorManager
         }
     }
 
-    public InitialActorsPacket.ActorBase CreateInitialActor(IdentifiableModel actor)
+    public static InitialActorsPacket.ActorBase CreateInitialActor(IdentifiableModel actor)
     {
-        var slime = actor.TryCast<SlimeModel>();
-        var plort = actor.TryCast<PlortModel>();
-        var resource = actor.TryCast<ResourceModel>();
+        if (actor.TryCast<SlimeModel>(out var slime))
+            return CreateInitialSlime(slime);
 
-        if (slime != null)
-        {
-            return CreateInitialSlime(slime);
-        }
-        if (plort != null)
-        {
-            return CreateInitialSlime(slime);
-        }
-        
-        var model = actor.TryCast<ActorModel>();
-        var rotation = model?.lastRotation ?? Quaternion.identity;
-        var id = actor.actorId.Value;
-        return new InitialActorsPacket.ActorBase
-        {
-            ActorId = id,
-            ActorType = NetworkActorManager.GetPersistentID(actor.ident),
-            Position = actor.lastPosition,
-            Rotation = rotation,
-            Scene = NetworkSceneManager.GetPersistentID(actor.sceneGroup)
-        };
+        if (actor.TryCast<PlortModel>(out var plort))
+            return CreateInitialPlort(plort);
+
+        if (actor.TryCast<ResourceModel>(out var resource))
+            return CreateInitialResource(resource);
+
+        return CreateInitialActorBase(actor);
     }
 
-    private InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model)
+    private static InitialActorsPacket.ActorBase CreateInitialActorBase(IdentifiableModel model) => new InitialActorsPacket.ActorBase
     {
-        var rotation = model.lastRotation;
-        var id = model.actorId.Value;
-        return new InitialActorsPacket.Slime
-        {
-            ActorId = id,
-            ActorType = NetworkActorManager.GetPersistentID(model.ident),
-            Position = model.lastPosition,
-            Rotation = rotation,
-            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-            Emotions = model.Emotions
-        };
-    }
-    private InitialActorsPacket.Plort CreateInitialPlort(PlortModel model)
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.TryCast<ActorModel>()?.lastRotation ?? Quaternion.identity,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
+    };
+
+    private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model) => new InitialActorsPacket.Slime
     {
-        var rotation = model.lastRotation;
-        var id = model.actorId.Value;
-        return new InitialActorsPacket.Plort
-        {
-            ActorId = id,
-            ActorType = NetworkActorManager.GetPersistentID(model.ident),
-            Position = model.lastPosition,
-            Rotation = rotation,
-            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-            DestroyTime = model.destroyTime,
-            Invulnerable = model._invulnerability.IsInvulnerable,
-            InvulnerablePeriod = model._invulnerability.InvulnerabilityPeriod
-        };
-    }
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.lastRotation,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        Emotions = model.Emotions
+    };
+
+    private static InitialActorsPacket.Plort CreateInitialPlort(PlortModel model) => new InitialActorsPacket.Plort
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.lastRotation,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        DestroyTime = model.destroyTime,
+        Invulnerable = model._invulnerability.IsInvulnerable,
+        InvulnerablePeriod = model._invulnerability.InvulnerabilityPeriod
+    };
+
+    private static InitialActorsPacket.Resource CreateInitialResource(ResourceModel model) => new InitialActorsPacket.Resource
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.lastRotation,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        DestroyTime = model.destroyTime
+    };
 }
