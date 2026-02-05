@@ -4,6 +4,7 @@ using SR2MP.Packets.Utils;
 using SR2MP.Packets.Internal;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
+using System.Buffers;
 
 namespace SR2MP.Server.Managers;
 
@@ -144,6 +145,8 @@ public sealed class PacketManager
         writer.WritePacket(ackPacket);
 
         // no need to acknowledge ACK packets
-        networkManager.Send(writer.ToArray(), clientEp, PacketReliability.Unreliable);
+        var data = writer.ToArray();
+        networkManager.Send(data, clientEp, PacketReliability.Unreliable);
+        ArrayPool<byte>.Shared.Return(data);
     }
 }
