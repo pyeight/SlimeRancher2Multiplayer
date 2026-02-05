@@ -7,12 +7,7 @@ public sealed partial class InitialActorsPacket : IPacket
     private static Func<PacketReader, ActorBase> readFunction = reader =>
     {
         var actorTypeEnum = reader.ReadEnum<ActorType>();
-
-        // Fuck ass compiler throwing a warning here for some reason
-#pragma warning disable CS8602 // Dereference of a possibly null reference
-        var actorType = actorTypes[actorTypeEnum];
-#pragma warning restore CS8602 // Dereference of a possibly null reference
-
+        var actorType = actorTypes![actorTypeEnum];
         var actor = (ActorBase)Activator.CreateInstance(actorType)!;
 
         actor.Deserialise(reader);

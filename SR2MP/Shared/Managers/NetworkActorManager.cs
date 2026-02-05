@@ -289,4 +289,148 @@ public sealed class NetworkActorManager
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
         DestroyTime = model.destroyTime
     };
+
+    public bool TrySpawnInitialActor(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? model)
+    {
+        model = null;
+
+        if (actorData is InitialActorsPacket.Slime slimeData)
+            return TrySpawnInitialSlime(slimeData, out model);
+
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+
+        if (Main.RockPlortBug)
+            typeId = 25;
+
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+
+        if (!type.prefab)
+            return false;
+
+        if (type.isGadget())
+        {
+            SrLogger.LogWarning($"Tried to spawn gadget over the network, this has not been implemented yet!\n\tActor {actorId.Value}: {type.name}");
+            return false;
+        }
+
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+
+        model = SceneContext.Instance.GameModel.CreateActorModel(
+                actorId,
+                type,
+                scene,
+                position,
+                rotation);
+
+        if (model == null)
+            return false;
+
+        SceneContext.Instance.GameModel.identifiables[actorId] = model;
+        if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
+        {
+            actors.Add(model);
+        }
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
+        }
+
+        handlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        handlingPacket = false;
+
+        if (!actor)
+            return true;
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        actorManager.Actors[actorId.Value] = model;
+
+        return true;
+    }
+
+    private bool TrySpawnInitialSlime(InitialActorsPacket.Slime actorData, out IdentifiableModel? model)
+    {
+        model = null;
+
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var emotions = actorData.Emotions;
+
+        if (Main.RockPlortBug)
+            typeId = 25;
+
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+
+        if (!type.prefab)
+            return false;
+
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+
+        model = SceneContext.Instance.GameModel.CreateSlimeActorModel(
+                actorId,
+                type.Cast<SlimeDefinition>(),
+                scene,
+                position,
+                rotation);
+
+        if (model == null)
+            return false;
+
+        model.Cast<SlimeModel>().Emotions = emotions;
+
+        SceneContext.Instance.GameModel.identifiables[actorId] = model;
+        if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
+        {
+            actors.Add(model);
+        }
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
+        }
+
+        handlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        handlingPacket = false;
+
+        if (!actor)
+            return true;
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        actorManager.Actors[actorId.Value] = model;
+
+        return true;
+    }
 }
