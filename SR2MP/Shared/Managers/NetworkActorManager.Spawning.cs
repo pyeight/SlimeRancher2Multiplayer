@@ -72,24 +72,26 @@ public sealed partial class NetworkActorManager
 
         return true;
     }
-    
+
     public bool TrySpawnInitialActor(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? model)
     {
         model = null;
 
         if (actorData is InitialActorsPacket.Slime slimeData)
             return TrySpawnInitialSlime(slimeData, out model);
+
         if (actorData is InitialActorsPacket.Plort plortData)
             return TrySpawnInitialPlort(plortData, out model);
+
         if (actorData is InitialActorsPacket.Resource resourceData)
             return TrySpawnInitialResource(resourceData, out model);
 
         var sceneId = actorData.Scene;
-        var typeId = actorData.ActorType;
+        var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
-        
+
         if (Main.RockPlortBug)
             typeId = 25;
 
@@ -151,17 +153,18 @@ public sealed partial class NetworkActorManager
 
         return true;
     }
+
     private bool TrySpawnInitialSlime(InitialActorsPacket.Slime actorData, out IdentifiableModel? model)
     {
         model = null;
-        
+
         var sceneId = actorData.Scene;
-        var typeId = actorData.ActorType;
+        var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var emotions = actorData.Emotions;
-        
+
         if (Main.RockPlortBug)
             typeId = 25;
 
@@ -203,7 +206,7 @@ public sealed partial class NetworkActorManager
             SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;  
+        handlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
         handlingPacket = false;
 
@@ -222,16 +225,16 @@ public sealed partial class NetworkActorManager
     private bool TrySpawnInitialPlort(InitialActorsPacket.Plort actorData, out IdentifiableModel? model)
     {
         model = null;
-        
+
         var sceneId = actorData.Scene;
-        var typeId = actorData.ActorType;
+        var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var destroyTime = actorData.DestroyTime;
         var invulnerable = actorData.Invulnerable;
         var invulnerablePeriod = actorData.InvulnerablePeriod;
-        
+
         if (Main.RockPlortBug)
             typeId = 25;
 
@@ -270,7 +273,7 @@ public sealed partial class NetworkActorManager
         plortModel.destroyTime = destroyTime;
         plortModel._invulnerability.IsInvulnerable = invulnerable;
         plortModel._invulnerability.InvulnerabilityPeriod = invulnerablePeriod;
-        
+
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
         {
@@ -283,7 +286,7 @@ public sealed partial class NetworkActorManager
             SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;  
+        handlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
         handlingPacket = false;
 
@@ -302,16 +305,16 @@ public sealed partial class NetworkActorManager
     private bool TrySpawnInitialResource(InitialActorsPacket.Resource actorData, out IdentifiableModel? model)
     {
         model = null;
-        
+
         var sceneId = actorData.Scene;
-        var typeId = actorData.ActorType;
+        var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var destroyTime = actorData.DestroyTime;
         var state = actorData.ResourceState;
         var progress = actorData.ProgressTime;
-        
+
         if (Main.RockPlortBug)
             typeId = 25;
 
@@ -350,7 +353,7 @@ public sealed partial class NetworkActorManager
         produceModel.destroyTime = destroyTime;
         produceModel.state = state;
         produceModel.progressTime = progress;
-        
+
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
         {
@@ -363,7 +366,7 @@ public sealed partial class NetworkActorManager
             SceneContext.Instance.GameModel.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;  
+        handlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
         handlingPacket = false;
 

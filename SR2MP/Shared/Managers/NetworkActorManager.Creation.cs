@@ -1,80 +1,65 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Loading;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
 public sealed partial class NetworkActorManager
 {
-    public InitialActorsPacket.ActorBase CreateInitialActor(IdentifiableModel actor)
+    public static InitialActorsPacket.ActorBase CreateInitialActor(IdentifiableModel actor)
     {
-        var slime = actor.TryCast<SlimeModel>();
-        var plort = actor.TryCast<PlortModel>();
-        var resource = actor.TryCast<ProduceModel>();
-
-        if (slime != null)
+        if (actor.TryCast<SlimeModel>(out var slime))
             return CreateInitialSlime(slime);
-        if (plort != null)
+
+        if (actor.TryCast<PlortModel>(out var plort))
             return CreateInitialPlort(plort);
-        if (resource != null)
+
+        if (actor.TryCast<ProduceModel>(out var resource))
             return CreateInitialResource(resource);
-        
-        var model = actor.TryCast<ActorModel>();
-        var rotation = model?.lastRotation ?? Quaternion.identity;
-        var id = actor.actorId.Value;
-        return new InitialActorsPacket.ActorBase
-        {
-            ActorId = id,
-            ActorType = GetPersistentID(actor.ident),
-            Position = actor.lastPosition,
-            Rotation = rotation,
-            Scene = NetworkSceneManager.GetPersistentID(actor.sceneGroup)
-        };
+
+        return CreateInitialActorBase(actor);
     }
 
-    private InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model)
+    private static InitialActorsPacket.ActorBase CreateInitialActorBase(IdentifiableModel model) => new()
     {
-        var rotation = model.lastRotation;
-        var id = model.actorId.Value;
-        return new InitialActorsPacket.Slime
-        {
-            ActorId = id,
-            ActorType = GetPersistentID(model.ident),
-            Position = model.lastPosition,
-            Rotation = rotation,
-            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-            Emotions = model.Emotions
-        };
-    }
-    private InitialActorsPacket.Plort CreateInitialPlort(PlortModel model)
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.TryCast<ActorModel>()?.lastRotation ?? Quaternion.identity,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
+    };
+
+    private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model) => new()
     {
-        var rotation = model.lastRotation;
-        var id = model.actorId.Value;
-        return new InitialActorsPacket.Plort
-        {
-            ActorId = id,
-            ActorType = GetPersistentID(model.ident),
-            Position = model.lastPosition,
-            Rotation = rotation,
-            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-            DestroyTime = model.destroyTime,
-            Invulnerable = model._invulnerability.IsInvulnerable,
-            InvulnerablePeriod = model._invulnerability.InvulnerabilityPeriod
-        };
-    }
-    private InitialActorsPacket.Resource CreateInitialResource(ProduceModel model)
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.lastRotation,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        Emotions = model.Emotions
+    };
+
+    private static InitialActorsPacket.Plort CreateInitialPlort(PlortModel model) => new()
     {
-        var rotation = model.lastRotation;
-        var id = model.actorId.Value;
-        return new InitialActorsPacket.Resource
-        {
-            ActorId = id,
-            ActorType = GetPersistentID(model.ident),
-            Position = model.lastPosition,
-            Rotation = rotation,
-            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-            DestroyTime = model.destroyTime,
-            ResourceState = model._state,
-            ProgressTime = model.progressTime
-        };
-    }
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.lastRotation,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        DestroyTime = model.destroyTime,
+        Invulnerable = model._invulnerability.IsInvulnerable,
+        InvulnerablePeriod = model._invulnerability.InvulnerabilityPeriod
+    };
+
+    private static InitialActorsPacket.Resource CreateInitialResource(ProduceModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.lastRotation,
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        DestroyTime = model.destroyTime,
+        ResourceState = model._state,
+        ProgressTime = model.progressTime
+    };
 }
