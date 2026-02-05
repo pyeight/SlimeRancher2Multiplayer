@@ -6,6 +6,7 @@ using MelonLoader;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
+using SR2MP.Packets.Loading;
 using UnityEngine.SceneManagement;
 
 namespace SR2MP.Shared.Managers;
@@ -231,5 +232,64 @@ public sealed class NetworkActorManager
                 i = 0;
             }
         }
+    }
+
+    public InitialActorsPacket.ActorBase CreateInitialActor(IdentifiableModel actor)
+    {
+        var slime = actor.TryCast<SlimeModel>();
+        var plort = actor.TryCast<PlortModel>();
+        var resource = actor.TryCast<ResourceModel>();
+
+        if (slime != null)
+        {
+            return CreateInitialSlime(slime);
+        }
+        if (plort != null)
+        {
+            return CreateInitialSlime(slime);
+        }
+        
+        var model = actor.TryCast<ActorModel>();
+        var rotation = model?.lastRotation ?? Quaternion.identity;
+        var id = actor.actorId.Value;
+        return new InitialActorsPacket.ActorBase
+        {
+            ActorId = id,
+            ActorType = NetworkActorManager.GetPersistentID(actor.ident),
+            Position = actor.lastPosition,
+            Rotation = rotation,
+            Scene = NetworkSceneManager.GetPersistentID(actor.sceneGroup)
+        };
+    }
+
+    private InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model)
+    {
+        var rotation = model.lastRotation;
+        var id = model.actorId.Value;
+        return new InitialActorsPacket.Slime
+        {
+            ActorId = id,
+            ActorType = NetworkActorManager.GetPersistentID(model.ident),
+            Position = model.lastPosition,
+            Rotation = rotation,
+            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+            Emotions = model.Emotions
+        };
+    }
+    private InitialActorsPacket.Plort CreateInitialPlort(PlortModel model)
+    {
+        var rotation = model.lastRotation;
+        var id = model.actorId.Value;
+        return new InitialActorsPacket.Plort
+        {
+            ActorId = id,
+            ActorType = NetworkActorManager.GetPersistentID(model.ident),
+            Position = model.lastPosition,
+            Rotation = rotation,
+            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+            DestroyTime = model.destroyTime,
+            Invulnerable = model._invulnerability.IsInvulnerable,
+            InvulnerablePeriod = model._invulnerability.InvulnerabilityPeriod
+        };
     }
 }
