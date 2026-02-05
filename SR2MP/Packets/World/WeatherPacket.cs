@@ -54,12 +54,8 @@ public sealed class WeatherPacket : IPacket
 
             packet.Zones.Add(zoneId++, zoneData);
             
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
-            yield return null;
+            
+            yield return new WaitFrames(6);
         }
 
         onComplete?.Invoke(packet);

@@ -36,13 +36,7 @@ public sealed class ActorsLoadHandler : BaseClientPacketHandler<InitialActorsPac
 
         foreach (var actor in packet.Actors)
         {
-            if (!actorManager.TrySpawnNetworkActor(
-                    new ActorId(actor.ActorId),
-                    actor.Position,
-                    actor.Rotation,
-                    actor.ActorTypeId,
-                    actor.Scene,
-                    out var spawnedActor))
+            if (!actorManager.TrySpawnInitialActor(actor, out var spawnedActor))
                 continue;
 
             /*if (spawnedActor!.TryGetNetworkComponent(out var component))

@@ -16,12 +16,13 @@ public sealed partial class InitialActorsPacket
         Chicken = 4,
 
         // Gadgets
-        Linked = 5,
-        LinkedWithAmmo = 6,
+        Gadget = 5,
+        LinkedGadget = 6,
+        LinkedGadgetWithAmmo = 7,
 
         // Drones
-        RanchDrone = 7,
-        ExplorerDrone = 8,
+        RanchDrone = 8,
+        ExplorerDrone = 9,
     }
 
     private static Dictionary<ActorType, Type> actorTypes = new()
@@ -37,10 +38,10 @@ public sealed partial class InitialActorsPacket
         public long ActorId { get; set; }
         public Vector3 Position { get; set; }
         public Quaternion Rotation { get; set; }
-        public int ActorTypeId { get; set; }
+        public int ActorType { get; set; }
         public int Scene { get; set; }
 
-        protected virtual ActorType Type => ActorType.Basic;
+        protected virtual ActorType Type => InitialActorsPacket.ActorType.Basic;
 
         public virtual void Serialise(PacketWriter writer)
         {
@@ -48,7 +49,7 @@ public sealed partial class InitialActorsPacket
             writer.WriteVector3(Position);
             writer.WriteQuaternion(Rotation);
             writer.WriteLong(ActorId);
-            writer.WriteInt(ActorTypeId);
+            writer.WriteInt(ActorType);
             writer.WriteInt(Scene);
         }
 
@@ -57,7 +58,7 @@ public sealed partial class InitialActorsPacket
             Position = reader.ReadVector3();
             Rotation = reader.ReadQuaternion();
             ActorId = reader.ReadLong();
-            ActorTypeId = reader.ReadInt();
+            ActorType = reader.ReadInt();
             Scene = reader.ReadInt();
         }
     }
@@ -66,7 +67,7 @@ public sealed partial class InitialActorsPacket
     {
         public float4 Emotions { get; set; }
 
-        protected override ActorType Type => ActorType.Slime;
+        protected override ActorType Type => InitialActorsPacket.ActorType.Slime;
 
         public override void Serialise(PacketWriter writer)
         {
@@ -84,28 +85,36 @@ public sealed partial class InitialActorsPacket
     public class Resource : ActorBase
     {
         public double DestroyTime { get; set; }
+        public double ProgressTime { get; set; }
 
-        protected override ActorType Type => ActorType.Resource;
+        public ResourceCycle.State ResourceState { get; set; }
+        
+        protected override ActorType Type => InitialActorsPacket.ActorType.Resource;
 
         public override void Serialise(PacketWriter writer)
         {
             base.Serialise(writer);
             writer.WriteDouble(DestroyTime);
+            writer.WriteDouble(ProgressTime);
+            writer.WriteEnum(ResourceState);
         }
 
         public override void Deserialise(PacketReader reader)
         {
             base.Deserialise(reader);
             DestroyTime = reader.ReadDouble();
+            ProgressTime = reader.ReadDouble();
+            ResourceState = reader.ReadEnum<ResourceCycle.State>();
         }
     }
 
-    public sealed class Plort : Resource
+    public sealed class Plort  : ActorBase
     {
+        public double DestroyTime { get; set; }
         public bool Invulnerable { get; set; }
         public float InvulnerablePeriod { get; set; }
 
-        protected override ActorType Type => ActorType.Plort;
+        protected override ActorType Type => InitialActorsPacket.ActorType.Plort;
 
         public override void Serialise(PacketWriter writer)
         {
