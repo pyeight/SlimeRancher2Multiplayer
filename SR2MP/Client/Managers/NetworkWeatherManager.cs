@@ -1,12 +1,9 @@
 ﻿using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.Shop;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Packets.World;
-using SR2MP.Patches.Weather;
 using SR2MP.Server.Managers;
-using UnityEngine.Windows.Speech;
 
 namespace SR2MP.Client.Managers;
 
@@ -62,8 +59,8 @@ public static class NetworkWeatherManager
     public static int GetPersistentID(WeatherStateDefinition state)
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
             .GetPersistenceId(state.Cast<IWeatherState>());
-    
-    internal static IEnumerator Apply(WeatherPacket packet, bool immediate) 
+
+    internal static IEnumerator Apply(WeatherPacket packet, bool immediate)
     {
         handlingPacket = true;
 
@@ -146,7 +143,7 @@ public static class NetworkWeatherManager
             activeCopy.Add(activeZone.Forecast[i]);
 
         yield return null;
-        
+
         foreach (var forecast in activeCopy)
         {
             var patternInstance = registry.GetWeatherPatternInstance(

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
-using SR2E.Utils;
 using SR2MP.Client.Managers;
 using SR2MP.Packets.Utils;
 
@@ -105,4 +104,4 @@ public sealed class WeatherForecast : INetObject
     }
 }
 
-// ZoomedOutUI -> zoneMarkers -> 
+// ZoomedOutUI -> zoneMarkers ->
