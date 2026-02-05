@@ -36,7 +36,6 @@ public sealed class PlayerUpdatePacket : IPacket
 
         writer.WriteFloat(LookY);
 
-        writer.ResetPackingBools();
         writer.WritePackedBool(Moving);
         writer.WritePackedBool(Sprinting);
         writer.EndPackingBools();

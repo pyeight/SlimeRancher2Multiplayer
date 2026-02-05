@@ -17,7 +17,7 @@
 |  Map Expansions   |   🟩   |                               Fully functional                                |
 |      Slimes       |   🟩   |                               Fully functional                                |
 |  Actors (Items)   |   🟩   |                               Fully functional                                |
-|     Landplots     |   🟨   |               Gardens (🟧) and Silos (🟥) missing functionality               |
+|     Landplots     |   🟨   |  Gardens (🟧), Silos, Plort collectors & Auto-feeders missing functionality   |
 | Landplot upgrades |   🟩   |                               Fully functional                                |
 |    Slimepedia     |   🟩   |                               Fully functional                                |
 |      Gadgets      |   🟥   |                                Not implemented                                |
@@ -32,7 +32,7 @@
 |  Resource Nodes   |   🟥   |                                Not implemented                                |
 |   Gordo Slimes    |   🟩   |                               Fully functional                                |
 |      Geysers      |   🟩   |                               Fully functional                                |
-|        Map        |   🟩   |                               Fully functional                                |
+|        Map        |   🟨   |     Lightning has duplicate loot, Tornados and map icons not synchronised     |
 |    Teleporters    |   🟩   |                               Fully functional                                |
 |      Weather      |   🟩   |                               Fully functional                                |
 |     Lightning     |   🟩   |                               Fully functional                                |

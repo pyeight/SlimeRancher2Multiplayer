@@ -7,7 +7,7 @@ namespace SR2MP.Patches.Weather;
 
 // Weather Registry
 [HarmonyPatch(typeof(WeatherRegistry))]
-public static class WeatherReigstryPatches
+public static class WeatherRegistryPatches
 {
     [HarmonyPatch(nameof(WeatherRegistry.Update)), HarmonyPrefix]
     public static bool UpdatePrefix() => !Main.Client.IsConnected;
@@ -30,5 +30,3 @@ public static class WeatherReigstryPatches
         return !Main.Client.IsConnected || handlingPacket;
     }
 }
-
-// Weather Director
