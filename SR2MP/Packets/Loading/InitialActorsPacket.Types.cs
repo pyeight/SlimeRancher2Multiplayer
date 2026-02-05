@@ -16,12 +16,13 @@ public sealed partial class InitialActorsPacket
         Chicken = 4,
 
         // Gadgets
-        Linked = 5,
-        LinkedWithAmmo = 6,
+        Gadget = 5,
+        LinkedGadget = 6,
+        LinkedGadgetWithAmmo = 7,
 
         // Drones
-        RanchDrone = 7,
-        ExplorerDrone = 8,
+        RanchDrone = 8,
+        ExplorerDrone = 9,
     }
 
     private static Dictionary<ActorType, Type> actorTypes = new()
@@ -81,11 +82,9 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public class Resource : ActorBase
+    public abstract class Destroyable : ActorBase
     {
         public double DestroyTime { get; set; }
-
-        protected override ActorType Type => ActorType.Resource;
 
         public override void Serialise(PacketWriter writer)
         {
@@ -100,7 +99,29 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class Plort : Resource
+    public class Resource : Destroyable
+    {
+        public double ProgressTime { get; set; }
+        public ResourceCycle.State ResourceState { get; set; }
+
+        protected override ActorType Type => ActorType.Resource;
+
+        public override void Serialise(PacketWriter writer)
+        {
+            base.Serialise(writer);
+            writer.WriteDouble(ProgressTime);
+            writer.WriteEnum(ResourceState);
+        }
+
+        public override void Deserialise(PacketReader reader)
+        {
+            base.Deserialise(reader);
+            ProgressTime = reader.ReadDouble();
+            ResourceState = reader.ReadEnum<ResourceCycle.State>();
+        }
+    }
+
+    public sealed class Plort  : Destroyable
     {
         public bool Invulnerable { get; set; }
         public float InvulnerablePeriod { get; set; }

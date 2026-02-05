@@ -23,3 +23,20 @@ public sealed class WaitForSceneGroupLoad : MpYieldInstruction
 
     protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == state;
 }
+
+public sealed class WaitFrames : MpYieldInstruction
+{
+    private readonly byte frames;
+    private byte waited;
+
+    public WaitFrames(byte frames) => this.frames = frames;
+
+    protected override bool ShouldWait
+    {
+        get
+        {
+            waited++;
+            return waited >= frames;
+        }
+    }
+}

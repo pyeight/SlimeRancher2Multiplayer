@@ -109,8 +109,7 @@ public static class NetworkWeatherManager
                     );
                 }
 
-                yield return null;
-                yield return null;
+                yield return new WaitFrames(2);
             }
 
             zone.Forecast.Clear();
@@ -129,13 +128,11 @@ public static class NetworkWeatherManager
                     EndTime = forecast.EndTime
                 });
 
-                yield return null;
-                yield return null;
+                yield return new WaitFrames(2);
             }
 
             zoneId++;
-            yield return null;
-            yield return null;
+            yield return new WaitFrames(2);
         }
 
         if (!registry._zones.TryGetValue(director!.Zone, out var activeZone))
@@ -168,9 +165,7 @@ public static class NetworkWeatherManager
                 );
             }
 
-            yield return null;
-            yield return null;
-            yield return null;
+            yield return new WaitFrames(3);
         }
 
         handlingPacket = false;
