@@ -156,7 +156,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
     {
         var actorsList = new List<InitialActorsPacket.ActorBase>();
 
-        foreach (var (_, model) in SceneContext.Instance.GameModel.identifiables)
+        foreach (var (_, model) in actorManager.Actors)
         {
             actorsList.Add(NetworkActorManager.CreateInitialActor(model));
         }
