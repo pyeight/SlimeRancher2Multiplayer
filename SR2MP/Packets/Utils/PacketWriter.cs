@@ -243,19 +243,19 @@ public sealed class PacketWriter : PacketBase
             writer(this, item);
     }
 
-    public void WriteCppList<T>(CppCollections.List<T>? list, Action<PacketWriter, T> writer)
-    {
-        if (list == null)
-        {
-            WriteInt(0);
-            return;
-        }
+    // public void WriteCppList<T>(CppCollections.List<T>? list, Action<PacketWriter, T> writer)
+    // {
+    //     if (list == null)
+    //     {
+    //         WriteInt(0);
+    //         return;
+    //     }
 
-        WriteInt(list.Count);
+    //     WriteInt(list.Count);
 
-        foreach (var item in list)
-            writer(this, item);
-    }
+    //     foreach (var item in list)
+    //         writer(this, item);
+    // }
 
     public void WriteCppSet<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer)
     {

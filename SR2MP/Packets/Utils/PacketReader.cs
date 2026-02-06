@@ -245,16 +245,16 @@ public sealed class PacketReader : PacketBase
         return list;
     }
 
-    public CppCollections.List<T> ReadCppList<T>(Func<PacketReader, T> reader)
-    {
-        var count = ReadInt();
-        var list = new CppCollections.List<T>(count);
+    // public CppCollections.List<T> ReadCppList<T>(Func<PacketReader, T> reader)
+    // {
+    //     var count = ReadInt();
+    //     var list = new CppCollections.List<T>(count);
 
-        for (var i = 0; i < count; i++)
-            list.Add(reader(this));
+    //     for (var i = 0; i < count; i++)
+    //         list.Add(reader(this));
 
-        return list;
-    }
+    //     return list;
+    // }
 
     public CppCollections.HashSet<T> ReadCppSet<T>(Func<PacketReader, T> reader)
     {

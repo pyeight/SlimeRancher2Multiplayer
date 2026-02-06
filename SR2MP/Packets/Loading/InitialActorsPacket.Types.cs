@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using SR2MP.Packets.Utils;
 using Unity.Mathematics;
 
@@ -25,7 +26,7 @@ public sealed partial class InitialActorsPacket
         ExplorerDrone = 9,
     }
 
-    private static Dictionary<ActorType, Type> actorTypes = new()
+    private static Dictionary<ActorType, Type> actorTypes = new(ActorTypeComparer.Instance)
     {
         { ActorType.Basic, typeof(ActorBase)},
         { ActorType.Slime, typeof(Slime)},
@@ -55,6 +56,7 @@ public sealed partial class InitialActorsPacket
 
         public virtual void Deserialise(PacketReader reader)
         {
+            // Type is already deserialised here
             Position = reader.ReadVector3();
             Rotation = reader.ReadQuaternion();
             ActorId = reader.ReadLong();
@@ -99,7 +101,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public class Resource : Destroyable
+    public sealed class Resource : Destroyable
     {
         public double ProgressTime { get; set; }
         public ResourceCycle.State ResourceState { get; set; }
@@ -141,5 +143,14 @@ public sealed partial class InitialActorsPacket
             Invulnerable = reader.ReadBool();
             InvulnerablePeriod = reader.ReadFloat();
         }
+    }
+
+    private sealed class ActorTypeComparer : IEqualityComparer<ActorType>
+    {
+        public static readonly ActorTypeComparer Instance = new();
+
+        public bool Equals(ActorType x, ActorType y) => x == y;
+
+        public int GetHashCode([DisallowNull] ActorType obj) => (int)obj;
     }
 }
