@@ -22,7 +22,7 @@ public sealed partial class InitialActorsPacket : IPacket
     public List<ActorBase> Actors { get; set; }
 
     public PacketType Type => PacketType.InitialActors;
-    public PacketReliability Reliability => PacketReliability.Reliable;
+    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
     public void Serialise(PacketWriter writer)
     {

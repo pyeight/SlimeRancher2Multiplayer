@@ -114,7 +114,7 @@ public static class PacketChunkManager
         return true;
     }
 
-    internal static byte[][] SplitPacket(byte[] data, PacketReliability reliability, int trueLength,
+    internal static byte[][] SplitPacket(byte[] data, PacketReliability reliability,// int trueLength,
         ushort sequenceNumber, out ushort packetId)
     {
         var packetType = data[0];
@@ -132,22 +132,22 @@ public static class PacketChunkManager
         packetId = (ushort)id;
 
         // Compress if threshold is reached
-        if (trueLength > CompressionThreshold)
+        if (data.Length > CompressionThreshold)
         {
-            var compressed = Compress(data, trueLength);
-            if (compressed.Length < trueLength * 0.9f)
+            var compressed = Compress(data);
+            if (compressed.Length < data.Length * 0.9f)
             {
                 data = compressed;
             }
         }
 
-        var chunkCount = (trueLength + MaxChunkBytes - 1) / MaxChunkBytes;
+        var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
         var result = new byte[chunkCount][];
 
         for (ushort index = 0; index < chunkCount; index++)
         {
             var offset = index * MaxChunkBytes;
-            var chunkSize = Math.Min(MaxChunkBytes, trueLength - offset);
+            var chunkSize = Math.Min(MaxChunkBytes, data.Length - offset);
 
             // 10 byte header:
             var buffer = new byte[10 + chunkSize];
@@ -197,7 +197,7 @@ public static class PacketChunkManager
         }
     }
 
-    private static byte[] Compress(byte[] data, int trueLength)
+    private static byte[] Compress(byte[] data)//, int trueLength)
     {
         using var output = new MemoryStream();
         // (byte)PacketType.ReservedDoNotUse instead of 0xFF so shows as used in PacketType.cs
@@ -206,7 +206,7 @@ public static class PacketChunkManager
 
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest))
         {
-            gzip.Write(data, 1, trueLength - 1);
+            gzip.Write(data, 1, data.Length - 1);
         }
 
         return output.ToArray();

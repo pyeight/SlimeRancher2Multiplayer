@@ -8,7 +8,7 @@ public sealed class ConnectPacket : IPacket
     public string Username { get; set; }
 
     public PacketType Type => PacketType.Connect;
-    public PacketReliability Reliability => PacketReliability.Reliable;
+    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
     public void Serialise(PacketWriter writer)
     {
