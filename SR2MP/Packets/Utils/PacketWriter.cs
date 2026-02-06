@@ -313,8 +313,9 @@ public sealed class PacketWriter : PacketBase
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte[] ToArray()
+    public byte[] ToArray(out int trueLength)
     {
+        trueLength = position;
         var result = ArrayPool<byte>.Shared.Rent(position);
         Array.Copy(buffer, buffer.GetLowerBound(0), result, 0, position);
         return result;

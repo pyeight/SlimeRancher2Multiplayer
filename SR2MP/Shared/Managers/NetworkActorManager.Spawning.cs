@@ -71,7 +71,7 @@ public sealed partial class NetworkActorManager
         actorManager.Actors[actorId.Value] = actorModel;
 
         actor.GetComponent<ResourceCycle>()?.AttachToNearest();
-        
+
         return true;
     }
 
@@ -224,6 +224,7 @@ public sealed partial class NetworkActorManager
 
         return true;
     }
+
     private bool TrySpawnInitialPlort(InitialActorsPacket.Plort actorData, out IdentifiableModel? model)
     {
         model = null;
@@ -273,7 +274,7 @@ public sealed partial class NetworkActorManager
         }
 
         plortModel.destroyTime = destroyTime;
-        
+
         //plortModel._invulnerability.IsInvulnerable = invulnerable;
         //plortModel._invulnerability.InvulnerabilityPeriod = invulnerablePeriod;
 
@@ -309,9 +310,10 @@ public sealed partial class NetworkActorManager
             plortInvulnerability.IsInvulnerable = invulnerable;
             plortInvulnerability.InvulnerabilityPeriod = invulnerablePeriod;
         }
-        
+
         return true;
     }
+
     private bool TrySpawnInitialResource(InitialActorsPacket.Resource actorData, out IdentifiableModel? model)
     {
         model = null;
@@ -395,7 +397,7 @@ public sealed partial class NetworkActorManager
         actorManager.Actors[actorId.Value] = model;
 
         // todo: actor.GetComponent<ResourceCycle>()?.SetInitState(state, progress);
-        
+
         return true;
     }
 }

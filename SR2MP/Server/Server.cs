@@ -176,8 +176,8 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        var data = writer.ToArray();
-        networkManager.Send(data, endPoint, packet.Reliability);
+        var data = writer.ToArray(out var trueLength);
+        networkManager.Send(data, trueLength, endPoint, packet.Reliability);
         ArrayPool<byte>.Shared.Return(data);
     }
 
@@ -190,10 +190,10 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        byte[] data = writer.ToArray();
+        byte[] data = writer.ToArray(out var trueLength);
 
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints, packet.Reliability);
+        networkManager.Broadcast(data, trueLength, endpoints, packet.Reliability);
         ArrayPool<byte>.Shared.Return(data);
     }
 
@@ -201,13 +201,13 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        byte[] data = writer.ToArray();
+        byte[] data = writer.ToArray(out var trueLength);
 
         foreach (var client in clientManager.GetAllClients())
         {
             if (client.GetClientInfo() != excludedClientInfo)
             {
-                networkManager.Send(data, client.EndPoint, packet.Reliability);
+                networkManager.Send(data, trueLength, client.EndPoint, packet.Reliability);
             }
         }
 

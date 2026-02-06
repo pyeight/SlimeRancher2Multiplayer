@@ -231,9 +231,9 @@ public sealed class Client
         {
             using var writer = new PacketWriter();
             writer.WritePacket(packet);
-            byte[] data = writer.ToArray();
+            byte[] data = writer.ToArray(out var trueLength);
 
-            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Sending {trueLength} bytes to Server...", SrLogTarget.Both);
 
             PacketReliability reliability = packet.Reliability;
             ushort sequenceNumber = 0;
@@ -244,7 +244,7 @@ public sealed class Client
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
             }
 
-            var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, reliability, trueLength, sequenceNumber, out ushort packetId);
 
             // Track reliability if needed
             if (reliability != PacketReliability.Unreliable)
@@ -257,7 +257,7 @@ public sealed class Client
                 SendRaw(chunk, serverEndPoint);
             }
 
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
+            SrLogger.LogPacketSize($"Sent {trueLength} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
                 SrLogTarget.Both);
 
             ArrayPool<byte>.Shared.Return(data);

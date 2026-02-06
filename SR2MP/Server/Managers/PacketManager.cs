@@ -145,8 +145,8 @@ public sealed class PacketManager
         writer.WritePacket(ackPacket);
 
         // no need to acknowledge ACK packets
-        var data = writer.ToArray();
-        networkManager.Send(data, clientEp, PacketReliability.Unreliable);
+        var data = writer.ToArray(out var trueLength);
+        networkManager.Send(data, trueLength, clientEp, PacketReliability.Unreliable);
         ArrayPool<byte>.Shared.Return(data);
     }
 }

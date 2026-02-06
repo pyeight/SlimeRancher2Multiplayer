@@ -96,7 +96,7 @@ public sealed class NetworkManager
         SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
     }
 
-    public void Send(byte[] data, IPEndPoint endPoint, PacketReliability? reliability = null)
+    public void Send(byte[] data, int trueLength, IPEndPoint endPoint, PacketReliability? reliability = null)
     {
         if (udpClient == null || !isRunning)
         {
@@ -114,7 +114,7 @@ public sealed class NetworkManager
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
             }
 
-            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, trueLength, sequenceNumber, out ushort packetId);
 
             if (packetReliability != PacketReliability.Unreliable)
             {
@@ -133,7 +133,7 @@ public sealed class NetworkManager
     }
 
     // Broadcast to multiple endpoints efficiently
-    public void Broadcast(byte[] data, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
+    public void Broadcast(byte[] data, int trueLength, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
     {
         if (udpClient == null || !isRunning)
         {
@@ -152,7 +152,7 @@ public sealed class NetworkManager
             }
 
             // Split once, send to many
-            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, trueLength, sequenceNumber, out ushort packetId);
 
             foreach (var endpoint in endpoints)
             {
