@@ -396,7 +396,8 @@ public sealed partial class NetworkActorManager
         actor.transform.position = position;
         actorManager.Actors[actorId.Value] = model;
 
-        // todo: actor.GetComponent<ResourceCycle>()?.SetInitState(state, progress);
+        networkComponent.SetResourceState(state, progress);
+        actor.GetComponent<ResourceCycle>()?.AttachToNearest();
 
         return true;
     }

@@ -1,4 +1,4 @@
-﻿/*using HarmonyLib;
+﻿using HarmonyLib;
 using SR2MP.Packets.Landplot;
 
 namespace SR2MP.Patches.Plots;
@@ -21,6 +21,6 @@ public static class OnDestroyCrop
             ActorType = 9
         };
 
-        // Main.SendToAllOrServer(packet);
+        Main.SendToAllOrServer(packet);
     }
-}*/
+}

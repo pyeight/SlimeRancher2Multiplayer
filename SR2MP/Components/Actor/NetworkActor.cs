@@ -31,6 +31,9 @@ public sealed class NetworkActor : MonoBehaviour
     private bool isValid = true;
     private bool isDestroyed = false;
 
+    private bool? cachedCycleReleasing;
+    public bool? CycleReleasing => cycle?._preparingToRelease;
+
     public ActorId ActorId
     {
         get
@@ -232,6 +235,20 @@ public sealed class NetworkActor : MonoBehaviour
             return;
         }
 
+        if (CycleReleasing != cachedCycleReleasing)
+        {
+            cachedCycleReleasing = CycleReleasing;
+            if (CycleReleasing == true)
+            {
+                var actorId = ActorId;
+                if (actorId.Value != 0)
+                {
+                    var packet = new ActorTransferPacket { ActorId = actorId, OwnerPlayer = LocalID, };
+                    Main.SendToAllOrServer(packet);
+                }
+            }
+        }
+
         try
         {
             if (cachedLocallyOwned != LocallyOwned)
@@ -327,10 +344,7 @@ public sealed class NetworkActor : MonoBehaviour
             return;
         if (state == ResourceCycle.State.UNRIPE)
         {
-            if (cycle!.VacuumableWhenRipe)
-            {
-                cycle._vacuumable.enabled = false;
-            }
+            cycle!._vacuumable.enabled = false;
 
             if (base.gameObject.transform.localScale.x < cycle._defaultScale.x * 0.33f)
             {
@@ -340,10 +354,8 @@ public sealed class NetworkActor : MonoBehaviour
         else if (state == ResourceCycle.State.RIPE)
         {
             cycle!.Ripen();
-            if (cycle.VacuumableWhenRipe)
-            {
-                cycle._vacuumable.enabled = true;
-            }
+
+            cycle._vacuumable.enabled = true;
 
             if (base.gameObject.transform.localScale.x < cycle._defaultScale.x)
             {
@@ -353,19 +365,24 @@ public sealed class NetworkActor : MonoBehaviour
             rigidbody.WakeUp();
             cycle.Eject(rigidbody);
             cycle.DetachFromJoint();
-            
+
             TweenUtil.ScaleTo(base.gameObject, cycle._defaultScale, 4f);
         }
         else if (state == ResourceCycle.State.EDIBLE)
         {
             cycle!.MakeEdible();
+
             cycle._additionalRipenessDelegate = null;
             rigidbody.isKinematic = false;
+
+            cycle._vacuumable.enabled = true;
+
             if (cycle._preparingToRelease)
             {
                 cycle._preparingToRelease = false;
                 cycle._releaseAt = 0f;
                 cycle.ToShake.localPosition = cycle._toShakeDefaultPos;
+
                 if (cycle.ReleaseCue != null)
                 {
                     SECTR_PointSource audio = base.GetComponent<SECTR_PointSource>();
