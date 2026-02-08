@@ -80,7 +80,13 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                         Destroyer.DestroyActor(model.GetGameObject(), "SR2MP.GardenResourceAttachHandler#2");
                     return;
                 }
-                model.GetGameObject()?.GetComponent<ResourceCycle>().Attach(joint);
+                var gameObject = model.GetGameObject();
+                if (!gameObject) return;
+
+                var cycle = gameObject.GetComponent<ResourceCycle>();
+                if (!cycle) return;
+
+                cycle.Attach(joint);
             }
         }
 
