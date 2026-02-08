@@ -50,6 +50,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
         SendWeatherPacket(clientEp);
         SendUpgradesPacket(clientEp);
+        SendRefineryPacket(clientEp);
         SendPediaPacket(clientEp);
         SendMapPacket(clientEp);
         SendAccessDoorsPacket(clientEp);
@@ -73,6 +74,25 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             Upgrades = upgrades,
         };
         Main.Server.SendToClient(upgradesPacket, client);
+    }
+
+    private static void SendRefineryPacket(IPEndPoint client)
+    {
+        var refineryItems = new Dictionary<ushort, ushort>();
+    
+        foreach (var item in SceneContext.Instance.GadgetDirector._model._itemCounts)
+        {
+            var itemId = (ushort)NetworkActorManager.GetPersistentID(item.Key);
+            var count = (ushort)item.Value;
+            refineryItems.Add(itemId, count);
+        }
+
+        var refineryPacket = new InitialRefineryPacket
+        {
+            Items = refineryItems
+        };
+    
+        Main.Server.SendToClient(refineryPacket, client);
     }
 
     private static void SendWeatherPacket(IPEndPoint client)
