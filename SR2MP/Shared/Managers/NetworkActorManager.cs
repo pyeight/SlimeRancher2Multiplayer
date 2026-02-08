@@ -153,7 +153,7 @@ public sealed partial class NetworkActorManager
             var packet = new ActorTransferPacket
             {
                 ActorId = actorId,
-                OwnerPlayer = LocalID,
+                OwnerId = LocalID,
             };
             Main.SendToAllOrServer(packet);
             i++;

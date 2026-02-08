@@ -185,7 +185,7 @@ public sealed class NetworkActor : MonoBehaviour
                     yield break;
                 }
 
-                var packet = new ActorTransferPacket { ActorId = actorId, OwnerPlayer = LocalID, };
+                var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID, };
                 Main.SendToAllOrServer(packet);
             }
         }
@@ -243,7 +243,7 @@ public sealed class NetworkActor : MonoBehaviour
                 var actorId = ActorId;
                 if (actorId.Value != 0)
                 {
-                    var packet = new ActorTransferPacket { ActorId = actorId, OwnerPlayer = LocalID, };
+                    var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID, };
                     Main.SendToAllOrServer(packet);
                 }
             }
