@@ -28,7 +28,7 @@ public sealed class PacketReader : PacketBuffer
         if (position + bytesToRead > DataSize)
             throw new EndOfStreamException($"Attempted to read {bytesToRead} bytes, but only {BytesRemaining} remain.");
 
-        currentBitIndex = 8;
+        EndPackingBools();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
