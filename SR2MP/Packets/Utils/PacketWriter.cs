@@ -8,7 +8,7 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
-public sealed class PacketWriter : PacketBase
+public sealed class PacketWriter : PacketBuffer
 {
     public PacketWriter() : base(256, 0) {}
 
@@ -26,7 +26,7 @@ public sealed class PacketWriter : PacketBase
 
     private void ResizeBuffer(int bytesToAdd)
     {
-        var newSize = Mathf.Max(buffer.Length * 2, position + bytesToAdd);
+        var newSize = Math.Max(buffer.Length * 2, position + bytesToAdd);
         var newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
         Buffer.BlockCopy(buffer, 0, newBuffer, 0, position);
         ArrayPool<byte>.Shared.Return(buffer);
@@ -205,11 +205,11 @@ public sealed class PacketWriter : PacketBase
     {
         if (array == null)
         {
-            WriteInt(0);
+            WriteUShort(0);
             return;
         }
 
-        WriteInt(array.Length);
+        WriteUShort((ushort)array.Length);
 
         foreach (var item in array)
             writer(this, item);
@@ -219,11 +219,11 @@ public sealed class PacketWriter : PacketBase
     {
         if (list == null)
         {
-            WriteInt(0);
+            WriteUShort(0);
             return;
         }
 
-        WriteInt(list.Count);
+        WriteUShort((ushort)list.Count);
 
         foreach (var item in list)
             writer(this, item);
@@ -233,11 +233,11 @@ public sealed class PacketWriter : PacketBase
     {
         if (set == null)
         {
-            WriteInt(0);
+            WriteUShort(0);
             return;
         }
 
-        WriteInt(set.Count);
+        WriteUShort((ushort)set.Count);
 
         foreach (var item in set)
             writer(this, item);
@@ -247,11 +247,11 @@ public sealed class PacketWriter : PacketBase
     // {
     //     if (list == null)
     //     {
-    //         WriteInt(0);
+    //         WriteUShort(0);
     //         return;
     //     }
 
-    //     WriteInt(list.Count);
+    //     WriteUShort((ushort)list.Count);
 
     //     foreach (var item in list)
     //         writer(this, item);
@@ -261,11 +261,11 @@ public sealed class PacketWriter : PacketBase
     {
         if (set == null)
         {
-            WriteInt(0);
+            WriteUShort(0);
             return;
         }
 
-        WriteInt(set.Count);
+        WriteUShort((ushort)set.Count);
 
         foreach (var item in set)
             writer(this, item);
@@ -275,11 +275,11 @@ public sealed class PacketWriter : PacketBase
     {
         if (dict == null)
         {
-            WriteInt(0);
+            WriteUShort(0);
             return;
         }
 
-        WriteInt(dict.Count);
+        WriteUShort((ushort)dict.Count);
 
         foreach (var (key, value) in dict)
         {
@@ -315,11 +315,25 @@ public sealed class PacketWriter : PacketBase
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte[] ToArray(out int trueLength)
     {
+        EndPackingBools();
         trueLength = position;
         var result = ArrayPool<byte>.Shared.Rent(position);
         Array.Copy(buffer, buffer.GetLowerBound(0), result, 0, position);
         return result;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteNullable<T>(T? value) where T : struct
+    {
+        var hasValue = value.HasValue;
+        WriteBool(hasValue);
+
+        if (hasValue)
+            WriteStruct(value!.Value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteStruct<T>(T value) where T : struct => PacketWriterDels.Struct<T>.Writer(this, value);
 }
 
 /// <summary>
@@ -330,6 +344,7 @@ public static class PacketWriterDels
     public static readonly Action<PacketWriter, byte> Byte = (writer, value) => writer.WriteByte(value);
     public static readonly Action<PacketWriter, sbyte> SByte = (writer, value) => writer.WriteSByte(value);
     public static readonly Action<PacketWriter, string> String = (writer, value) => writer.WriteString(value);
+    public static readonly Action<PacketWriter, ushort> UShort = (writer, value) => writer.WriteUShort(value);
 
     public static class NetObject<T> where T : INetObject
     {
@@ -339,6 +354,11 @@ public static class PacketWriterDels
     public static class Tuple<T1, T2>
     {
         public static readonly Action<PacketWriter, (T1, T2)> Func = CreateTupleWriter<(T1, T2)>(typeof(T1), typeof(T2));
+    }
+
+    public static class Struct<T> where T : struct
+    {
+        public static readonly Action<PacketWriter, T> Writer = (Action<PacketWriter, T>)Delegate.CreateDelegate(typeof(Action<PacketWriter, T>), GetWriteExpression(typeof(T)));
     }
 
     public static class Enum<T> where T : struct, Enum
@@ -401,7 +421,7 @@ public static class PacketWriterDels
         else if (typeof(INetObject).IsAssignableFrom(type)) method = Method(nameof(PacketWriter.WriteNetObject)).MakeGenericMethod(type);
 
         if (method == null)
-            throw new NotSupportedException($"Type {type.Name} is not supported in automatic Tuple serialization.");
+            throw new NotSupportedException($"Type {type.Name} is not supported in automatic serialization.");
 
         TypeWriteCache[type] = method;
         return method;

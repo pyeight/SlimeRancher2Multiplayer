@@ -7,7 +7,7 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
 
-public sealed class PacketReader : PacketBase
+public sealed class PacketReader : PacketBuffer
 {
     public int BytesRemaining => DataSize - position;
 
@@ -27,6 +27,8 @@ public sealed class PacketReader : PacketBase
 
         if (position + bytesToRead > DataSize)
             throw new EndOfStreamException($"Attempted to read {bytesToRead} bytes, but only {BytesRemaining} remain.");
+
+        currentBitIndex = 8;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -215,7 +217,7 @@ public sealed class PacketReader : PacketBase
 
     public T[] ReadArray<T>(Func<PacketReader, T> reader)
     {
-        var array = new T[ReadInt()];
+        var array = new T[ReadUShort()];
 
         for (var i = 0; i < array.Length; i++)
             array[i] = reader(this);
@@ -225,7 +227,7 @@ public sealed class PacketReader : PacketBase
 
     public List<T> ReadList<T>(Func<PacketReader, T> reader)
     {
-        var count = ReadInt();
+        var count = ReadUShort();
         var list = new List<T>(count);
 
         for (var i = 0; i < count; i++)
@@ -236,7 +238,7 @@ public sealed class PacketReader : PacketBase
 
     public HashSet<T> ReadSet<T>(Func<PacketReader, T> reader)
     {
-        var count = ReadInt();
+        var count = ReadUShort();
         var list = new HashSet<T>(count);
 
         for (var i = 0; i < count; i++)
@@ -247,7 +249,7 @@ public sealed class PacketReader : PacketBase
 
     // public CppCollections.List<T> ReadCppList<T>(Func<PacketReader, T> reader)
     // {
-    //     var count = ReadInt();
+    //     var count = ReadUShort();
     //     var list = new CppCollections.List<T>(count);
 
     //     for (var i = 0; i < count; i++)
@@ -258,7 +260,7 @@ public sealed class PacketReader : PacketBase
 
     public CppCollections.HashSet<T> ReadCppSet<T>(Func<PacketReader, T> reader)
     {
-        var count = ReadInt();
+        var count = ReadUShort();
         var list = new CppCollections.HashSet<T>();
 
         for (var i = 0; i < count; i++)
@@ -269,7 +271,7 @@ public sealed class PacketReader : PacketBase
 
     public Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader) where TKey : notnull
     {
-        var count = ReadInt();
+        var count = ReadUShort();
         var dict = new Dictionary<TKey, TValue>(count);
 
         for (var i = 0; i < count; i++)
@@ -311,6 +313,12 @@ public sealed class PacketReader : PacketBase
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Skip(int count) => position += count;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
 }
 
 /// <summary>
@@ -321,6 +329,7 @@ public static class PacketReaderDels
     public static readonly Func<PacketReader, byte> Byte = reader => reader.ReadByte();
     public static readonly Func<PacketReader, sbyte> SByte = reader => reader.ReadSByte();
     public static readonly Func<PacketReader, string> String = reader => reader.ReadString();
+    public static readonly Func<PacketReader, ushort> UShort = reader => reader.ReadUShort();
 
     public static class NetObject<T> where T : INetObject, new()
     {
@@ -330,6 +339,11 @@ public static class PacketReaderDels
     public static class Tuple<T1, T2>
     {
         public static readonly Func<PacketReader, (T1, T2)> Func = CreateTupleReader<(T1, T2)>(typeof(T1), typeof(T2));
+    }
+
+    public static class Struct<T> where T : struct
+    {
+        public static readonly Func<PacketReader, T> Reader = (Func<PacketReader, T>)Delegate.CreateDelegate(typeof(Func<PacketReader, T>), GetReadExpression(typeof(T)));
     }
 
     public static class Enum<T> where T : struct, Enum
@@ -408,7 +422,7 @@ public static class PacketReaderDels
         else if (typeof(INetObject).IsAssignableFrom(type)) method = Method(nameof(PacketReader.ReadNetObject)).MakeGenericMethod(type);
 
         if (method == null)
-            throw new NotSupportedException($"Type {type.Name} is not supported in automatic Tuple deserialization.");
+            throw new NotSupportedException($"Type {type.Name} is not supported in automatic deserialization.");
 
         TypeReadCache[type] = method;
         return method;

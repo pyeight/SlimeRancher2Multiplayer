@@ -4,31 +4,12 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class InitialRefineryPacket : IPacket
 {
-    public Dictionary<ushort, ushort> Items { get; set; } = new();
-    
+    public Dictionary<ushort, ushort> Items { get; set; }
+
     public PacketType Type => PacketType.InitialRefinery;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
-    public void Serialise(PacketWriter writer)
-    {
-        writer.WriteUShort((ushort)Items.Count);
-        foreach (var item in Items)
-        {
-            writer.WriteUShort(item.Key);
-            writer.WriteUShort(item.Value);
-        }
-    }
+    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Items, PacketWriterDels.UShort, PacketWriterDels.UShort);
 
-    public void Deserialise(PacketReader reader)
-    {
-        Items = new Dictionary<ushort, ushort>();
-        ushort count = reader.ReadUShort();
-        
-        for (int i = 0; i < count; i++)
-        {
-            ushort key = reader.ReadUShort();
-            ushort value = reader.ReadUShort();
-            Items.Add(key, value);
-        }
-    }
+    public void Deserialise(PacketReader reader) => Items = reader.ReadDictionary(PacketReaderDels.UShort, PacketReaderDels.UShort);
 }
