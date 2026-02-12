@@ -26,7 +26,7 @@ public sealed class ActorUnloadHandler : BaseClientPacketHandler<ActorUnloadPack
         var ownershipPacket = new ActorTransferPacket
         {
             ActorId = packet.ActorId,
-            OwnerPlayer = LocalID,
+            OwnerId = LocalID,
         };
         Main.SendToAllOrServer(ownershipPacket);
     }

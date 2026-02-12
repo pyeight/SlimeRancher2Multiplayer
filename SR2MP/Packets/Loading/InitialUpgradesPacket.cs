@@ -7,7 +7,7 @@ public sealed class InitialUpgradesPacket : IPacket
     public Dictionary<byte, sbyte> Upgrades { get; set; }
 
     public PacketType Type => PacketType.InitialPlayerUpgrades;
-    public PacketReliability Reliability => PacketReliability.Reliable;
+    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
     public void Serialise(PacketWriter writer) => writer.WriteDictionary(Upgrades, PacketWriterDels.Byte, PacketWriterDels.SByte);
 

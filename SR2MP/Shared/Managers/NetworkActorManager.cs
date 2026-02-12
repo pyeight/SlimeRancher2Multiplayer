@@ -139,6 +139,9 @@ public sealed partial class NetworkActorManager
             if (actor.Value.TryGetNetworkComponent(out var netActor))
                 continue;
 
+            if (netActor == null)
+                continue;
+            
             netActor.LocallyOwned = true;
 
             var actorId = netActor.ActorId;
@@ -150,7 +153,7 @@ public sealed partial class NetworkActorManager
             var packet = new ActorTransferPacket
             {
                 ActorId = actorId,
-                OwnerPlayer = LocalID,
+                OwnerId = LocalID,
             };
             Main.SendToAllOrServer(packet);
             i++;

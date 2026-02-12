@@ -18,7 +18,7 @@ public static class OnActorVacced
         var packet = new ActorTransferPacket
         {
             ActorId = __instance._identifiable.GetActorId(),
-            OwnerPlayer = LocalID,
+            OwnerId = LocalID,
         };
 
         Main.SendToAllOrServer(packet);

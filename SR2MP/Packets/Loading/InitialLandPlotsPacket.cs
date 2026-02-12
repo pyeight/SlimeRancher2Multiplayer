@@ -60,7 +60,7 @@ public sealed class InitialLandPlotsPacket : IPacket
     public List<BasePlot> Plots { get; set; }
 
     public PacketType Type => PacketType.InitialPlots;
-    public PacketReliability Reliability => PacketReliability.Reliable;
+    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(Plots, PacketWriterDels.NetObject<BasePlot>.Func);
 

@@ -244,7 +244,7 @@ public sealed class Client
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
             }
 
-            var chunks = PacketChunkManager.SplitPacket(data, reliability, trueLength, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out ushort packetId);
 
             // Track reliability if needed
             if (reliability != PacketReliability.Unreliable)

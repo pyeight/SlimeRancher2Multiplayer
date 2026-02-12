@@ -32,6 +32,8 @@ public static class GlobalVariables
     public static Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone;
 
     public static Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames;
+    
+    public static MarketUI? marketUI;
 
     // To prevent stuff from being stuck in
     // an infinite sending loop

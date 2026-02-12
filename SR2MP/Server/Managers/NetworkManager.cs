@@ -114,7 +114,7 @@ public sealed class NetworkManager
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
             }
 
-            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, trueLength, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out ushort packetId);
 
             if (packetReliability != PacketReliability.Unreliable)
             {
@@ -152,7 +152,7 @@ public sealed class NetworkManager
             }
 
             // Split once, send to many
-            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, trueLength, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out ushort packetId);
 
             foreach (var endpoint in endpoints)
             {
