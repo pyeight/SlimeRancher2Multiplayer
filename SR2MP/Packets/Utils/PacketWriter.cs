@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -80,10 +81,20 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteFloat(float value) => WriteInt(BitConverter.SingleToInt32Bits(value));
+    public void WriteFloat(float value)
+    {
+        EnsureCapacity(4);
+        BinaryPrimitives.WriteSingleLittleEndian(buffer.AsSpan(position), value);
+        position += 4;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteDouble(double value) => WriteLong(BitConverter.DoubleToInt64Bits(value));
+    public void WriteDouble(double value)
+    {
+        EnsureCapacity(8);
+        BinaryPrimitives.WriteDoubleLittleEndian(buffer.AsSpan(position), value);
+        position += 8;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector2(Vector2 value)
@@ -91,8 +102,8 @@ public sealed class PacketWriter : PacketBuffer
         EnsureCapacity(8);
 
         var span = buffer.AsSpan(position);
-        BinaryPrimitives.WriteInt32LittleEndian(span, BitConverter.SingleToInt32Bits(value.x));
-        BinaryPrimitives.WriteInt32LittleEndian(span[4..], BitConverter.SingleToInt32Bits(value.y));
+        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
+        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
 
         position += 8;
     }
@@ -103,9 +114,9 @@ public sealed class PacketWriter : PacketBuffer
         EnsureCapacity(12);
 
         var span = buffer.AsSpan(position);
-        BinaryPrimitives.WriteInt32LittleEndian(span, BitConverter.SingleToInt32Bits(value.x));
-        BinaryPrimitives.WriteInt32LittleEndian(span[4..], BitConverter.SingleToInt32Bits(value.y));
-        BinaryPrimitives.WriteInt32LittleEndian(span[8..], BitConverter.SingleToInt32Bits(value.z));
+        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
+        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
+        BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
 
         position += 12;
     }
@@ -116,10 +127,10 @@ public sealed class PacketWriter : PacketBuffer
         EnsureCapacity(16);
 
         var span = buffer.AsSpan(position);
-        BinaryPrimitives.WriteInt32LittleEndian(span, BitConverter.SingleToInt32Bits(value.x));
-        BinaryPrimitives.WriteInt32LittleEndian(span[4..], BitConverter.SingleToInt32Bits(value.y));
-        BinaryPrimitives.WriteInt32LittleEndian(span[8..], BitConverter.SingleToInt32Bits(value.z));
-        BinaryPrimitives.WriteInt32LittleEndian(span[12..], BitConverter.SingleToInt32Bits(value.w));
+        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
+        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
+        BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
+        BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
 
         position += 16;
     }
@@ -130,10 +141,10 @@ public sealed class PacketWriter : PacketBuffer
         EnsureCapacity(16);
 
         var span = buffer.AsSpan(position);
-        BinaryPrimitives.WriteInt32LittleEndian(span, BitConverter.SingleToInt32Bits(value.x));
-        BinaryPrimitives.WriteInt32LittleEndian(span[4..], BitConverter.SingleToInt32Bits(value.y));
-        BinaryPrimitives.WriteInt32LittleEndian(span[8..], BitConverter.SingleToInt32Bits(value.z));
-        BinaryPrimitives.WriteInt32LittleEndian(span[12..], BitConverter.SingleToInt32Bits(value.w));
+        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
+        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
+        BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
+        BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
 
         position += 16;
     }
@@ -191,14 +202,15 @@ public sealed class PacketWriter : PacketBuffer
             return;
         }
 
-        var byteCount = Encoding.UTF8.GetByteCount(value);
-        EnsureCapacity(2 + byteCount);
+        var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+        EnsureCapacity(2 + maxByteCount);
 
-        BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(position), (ushort)byteCount);
+        var lengthIndex = position;
         position += 2;
 
-        Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, position);
-        position += byteCount;
+        var actualCount = Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, position);
+        BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
+        position += actualCount;
     }
 
     public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)
@@ -334,6 +346,33 @@ public sealed class PacketWriter : PacketBuffer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteStruct<T>(T value) where T : struct => PacketWriterDels.Struct<T>.Writer(this, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddGap(int count)
+    {
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+
+        EnsureCapacity(count);
+        position += count;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void MoveBack(int count)
+    {
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+
+        EndPackingBools();
+
+        if (position < count)
+            throw new InvalidOperationException("New position cannot be negative.");
+
+        position -= count;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePackedEnum<T>(T value) where T : struct, Enum => PacketWriterDels.PackedEnum<T>.Func(this, value);
 }
 
 /// <summary>
@@ -379,8 +418,29 @@ public static class PacketWriterDels
         }
     }
 
+    public static class PackedEnum<T> where T : struct, Enum
+    {
+        public static readonly Action<PacketWriter, T> Func = CreateWriter();
+
+        private static Action<PacketWriter, T> CreateWriter()
+        {
+            var size = Unsafe.SizeOf<T>();
+            var underlying = Enum.GetUnderlyingType(typeof(T));
+            return size switch
+            {
+                1 => (writer, value) => writer.WriteByte(Unsafe.As<T, byte>(ref value)),
+                2 => (writer, value) => writer.WriteUShort(Unsafe.As<T, ushort>(ref value)),
+                4 when underlying == typeof(int) => (writer, value) => writer.WritePackedInt(Unsafe.As<T, int>(ref value)),
+                4 => (writer, value) => writer.WritePackedUInt(Unsafe.As<T, uint>(ref value)),
+                8 when underlying == typeof(long) => (writer, value) => writer.WritePackedLong(Unsafe.As<T, long>(ref value)),
+                8 => (writer, value) => writer.WritePackedULong(Unsafe.As<T, ulong>(ref value)),
+                _ => throw new ArgumentException($"Enum size {size} not supported")
+            };
+        }
+    }
+
     // See PacketReaderDels for the comments, they're pretty much the same
-    private static readonly Dictionary<Type, MethodInfo> TypeWriteCache = new();
+    private static readonly ConcurrentDictionary<Type, MethodInfo> TypeWriteCache = new();
 
     private static Action<PacketWriter, TTuple> CreateTupleWriter<TTuple>(params Type[] componentTypes)
     {

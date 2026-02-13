@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -81,11 +82,24 @@ public sealed class PacketReader : PacketBuffer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt());
+    public float ReadFloat()
+    {
+        EnsureReadable(4);
+        var value = BinaryPrimitives.ReadSingleLittleEndian(buffer.AsSpan(position));
+        position += 4;
+        return value;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadLong());
+    public double ReadDouble()
+    {
+        EnsureReadable(8);
+        var value = BinaryPrimitives.ReadDoubleLittleEndian(buffer.AsSpan(position));
+        position += 8;
+        return value;
+    }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadPackedInt()
     {
         var val = ReadPackedUInt();
@@ -114,6 +128,7 @@ public sealed class PacketReader : PacketBuffer
         return result;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long ReadPackedLong()
     {
         var val = ReadPackedULong();
@@ -148,8 +163,8 @@ public sealed class PacketReader : PacketBuffer
         EnsureReadable(8);
 
         var span = buffer.AsSpan(position);
-        var x = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span));
-        var y = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[4..]));
+        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
+        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
 
         position += 8;
         return new(x, y);
@@ -161,9 +176,9 @@ public sealed class PacketReader : PacketBuffer
         EnsureReadable(12);
 
         var span = buffer.AsSpan(position);
-        var x = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span));
-        var y = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[4..]));
-        var z = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[8..]));
+        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
+        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
+        var z = BinaryPrimitives.ReadSingleLittleEndian(span[8..]);
 
         position += 12;
         return new(x, y, z);
@@ -175,10 +190,10 @@ public sealed class PacketReader : PacketBuffer
         EnsureReadable(16);
 
         var span = buffer.AsSpan(position);
-        var x = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span));
-        var y = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[4..]));
-        var z = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[8..]));
-        var w = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[12..]));
+        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
+        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
+        var z = BinaryPrimitives.ReadSingleLittleEndian(span[8..]);
+        var w = BinaryPrimitives.ReadSingleLittleEndian(span[12..]);
 
         position += 16;
         return new(x, y, z, w);
@@ -190,10 +205,10 @@ public sealed class PacketReader : PacketBuffer
         EnsureReadable(16);
 
         var span = buffer.AsSpan(position);
-        var x = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span));
-        var y = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[4..]));
-        var z = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[8..]));
-        var w = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(span[12..]));
+        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
+        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
+        var z = BinaryPrimitives.ReadSingleLittleEndian(span[8..]);
+        var w = BinaryPrimitives.ReadSingleLittleEndian(span[12..]);
 
         position += 16;
         return new(x, y, z, w);
@@ -312,13 +327,36 @@ public sealed class PacketReader : PacketBuffer
     public void EndPackingBools() => currentBitIndex = 8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Skip(int count) => position += count;
+    public void Skip(int count)
+    {
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+
+        EnsureReadable(count);
+        position += count;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Return(int count)
+    {
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+
+        if (position < count)
+            throw new InvalidOperationException("Cannot return to a position before the start of the stream!");
+
+        EndPackingBools();
+        position -= count;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Func(this);
 }
 
 /// <summary>
@@ -380,7 +418,52 @@ public static class PacketReaderDels
         }
     }
 
-    private static readonly Dictionary<Type, MethodInfo> TypeReadCache = new();
+    public static class PackedEnum<T> where T : struct, Enum
+    {
+        public static readonly Func<PacketReader, T> Func = CreateReader();
+
+        private static Func<PacketReader, T> CreateReader()
+        {
+            var size = Unsafe.SizeOf<T>();
+            var underlying = Enum.GetUnderlyingType(typeof(T));
+            return size switch
+            {
+                1 => r =>
+                {
+                    var v = r.ReadByte();
+                    return Unsafe.As<byte, T>(ref v);
+                },
+                2 => r =>
+                {
+                    var v = r.ReadUShort();
+                    return Unsafe.As<ushort, T>(ref v);
+                },
+                4 when underlying == typeof(int) => r =>
+                {
+                    var v = r.ReadPackedInt();
+                    return Unsafe.As<int, T>(ref v);
+                },
+                4 => r =>
+                {
+                    var v = r.ReadPackedUInt();
+                    return Unsafe.As<uint, T>(ref v);
+                },
+                8 when underlying == typeof(long) => r =>
+                {
+                    var v = r.ReadPackedLong();
+                    return Unsafe.As<long, T>(ref v);
+                },
+                8 => r =>
+                {
+                    var v = r.ReadPackedULong();
+                    return Unsafe.As<ulong, T>(ref v);
+                },
+                _ => throw new NotSupportedException($"Enum size {size} not supported")
+            };
+        }
+    }
+
+    private static readonly ConcurrentDictionary<Type, MethodInfo> TypeReadCache = new();
 
     // Stack overflow my beloved
     private static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
