@@ -321,8 +321,9 @@ internal sealed class MLEntrypoint : MelonMod
                 return false;
         return true;
     }
+
     #nullable disable
-    void OnSR2EInstalled()
+    private void OnSR2EInstalled()
     {
         var type = GetEntrypointType.type;
         if (typeof(SR2EExpansionV3).IsAssignableFrom(type))
@@ -342,7 +343,7 @@ internal sealed class MLEntrypoint : MelonMod
         SR2EEntryPoint.LoadExpansion(expansion);
     }
 
-    void Sr2EDeinit() => expansion.OnDeinitializeMelon();
+    private void Sr2EDeinit() => expansion.OnDeinitializeMelon();
 
     public override void OnDeinitializeMelon()
     {
