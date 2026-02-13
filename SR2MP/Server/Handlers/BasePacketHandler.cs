@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
 
-public abstract class BasePacketHandler<T> : IPacketHandler where T : IPacket, new()
+public abstract class BasePacketHandler<T> : IServerPacketHandler where T : IPacket, new()
 {
     protected readonly NetworkManager networkManager;
     protected readonly ClientManager clientManager;

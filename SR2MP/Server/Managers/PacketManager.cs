@@ -10,7 +10,7 @@ namespace SR2MP.Server.Managers;
 
 public sealed class PacketManager
 {
-    private readonly Dictionary<byte, IPacketHandler> handlers = new();
+    private readonly Dictionary<byte, IServerPacketHandler> handlers = new();
     private readonly NetworkManager networkManager;
     private readonly ClientManager clientManager;
 
@@ -24,7 +24,7 @@ public sealed class PacketManager
     {
         var handlerTypes = Main.Core.GetTypes()
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                        && typeof(IPacketHandler).IsAssignableFrom(type)
+                        && typeof(IServerPacketHandler).IsAssignableFrom(type)
                         && !type.IsAbstract);
 
         foreach (var type in handlerTypes)
@@ -34,7 +34,7 @@ public sealed class PacketManager
 
             try
             {
-                if (Activator.CreateInstance(type, networkManager, clientManager) is IPacketHandler handler)
+                if (Activator.CreateInstance(type, networkManager, clientManager) is IServerPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
                     SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
