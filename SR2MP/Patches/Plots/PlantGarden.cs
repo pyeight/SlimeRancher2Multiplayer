@@ -1,5 +1,5 @@
 using HarmonyLib;
-using SR2MP.Packets.Landplot;
+using SR2MP.Packets.LandPlots;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Plots;
@@ -17,7 +17,7 @@ public static class PlantGarden
             ActorType = NetworkActorManager.GetPersistentID(cropId),
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

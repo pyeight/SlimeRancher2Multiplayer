@@ -1,5 +1,5 @@
 using System.Net;
-using SR2MP.Packets.Landplot;
+using SR2MP.Packets.LandPlots;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
 

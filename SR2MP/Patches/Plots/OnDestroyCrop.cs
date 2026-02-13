@@ -1,5 +1,5 @@
 ﻿using HarmonyLib;
-using SR2MP.Packets.Landplot;
+using SR2MP.Packets.LandPlots;
 
 namespace SR2MP.Patches.Plots;
 

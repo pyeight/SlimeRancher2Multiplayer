@@ -1,4 +1,4 @@
-using SR2MP.Packets.Landplot;
+using SR2MP.Packets.LandPlots;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
 

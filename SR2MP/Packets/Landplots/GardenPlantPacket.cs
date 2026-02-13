@@ -1,6 +1,6 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Landplot;
+namespace SR2MP.Packets.LandPlots;
 
 public sealed class GardenPlantPacket : IPacket
 {
