@@ -1,0 +1,22 @@
+using System.Net;
+using SR2MP.Packets.FX;
+using SR2MP.Packets.Utils;
+using SR2MP.Server.Handlers.Internal;
+using SR2MP.Server.Managers;
+using SR2MP.Shared.Managers;
+
+namespace SR2MP.Server.Handlers.FX;
+
+[PacketHandler((byte)PacketType.MovementSound)]
+public sealed class MovementSoundHandler : BasePacketHandler<MovementSoundPacket>
+{
+    public MovementSoundHandler(NetworkManager networkManager, ClientManager clientManager)
+        : base(networkManager, clientManager) { }
+
+    protected override void Handle(MovementSoundPacket packet, IPEndPoint clientEp)
+    {
+        RemoteFXManager.PlayTransientAudio(fxManager.AllCues[packet.CueName], packet.Position, 0.45f);
+
+        Main.Server.SendToAllExcept(packet, clientEp);
+    }
+}

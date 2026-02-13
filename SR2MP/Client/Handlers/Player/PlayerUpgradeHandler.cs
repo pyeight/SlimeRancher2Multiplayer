@@ -1,0 +1,25 @@
+using SR2MP.Client.Handlers.Internal;
+using SR2MP.Packets.Upgrades;
+using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
+
+namespace SR2MP.Client.Handlers.Player;
+
+[PacketHandler((byte)PacketType.PlayerUpgrade)]
+public sealed class PlayerUpgradeHandler : BaseClientPacketHandler<PlayerUpgradePacket>
+{
+    public PlayerUpgradeHandler(Client client, RemotePlayerManager playerManager)
+        : base(client, playerManager) { }
+
+    protected override void Handle(PlayerUpgradePacket packet)
+    {
+        var model = SceneContext.Instance.PlayerState._model.upgradeModel;
+
+        var upgrade = model.upgradeDefinitions.items._items.FirstOrDefault(
+            x => x._uniqueId == packet.UpgradeID);
+
+        handlingPacket = true;
+        model.IncrementUpgradeLevel(upgrade);
+        handlingPacket = false;
+    }
+}
