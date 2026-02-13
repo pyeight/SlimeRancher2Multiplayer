@@ -12,10 +12,9 @@ public static class ReplaceLandPlot
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
 
-        var packet = new LandPlotUpdatePacket
+        var packet = new NewLandPlotPacket
         {
             ID = __instance._id,
-            IsUpgrade = false,
             PlotType = replacementPrefab.GetComponent<LandPlot>().TypeId
         };
 

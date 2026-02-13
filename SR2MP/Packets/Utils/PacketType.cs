@@ -26,7 +26,7 @@ public enum PacketType : byte
     ActorUpdate = 21,             // Both Ways                                    Very High                             On Actor Update
     ActorTransfer = 22,           // Both Ways                                    High (can be manual)                  On Actor Transfer
     InitialActors = 23,           // Server -> Client                             Low                                   Actors on Load
-    LandPlotUpdate = 24,          // Both Ways                                    Low (manual)                          Land plot updates (upgrade or set)
+    NewLandPlot = 24,             // Both Ways                                    Low (manual)                          New land plot set
     InitialPlots = 25,            // Server -> Client                             Low                                   Plots on Load
     WorldFX = 26,                 // Both Ways                                    High                                  On World FX
     InitialPlayerUpgrades = 27,   // Server -> Client                             Low                                   Player Upgrades on Load
@@ -52,6 +52,7 @@ public enum PacketType : byte
     LightningStrike = 47,         // Both Ways                                    Low                                   On Lightning Strike
     RefineryUpdate = 48,          // Both Ways                                    Middle (can be manual)                On Refinery Change
     InitialRefinery = 49,         // Server -> Client                             Low (depends on join)                 Refinery items on join
+    LandPlotUpgrade = 50,         // Both Ways                                    Low (manual)                          Land plot upgrade
     ReservedAck = 254,            // Both Ways                                    Very High                             For ACK packets
     ReservedCompression = 255     // Not Used                                     Unused                                For packet compression
 }

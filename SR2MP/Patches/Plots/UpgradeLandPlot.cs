@@ -15,11 +15,10 @@ public static class UpgradeLandPlot
         if (!__instance)
             return;
 
-        var packet = new LandPlotUpdatePacket
+        var packet = new LandPlotUpgradePacket
         {
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id,
-            PlotUpgrade = upgrade,
-            IsUpgrade = true
+            PlotUpgrade = upgrade
         };
 
         Main.SendToAllOrServer(packet);

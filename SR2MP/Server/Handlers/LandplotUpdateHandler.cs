@@ -5,38 +5,48 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Server.Handlers;
 
-[PacketHandler((byte)PacketType.LandPlotUpdate)]
-public sealed class LandPlotUpdateHandler : BasePacketHandler<LandPlotUpdatePacket>
+public abstract class LandPlotUpdateHandler<T> : BasePacketHandler<T> where T : LandPlotUpdatePacket, new()
 {
-    public LandPlotUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
+    protected LandPlotUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
 
-    protected override void Handle(LandPlotUpdatePacket packet, IPEndPoint clientEp)
+    protected override void Handle(T packet, IPEndPoint clientEp) => Main.Server.SendToAllExcept(packet, clientEp);
+}
+
+[PacketHandler((byte)PacketType.LandPlotUpgrade)]
+public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgradePacket>
+{
+    public LandPlotUpgradeHandler(NetworkManager networkManager, ClientManager clientManager)
+        : base(networkManager, clientManager) { }
+
+    protected override void Handle(LandPlotUpgradePacket packet, IPEndPoint clientEp)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
-
-        Main.Server.SendToAllExcept(packet, clientEp);
-
-        if (!packet.IsUpgrade)
-        {
-            model.typeId = packet.PlotType;
-
-            if (!model.gameObj) return;
-
-            var location = model.gameObj.GetComponent<LandPlotLocation>();
-            var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
-
-            location.Replace(landPlotComponent,
-                GameContext.Instance.LookupDirector._plotPrefabDict[packet.PlotType]);
-            return;
-        }
-
         model.upgrades.Add(packet.PlotUpgrade);
 
-        if (!model.gameObj) return;
-        {
-            var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
-            landPlotComponent.AddUpgrade(packet.PlotUpgrade);
-        }
+        if (model.gameObj)
+            model.gameObj.GetComponentInChildren<LandPlot>().AddUpgrade(packet.PlotUpgrade);
+    }
+}
+
+[PacketHandler((byte)PacketType.NewLandPlot)]
+public sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
+{
+    public NewLandPlotHandler(NetworkManager networkManager, ClientManager clientManager)
+        : base(networkManager, clientManager) { }
+
+    protected override void Handle(NewLandPlotPacket packet, IPEndPoint clientEp)
+    {
+        var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
+        model.typeId = packet.PlotType;
+
+        if (!model.gameObj)
+            return;
+
+        var location = model.gameObj.GetComponent<LandPlotLocation>();
+        var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
+
+        location.Replace(landPlotComponent,
+            GameContext.Instance.LookupDirector._plotPrefabDict[packet.PlotType]);
     }
 }
