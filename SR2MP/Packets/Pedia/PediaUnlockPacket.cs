@@ -4,8 +4,8 @@ namespace SR2MP.Packets.Pedia;
 
 public sealed class PediaUnlockPacket : IPacket
 {
-    public string ID { get; set; }
-    public bool Popup { get; set; }
+    public string ID;
+    public bool Popup;
 
     public PacketType Type => PacketType.PediaUnlock;
     public PacketReliability Reliability => PacketReliability.Reliable;

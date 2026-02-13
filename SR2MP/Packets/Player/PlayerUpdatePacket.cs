@@ -4,18 +4,18 @@ namespace SR2MP.Packets.Player;
 
 public sealed class PlayerUpdatePacket : IPacket
 {
-    public string PlayerId { get; set; }
-    public Vector3 Position { get; set; }
-    public float Rotation { get; set; }
+    public string PlayerId;
+    public Vector3 Position;
+    public float Rotation;
     public int AirborneState {get; set;}
-    public bool Moving { get; set; }
-    public float Yaw { get; set; }
-    public float HorizontalMovement { get; set; }
-    public float ForwardMovement { get; set; }
-    public float HorizontalSpeed { get; set; }
-    public float ForwardSpeed { get; set; }
-    public bool Sprinting { get; set; }
-    public float LookY { get; set; }
+    public bool Moving;
+    public float Yaw;
+    public float HorizontalMovement;
+    public float ForwardMovement;
+    public float HorizontalSpeed;
+    public float ForwardSpeed;
+    public bool Sprinting;
+    public float LookY;
 
     public PacketType Type => PacketType.PlayerUpdate;
     public PacketReliability Reliability => PacketReliability.Unreliable;

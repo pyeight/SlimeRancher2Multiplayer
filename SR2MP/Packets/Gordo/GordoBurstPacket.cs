@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Gordo;
 
 public sealed class GordoBurstPacket : IPacket
 {
-    public string ID { get; set; }
+    public string ID;
 
     public PacketType Type => PacketType.GordoBurst;
     public PacketReliability Reliability => PacketReliability.Reliable;

@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Economy;
 
 public sealed class MarketPricePacket : IPacket
 {
-    public (float Current, float Previous)[] Prices { get; set; }
+    public (float Current, float Previous)[] Prices;
 
     public PacketType Type => PacketType.MarketPriceChange;
     public PacketReliability Reliability => PacketReliability.Reliable;

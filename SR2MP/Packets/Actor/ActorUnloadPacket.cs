@@ -6,7 +6,7 @@ namespace SR2MP.Packets.Actor;
 // Not sure what to call it, 'unload' as in when the actor leaves render distance.
 public struct ActorUnloadPacket : IPacket
 {
-    public ActorId ActorId { get; set; }
+    public ActorId ActorId;
 
     public readonly PacketType Type => PacketType.ActorUnload;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;

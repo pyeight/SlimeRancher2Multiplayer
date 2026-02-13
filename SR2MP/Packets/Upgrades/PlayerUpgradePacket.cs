@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Upgrades;
 
 public struct PlayerUpgradePacket : IPacket
 {
-    public byte UpgradeID { get; set; }
+    public byte UpgradeID;
 
     public readonly PacketType Type => PacketType.PlayerUpgrade;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;

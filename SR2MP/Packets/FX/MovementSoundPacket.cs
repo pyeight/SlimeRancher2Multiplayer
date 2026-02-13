@@ -7,8 +7,8 @@ namespace SR2MP.Packets.FX;
 // GroundCollisionMaterials.GroundCollisionMaterialType.X
 public sealed class MovementSoundPacket : IPacket
 {
-    public Vector3 Position { get; set; }
-    public string CueName { get; set; }
+    public Vector3 Position;
+    public string CueName;
 
     public PacketType Type => PacketType.MovementSound;
     public PacketReliability Reliability => PacketReliability.Unreliable;

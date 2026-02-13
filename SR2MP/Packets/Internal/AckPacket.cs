@@ -4,8 +4,8 @@ namespace SR2MP.Packets.Internal;
 
 public struct AckPacket : IPacket
 {
-    public ushort PacketId { get; set; }
-    public byte OriginalPacketType { get; set; }
+    public ushort PacketId;
+    public byte OriginalPacketType;
 
     public readonly PacketType Type => PacketType.ReservedAck;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;

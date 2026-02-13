@@ -4,12 +4,12 @@ namespace SR2MP.Packets.Gordo;
 
 public sealed class GordoFeedPacket : IPacket
 {
-    public string ID { get; set; }
-    public int NewFoodCount { get; set; }
+    public string ID;
+    public int NewFoodCount;
 
     // Needed for unregistered gordos.
-    public int RequiredFoodCount { get; set; }
-    public int GordoType { get; set; }
+    public int RequiredFoodCount;
+    public int GordoType;
 
     public PacketType Type => PacketType.GordoFeed;
     public PacketReliability Reliability => PacketReliability.Reliable;

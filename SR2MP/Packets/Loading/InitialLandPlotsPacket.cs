@@ -12,11 +12,11 @@ public sealed class InitialLandPlotsPacket : IPacket
             { LandPlot.Id.SILO,   typeof(SiloData)   }
         };
 
-        public string ID { get; set; }
-        public LandPlot.Id  Type { get; set; }
-        public CppCollections.HashSet<LandPlot.Upgrade> Upgrades { get; set; }
+        public string ID;
+        public LandPlot.Id  Type;
+        public CppCollections.HashSet<LandPlot.Upgrade> Upgrades;
 
-        public INetObject? Data { get; set; }
+        public INetObject? Data;
 
         public void Serialise(PacketWriter writer)
         {
@@ -43,7 +43,7 @@ public sealed class InitialLandPlotsPacket : IPacket
 
     public struct GardenData : INetObject
     {
-        public int Crop { get; set; }
+        public int Crop;
 
         public readonly void Serialise(PacketWriter writer) => writer.WriteInt(Crop);
 
@@ -57,7 +57,7 @@ public sealed class InitialLandPlotsPacket : IPacket
         public void Deserialise(PacketReader reader) { }
     }
 
-    public List<BasePlot> Plots { get; set; }
+    public List<BasePlot> Plots;
 
     public PacketType Type => PacketType.InitialPlots;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

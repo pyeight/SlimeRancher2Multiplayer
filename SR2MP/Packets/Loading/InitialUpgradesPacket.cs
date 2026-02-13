@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class InitialUpgradesPacket : IPacket
 {
-    public Dictionary<byte, sbyte> Upgrades { get; set; }
+    public Dictionary<byte, sbyte> Upgrades;
 
     public PacketType Type => PacketType.InitialPlayerUpgrades;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

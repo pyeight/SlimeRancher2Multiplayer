@@ -19,9 +19,9 @@ public struct WorldFXPacket : IPacket
         // FabricatorPurchaseUpgrade,
     }
 
-    public Vector3 Position { get; set; }
+    public Vector3 Position;
 
-    public WorldFXType FX { get; set; }
+    public WorldFXType FX;
 
     public readonly PacketType Type => PacketType.WorldFX;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;

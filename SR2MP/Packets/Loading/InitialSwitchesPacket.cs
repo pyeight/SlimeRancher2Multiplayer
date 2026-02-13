@@ -6,8 +6,8 @@ public sealed class InitialSwitchesPacket : IPacket
 {
     public sealed class Switch : INetObject
     {
-        public string ID { get; set; }
-        public SwitchHandler.State State { get; set; }
+        public string ID;
+        public SwitchHandler.State State;
 
         public void Serialise(PacketWriter writer)
         {
@@ -22,7 +22,7 @@ public sealed class InitialSwitchesPacket : IPacket
         }
     }
 
-    public List<Switch> Switches { get; set; }
+    public List<Switch> Switches;
 
     public PacketType Type => PacketType.InitialSwitches;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

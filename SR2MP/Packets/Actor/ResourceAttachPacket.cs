@@ -5,12 +5,12 @@ namespace SR2MP.Packets.Actor;
 
 public sealed class ResourceAttachPacket : IPacket
 {
-    public ActorId ActorId { get; set; }
-    public string PlotID { get; set; }
-    public int Joint { get; set; }
-    public Vector3 SpawnerID { get; set; }
+    public ActorId ActorId;
+    public string PlotID;
+    public int Joint;
+    public Vector3 SpawnerID;
 
-    public SpawnResourceModel Model { get; set; }
+    public SpawnResourceModel Model;
 
     public PacketType Type => PacketType.ResourceAttach;
     public PacketReliability Reliability => PacketReliability.Reliable;

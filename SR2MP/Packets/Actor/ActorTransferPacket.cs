@@ -5,8 +5,8 @@ namespace SR2MP.Packets.Actor;
 
 public sealed class ActorTransferPacket : IPacket
 {
-    public ActorId ActorId { get; set; }
-    public string OwnerId { get; set; }
+    public ActorId ActorId;
+    public string OwnerId;
 
     public PacketType Type => PacketType.ActorTransfer;
     public PacketReliability Reliability => PacketReliability.Reliable;

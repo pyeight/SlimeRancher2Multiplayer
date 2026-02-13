@@ -4,8 +4,8 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class ConnectPacket : IPacket
 {
-    public string PlayerId { get; set; }
-    public string Username { get; set; }
+    public string PlayerId;
+    public string Username;
 
     public PacketType Type => PacketType.Connect;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

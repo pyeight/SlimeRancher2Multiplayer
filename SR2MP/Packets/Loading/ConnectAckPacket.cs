@@ -4,12 +4,12 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class ConnectAckPacket : IPacket
 {
-    public string PlayerId { get; set; }
-    public (string ID, string Username)[] OtherPlayers { get; set; }
+    public string PlayerId;
+    public (string ID, string Username)[] OtherPlayers;
 
-    public int Money { get; set; }
-    public int RainbowMoney { get; set; }
-    public bool AllowCheats { get; set; }
+    public int Money;
+    public int RainbowMoney;
+    public bool AllowCheats;
 
     public PacketType Type => PacketType.ConnectAck;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

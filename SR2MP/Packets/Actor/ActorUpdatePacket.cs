@@ -6,15 +6,15 @@ namespace SR2MP.Packets.Actor;
 
 public struct ActorUpdatePacket : IPacket
 {
-    public ActorId ActorId { get; set; }
-    public double ResourceProgress { get; set; }
+    public ActorId ActorId;
+    public double ResourceProgress;
 
-    public Quaternion Rotation { get; set; }
-    public float4 Emotions { get; set; }
-    public Vector3 Position { get; set; }
-    public Vector3 Velocity { get; set; }
+    public Quaternion Rotation;
+    public float4 Emotions;
+    public Vector3 Position;
+    public Vector3 Velocity;
 
-    public ResourceCycle.State ResourceState { get; set; }
+    public ResourceCycle.State ResourceState;
 
     public readonly PacketType Type => PacketType.ActorUpdate;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;

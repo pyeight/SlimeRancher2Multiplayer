@@ -40,6 +40,8 @@ public static class PacketChunkManager
     private static int packetCounter = 0;
     private const int CleanupInterval = 100;
 
+    private const byte All8Bits = byte.MaxValue;
+
     internal static bool TryMergePacket(PacketType packetType, byte[] data, ushort chunkIndex,
         ushort totalChunks, ushort packetId, string senderKey, PacketReliability reliability,
         ushort sequenceNumber, out byte[] fullData, out PacketReliability outReliability,
@@ -156,23 +158,23 @@ public static class PacketChunkManager
             buffer[0] = packetType;
 
             // Chunk index
-            buffer[1] = (byte)(index & 0xFF);
-            buffer[2] = (byte)((index >> 8) & 0xFF);
+            buffer[1] = (byte)(index & All8Bits);
+            buffer[2] = (byte)((index >> 8) & All8Bits);
 
             // Total chunks
-            buffer[3] = (byte)(chunkCount & 0xFF);
-            buffer[4] = (byte)((chunkCount >> 8) & 0xFF);
+            buffer[3] = (byte)(chunkCount & All8Bits);
+            buffer[4] = (byte)((chunkCount >> 8) & All8Bits);
 
             // Packet ID
-            buffer[5] = (byte)(packetId & 0xFF);
-            buffer[6] = (byte)((packetId >> 8) & 0xFF);
+            buffer[5] = (byte)(packetId & All8Bits);
+            buffer[6] = (byte)((packetId >> 8) & All8Bits);
 
             // Reliability
             buffer[7] = (byte)reliability;
 
             // Sequence number (for ordered packets)
-            buffer[8] = (byte)(sequenceNumber & 0xFF);
-            buffer[9] = (byte)((sequenceNumber >> 8) & 0xFF);
+            buffer[8] = (byte)(sequenceNumber & All8Bits);
+            buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
 
             Buffer.BlockCopy(data, offset, buffer, 10, chunkSize);
             result[index] = buffer;
@@ -201,7 +203,7 @@ public static class PacketChunkManager
     {
         using var output = new MemoryStream();
         // (byte)PacketType.ReservedDoNotUse instead of 0xFF so shows as used in PacketType.cs
-        output.WriteByte((byte)PacketType.ReservedDoNotUse);
+        output.WriteByte((byte)PacketType.ReservedCompression);
         output.WriteByte(data[0]);
 
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest))

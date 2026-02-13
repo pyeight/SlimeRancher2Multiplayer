@@ -5,8 +5,8 @@ namespace SR2MP.Packets.World;
 
 public sealed class AccessDoorPacket : IPacket
 {
-    public string ID { get; set; }
-    public AccessDoor.State State { get; set; }
+    public string ID;
+    public AccessDoor.State State;
 
     public PacketType Type => PacketType.AccessDoor;
     public PacketReliability Reliability => PacketReliability.Reliable;

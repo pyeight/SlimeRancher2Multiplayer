@@ -6,12 +6,12 @@ public sealed class InitialGordosPacket : IPacket
 {
     public sealed class Gordo : INetObject
     {
-        public string Id { get; set; }
-        public int EatenCount { get; set; }
-        public int RequiredEatCount { get; set; }
-        public int GordoType { get; set; }
-        public bool WasSeen { get; set; }
-        // public bool Popped { get; set; }
+        public string Id;
+        public int EatenCount;
+        public int RequiredEatCount;
+        public int GordoType;
+        public bool WasSeen;
+        // public bool Popped;
 
         public void Serialise(PacketWriter writer)
         {
@@ -34,7 +34,7 @@ public sealed class InitialGordosPacket : IPacket
         }
     }
 
-    public List<Gordo> Gordos { get; set; }
+    public List<Gordo> Gordos;
 
     public PacketType Type => PacketType.InitialGordos;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

@@ -4,9 +4,9 @@ namespace SR2MP.Packets.Economy;
 
 public struct CurrencyPacket : IPacket
 {
-    public int NewAmount { get; set; }
-    public byte CurrencyType { get; set; }
-    public bool ShowUINotification { get; set; }
+    public int NewAmount;
+    public byte CurrencyType;
+    public bool ShowUINotification;
 
     public readonly PacketType Type => PacketType.CurrencyAdjust;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;

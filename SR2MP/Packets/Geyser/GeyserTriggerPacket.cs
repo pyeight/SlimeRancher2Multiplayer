@@ -5,8 +5,8 @@ namespace SR2MP.Packets.Geyser;
 public sealed class GeyserTriggerPacket : IPacket
 {
     // Couldn't find an ID system for these, so I need to access them through GameObject.Find
-    public string ObjectPath { get; set; }
-    public float Duration { get; set; }
+    public string ObjectPath;
+    public float Duration;
 
     public PacketType Type => PacketType.GeyserTrigger;
     public PacketReliability Reliability => PacketReliability.Reliable;

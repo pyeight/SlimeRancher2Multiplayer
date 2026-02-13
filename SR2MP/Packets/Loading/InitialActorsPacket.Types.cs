@@ -36,11 +36,11 @@ public sealed partial class InitialActorsPacket
 
     public class ActorBase : INetObject
     {
-        public long ActorId { get; set; }
-        public Vector3 Position { get; set; }
-        public Quaternion Rotation { get; set; }
-        public int ActorTypeId { get; set; }
-        public int Scene { get; set; }
+        public long ActorId;
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public int ActorTypeId;
+        public int Scene;
 
         protected virtual ActorType Type => ActorType.Basic;
 
@@ -67,7 +67,7 @@ public sealed partial class InitialActorsPacket
 
     public sealed class Slime : ActorBase
     {
-        public float4 Emotions { get; set; }
+        public float4 Emotions;
 
         protected override ActorType Type => ActorType.Slime;
 
@@ -86,7 +86,7 @@ public sealed partial class InitialActorsPacket
 
     public abstract class Destroyable : ActorBase
     {
-        public double DestroyTime { get; set; }
+        public double DestroyTime;
 
         public override void Serialise(PacketWriter writer)
         {
@@ -103,8 +103,8 @@ public sealed partial class InitialActorsPacket
 
     public sealed class Resource : Destroyable
     {
-        public double ProgressTime { get; set; }
-        public ResourceCycle.State ResourceState { get; set; }
+        public double ProgressTime;
+        public ResourceCycle.State ResourceState;
 
         protected override ActorType Type => ActorType.Resource;
 
@@ -125,8 +125,8 @@ public sealed partial class InitialActorsPacket
 
     public sealed class Plort  : Destroyable
     {
-        public bool Invulnerable { get; set; }
-        public float InvulnerablePeriod { get; set; }
+        public bool Invulnerable;
+        public float InvulnerablePeriod;
 
         protected override ActorType Type => ActorType.Plort;
 

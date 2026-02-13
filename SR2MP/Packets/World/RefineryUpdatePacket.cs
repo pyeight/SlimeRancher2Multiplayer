@@ -4,9 +4,9 @@ namespace SR2MP.Packets.World;
 
 public sealed class RefineryUpdatePacket : IPacket
 {
-    public ushort ItemCount { get; set; }
-    public ushort ItemID { get; set; }
-    
+    public ushort ItemCount;
+    public ushort ItemID;
+
     public PacketType Type => PacketType.RefineryUpdate;
     public PacketReliability Reliability => PacketReliability.Reliable;
 

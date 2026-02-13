@@ -4,8 +4,8 @@ namespace SR2MP.Packets.LandPlots;
 
 public sealed class GardenPlantPacket : IPacket
 {
-    public string ID { get; set; }
-    public int ActorType { get; set; }
+    public string ID;
+    public int ActorType;
 
     public PacketType Type => PacketType.GardenPlant;
     public PacketReliability Reliability => PacketReliability.Reliable;

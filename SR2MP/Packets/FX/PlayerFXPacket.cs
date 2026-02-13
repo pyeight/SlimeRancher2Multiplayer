@@ -21,9 +21,9 @@ public sealed class PlayerFXPacket : IPacket
         VacShootSound,
     }
 
-    public PlayerFXType FX { get; set; }
-    public Vector3 Position { get; set; }
-    public string Player { get; set; }
+    public PlayerFXType FX;
+    public Vector3 Position;
+    public string Player;
 
     public PacketType Type => PacketType.PlayerFX;
     public PacketReliability Reliability => PacketReliability.Unreliable;

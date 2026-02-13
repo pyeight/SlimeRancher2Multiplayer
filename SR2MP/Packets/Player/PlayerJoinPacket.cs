@@ -4,8 +4,8 @@ namespace SR2MP.Packets.Player;
 
 public sealed class PlayerJoinPacket : IPacket
 {
-    public string PlayerId { get; set; }
-    public string? PlayerName { get; set; }
+    public string PlayerId;
+    public string? PlayerName;
 
     public PacketType Type { get; set; }
     public PacketReliability Reliability => PacketReliability.Reliable;

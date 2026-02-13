@@ -4,9 +4,9 @@ namespace SR2MP.Packets.Switch;
 
 public sealed class WorldSwitchPacket : IPacket
 {
-    public string ID { get; set; }
-    public SwitchHandler.State State { get; set; }
-    public bool Immediate { get; set; }
+    public string ID;
+    public SwitchHandler.State State;
+    public bool Immediate;
 
     public PacketType Type => PacketType.SwitchActivate;
     public PacketReliability Reliability => PacketReliability.Reliable;

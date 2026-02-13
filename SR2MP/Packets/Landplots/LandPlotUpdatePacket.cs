@@ -4,10 +4,10 @@ namespace SR2MP.Packets.LandPlots;
 
 public sealed class LandPlotUpdatePacket : IPacket
 {
-    public bool IsUpgrade { get; set; }
-    public string ID { get; set; }
-    public LandPlot.Id PlotType { get; set; }
-    public LandPlot.Upgrade PlotUpgrade { get; set; }
+    public bool IsUpgrade;
+    public string ID;
+    public LandPlot.Id PlotType;
+    public LandPlot.Upgrade PlotUpgrade;
 
     public PacketType Type => PacketType.LandPlotUpdate;
     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -37,7 +37,7 @@ public sealed class LandPlotUpdatePacket : IPacket
 
 // public abstract class LandPlotUpdatePacket : IPacket
 // {
-//     public string ID { get; set; }
+//     public string ID;
 
 //     public PacketType Type => PacketType.LandPlotUpdate;
 //     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -49,7 +49,7 @@ public sealed class LandPlotUpdatePacket : IPacket
 
 // public sealed class LandPlotUpgradePacket : LandPlotUpdatePacket
 // {
-//     public LandPlot.Upgrade PlotUpgrade { get; set; }
+//     public LandPlot.Upgrade PlotUpgrade;
 
 //     public override void Serialise(PacketWriter writer)
 //     {
@@ -66,7 +66,7 @@ public sealed class LandPlotUpdatePacket : IPacket
 
 // public sealed class NewLandPlotUpdatePacket : LandPlotUpdatePacket
 // {
-//     public LandPlot.Id PlotType { get; set; }
+//     public LandPlot.Id PlotType;
 
 //     public override void Serialise(PacketWriter writer)
 //     {

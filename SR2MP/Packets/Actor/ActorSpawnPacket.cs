@@ -6,14 +6,14 @@ namespace SR2MP.Packets.Actor;
 
 public struct ActorSpawnPacket : IPacket
 {
-    public ActorId ActorId { get; set; }
-    public Quaternion Rotation { get; set; }
-    public Vector3 Position { get; set; }
-    
-    public float4 Emotions { get; set; }
-    
-    public int ActorType { get; set; }
-    public byte SceneGroup { get; set; }
+    public ActorId ActorId;
+    public Quaternion Rotation;
+    public Vector3 Position;
+
+    public float4 Emotions;
+
+    public int ActorType;
+    public byte SceneGroup;
 
     public readonly PacketType Type => PacketType.ActorSpawn;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;

@@ -17,9 +17,9 @@ public sealed partial class InitialActorsPacket : IPacket
         return actor;
     };
 
-    public double WorldTime { get; set; }
-    public uint StartingActorID { get; set; } = 10000;
-    public List<ActorBase> Actors { get; set; }
+    public double WorldTime;
+    public uint StartingActorID = 10000;
+    public List<ActorBase> Actors;
 
     public PacketType Type => PacketType.InitialActors;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

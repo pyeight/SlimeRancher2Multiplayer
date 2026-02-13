@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Actor;
 
 public struct ActorDestroyPacket : IPacket
 {
-    public ActorId ActorId { get; set; }
+    public ActorId ActorId;
 
     public readonly PacketType Type => PacketType.ActorDestroy;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;

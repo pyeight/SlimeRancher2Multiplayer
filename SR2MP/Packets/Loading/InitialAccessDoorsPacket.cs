@@ -7,8 +7,8 @@ public sealed class InitialAccessDoorsPacket : IPacket
 {
     public sealed class Door : INetObject
     {
-        public string ID { get; set; }
-        public AccessDoor.State State { get; set; }
+        public string ID;
+        public AccessDoor.State State;
 
         public void Serialise(PacketWriter writer)
         {
@@ -23,7 +23,7 @@ public sealed class InitialAccessDoorsPacket : IPacket
         }
     }
 
-    public List<Door> Doors { get; set; }
+    public List<Door> Doors;
 
     public PacketType Type => PacketType.InitialAccessDoors;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;

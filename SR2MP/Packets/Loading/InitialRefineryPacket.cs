@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 public sealed class InitialRefineryPacket : IPacket
 {
-    public Dictionary<ushort, ushort> Items { get; set; }
+    public Dictionary<ushort, ushort> Items;
 
     public PacketType Type => PacketType.InitialRefinery;
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;
