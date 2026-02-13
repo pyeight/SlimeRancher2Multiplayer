@@ -130,11 +130,11 @@ public sealed class NetworkActor : MonoBehaviour
             {
                 regionMember.add_BeforeHibernationChanged(
                     Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
-                               .GetEvent("BeforeHibernationChanged").EventHandlerType,
+                                .GetEvent("BeforeHibernationChanged").EventHandlerType,
                             Cast<Il2CppSystem.Object>(),
                             nameof(HibernationChanged),
                             true)
-                       .Cast<RegionMember.OnHibernationChange>());
+                        .Cast<RegionMember.OnHibernationChange>());
             }
             catch (Exception ex)
             {
