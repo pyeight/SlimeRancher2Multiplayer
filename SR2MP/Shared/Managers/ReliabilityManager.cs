@@ -8,15 +8,15 @@ public sealed class ReliabilityManager
 {
     private sealed class PendingPacket
     {
-        public byte[][] Chunks { get; set; } = null!;
-        public IPEndPoint Destination { get; set; } = null!;
-        public ushort PacketId { get; set; }
-        public byte PacketType { get; set; }
-        public PacketReliability Reliability { get; set; }
-        public DateTime FirstSendTime { get; set; }
+        public byte[][] Chunks { get; init; } = null!;
+        public IPEndPoint Destination { get; init; } = null!;
+        public ushort PacketId { get; init; }
+        public byte PacketType { get; init; }
+        public PacketReliability Reliability { get; init; }
+        public DateTime FirstSendTime { get; init; }
         public DateTime LastSendTime { get; set; }
         public int SendCount { get; set; }
-        public ushort SequenceNumber { get; set; }
+        public ushort SequenceNumber { get; init; }
     }
 
     private readonly ConcurrentDictionary<string, PendingPacket> pendingPackets = new();
@@ -115,7 +115,7 @@ public sealed class ReliabilityManager
         }
 
         // Checks if this is the next expected sequence number
-        ushort expectedSequence = (ushort)(lastSequence + 1);
+        var expectedSequence = (ushort)(lastSequence + 1);
 
         if (sequenceNumber == expectedSequence)
         {

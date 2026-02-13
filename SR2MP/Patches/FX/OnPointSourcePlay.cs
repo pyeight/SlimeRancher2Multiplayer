@@ -14,6 +14,7 @@ public static class OnPointSourcePlay
 
         // Add more SendPacket____()'s when you make new FXTypes.
     }
+
     private static void SendPacketWorld(SECTR_AudioCue cue, Vector3 position)
     {
         if (!fxManager.TryGetFXType(cue, out WorldFXType fxType))

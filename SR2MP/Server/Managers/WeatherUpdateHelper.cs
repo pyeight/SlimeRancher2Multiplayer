@@ -99,7 +99,7 @@ public static class WeatherUpdateHelper
     }
 
     public static WeatherPatternDefinition GetPatternForZoneAndState(
-        ZoneDefinition zone,
+        ZoneDefinition? zone,
         string stateName)
     {
         EnsureLookupInitialized();
@@ -110,9 +110,15 @@ public static class WeatherUpdateHelper
             return null!;
         }
 
-        if (!zone || string.IsNullOrEmpty(stateName))
+        if (zone == null)
         {
-            SrLogger.LogPacketSize($"Invalid zone or state name: zone={zone?.name}, state={stateName}", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Invalid zone: state={stateName}", SrLogTarget.Both);
+            return null!;
+        }
+
+        if (string.IsNullOrEmpty(stateName))
+        {
+            SrLogger.LogPacketSize($"Invalid state name: zone={zone.name}, state={stateName}", SrLogTarget.Both);
             return null!;
         }
 

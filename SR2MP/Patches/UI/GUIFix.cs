@@ -9,17 +9,15 @@ internal static class GUIStateObjectsMultiPatch
 {
     private static Dictionary<int, Il2CppSystem.Object> stateCache = new();
 
-    [HarmonyPrefix]
-    [HarmonyPatch(nameof(GUIStateObjects.QueryStateObject))]
+    [HarmonyPrefix, HarmonyPatch(nameof(GUIStateObjects.QueryStateObject))]
     internal static bool QueryStateObject(Type t, int controlID, ref Il2CppSystem.Object __result)
     {
-        Il2CppSystem.Object il2CppObject = stateCache[controlID];
+        var il2CppObject = stateCache[controlID];
         __result = (t.IsInstanceOfType(il2CppObject) ? il2CppObject : null)!;
         return false;
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch(nameof(GUIStateObjects.GetStateObject))]
+    [HarmonyPrefix, HarmonyPatch(nameof(GUIStateObjects.GetStateObject))]
     public static bool GetStateObject(Type t, int controlID, ref Il2CppSystem.Object __result)
     {
         if (!stateCache.TryGetValue(controlID, out var instance) || instance.GetIl2CppType() != t)

@@ -48,8 +48,10 @@ public sealed class NetworkManager
 
             isRunning = true;
 
-            receiveThread = new Thread(new Action(ReceiveLoop));
-            receiveThread.IsBackground = true;
+            receiveThread = new Thread(new Action(ReceiveLoop))
+            {
+                IsBackground = true
+            };
             receiveThread.Start();
         }
         catch (Exception ex)
@@ -69,13 +71,13 @@ public sealed class NetworkManager
 
         SrLogger.LogMessage("Server ReceiveLoop started!", SrLogTarget.Both);
 
-        IPEndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
+        var remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
 
         while (isRunning)
         {
             try
             {
-                byte[] data = udpClient.Receive(ref remoteEp);
+                var data = udpClient.Receive(ref remoteEp);
 
                 if (data.Length == 0)
                     continue;
@@ -106,7 +108,7 @@ public sealed class NetworkManager
 
         try
         {
-            PacketReliability packetReliability = reliability ?? PacketReliability.Unreliable;
+            var packetReliability = reliability ?? PacketReliability.Unreliable;
             ushort sequenceNumber = 0;
 
             if (packetReliability == PacketReliability.ReliableOrdered)
@@ -114,7 +116,7 @@ public sealed class NetworkManager
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
             }
 
-            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out var packetId);
 
             if (packetReliability != PacketReliability.Unreliable)
             {
@@ -143,7 +145,7 @@ public sealed class NetworkManager
 
         try
         {
-            PacketReliability finalReliability = reliability ?? PacketReliability.Unreliable;
+            var finalReliability = reliability ?? PacketReliability.Unreliable;
             ushort sequenceNumber = 0;
 
             if (finalReliability == PacketReliability.ReliableOrdered)
@@ -152,7 +154,7 @@ public sealed class NetworkManager
             }
 
             // Split once, send to many
-            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out var packetId);
 
             foreach (var endpoint in endpoints)
             {

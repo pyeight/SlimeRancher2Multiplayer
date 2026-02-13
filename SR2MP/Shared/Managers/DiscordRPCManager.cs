@@ -23,11 +23,11 @@ public static class DiscordRPCManager
 
         // Introduce at like, 0.4 or 1.0.?
         FinalBoss,
-        Ending,
+        Ending
     }
     // This can be public, do not freak out :)
     private const string DiscordAppID = "1422276739026911262";
-    private static DiscordRpcClient rpcClient;
+    private static DiscordRpcClient? rpcClient;
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
         new(new Dictionary<Zone, string>
@@ -45,7 +45,7 @@ public static class DiscordRPCManager
             {Zone.LabyrinthCore, "Inspecting the Core"},
             {Zone.MainMenu, "Getting ready for adventures!"},
             {Zone.FinalBoss, "Fighting it."},
-            {Zone.Ending, "Relaxing after the end"},
+            {Zone.Ending, "Relaxing after the end"}
         });
 
     private static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
@@ -67,7 +67,7 @@ public static class DiscordRPCManager
             {"Conservatory Den", Zone.Conservatory},
             {"Conservatory Digsite", Zone.Conservatory},
             {"Conservatory Gully", Zone.Conservatory},
-            {"Conservatory Pools", Zone.Conservatory},
+            {"Conservatory Pools", Zone.Conservatory}
         });
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
@@ -86,7 +86,7 @@ public static class DiscordRPCManager
             {Zone.LabyrinthCore, "core"},
             {Zone.MainMenu, "mainmenu"},
             {Zone.FinalBoss, "battle"},
-            {Zone.Ending, "ending"},
+            {Zone.Ending, "ending"}
         });
 
     private const string DetailsStringOnline = "Playing in a group of {0} players";
@@ -128,14 +128,14 @@ public static class DiscordRPCManager
         var status = ZoneToStatus[currentLocation];
         var icon = ZoneToIcon[currentLocation];
 
-        rpcClient.SetPresence(new RichPresence
+        rpcClient?.SetPresence(new RichPresence
         {
             Details = details,
             State = status,
             Assets = new Assets
             {
                 LargeImageKey = icon,
-                LargeImageText = string.Empty,
+                LargeImageText = string.Empty
             },
             Buttons = new[]
             {

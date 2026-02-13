@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using SR2MP.Packets.Utils;
 using Unity.Mathematics;
 
@@ -23,7 +22,7 @@ public sealed partial class InitialActorsPacket
 
         // Drones
         RanchDrone = 8,
-        ExplorerDrone = 9,
+        ExplorerDrone = 9
     }
 
     private static Dictionary<ActorType, Type> actorTypes = new(ActorTypeComparer.Instance)
@@ -31,7 +30,7 @@ public sealed partial class InitialActorsPacket
         { ActorType.Basic, typeof(ActorBase) },
         { ActorType.Slime, typeof(Slime) },
         { ActorType.Plort, typeof(Plort) },
-        { ActorType.Resource, typeof(Resource) },
+        { ActorType.Resource, typeof(Resource) }
     };
 
     public class ActorBase : INetObject
@@ -151,6 +150,6 @@ public sealed partial class InitialActorsPacket
 
         public bool Equals(ActorType x, ActorType y) => x == y;
 
-        public int GetHashCode([DisallowNull] ActorType obj) => (int)obj;
+        public int GetHashCode(ActorType obj) => (int)obj;
     }
 }

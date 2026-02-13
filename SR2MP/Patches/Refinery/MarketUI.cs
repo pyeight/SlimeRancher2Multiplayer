@@ -6,7 +6,7 @@ namespace SR2MP.Patches.Refinery;
 [HarmonyPatch(typeof(MarketUI), nameof(MarketUI.Awake))]
 public static class MarketUIAwake
 {
-    static void Prefix(MarketUI __instance)
+    public static void Prefix(MarketUI __instance)
     {
         marketUI = __instance;
     }

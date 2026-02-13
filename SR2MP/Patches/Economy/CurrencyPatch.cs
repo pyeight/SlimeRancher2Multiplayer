@@ -25,7 +25,7 @@ public static class CurrencyPatch
         {
             NewAmount = __instance._model.GetCurrencyAmount(currencyDefinition),
             CurrencyType = (byte)currency,
-            ShowUINotification = showUiNotification,
+            ShowUINotification = showUiNotification
         };
 
         Main.SendToAllOrServer(packet);
@@ -44,7 +44,7 @@ public static class CurrencyPatch
         {
             NewAmount = __instance._model.GetCurrencyAmount(currency),
             CurrencyType = (byte)currencyId,
-            ShowUINotification = true,
+            ShowUINotification = true
         };
 
         Main.SendToAllOrServer(packet);

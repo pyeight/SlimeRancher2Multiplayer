@@ -20,7 +20,7 @@ public sealed class ClientManager
 
     public bool TryGetClient(IPEndPoint endPoint, out ClientInfo? client)
     {
-        string clientInfo = $"{endPoint.Address}:{endPoint.Port}";
+        var clientInfo = $"{endPoint.Address}:{endPoint.Port}";
         return TryGetClient(clientInfo, out client);
     }
 
@@ -32,7 +32,7 @@ public sealed class ClientManager
 
     public ClientInfo AddClient(IPEndPoint endPoint, string playerId)
     {
-        string clientInfo = $"{endPoint.Address}:{endPoint.Port}";
+        var clientInfo = $"{endPoint.Address}:{endPoint.Port}";
 
         var client = new ClientInfo(endPoint, playerId);
 
@@ -62,7 +62,7 @@ public sealed class ClientManager
 
     public bool RemoveClient(IPEndPoint endPoint)
     {
-        string clientInfo = $"{endPoint.Address}:{endPoint.Port}";
+        var clientInfo = $"{endPoint.Address}:{endPoint.Port}";
         return RemoveClient(clientInfo);
     }
 

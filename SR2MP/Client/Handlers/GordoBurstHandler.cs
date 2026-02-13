@@ -30,7 +30,7 @@ public sealed class GordoBurstHandler : BaseClientPacketHandler<GordoBurstPacket
                 gordoEatCount = 999999,
                 gordoSeen = false,
                 gameObj = null,
-                targetCount = 50,
+                targetCount = 50
             };
 
             SceneContext.Instance.GameModel.gordos.Add(packet.ID, gordo);

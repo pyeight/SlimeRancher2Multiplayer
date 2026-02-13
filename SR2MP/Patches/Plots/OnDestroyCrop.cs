@@ -15,7 +15,7 @@ public static class OnDestroyCrop
         if (!__instance)
             return;
 
-        var packet = new GardenPlantPacket()
+        var packet = new GardenPlantPacket
         {
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id,
             ActorType = 9

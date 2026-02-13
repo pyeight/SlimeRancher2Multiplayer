@@ -39,7 +39,7 @@ public sealed class GordosLoadHandler : BaseClientPacketHandler<InitialGordosPac
                     gordoSeen = false,
                     identifiableType = actorManager.ActorTypes[gordo.GordoType],
                     gameObj = null,
-                    targetCount = gordo.RequiredEatCount,
+                    targetCount = gordo.RequiredEatCount
                 };
 
                 gameModel.gordos.Add(gordo.Id, gordoModel);

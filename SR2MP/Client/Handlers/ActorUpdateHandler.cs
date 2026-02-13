@@ -50,6 +50,6 @@ public sealed class ActorUpdateHandler : BaseClientPacketHandler<ActorUpdatePack
         if (resource != null)
         {
             networkComponent.SetResourceState(packet.ResourceState, packet.ResourceProgress);
-        }    
+        }
     }
 }

@@ -26,7 +26,7 @@ public static class OnActorSpawn
             SceneGroup = sceneGroup,
             ActorId = id,
             Position = actor.transform.position,
-            Rotation = actor.transform.rotation,
+            Rotation = actor.transform.rotation
         };
 
         Main.SendToAllOrServer(packet);

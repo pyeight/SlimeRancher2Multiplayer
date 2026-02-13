@@ -54,6 +54,7 @@ public sealed class InitialLandPlotsPacket : IPacket
     {
         // todo
         public readonly void Serialise(PacketWriter writer) { }
+
         public void Deserialise(PacketReader reader) { }
     }
 

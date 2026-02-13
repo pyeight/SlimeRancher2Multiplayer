@@ -136,7 +136,7 @@ public partial class NetworkPlayer : MonoBehaviour
         transformTimer -= UnityEngine.Time.unscaledDeltaTime;
         if (!IsLocal)
         {
-            float timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
+            var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
             timer = Mathf.Clamp01(timer);
 
             transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);

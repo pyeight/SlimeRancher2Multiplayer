@@ -16,7 +16,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 
     protected override void Handle(PlayerJoinPacket packet, IPEndPoint clientEp)
     {
-        string playerId = packet.PlayerId;
+        var playerId = packet.PlayerId;
 
         if (playerManager.GetPlayer(playerId) != null)
         {
@@ -24,7 +24,7 @@ public sealed class PlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
             return;
         }
 
-        string address = $"{clientEp.Address}:{clientEp.Port}";
+        var address = $"{clientEp.Address}:{clientEp.Port}";
 
         SrLogger.LogMessage($"Player join request received (PlayerId: {playerId})",
             $"Player join request from {address} (PlayerId: {playerId})");

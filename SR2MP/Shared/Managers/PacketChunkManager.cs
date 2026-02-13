@@ -37,7 +37,7 @@ public static class PacketChunkManager
     private const int CompressionThreshold = 30;
     private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(30);
 
-    private static int packetCounter = 0;
+    private static int packetCounter;
     private const int CleanupInterval = 100;
 
     private const byte All8Bits = byte.MaxValue;
@@ -64,7 +64,7 @@ public static class PacketChunkManager
             CleanupStalePackets();
         }
 
-        string key = $"{(byte)packetType}_{packetId}_{senderKey}";
+        var key = $"{(byte)packetType}_{packetId}_{senderKey}";
 
         var packet = IncompletePackets.GetOrAdd(key, _ =>
             new IncompletePacket(totalChunks, reliability, sequenceNumber));
@@ -90,13 +90,13 @@ public static class PacketChunkManager
             return false;
 
         // Merge chunks
-        int totalSize = 0;
-        for (int i = 0; i < totalChunks; i++)
+        var totalSize = 0;
+        for (var i = 0; i < totalChunks; i++)
             totalSize += packet.chunks[i].Length;
 
         fullData = new byte[totalSize];
-        int offset = 0;
-        for (int i = 0; i < totalChunks; i++)
+        var offset = 0;
+        for (var i = 0; i < totalChunks; i++)
         {
             Buffer.BlockCopy(packet.chunks[i], 0, fullData, offset, packet.chunks[i].Length);
             offset += packet.chunks[i].Length;
@@ -122,7 +122,7 @@ public static class PacketChunkManager
         var packetType = data[0];
 
         // Thread-safe packet ID generation
-        int id = Interlocked.Increment(ref nextPacketId);
+        var id = Interlocked.Increment(ref nextPacketId);
 
         // Reset to 1 if we've exceeded ushort range
         if (id > ushort.MaxValue)

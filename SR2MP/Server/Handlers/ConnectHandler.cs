@@ -71,7 +71,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
         var upgradesPacket = new InitialUpgradesPacket
         {
-            Upgrades = upgrades,
+            Upgrades = upgrades
         };
         Main.Server.SendToClient(upgradesPacket, client);
     }
@@ -79,7 +79,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
     private static void SendRefineryPacket(IPEndPoint client)
     {
         var refineryItems = new Dictionary<ushort, ushort>();
-    
+
         foreach (var item in SceneContext.Instance.GadgetDirector._model._itemCounts)
         {
             var itemId = (ushort)NetworkActorManager.GetPersistentID(item.Key);
@@ -91,7 +91,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         {
             Items = refineryItems
         };
-    
+
         Main.Server.SendToClient(refineryPacket, client);
     }
 
@@ -200,7 +200,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             switchesList.Add(new InitialSwitchesPacket.Switch
             {
                 ID = switchKeyValuePair.key,
-                State = switchKeyValuePair.value.state,
+                State = switchKeyValuePair.value.state
             });
         }
 

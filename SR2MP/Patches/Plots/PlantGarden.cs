@@ -12,7 +12,7 @@ public static class PlantGarden
         if (handlingPacket)
             return;
 
-        var packet = new GardenPlantPacket()
+        var packet = new GardenPlantPacket
         {
             ActorType = NetworkActorManager.GetPersistentID(cropId),
             ID = __instance.GetComponentInParent<LandPlotLocation>()._id

@@ -13,7 +13,7 @@ public sealed partial class MultiplayerUI
         SettingsMain,
         SettingsHelp,
         Kicked,
-        Error,
+        Error
     }
 
     public enum ErrorType : byte
@@ -21,7 +21,7 @@ public sealed partial class MultiplayerUI
         None,
         UnknownError,
         InvalidIP,
-        IPNotFound,
+        IPNotFound
     }
 
     public enum HelpTopic : byte
@@ -29,6 +29,6 @@ public sealed partial class MultiplayerUI
         Root,
         PlayIt,
         SyncState,
-        DiscordSupport,
+        DiscordSupport
     }
 }

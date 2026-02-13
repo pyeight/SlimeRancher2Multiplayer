@@ -18,7 +18,7 @@ public sealed class PlayerFXPacket : IPacket
         VacRunning,
         VacRunningStart,
         VacRunningEnd,
-        VacShootSound,
+        VacShootSound
     }
 
     public PlayerFXType FX;

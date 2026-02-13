@@ -21,6 +21,7 @@ public sealed class HostCommand : SR2ECommand
         return true;
     }
 }
+
 public sealed class ChatCommand : SR2ECommand
 {
     public override string ID => "chat";
@@ -36,12 +37,12 @@ public sealed class ChatCommand : SR2ECommand
         var chatPacket = new ChatMessagePacket
         {
             Username = Main.Username,
-            Message = msg,
+            Message = msg
         };
 
         Main.SendToAllOrServer(chatPacket);
 
-        string messageId = $"{Main.Username}_{msg.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        var messageId = $"{Main.Username}_{msg.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
         MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
 

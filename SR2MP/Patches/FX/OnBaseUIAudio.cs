@@ -5,11 +5,10 @@ using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.FX;
 
-[HarmonyPatch(typeof(BaseUI))]
+[HarmonyPatch(typeof(BaseUI), nameof(BaseUI.Play))]
 public static class OnPlayUIAudio
 {
     [HarmonyPrefix]
-    [HarmonyPatch(nameof(BaseUI.Play))]
     public static bool OnPlay(SECTR_AudioCue cue)
     {
         if (!SceneContext.Instance)

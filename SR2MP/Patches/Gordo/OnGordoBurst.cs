@@ -12,7 +12,7 @@ public static class OnGordoBurst
 
         var packet = new GordoBurstPacket
         {
-            ID = __instance.Id,
+            ID = __instance.Id
         };
         Main.SendToAllOrServer(packet);
     }

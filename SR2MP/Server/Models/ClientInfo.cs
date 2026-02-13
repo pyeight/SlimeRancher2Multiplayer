@@ -4,9 +4,10 @@ namespace SR2MP.Server.Models;
 
 public sealed class ClientInfo
 {
-    public IPEndPoint EndPoint { get; set; }
+    public IPEndPoint EndPoint { get; }
+    public string PlayerId { get; }
+
     private DateTime LastHeartbeat { get; set; }
-    public string PlayerId { get; set; }
 
     public ClientInfo(IPEndPoint endPoint, string playerId = "")
     {

@@ -40,7 +40,7 @@ public static class StartupCheck
             installedGameVersion = versionParts[0];
         }
 
-        int comparison = CompareVersions(installedGameVersion, RequiredGameVersion);
+        var comparison = CompareVersions(installedGameVersion, RequiredGameVersion);
 
         switch (comparison)
         {
@@ -72,7 +72,7 @@ public static class StartupCheck
 
     private static System.Collections.IEnumerator QuitCoroutine()
     {
-        float elapsed = 0f;
+        var elapsed = 0f;
 
         while (!shouldQuit && elapsed < TIMEOUT)
         {
@@ -94,9 +94,9 @@ public static class StartupCheck
             client.Timeout = TimeSpan.FromSeconds(5);
 
             const string currentModVersion = BuildInfo.DisplayVersion;
-            string latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
+            var latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
 
-            int comparison = CompareVersions(currentModVersion, latestVersion);
+            var comparison = CompareVersions(currentModVersion, latestVersion);
 
             switch (comparison)
             {
@@ -175,12 +175,12 @@ public static class StartupCheck
     {
         var v1Parts = version1.Split('.');
         var v2Parts = version2.Split('.');
-        int maxLength = Math.Max(v1Parts.Length, v2Parts.Length);
+        var maxLength = Math.Max(v1Parts.Length, v2Parts.Length);
 
-        for (int i = 0; i < maxLength; i++)
+        for (var i = 0; i < maxLength; i++)
         {
-            int v1 = i < v1Parts.Length && int.TryParse(v1Parts[i], out int v1Val) ? v1Val : 0;
-            int v2 = i < v2Parts.Length && int.TryParse(v2Parts[i], out int v2Val) ? v2Val : 0;
+            var v1 = i < v1Parts.Length && int.TryParse(v1Parts[i], out var v1Val) ? v1Val : 0;
+            var v2 = i < v2Parts.Length && int.TryParse(v2Parts[i], out var v2Val) ? v2Val : 0;
 
             if (v1 < v2) return -1;
             if (v1 > v2) return 1;

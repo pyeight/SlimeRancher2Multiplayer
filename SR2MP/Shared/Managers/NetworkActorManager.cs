@@ -95,6 +95,7 @@ public sealed partial class NetworkActorManager
 
             yield return TakeOwnershipOfNearby();
         }
+        // ReSharper disable once IteratorNeverReturns
     }
 
     private static bool ActorIDAlreadyInUse(ActorId id)
@@ -105,7 +106,7 @@ public sealed partial class NetworkActorManager
 
     public static long GetHighestActorIdInRange(long min, long max)
     {
-        long result = min;
+        var result = min;
         foreach (var actor in SceneContext.Instance.GameModel.identifiables)
         {
             var id = actor.value.actorId.Value;
@@ -121,15 +122,16 @@ public sealed partial class NetworkActorManager
 
     internal IEnumerator TakeOwnershipOfNearby()
     {
-        const int Max = 12;
+        const int max = 12;
 
         var player = SceneContext.Instance.player;
 
         var bounds = new Bounds(player.transform.position, new Vector3(325, 1000, 325));
 
-        int i = 0;
+        var i = 0;
         foreach (var actor in Actors)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (actor.Value == null)
                 continue;
 
@@ -141,7 +143,7 @@ public sealed partial class NetworkActorManager
 
             if (netActor == null)
                 continue;
-            
+
             netActor.LocallyOwned = true;
 
             var actorId = netActor.ActorId;
@@ -153,16 +155,15 @@ public sealed partial class NetworkActorManager
             var packet = new ActorTransferPacket
             {
                 ActorId = actorId,
-                OwnerId = LocalID,
+                OwnerId = LocalID
             };
             Main.SendToAllOrServer(packet);
             i++;
 
-            if (i > Max)
-            {
-                yield return null;
-                i = 0;
-            }
+            if (i <= max)
+                continue;
+            yield return null;
+            i = 0;
         }
     }
 }

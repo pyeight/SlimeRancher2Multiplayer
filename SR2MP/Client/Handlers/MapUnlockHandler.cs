@@ -36,7 +36,7 @@ public sealed class MapUnlockHandler : BaseClientPacketHandler<MapUnlockPacket>
             dataKey = packet.NodeID,
             eventKey = MapEventKey,
             updatedRealTime = 0,
-            updatedGameTime = 0,
+            updatedGameTime = 0
         };
     }
 }

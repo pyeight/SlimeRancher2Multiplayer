@@ -10,7 +10,7 @@ public sealed class RefineryUpdateHandler : BasePacketHandler<RefineryUpdatePack
 {
     public RefineryUpdateHandler(NetworkManager networkManager, ClientManager clientManager)
         : base(networkManager, clientManager) { }
-    
+
     protected override void Handle(RefineryUpdatePacket packet, IPEndPoint clientEp)
     {
         if (!actorManager.ActorTypes.TryGetValue(packet.ItemID, out var identType))
@@ -19,7 +19,7 @@ public sealed class RefineryUpdateHandler : BasePacketHandler<RefineryUpdatePack
         handlingPacket = true;
         SceneContext.Instance.GadgetDirector._model.SetCount(identType, packet.ItemCount);
         handlingPacket = false;
-        
+
         Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

@@ -24,7 +24,7 @@ public static class Timers
         PLAYER_INVENTORY,
         WORLD_WEATHER,
         WORLD_TIME,
-        WORLD_PLANTER,
+        WORLD_PLANTER
     }
 
     internal static void SetTimer(SyncTimerType timerType, float value)

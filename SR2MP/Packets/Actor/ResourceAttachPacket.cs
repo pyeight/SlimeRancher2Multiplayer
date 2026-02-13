@@ -40,7 +40,7 @@ public sealed class ResourceAttachPacket : IPacket
             nextSpawnRipens = reader.ReadBool(),
             nextSpawnTime = reader.ReadDouble(),
             storedWater = reader.ReadFloat(),
-            wasPreviouslyPlanted = reader.ReadBool(),
+            wasPreviouslyPlanted = reader.ReadBool()
         };
     }
 }

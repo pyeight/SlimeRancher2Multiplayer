@@ -19,7 +19,7 @@ public static class SyncMovementSfx
         var packet = new MovementSoundPacket
         {
             CueName = cue.name,
-            Position = __instance.Position,
+            Position = __instance.Position
         };
 
         if (Main.Server.IsRunning())

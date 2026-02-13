@@ -37,7 +37,7 @@ public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
             dataKey = packet.NodeID,
             eventKey = MapEventKey,
             updatedRealTime = 0,
-            updatedGameTime = 0,
+            updatedGameTime = 0
         };
 
         Main.Server.SendToAllExcept(packet, clientEp);

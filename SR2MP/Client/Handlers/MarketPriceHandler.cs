@@ -16,9 +16,9 @@ public sealed class MarketPriceHandler : BaseClientPacketHandler<MarketPricePack
 
         //economy.ResetPrices(SceneContext.Instance.GameModel.world, 0);
 
-        //SrLogger.LogMessage($"Market price change received!\nRecieved {packet.Prices.Length} prices.\nPrices:\n{string.Join(",\n", packet.Prices)}");
+        //SrLogger.LogMessage($"Market price change received!\nReceived {packet.Prices.Length} prices.\nPrices:\n{string.Join(",\n", packet.Prices)}");
 
-        int i = 0;
+        var i = 0;
         // Couldn't do _currValueMap._values because its null for some reason, and
         // _currValueMap.Values is bugged with rider.
         foreach (var price in economy._currValueMap._entries)

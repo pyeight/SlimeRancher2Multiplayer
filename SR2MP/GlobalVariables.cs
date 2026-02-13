@@ -12,7 +12,7 @@ public static class GlobalVariables
         "actortype", "clearinv", "delwarp", "emotions", "fastforward", "flatlook", "fling", "floaty", "freeze",
         "fxplayer", "gadget", "give", "gordo", "gravity", "infenergy", "infhealth", "kill", "killall", "newbucks",
         "noclip", "pedia", "player", "position", "ranch", "refillinv", "replace", "rotation", "scale",
-        "setwarp", "spawn", "speed", "strike", "timescale", "upgrade", "warp", "warplist", "weather",
+        "setwarp", "spawn", "speed", "strike", "timescale", "upgrade", "warp", "warplist", "weather"
     };
 
     public static bool cheatsEnabled = false;
@@ -32,7 +32,7 @@ public static class GlobalVariables
     public static Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone;
 
     public static Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames;
-    
+
     public static MarketUI? marketUI;
 
     // To prevent stuff from being stuck in

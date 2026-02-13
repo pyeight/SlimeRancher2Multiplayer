@@ -79,14 +79,15 @@ public sealed partial class NetworkActorManager
     {
         model = null;
 
-        if (actorData is InitialActorsPacket.Slime slimeData)
-            return TrySpawnInitialSlime(slimeData, out model);
-
-        if (actorData is InitialActorsPacket.Plort plortData)
-            return TrySpawnInitialPlort(plortData, out model);
-
-        if (actorData is InitialActorsPacket.Resource resourceData)
-            return TrySpawnInitialResource(resourceData, out model);
+        switch (actorData)
+        {
+            case InitialActorsPacket.Slime slimeData:
+                return TrySpawnInitialSlime(slimeData, out model);
+            case InitialActorsPacket.Plort plortData:
+                return TrySpawnInitialPlort(plortData, out model);
+            case InitialActorsPacket.Resource resourceData:
+                return TrySpawnInitialResource(resourceData, out model);
+        }
 
         var sceneId = actorData.Scene;
         var typeId = actorData.ActorTypeId;
@@ -275,8 +276,8 @@ public sealed partial class NetworkActorManager
 
         plortModel.destroyTime = destroyTime;
 
-        //plortModel._invulnerability.IsInvulnerable = invulnerable;
-        //plortModel._invulnerability.InvulnerabilityPeriod = invulnerablePeriod;
+        // plortModel._invulnerability.IsInvulnerable = invulnerable;
+        // plortModel._invulnerability.InvulnerabilityPeriod = invulnerablePeriod;
 
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))

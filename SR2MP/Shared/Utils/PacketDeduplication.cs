@@ -9,7 +9,7 @@ public static class PacketDeduplication
 
     private static readonly TimeSpan PacketMemoryDuration = TimeSpan.FromSeconds(30);
 
-    private static int processCounter = 0;
+    private static int processCounter;
     private const int CleanupInterval = 100;
 
     public static bool IsDuplicate(string packetType, string uniqueId)

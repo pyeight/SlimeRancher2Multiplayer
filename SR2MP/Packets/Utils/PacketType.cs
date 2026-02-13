@@ -53,5 +53,5 @@ public enum PacketType : byte
     RefineryUpdate = 48,          // Both Ways                                    Middle (can be manual)                On Refinery Change
     InitialRefinery = 49,         // Server -> Client                             Low (depends on join)                 Refinery items on join
     ReservedAck = 254,            // Both Ways                                    Very High                             For ACK packets
-    ReservedCompression = 255,       // Not Used                                     Unused                                For packet compression
+    ReservedCompression = 255 // Not Used                                     Unused                                For packet compression
 }

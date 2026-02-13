@@ -9,7 +9,7 @@ public abstract class PacketBuffer : IDisposable
     protected int currentBitIndex;
 
     protected int position = 0;
-    protected bool disposed = false;
+    protected bool disposed;
 
     protected PacketBuffer(int initialCapacity, int startingIndex)
     {
@@ -26,11 +26,8 @@ public abstract class PacketBuffer : IDisposable
 
         disposed = true;
 
-        if (buffer != null)
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
-            buffer = null!;
-        }
+        ArrayPool<byte>.Shared.Return(buffer);
+        buffer = null!;
 
         GC.SuppressFinalize(this);
     }

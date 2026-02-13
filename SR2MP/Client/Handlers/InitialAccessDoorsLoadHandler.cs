@@ -32,7 +32,7 @@ public sealed class DoorsLoadHandler : BaseClientPacketHandler<InitialAccessDoor
                 doorModel = new AccessDoorModel
                 {
                     gameObj = null,
-                    state = door.State,
+                    state = door.State
                 };
 
                 gameModel.doors.Add(door.ID, doorModel);

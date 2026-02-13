@@ -43,7 +43,7 @@ public sealed class SwitchesLoadHandler : BaseClientPacketHandler<InitialSwitche
                 switchModel = new WorldSwitchModel
                 {
                     gameObj = null,
-                    state = worldSwitch.State,
+                    state = worldSwitch.State
                 };
 
                 gameModel.switches.Add(worldSwitch.ID, switchModel);

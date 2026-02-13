@@ -12,7 +12,7 @@ public static class GUILayoutAreaFix
     public static bool Prefix(Rect screenRect, GUIContent content, GUIStyle style)
     {
         GUIUtility.CheckOnGUI();
-        GUILayoutGroup g = GUILayoutUtility.BeginLayoutArea(style, Il2CppSystem.Type.GetType("UnityEngine.GUILayoutGroup"));
+        var g = GUILayoutUtility.BeginLayoutArea(style, Il2CppSystem.Type.GetType("UnityEngine.GUILayoutGroup"));
         if (Event.current.type == EventType.Layout)
         {
             g.resetCoords = true;

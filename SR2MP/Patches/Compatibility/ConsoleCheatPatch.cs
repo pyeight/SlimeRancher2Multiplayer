@@ -17,14 +17,14 @@ public static class ConsoleCheatPatch
         var containsCheat = false;
 
         // Code copied from SR2E
-        string[] cmds = input.Split(';');
-        foreach (string cc in cmds)
+        var cmds = input.Split(';');
+        foreach (var cc in cmds)
         {
-            string c = cc.TrimStart(' ');
+            var c = cc.TrimStart(' ');
             if (string.IsNullOrWhiteSpace(c))
                 continue;
-            bool spaces = c.Contains(' ');
-            string cmd = spaces ? c[..c.IndexOf(' ')] : c;
+            var spaces = c.Contains(' ');
+            var cmd = spaces ? c[..c.IndexOf(' ')] : c;
 
             if (!CheatCommands.Contains(cmd))
                 continue;

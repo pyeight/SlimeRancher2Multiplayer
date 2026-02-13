@@ -27,7 +27,7 @@ public sealed class InitialMapLoadHandler : BaseClientPacketHandler<InitialMapPa
                 dataKey = node,
                 eventKey = MapEventKey,
                 updatedRealTime = 0,
-                updatedGameTime = 0,
+                updatedGameTime = 0
             };
         }
     }

@@ -56,24 +56,26 @@ public sealed class ClientPacketManager
             return;
         }
 
-        byte packetType = data[0];
-        ushort chunkIndex = (ushort)(data[1] | (data[2] << 8));
-        ushort totalChunks = (ushort)(data[3] | (data[4] << 8));
-        ushort packetId = (ushort)(data[5] | (data[6] << 8));
-        PacketReliability reliability = (PacketReliability)data[7];
-        ushort sequenceNumber = (ushort)(data[8] | (data[9] << 8));
+        var packetType = data[0];
+        var chunkIndex = (ushort)(data[1] | (data[2] << 8));
+        var totalChunks = (ushort)(data[3] | (data[4] << 8));
+        var packetId = (ushort)(data[5] | (data[6] << 8));
+        var reliability = (PacketReliability)data[7];
+        var sequenceNumber = (ushort)(data[8] | (data[9] << 8));
 
-        byte[] chunkData = new byte[data.Length - 10];
+        var chunkData = new byte[data.Length - 10];
         Buffer.BlockCopy(data, 10, chunkData, 0, chunkData.Length);
         // Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
 
         // Client uses "server" as sender key
-        string senderKey = "server";
+        var senderKey = "server";
 
         if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex,
             totalChunks, packetId, senderKey, reliability, sequenceNumber,
             out data, out var packetReliability, out var packetSequenceNumber))
+        {
             return;
+        }
 
         // Handle reliability ACK packets
         if (packetType == 254)
@@ -94,8 +96,8 @@ public sealed class ClientPacketManager
             SendAck(packetId, packetType);
         }
 
-        string packetTypeKey = ((PacketType)packetType).ToString();
-        string uniqueId = packetId.ToString();
+        var packetTypeKey = ((PacketType)packetType).ToString();
+        var uniqueId = packetId.ToString();
 
         if (PacketDeduplication.IsDuplicate(packetTypeKey, uniqueId))
         {

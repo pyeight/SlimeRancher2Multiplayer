@@ -22,14 +22,14 @@ public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
         if (!component.regionMember)
             return;
 
-        if (!component.regionMember._hibernating)
+        if (!component.regionMember!._hibernating)
         {
             component.LocallyOwned = true;
 
             var ownershipPacket = new ActorTransferPacket
             {
                 ActorId = packet.ActorId,
-                OwnerId = LocalID,
+                OwnerId = LocalID
             };
             Main.SendToAllOrServer(ownershipPacket);
             return;

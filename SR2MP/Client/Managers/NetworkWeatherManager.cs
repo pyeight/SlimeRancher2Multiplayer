@@ -65,10 +65,10 @@ public static class NetworkWeatherManager
         handlingPacket = true;
 
         var registry = Registry;
-        var director = Director;
+        var localDirector = Director;
 
         var zoneKeys = new List<ZoneDefinition>();
-        foreach (var zone in registry!._zones)
+        foreach (var zone in registry._zones)
         {
             zoneKeys.Add(zone.Key);
             yield return null;
@@ -95,7 +95,7 @@ public static class NetworkWeatherManager
 
                 if (patternInstance == null)
                 {
-                    director!.StopState(
+                    localDirector!.StopState(
                         forecast.State.Cast<IWeatherState>(),
                         zone.Parameters
                     );
@@ -135,7 +135,7 @@ public static class NetworkWeatherManager
             yield return new WaitFrames(2);
         }
 
-        if (!registry._zones.TryGetValue(director!.Zone, out var activeZone))
+        if (!registry._zones.TryGetValue(localDirector!.Zone, out var activeZone))
             yield break;
 
         var activeCopy = new List<WeatherModel.ForecastEntry>();
@@ -147,18 +147,18 @@ public static class NetworkWeatherManager
         foreach (var forecast in activeCopy)
         {
             var patternInstance = registry.GetWeatherPatternInstance(
-                director.Zone,
+                localDirector.Zone,
                 forecast.Pattern
             );
 
             if (patternInstance == null)
             {
-                director.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
+                localDirector.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
             }
             else
             {
                 registry.RunPatternState(
-                    director.Zone,
+                    localDirector.Zone,
                     patternInstance,
                     forecast.State,
                     immediate

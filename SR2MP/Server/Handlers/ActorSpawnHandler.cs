@@ -24,7 +24,7 @@ public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
         var slime = actor!.TryCast<SlimeModel>();
         if (slime != null)
             slime.Emotions = packet.Emotions;
-        
+
         Main.Server.SendToAllExcept(packet, clientEp);
     }
 }

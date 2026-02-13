@@ -83,7 +83,7 @@ public sealed partial class MultiplayerUI
 
     private int CalculateTotalLinesInUse()
     {
-        int total = 0;
+        var total = 0;
         foreach (var message in chatMessages)
         {
             total += message.lines;
@@ -93,7 +93,7 @@ public sealed partial class MultiplayerUI
 
     private void TrimOldMessages()
     {
-        int totalLines = CalculateTotalLinesInUse();
+        var totalLines = CalculateTotalLinesInUse();
 
         while (totalLines > MaxChatLines && chatMessages.Count > 0)
         {
@@ -121,7 +121,7 @@ public sealed partial class MultiplayerUI
         string formattedMessage;
         if (message.isSystemMessage)
         {
-            string systemColor = message.systemMessageType switch
+            var systemColor = message.systemMessageType switch
             {
                 SystemMessageConnect => ColorSystemConnect,
                 SystemMessageDisconnect => ColorSystemDisconnect,
@@ -145,9 +145,9 @@ public sealed partial class MultiplayerUI
         var (_, height) = CalculateMessageHeight(text);
 
         const float x = 6 + HorizontalSpacing;
-        float y = previousLayoutChatRect.y + previousLayoutChatRect.height;
-        float w = maxWidth;
-        float h = height;
+        var y = previousLayoutChatRect.y + previousLayoutChatRect.height;
+        var w = maxWidth;
+        var h = height;
 
         var rect = new Rect(x, y, w, h);
         previousLayoutChatRect = rect;
@@ -161,7 +161,7 @@ public sealed partial class MultiplayerUI
 
         message = message.Trim();
 
-        string messageId = $"{Main.Username}_{message.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        var messageId = $"{Main.Username}_{message.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
         RegisterChatMessage(message, Main.Username, messageId);
 
@@ -231,8 +231,8 @@ public sealed partial class MultiplayerUI
 
     private void UpdateChatFocusState()
     {
-        string currentChatFocus = GUI.GetNameOfFocusedControl();
-        bool wasPreviouslyFocused = isChatFocused;
+        var currentChatFocus = GUI.GetNameOfFocusedControl();
+        var wasPreviouslyFocused = isChatFocused;
         isChatFocused = currentChatFocus == ChatInputName;
 
         if (isChatFocused && !wasPreviouslyFocused)

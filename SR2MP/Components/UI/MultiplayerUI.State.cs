@@ -38,9 +38,9 @@ public sealed partial class MultiplayerUI
 
     private void UpdateChatVisibility()
     {
-        bool isInGame = state is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
+        var isInGame = state is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
 
-        bool isMainMenu = state == MenuState.DisconnectedMainMenu;
+        var isMainMenu = state == MenuState.DisconnectedMainMenu;
 
         if (isMainMenu)
         {

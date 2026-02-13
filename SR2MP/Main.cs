@@ -160,16 +160,16 @@ public sealed class Main : SR2EExpansionV3
 
     private static void LoadRPCAssembly()
     {
-        Stream manifestResourceStream = Core.GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
-        byte[] array = new byte[manifestResourceStream.Length];
+        var manifestResourceStream = Core.GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
+        var array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Assembly.Load(array);
     }
 
     private static void InsertLicensesFile()
     {
-        Stream manifestResourceStream = Core.GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
-        byte[] array = new byte[manifestResourceStream.Length];
+        var manifestResourceStream = Core.GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
+        var array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));
         File.WriteAllBytes(MelonEnvironment.UserDataDirectory + "/SR2MP/THIRD-PARTY-NOTICES.txt", array);

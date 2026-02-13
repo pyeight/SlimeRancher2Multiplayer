@@ -7,7 +7,7 @@ public sealed class PlayerJoinPacket : IPacket
     public string PlayerId;
     public string? PlayerName;
 
-    public PacketType Type { get; set; }
+    public PacketType Type { get; init; }
     public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)

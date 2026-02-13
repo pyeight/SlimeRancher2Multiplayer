@@ -7,7 +7,7 @@ public sealed class PlayerUpdatePacket : IPacket
     public string PlayerId;
     public Vector3 Position;
     public float Rotation;
-    public int AirborneState {get; set;}
+    public int AirborneState;
     public bool Moving;
     public float Yaw;
     public float HorizontalMovement;

@@ -9,16 +9,16 @@ public static class PlayerIdGenerator
     {
         try
         {
-            string systemInfo = $"{Environment.MachineName}{Environment.UserName}";
+            var systemInfo = $"{Environment.MachineName}{Environment.UserName}";
 
-            using SHA256 sha256 = SHA256.Create();
-            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
+            using var sha256 = SHA256.Create();
+            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
 
-            string hash = BitConverter.ToString(hashBytes)
+            var hash = BitConverter.ToString(hashBytes)
                 .Replace("-", string.Empty)[..9]
                 .ToUpper();
 
-            string playerId = $"PLAYER_{hash}";
+            var playerId = $"PLAYER_{hash}";
 
             SrLogger.LogMessage($"Generated persistent player ID: {playerId}", SrLogTarget.Both);
             return playerId;
@@ -32,7 +32,7 @@ public static class PlayerIdGenerator
     public static ushort GetPlayerIDNumber(string id)
     {
         ushort number = 12345;
-        foreach (char c in id[7..])
+        foreach (var c in id[7..])
             number = (ushort)((number << 5) + number + c);
         return number;
     }

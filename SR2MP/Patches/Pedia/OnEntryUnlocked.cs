@@ -7,7 +7,7 @@ namespace SR2MP.Patches.Pedia;
 [HarmonyPatch(typeof(PediaDirector), nameof(PediaDirector.Unlock), typeof(PediaEntry), typeof(bool))]
 public static class OnEntryUnlocked
 {
-    public static void Postfix(PediaEntry entry, bool showPopup = true)
+    public static void Postfix(PediaEntry entry, bool showPopup)
     {
         if (handlingPacket) return;
 

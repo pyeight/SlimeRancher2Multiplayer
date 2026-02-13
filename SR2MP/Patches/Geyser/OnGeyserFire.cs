@@ -13,7 +13,7 @@ public static class OnGeyserFire
 
         if (handlingPacket)
             return;
-        
+
         var packet = new GeyserTriggerPacket
         {
              ObjectPath = __instance.__4__this.gameObject.GetGameObjectPath(),

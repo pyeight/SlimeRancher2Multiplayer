@@ -97,8 +97,8 @@ public sealed partial class MultiplayerUI
     {
         if (chatHidden || state == MenuState.DisconnectedMainMenu) return;
 
-        bool enterPressed = KeyCode.Return.OnKeyDown() || KeyCode.KeypadEnter.OnKeyDown();
-        bool escapePressed = KeyCode.Escape.OnKeyDown();
+        var enterPressed = KeyCode.Return.OnKeyDown() || KeyCode.KeypadEnter.OnKeyDown();
+        var escapePressed = KeyCode.Escape.OnKeyDown();
 
         if (isChatFocused)
         {

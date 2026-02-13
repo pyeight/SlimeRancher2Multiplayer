@@ -12,5 +12,5 @@ public abstract class BaseWeatherHandler : BaseClientPacketHandler<WeatherPacket
     protected BaseWeatherHandler(Client client, RemotePlayerManager playerManager, bool immediate)
         : base(client, playerManager) => _immediate = immediate;
 
-    protected sealed override void Handle(WeatherPacket packet) => MelonCoroutines.Start(NetworkWeatherManager.Apply(packet, _immediate));
+    protected override sealed void Handle(WeatherPacket packet) => MelonCoroutines.Start(NetworkWeatherManager.Apply(packet, _immediate));
 }

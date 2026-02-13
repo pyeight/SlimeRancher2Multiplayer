@@ -10,9 +10,9 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketReader : PacketBuffer
 {
-    public int BytesRemaining => DataSize - position;
+    private int BytesRemaining => DataSize - position;
 
-    public int DataSize { get; }
+    private int DataSize { get; }
 
     public PacketReader(byte[] data) : base(data.Length, 8)
     {

@@ -190,7 +190,7 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        byte[] data = writer.ToArray(out var trueLength);
+        var data = writer.ToArray(out var trueLength);
 
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
         networkManager.Broadcast(data, trueLength, endpoints, packet.Reliability);
@@ -201,7 +201,7 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        byte[] data = writer.ToArray(out var trueLength);
+        var data = writer.ToArray(out var trueLength);
 
         foreach (var client in clientManager.GetAllClients())
         {
@@ -216,7 +216,7 @@ public sealed class Server
 
     public void SendToAllExcept<T>(T packet, IPEndPoint excludeEndPoint) where T : IPacket
     {
-        string clientInfo = $"{excludeEndPoint.Address}:{excludeEndPoint.Port}";
+        var clientInfo = $"{excludeEndPoint.Address}:{excludeEndPoint.Port}";
         SendToAllExcept(packet, clientInfo);
     }
 

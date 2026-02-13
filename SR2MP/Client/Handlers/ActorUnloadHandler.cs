@@ -18,7 +18,7 @@ public sealed class ActorUnloadHandler : BaseClientPacketHandler<ActorUnloadPack
         if (!actor.TryGetNetworkComponent(out var component))
             return;
 
-        if (!component.regionMember || component.regionMember._hibernating)
+        if (!component.regionMember || component.regionMember!._hibernating)
             return;
 
         component.LocallyOwned = true;
@@ -26,7 +26,7 @@ public sealed class ActorUnloadHandler : BaseClientPacketHandler<ActorUnloadPack
         var ownershipPacket = new ActorTransferPacket
         {
             ActorId = packet.ActorId,
-            OwnerId = LocalID,
+            OwnerId = LocalID
         };
         Main.SendToAllOrServer(ownershipPacket);
     }

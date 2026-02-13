@@ -11,8 +11,8 @@ public static class OnLightningActivate
     {
         if (__instance.gameObject.name.Contains("net", StringComparison.InvariantCultureIgnoreCase))
             return;
-        
-        var packet = new LightningStrikePacket() { Position = __instance.transform.position };
+
+        var packet = new LightningStrikePacket { Position = __instance.transform.position };
         Main.SendToAllOrServer(packet);
     }
 }

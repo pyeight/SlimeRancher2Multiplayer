@@ -11,7 +11,7 @@ public sealed partial class MultiplayerUI
 
     private void FirstTimeScreen()
     {
-        bool valid = true;
+        var valid = true;
 
         DrawText("Please select an username to play multiplayer.");
 
@@ -34,7 +34,7 @@ public sealed partial class MultiplayerUI
 
     private void SettingsScreen()
     {
-        bool validUsername = true;
+        var validUsername = true;
 
         DrawText("Username:", 2);
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);

@@ -15,7 +15,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 
     protected override void Handle(PlayerLeavePacket packet, IPEndPoint clientEp)
     {
-        string playerId = packet.PlayerId;
+        var playerId = packet.PlayerId;
 
         if (playerManager.GetPlayer(playerId) == null)
         {
@@ -23,7 +23,7 @@ public sealed class PlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
             return;
         }
 
-        string clientInfo = $"{clientEp.Address}:{clientEp.Port}";
+        var clientInfo = $"{clientEp.Address}:{clientEp.Port}";
 
         SrLogger.LogMessage($"Player leave request received (PlayerId: {playerId})",
             $"Player leave request from {clientInfo} (PlayerId: {playerId})");

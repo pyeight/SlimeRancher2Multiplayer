@@ -77,14 +77,14 @@ public sealed class RemoteFXManager
             { PlayerFXType.VacRunning, AllCues["VacRun"]},
             { PlayerFXType.VacRunningStart, AllCues["VacStart"]},
             { PlayerFXType.VacRunningEnd, AllCues["VacEnd"]},
-            { PlayerFXType.VacShootSound, AllCues["VacShoot"]},
+            { PlayerFXType.VacShootSound, AllCues["VacShoot"]}
         };
         WorldFXMap = new Dictionary<WorldFXType, GameObject>
         {
             { WorldFXType.None, null! },
             { WorldFXType.SellPlort, SellFX ?? AllFX["FX_Stars"] },
             { WorldFXType.FavoriteFoodEaten, AllFX["FX_slimeEatFav"] },
-            { WorldFXType.GordoFoodEaten, AllFX["FX_Gordo_Eat"] },
+            { WorldFXType.GordoFoodEaten, AllFX["FX_Gordo_Eat"] }
         };
         WorldAudioCueMap = new Dictionary<WorldFXType, SECTR_AudioCue>
         {
@@ -93,8 +93,8 @@ public sealed class RemoteFXManager
             { WorldFXType.UpgradePlot, AllCues["PurchaseRanchTechUpgrade"]},
             { WorldFXType.SellPlortSound, AllCues["SiloReward"]},
             { WorldFXType.SellPlortDroneSound, AllCues["SiloRewardDrone"]},
-            { WorldFXType.GordoFoodEatenSound, AllCues["GordoGulp"] },
-           // { WorldFXType.FabricatorPurchaseGadget, AllCues["PurchaseGadget"] },
+            { WorldFXType.GordoFoodEatenSound, AllCues["GordoGulp"] }
+            // { WorldFXType.FabricatorPurchaseGadget, AllCues["PurchaseGadget"] },
            // { WorldFXType.FabricatorPurchaseGadget, AllCues["Click3"] },
            // { WorldFXType.FabricatorPurchaseUpgrade, AllCues["PurchaseFabricatorUpgrade"] },
         };

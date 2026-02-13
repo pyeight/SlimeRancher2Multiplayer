@@ -19,7 +19,7 @@ public static class OnResourceAttach
             SceneContext.Instance.GameModel.DestroyIdentifiableModel(other._model);
 
             SrLogger.LogMessage("destroy");
-            
+
             Destroyer.DestroyActor(other.gameObject, "SR2MP.OnResourceAttach");
             joint.connectedBody = null;
             return;
@@ -38,7 +38,7 @@ public static class OnResourceAttach
             Joint = index,
             PlotID = id,
             SpawnerID = spawner.transform.position,
-            Model = spawner._model,
+            Model = spawner._model
         };
 
         Main.SendToAllOrServer(packet);

@@ -2,7 +2,6 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
-using Il2CppDG.Tweening;
 using Il2CppInterop.Runtime.Attributes;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.World;
@@ -18,7 +17,7 @@ namespace SR2MP.Components.Actor;
 [RegisterTypeInIl2Cpp(false)]
 public sealed class NetworkActor : MonoBehaviour
 {
-    internal RegionMember regionMember;
+    internal RegionMember? regionMember;
     private Identifiable identifiable;
     private ResourceCycle? cycle;
     private Rigidbody rigidbody;
@@ -27,9 +26,9 @@ public sealed class NetworkActor : MonoBehaviour
     private float syncTimer = Timers.ActorTimer;
     public Vector3 SavedVelocity { get; internal set; }
 
-    private byte attemptedGetIdentifiable = 0;
+    private byte attemptedGetIdentifiable;
     private bool isValid = true;
-    private bool isDestroyed = false;
+    private bool isDestroyed;
 
     private bool? cachedCycleReleasing;
     public bool? CycleReleasing => cycle?._preparingToRelease;
@@ -125,22 +124,21 @@ public sealed class NetworkActor : MonoBehaviour
 
             regionMember = GetComponent<RegionMember>();
 
-            if (regionMember)
+            if (!regionMember)
+                return;
+            try
             {
-                try
-                {
-                    regionMember.add_BeforeHibernationChanged(
-                        Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
-                                    .GetEvent("BeforeHibernationChanged").EventHandlerType,
-                                this.Cast<Il2CppSystem.Object>(),
-                                nameof(HibernationChanged),
-                                true)
-                            .Cast<RegionMember.OnHibernationChange>());
-                }
-                catch (Exception ex)
-                {
-                    SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
-                }
+                regionMember.add_BeforeHibernationChanged(
+                    Delegate.CreateDelegate(Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
+                               .GetEvent("BeforeHibernationChanged").EventHandlerType,
+                            this.Cast<Il2CppSystem.Object>(),
+                            nameof(HibernationChanged),
+                            true)
+                       .Cast<RegionMember.OnHibernationChange>());
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
             }
         }
         catch (Exception ex)
@@ -185,7 +183,7 @@ public sealed class NetworkActor : MonoBehaviour
                     yield break;
                 }
 
-                var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID, };
+                var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
                 Main.SendToAllOrServer(packet);
             }
         }
@@ -243,7 +241,7 @@ public sealed class NetworkActor : MonoBehaviour
                 var actorId = ActorId;
                 if (actorId.Value != 0)
                 {
-                    var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID, };
+                    var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
                     Main.SendToAllOrServer(packet);
                 }
             }
@@ -289,7 +287,7 @@ public sealed class NetworkActor : MonoBehaviour
                     Velocity = rigidbody ? rigidbody.velocity : Vector3.zero,
                     Emotions = EmotionsFloat,
                     ResourceProgress = cycle?._model.progressTime ?? 0f,
-                    ResourceState = cycle?._model.state ?? ResourceCycle.State.EDIBLE,
+                    ResourceState = cycle?._model.state ?? ResourceCycle.State.EDIBLE
                 };
 
                 Main.SendToAllOrServer(packet);
@@ -342,67 +340,74 @@ public sealed class NetworkActor : MonoBehaviour
             return;
         if (!cycle)
             return;
-        if (state == ResourceCycle.State.UNRIPE)
+        switch (state)
         {
-            cycle!._vacuumable.enabled = false;
-
-            if (base.gameObject.transform.localScale.x < cycle._defaultScale.x * 0.33f)
+            case ResourceCycle.State.UNRIPE:
             {
-                base.gameObject.transform.localScale = cycle._defaultScale * 0.33f;
-            }
-        }
-        else if (state == ResourceCycle.State.RIPE)
-        {
-            cycle!.Ripen();
+                cycle!._vacuumable.enabled = false;
 
-            cycle._vacuumable.enabled = true;
-
-            if (base.gameObject.transform.localScale.x < cycle._defaultScale.x)
-            {
-                base.gameObject.transform.localScale = cycle._defaultScale;
-            }
-
-            rigidbody.WakeUp();
-            cycle.Eject(rigidbody);
-            cycle.DetachFromJoint();
-
-            TweenUtil.ScaleTo(base.gameObject, cycle._defaultScale, 4f);
-        }
-        else if (state == ResourceCycle.State.EDIBLE)
-        {
-            cycle!.MakeEdible();
-
-            cycle._additionalRipenessDelegate = null;
-            rigidbody.isKinematic = false;
-
-            cycle._vacuumable.enabled = true;
-
-            if (cycle._preparingToRelease)
-            {
-                cycle._preparingToRelease = false;
-                cycle._releaseAt = 0f;
-                cycle.ToShake.localPosition = cycle._toShakeDefaultPos;
-
-                if (cycle.ReleaseCue != null)
+                if (base.gameObject.transform.localScale.x < cycle._defaultScale.x * 0.33f)
                 {
-                    SECTR_PointSource audio = base.GetComponent<SECTR_PointSource>();
-                    audio.Cue = cycle.ReleaseCue;
-                    audio.Play();
+                    base.gameObject.transform.localScale = cycle._defaultScale * 0.33f;
                 }
+                break;
             }
-
-            rigidbody.WakeUp();
-            cycle.Eject(rigidbody);
-            cycle.DetachFromJoint();
-            if (cycle._hasVacuumable)
+            case ResourceCycle.State.RIPE:
             {
-                cycle._vacuumable.Pending = false;
+                cycle!.Ripen();
+
+                cycle._vacuumable.enabled = true;
+
+                if (base.gameObject.transform.localScale.x < cycle._defaultScale.x)
+                {
+                    base.gameObject.transform.localScale = cycle._defaultScale;
+                }
+
+                rigidbody.WakeUp();
+                cycle.Eject(rigidbody);
+                cycle.DetachFromJoint();
+
+                TweenUtil.ScaleTo(base.gameObject, cycle._defaultScale, 4f);
+                break;
             }
-        }
-        else if (state == ResourceCycle.State.ROTTEN)
-        {
-            cycle!.Rot();
-            cycle.SetRotten(false);
+            case ResourceCycle.State.EDIBLE:
+            {
+                cycle!.MakeEdible();
+
+                cycle._additionalRipenessDelegate = null;
+                rigidbody.isKinematic = false;
+
+                cycle._vacuumable.enabled = true;
+
+                if (cycle._preparingToRelease)
+                {
+                    cycle._preparingToRelease = false;
+                    cycle._releaseAt = 0f;
+                    cycle.ToShake.localPosition = cycle._toShakeDefaultPos;
+
+                    if (cycle.ReleaseCue != null)
+                    {
+                        var audio = base.GetComponent<SECTR_PointSource>();
+                        audio.Cue = cycle.ReleaseCue;
+                        audio.Play();
+                    }
+                }
+
+                rigidbody.WakeUp();
+                cycle.Eject(rigidbody);
+                cycle.DetachFromJoint();
+                if (cycle._hasVacuumable)
+                {
+                    cycle._vacuumable.Pending = false;
+                }
+                break;
+            }
+            case ResourceCycle.State.ROTTEN:
+            {
+                cycle!.Rot();
+                cycle.SetRotten(false);
+                break;
+            }
         }
 
         cycle!._model.progressTime = progress;

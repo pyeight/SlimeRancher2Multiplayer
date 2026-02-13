@@ -64,7 +64,7 @@ public sealed class Client
 
         try
         {
-            IPAddress parsedIp = IPAddress.Parse(serverIp);
+            var parsedIp = IPAddress.Parse(serverIp);
 
             if (parsedIp.AddressFamily == AddressFamily.InterNetworkV6)
             {
@@ -149,7 +149,7 @@ public sealed class Client
 
         SrLogger.LogMessage("Client ReceiveLoop started!", SrLogTarget.Both);
 
-        IPEndPoint remoteEp = udpClient.Client.AddressFamily switch
+        var remoteEp = udpClient.Client.AddressFamily switch
         {
             AddressFamily.InterNetwork     => new IPEndPoint(IPAddress.Any, 0),
             AddressFamily.InterNetworkV6   => new IPEndPoint(IPAddress.IPv6Any, 0),
@@ -160,7 +160,7 @@ public sealed class Client
         {
             try
             {
-                byte[] data = udpClient.Receive(ref remoteEp);
+                var data = udpClient.Receive(ref remoteEp);
 
                 if (data.Length == 0)
                     continue;
@@ -231,11 +231,11 @@ public sealed class Client
         {
             using var writer = new PacketWriter();
             writer.WritePacket(packet);
-            byte[] data = writer.ToArray(out var trueLength);
+            var data = writer.ToArray(out var trueLength);
 
             SrLogger.LogPacketSize($"Sending {trueLength} bytes to Server...", SrLogTarget.Both);
 
-            PacketReliability reliability = packet.Reliability;
+            var reliability = packet.Reliability;
             ushort sequenceNumber = 0;
 
             // Get sequence number for ordered packets (pass packet type)
@@ -244,7 +244,7 @@ public sealed class Client
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
             }
 
-            var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out ushort packetId);
+            var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
 
             // Track reliability if needed
             if (reliability != PacketReliability.Unreliable)
@@ -268,13 +268,13 @@ public sealed class Client
         }
     }
 
-    // Sends raww data without reliability tracking (used for resends)
+    // Sends raw data without reliability tracking (used for resends)
     private void SendRaw(byte[] data, IPEndPoint endPoint)
     {
         udpClient?.Send(data, data.Length);
     }
 
-    // Handle acknowledgment from server, used in client packet manager
+    // Handle acknowledgement from server, used in client packet manager
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
     {
         reliabilityManager?.HandleAck(sender, packetId, packetType);
@@ -347,15 +347,14 @@ public sealed class Client
             var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
             foreach (var playerId in allPlayerIds)
             {
-                if (playerObjects.TryGetValue(playerId, out var playerObject))
+                if (!playerObjects.TryGetValue(playerId, out var playerObject))
+                    continue;
+                if (playerObject)
                 {
-                    if (playerObject)
-                    {
-                        Object.Destroy(playerObject);
-                        SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
-                    }
-                    playerObjects.Remove(playerId);
+                    Object.Destroy(playerObject);
+                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
                 }
+                playerObjects.Remove(playerId);
             }
 
             playerManager.Clear();

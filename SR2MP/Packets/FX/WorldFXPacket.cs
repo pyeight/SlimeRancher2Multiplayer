@@ -14,7 +14,7 @@ public struct WorldFXPacket : IPacket
         SellPlortDroneSound,
         FavoriteFoodEaten, // Also applies to gordo slimes.
         GordoFoodEaten,
-        GordoFoodEatenSound,
+        GordoFoodEatenSound
         // FabricatorPurchaseGadget,
         // FabricatorPurchaseUpgrade,
     }

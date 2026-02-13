@@ -36,13 +36,11 @@ public sealed class RemotePlayerManager
 
     public bool RemovePlayer(string playerId)
     {
-        if (players.TryRemove(playerId, out _))
-        {
-            SrLogger.LogMessage($"Remote player removed: {playerId}", SrLogTarget.Both);
-            OnPlayerRemoved?.Invoke(playerId);
-            return true;
-        }
-        return false;
+        if (!players.TryRemove(playerId, out _))
+            return false;
+        SrLogger.LogMessage($"Remote player removed: {playerId}", SrLogTarget.Both);
+        OnPlayerRemoved?.Invoke(playerId);
+        return true;
     }
     public static void SendPlayerUpdate(
         Vector3 position,

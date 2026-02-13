@@ -19,7 +19,7 @@ using UnityEngine.UI;
 internal sealed class MLEntrypoint : MelonMod
 {
     private SR2EExpansionV3 expansion;
-    bool isCorrectSR2EInstalled = false;
+    bool isCorrectSR2EInstalled;
     private string installedSR2Ver = string.Empty;
 
     private System.Collections.IEnumerator CheckForMainMenu(int message)
@@ -33,7 +33,7 @@ internal sealed class MLEntrypoint : MelonMod
     void ShowIncompatibilityPopup(int message)
     {
         Time.timeScale = 0;
-        GameObject canvas = new GameObject("SR2EExpansionICV1");
+        var canvas = new GameObject("SR2EExpansionICV1");
         Object.DontDestroyOnLoad(canvas);
         canvas.tag = "Finish";
         var c = canvas.AddComponent<Canvas>();
@@ -103,13 +103,13 @@ internal sealed class MLEntrypoint : MelonMod
         {
             var pillTex = Resources.FindObjectsOfTypeAll<AssetBundle>().FirstOrDefault((x) => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle")!.LoadAsset("Assets/UI/Textures/MenuDemo/whitePillBg.png").Cast<Texture2D>();
             pill = Sprite.Create(pillTex, new Rect(0f, 0f, pillTex.width, pillTex.height), new Vector2(0.5f, 0.5f), 1f);
-        }catch { }
+        } catch { }
         var img = buttonObj.AddComponent<Image>();
         img.color = new Color(0.2f, 0.2f, 0.2f, 1f);
         img.sprite = pill;
         var btn = buttonObj.AddComponent<Button>();
 
-        GameObject textObj = new GameObject("Text");
+        var textObj = new GameObject("Text");
         btn.colors = buttonColorBlock;
         textObj.transform.SetParent(buttonObj.transform, false);
         var tmp = textObj.AddComponent<TextMeshProUGUI>();
@@ -125,55 +125,63 @@ internal sealed class MLEntrypoint : MelonMod
         if (message is 0 or 1)
         {
             AddButton(pill, pr, new Vector2(0.005f, 0.105f), new Vector2(0.3333f, 0.2f),
-                () => Application.OpenURL("https://github.com/ThatFinnDev/SR2E/releases"), "GitHub");
+                "https://github.com/ThatFinnDev/SR2E/releases", "GitHub");
             AddButton(pill, pr, new Vector2(0.34f, 0.105f), new Vector2(0.6596f, 0.2f),
-                () => Application.OpenURL("https://www.nexusmods.com/slimerancher2/mods/60"), "Nexusmods");
+                "https://www.nexusmods.com/slimerancher2/mods/60", "Nexusmods");
             AddButton(pill, pr, new Vector2(0.6666f, 0.105f), new Vector2(0.995f, 0.2f),
-                () => Application.OpenURL("https://sr2e.sr2.dev/downloads"), "SR2E Website");
+                "https://sr2e.sr2.dev/downloads", "SR2E Website");
         }
 
         msgTMP.text = "An error occured with the mod <b>'" + BuildInfo.Name + "'</b>!\n\n";
-        if (message == 0)
+        switch (message)
         {
-            msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                           "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via Nexusmods, GitHub or the SR2E website.";
-            btn.onClick.AddListener((Action)Application.Quit);
-            tmp.text = "Quit";
-        }
-        else if (message == 1)
-        {
-            msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                           $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via Nexusmods, GitHub or the SR2E website.";
-            btn.onClick.AddListener((Action)(() =>
+            case 0:
             {
-                bool fixTime = true;
-                foreach (var obj in GameObject.FindGameObjectsWithTag("Finish"))
-                    if (obj.name.Contains("SR2EExpansionIC") && obj != canvas)
+                msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
+                    "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via Nexusmods, GitHub or the SR2E website.";
+                btn.onClick.AddListener((Action)Application.Quit);
+                tmp.text = "Quit";
+                break;
+            }
+            case 1:
+            {
+                msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
+                    $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via Nexusmods, GitHub or the SR2E website.";
+                btn.onClick.AddListener((Action)(() =>
+                {
+                    var fixTime = true;
+                    foreach (var obj in GameObject.FindGameObjectsWithTag("Finish"))
                     {
+                        if (!obj.name.Contains("SR2EExpansionIC") || obj == canvas)
+                            continue;
                         fixTime = false;
                         break;
                     }
 
-                if (fixTime) Time.timeScale = 1f;
-                Object.Destroy(canvas);
-            }));
-            tmp.text = "Continue without this mod";
-        }
-        else if (message == 2)
-        {
-            var gameVer = Application.version.Split(" ")[0];
-            msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                           $"', you need update the game! A minimum of <b>{BuildInfo.RequiredGameVersion}</b> is required. You have <b>{gameVer}</b>.";
-            btn.onClick.AddListener((Action)(() => Application.Quit()));
-            tmp.text = "Quit";
-        }
-        else if (message == 3)
-        {
-            var gameVer = Application.version.Split(" ")[0];
-            msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                           $"', you need to use a different game version! The game version <b>{BuildInfo.RequiredGameVersion}</b> is required. You have <b>{gameVer}</b>.";
-            btn.onClick.AddListener((Action)(() => Application.Quit()));
-            tmp.text = "Quit";
+                    if (fixTime) Time.timeScale = 1f;
+                    Object.Destroy(canvas);
+                }));
+                tmp.text = "Continue without this mod";
+                break;
+            }
+            case 2:
+            {
+                var gameVer = Application.version.Split(" ")[0];
+                msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
+                    $"', you need update the game! A minimum of <b>{BuildInfo.RequiredGameVersion}</b> is required. You have <b>{gameVer}</b>.";
+                btn.onClick.AddListener((Action)Application.Quit);
+                tmp.text = "Quit";
+                break;
+            }
+            case 3:
+            {
+                var gameVer = Application.version.Split(" ")[0];
+                msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
+                    $"', you need to use a different game version! The game version <b>{BuildInfo.RequiredGameVersion}</b> is required. You have <b>{gameVer}</b>.";
+                btn.onClick.AddListener((Action)Application.Quit);
+                tmp.text = "Quit";
+                break;
+            }
         }
     }
 
@@ -181,19 +189,21 @@ internal sealed class MLEntrypoint : MelonMod
     {
         get
         {
-            var block = new ColorBlock();
-            block.normalColor = new Color(0.149f, 0.7176f, 0.7961f, 1f);
-            block.highlightedColor = new Color(0.1098f, 0.2314f, 0.4157f, 1f);
-            block.pressedColor = new Color(0.1371f, 0.5248f, 0.6792f, 1f);
-            block.selectedColor = new Color(0.8706f, 0.3098f, 0.5216f, 1f);
+            var block = new ColorBlock
+            {
+                normalColor = new Color(0.149f, 0.7176f, 0.7961f, 1f),
+                highlightedColor = new Color(0.1098f, 0.2314f, 0.4157f, 1f),
+                pressedColor = new Color(0.1371f, 0.5248f, 0.6792f, 1f),
+                selectedColor = new Color(0.8706f, 0.3098f, 0.5216f, 1f),
+                colorMultiplier = 1f,
+                fadeDuration = 0.1f
+            };
             block.disabledColor = block.selectedColor;
-            block.colorMultiplier = 1f;
-            block.fadeDuration = 0.1f;
             return block;
         }
     }
 
-    void AddButton(Sprite pill, GameObject pr, Vector2 anchorMin, Vector2 anchorMax, Action action, string text)
+    private static void AddButton(Sprite pill, GameObject pr, Vector2 anchorMin, Vector2 anchorMax, string link, string text)
     {
         var buttonObj = new GameObject("Button");
         buttonObj.transform.SetParent(pr.transform, false);
@@ -209,7 +219,7 @@ internal sealed class MLEntrypoint : MelonMod
         img.sprite = pill;
         var btn = buttonObj.AddComponent<Button>();
 
-        GameObject textObj = new GameObject("Text");
+        var textObj = new GameObject("Text");
         btn.colors = buttonColorBlock;
         textObj.transform.SetParent(buttonObj.transform, false);
 
@@ -224,12 +234,12 @@ internal sealed class MLEntrypoint : MelonMod
         textRT.offsetMin = Vector2.zero;
         textRT.offsetMax = Vector2.zero;
         tmp.text = text;
-        btn.onClick.AddListener(action);
+        btn.onClick.AddListener((Action)(() => Application.OpenURL(link)));
     }
 
     public override void OnInitializeMelon()
     {
-        var gameVer = Application.version.Split(" ")[0];
+        var gameVer = Application.version.Split(' ')[0];
         if (!string.IsNullOrWhiteSpace(BuildInfo.RequiredGameVersion))
         {
             if (!IsSameOrNewer(BuildInfo.RequiredGameVersion, gameVer))
@@ -247,11 +257,12 @@ internal sealed class MLEntrypoint : MelonMod
             }
         }
         foreach (var melonBase in MelonBase.RegisteredMelons)
-            if (melonBase.Info.Name == "SR2E")
-            {
-                isCorrectSR2EInstalled = true;
-                installedSR2Ver = melonBase.Info.Version;
-            }
+        {
+            if (melonBase.Info.Name != "SR2E")
+                continue;
+            isCorrectSR2EInstalled = true;
+            installedSR2Ver = melonBase.Info.Version;
+        }
 
         if (isCorrectSR2EInstalled)
         {
@@ -275,7 +286,7 @@ internal sealed class MLEntrypoint : MelonMod
         Unregister();
     }
 
-    void RegisterBrokenInSR2E(string errorMessage)
+    private void RegisterBrokenInSR2E(string errorMessage)
     {
         var SR2EEntryPoint = Type.GetType("SR2E.SR2EEntryPoint, SR2E");
         if (SR2EEntryPoint == null) return;
@@ -287,22 +298,10 @@ internal sealed class MLEntrypoint : MelonMod
                 { Info.Name, Info.Author, Info.Version, Info.DownloadLink, MelonAssembly.Assembly, errorMessage });
     }
 
-    static bool IsSameOrNewer(string v1, string v2)
+    private static bool IsSameOrNewer(string v1, string v2)
     {
-        bool TryParse(string s, out int[] parts)
-        {
-            parts = null!;
-            var split = s.Split('.');
-            if (split.Length != 3) return false;
-            parts = new int[3];
-            for (int i = 0; i < 3; i++)
-                if (!int.TryParse(split[i], out parts[i]) || parts[i] < 0)
-                    return false;
-            return true;
-        }
-
         if (!TryParse(v1, out var a) || !TryParse(v2, out var b)) return false;
-        for (int i = 0; i < 3; i++)
+        for (var i = 0; i < 3; i++)
         {
             if (b[i] > a[i]) return true;
             if (b[i] < a[i]) return false;
@@ -311,6 +310,17 @@ internal sealed class MLEntrypoint : MelonMod
         return true;
     }
 
+    private static bool TryParse(string s, out int[] parts)
+    {
+        parts = null!;
+        var split = s.Split('.');
+        if (split.Length != 3) return false;
+        parts = new int[3];
+        for (var i = 0; i < 3; i++)
+            if (!int.TryParse(split[i], out parts[i]) || parts[i] < 0)
+                return false;
+        return true;
+    }
     #nullable disable
     void OnSR2EInstalled()
     {
