@@ -8,9 +8,9 @@ namespace SR2MP.Patches.Actor;
 [HarmonyPatch(typeof(SceneContext), nameof(SceneContext.Start))]
 public static class OnGameLoadPatch
 {
-    public static void Postfix() => Main.Server.OnServerStarted += () =>
+    public static void Postfix(SceneContext __instance) => Main.Server.OnServerStarted += () =>
     {
-        foreach (var actor in SceneContext.Instance.GameModel.identifiables)
+        foreach (var actor in __instance.GameModel.identifiables)
         {
             if (actor.value.TryCast<ActorModel>() == null) continue;
 
@@ -27,7 +27,7 @@ public static class OnGameLoadPatch
             actorManager.Actors[actor.value.actorId.Value] = actor.value;
         }
 
-        SceneContext.Instance.GameModel._actorIdProvider._nextActorId =
+        __instance.GameModel._actorIdProvider._nextActorId =
             NetworkActorManager.GetHighestActorIdInRange(0, 10000);
     };
 }
