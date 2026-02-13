@@ -330,7 +330,7 @@ public sealed class PacketWriter : PacketBuffer
         EndPackingBools();
         trueLength = position;
         var result = ArrayPool<byte>.Shared.Rent(position);
-        Array.Copy(buffer, buffer.GetLowerBound(0), result, 0, position);
+        Buffer.BlockCopy(buffer, 0, result, 0, position);
         return result;
     }
 
