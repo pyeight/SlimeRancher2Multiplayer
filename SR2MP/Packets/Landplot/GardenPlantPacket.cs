@@ -13,12 +13,12 @@ public sealed class GardenPlantPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
-        writer.WriteInt(ActorType);
+        writer.WritePackedInt(ActorType);
     }
 
     public void Deserialise(PacketReader reader)
     {
         ID = reader.ReadString();
-        ActorType = reader.ReadInt();
+        ActorType = reader.ReadPackedInt();
     }
 }

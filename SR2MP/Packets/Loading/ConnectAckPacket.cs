@@ -19,8 +19,8 @@ public sealed class ConnectAckPacket : IPacket
         writer.WriteString(PlayerId);
         writer.WriteArray(OtherPlayers, PacketWriterDels.Tuple<string, string>.Func);
 
-        writer.WriteInt(Money);
-        writer.WriteInt(RainbowMoney);
+        writer.WritePackedInt(Money);
+        writer.WritePackedInt(RainbowMoney);
         writer.WriteBool(AllowCheats);
     }
 
@@ -28,8 +28,8 @@ public sealed class ConnectAckPacket : IPacket
     {
         PlayerId = reader.ReadString();
         OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Func);
-        Money = reader.ReadInt();
-        RainbowMoney = reader.ReadInt();
+        Money = reader.ReadPackedInt();
+        RainbowMoney = reader.ReadPackedInt();
         AllowCheats = reader.ReadBool();
     }
 }

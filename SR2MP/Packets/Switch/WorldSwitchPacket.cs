@@ -14,14 +14,14 @@ public sealed class WorldSwitchPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
-        writer.WriteEnum(State);
+        writer.WritePackedEnum(State);
         writer.WriteBool(Immediate);
     }
 
     public void Deserialise(PacketReader reader)
     {
         ID = reader.ReadString();
-        State = reader.ReadEnum<SwitchHandler.State>();
+        State = reader.ReadPackedEnum<SwitchHandler.State>();
         Immediate = reader.ReadBool();
     }
 }

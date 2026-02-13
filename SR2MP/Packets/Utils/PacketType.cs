@@ -25,7 +25,6 @@ public enum PacketType : byte
     ActorSpawn = 20,              // Both Ways                                    High (can be manual)                  On Actor Spawn
     ActorUpdate = 21,             // Both Ways                                    Very High                             On Actor Update
     ActorTransfer = 22,           // Both Ways                                    High (can be manual)                  On Actor Transfer
-    ActorUnload = 37,             // Both Ways                                    High                                  On Actor unloaded
     InitialActors = 23,           // Server -> Client                             Low                                   Actors on Load
     LandPlotUpdate = 24,          // Both Ways                                    Low (manual)                          Land plot updates (upgrade or set)
     InitialPlots = 25,            // Server -> Client                             Low                                   Plots on Load
@@ -40,6 +39,7 @@ public enum PacketType : byte
     InitialGordos = 34,           // Server -> Client                             Low (depends on join)                 Gordos on Load
     InitialSwitches = 35,         // Server -> Client                             Low (depends on join)                 Switches on Load
     SwitchActivate = 36,          // Both Ways                                    Low                                   On Switch Activated
+    ActorUnload = 37,             // Both Ways                                    High                                  On Actor unloaded
     GeyserTrigger = 38,           // Both Ways                                    High                                  On Geyser Fired
     MapUnlock = 39,               // Both Ways                                    Low                                   On Geyser Fired
     InitialMapEntries = 40,       // Server -> Client                             Low (depends on join)                 Map on Load
@@ -53,5 +53,5 @@ public enum PacketType : byte
     RefineryUpdate = 48,          // Both Ways                                    Middle (can be manual)                On Refinery Change
     InitialRefinery = 49,         // Server -> Client                             Low (depends on join)                 Refinery items on join
     ReservedAck = 254,            // Both Ways                                    Very High                             For ACK packets
-    ReservedDoNotUse = 255,       // Not Used                                     Unused                                For packet compression    
+    ReservedDoNotUse = 255,       // Not Used                                     Unused                                For packet compression
 }

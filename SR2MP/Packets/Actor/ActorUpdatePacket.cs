@@ -7,13 +7,13 @@ namespace SR2MP.Packets.Actor;
 public struct ActorUpdatePacket : IPacket
 {
     public ActorId ActorId { get; set; }
+    public double ResourceProgress { get; set; }
+
     public Quaternion Rotation { get; set; }
+    public float4 Emotions { get; set; }
     public Vector3 Position { get; set; }
     public Vector3 Velocity { get; set; }
-    
-    public float4 Emotions { get; set; }
 
-    public double ResourceProgress { get; set; }
     public ResourceCycle.State ResourceState { get; set; }
 
     public readonly PacketType Type => PacketType.ActorUpdate;
@@ -27,7 +27,7 @@ public struct ActorUpdatePacket : IPacket
         writer.WriteVector3(Velocity);
         writer.WriteFloat4(Emotions);
         writer.WriteDouble(ResourceProgress);
-        writer.WriteEnum<ResourceCycle.State>(ResourceState);
+        writer.WriteEnum(ResourceState);
     }
 
     public void Deserialise(PacketReader reader)

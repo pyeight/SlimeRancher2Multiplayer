@@ -18,9 +18,9 @@ public sealed class LandPlotUpdatePacket : IPacket
         writer.WriteBool(IsUpgrade);
 
         if (!IsUpgrade)
-            writer.WriteEnum(PlotType);
+            writer.WritePackedEnum(PlotType);
         else
-            writer.WriteEnum(PlotUpgrade);
+            writer.WritePackedEnum(PlotUpgrade);
     }
 
     public void Deserialise(PacketReader reader)
@@ -29,8 +29,8 @@ public sealed class LandPlotUpdatePacket : IPacket
         IsUpgrade = reader.ReadBool();
 
         if (!IsUpgrade)
-            PlotType = reader.ReadEnum<LandPlot.Id>();
+            PlotType = reader.ReadPackedEnum<LandPlot.Id>();
         else
-            PlotUpgrade = reader.ReadEnum<LandPlot.Upgrade>();
+            PlotUpgrade = reader.ReadPackedEnum<LandPlot.Upgrade>();
     }
 }

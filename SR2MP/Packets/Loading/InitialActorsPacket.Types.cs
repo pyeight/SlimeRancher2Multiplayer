@@ -28,10 +28,10 @@ public sealed partial class InitialActorsPacket
 
     private static Dictionary<ActorType, Type> actorTypes = new(ActorTypeComparer.Instance)
     {
-        { ActorType.Basic, typeof(ActorBase)},
-        { ActorType.Slime, typeof(Slime)},
-        { ActorType.Plort, typeof(Plort)},
-        { ActorType.Resource, typeof(Resource)},
+        { ActorType.Basic, typeof(ActorBase) },
+        { ActorType.Slime, typeof(Slime) },
+        { ActorType.Plort, typeof(Plort) },
+        { ActorType.Resource, typeof(Resource) },
     };
 
     public class ActorBase : INetObject
@@ -49,9 +49,9 @@ public sealed partial class InitialActorsPacket
             writer.WriteEnum(Type);
             writer.WriteVector3(Position);
             writer.WriteQuaternion(Rotation);
-            writer.WriteLong(ActorId);
-            writer.WriteInt(ActorTypeId);
-            writer.WriteInt(Scene);
+            writer.WritePackedLong(ActorId);
+            writer.WritePackedInt(ActorTypeId);
+            writer.WritePackedInt(Scene);
         }
 
         public virtual void Deserialise(PacketReader reader)
@@ -59,9 +59,9 @@ public sealed partial class InitialActorsPacket
             // Type is already deserialised here
             Position = reader.ReadVector3();
             Rotation = reader.ReadQuaternion();
-            ActorId = reader.ReadLong();
-            ActorTypeId = reader.ReadInt();
-            Scene = reader.ReadInt();
+            ActorId = reader.ReadPackedLong();
+            ActorTypeId = reader.ReadPackedInt();
+            Scene = reader.ReadPackedInt();
         }
     }
 
@@ -112,14 +112,14 @@ public sealed partial class InitialActorsPacket
         {
             base.Serialise(writer);
             writer.WriteDouble(ProgressTime);
-            writer.WriteEnum(ResourceState);
+            writer.WritePackedEnum(ResourceState);
         }
 
         public override void Deserialise(PacketReader reader)
         {
             base.Deserialise(reader);
             ProgressTime = reader.ReadDouble();
-            ResourceState = reader.ReadEnum<ResourceCycle.State>();
+            ResourceState = reader.ReadPackedEnum<ResourceCycle.State>();
         }
     }
 

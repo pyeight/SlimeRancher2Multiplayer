@@ -14,12 +14,12 @@ public sealed class AccessDoorPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
-        writer.WriteEnum(State);
+        writer.WritePackedEnum(State);
     }
 
     public void Deserialise(PacketReader reader)
     {
         ID = reader.ReadString();
-        State = reader.ReadEnum<AccessDoor.State>();
+        State = reader.ReadPackedEnum<AccessDoor.State>();
     }
 }

@@ -26,14 +26,14 @@ public sealed partial class InitialActorsPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteUInt(StartingActorID);
+        writer.WritePackedUInt(StartingActorID);
         writer.WriteDouble(WorldTime);
         writer.WriteList(Actors, PacketWriterDels.NetObject<ActorBase>.Func);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        StartingActorID = reader.ReadUInt();
+        StartingActorID = reader.ReadPackedUInt();
         WorldTime = reader.ReadDouble();
         Actors = reader.ReadList(readFunction);
     }

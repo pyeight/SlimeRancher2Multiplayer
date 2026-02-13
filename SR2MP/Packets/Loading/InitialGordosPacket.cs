@@ -11,15 +11,14 @@ public sealed class InitialGordosPacket : IPacket
         public int RequiredEatCount { get; set; }
         public int GordoType { get; set; }
         public bool WasSeen { get; set; }
-
         // public bool Popped { get; set; }
 
         public void Serialise(PacketWriter writer)
         {
             writer.WriteString(Id);
-            writer.WriteInt(EatenCount);
-            writer.WriteInt(RequiredEatCount);
-            writer.WriteInt(GordoType);
+            writer.WritePackedInt(EatenCount);
+            writer.WritePackedInt(RequiredEatCount);
+            writer.WritePackedInt(GordoType);
             writer.WriteBool(WasSeen);
             // writer.WriteBool(Popped);
         }
@@ -27,9 +26,9 @@ public sealed class InitialGordosPacket : IPacket
         public void Deserialise(PacketReader reader)
         {
             Id = reader.ReadString();
-            EatenCount = reader.ReadInt();
-            RequiredEatCount = reader.ReadInt();
-            GordoType = reader.ReadInt();
+            EatenCount = reader.ReadPackedInt();
+            RequiredEatCount = reader.ReadPackedInt();
+            GordoType = reader.ReadPackedInt();
             WasSeen = reader.ReadBool();
             // Popped = reader.ReadBool();
         }

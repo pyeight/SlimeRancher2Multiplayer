@@ -21,8 +21,8 @@ public sealed class InitialLandPlotsPacket : IPacket
         public void Serialise(PacketWriter writer)
         {
             writer.WriteString(ID);
-            writer.WriteEnum(Type);
-            writer.WriteCppSet(Upgrades, PacketWriterDels.Enum<LandPlot.Upgrade>.Func);
+            writer.WritePackedEnum(Type);
+            writer.WriteCppSet(Upgrades, PacketWriterDels.PackedEnum<LandPlot.Upgrade>.Func);
 
             Data?.Serialise(writer);
         }
@@ -30,8 +30,8 @@ public sealed class InitialLandPlotsPacket : IPacket
         public void Deserialise(PacketReader reader)
         {
             ID = reader.ReadString();
-            Type = reader.ReadEnum<LandPlot.Id>();
-            Upgrades = reader.ReadCppSet(PacketReaderDels.Enum<LandPlot.Upgrade>.Func);
+            Type = reader.ReadPackedEnum<LandPlot.Id>();
+            Upgrades = reader.ReadCppSet(PacketReaderDels.PackedEnum<LandPlot.Upgrade>.Func);
 
             if (!DataTypes.TryGetValue(Type, out var dataType))
                 return;

@@ -17,16 +17,16 @@ public sealed class GordoFeedPacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
-        writer.WriteInt(NewFoodCount);
-        writer.WriteInt(RequiredFoodCount);
-        writer.WriteInt(GordoType);
+        writer.WritePackedInt(NewFoodCount);
+        writer.WritePackedInt(RequiredFoodCount);
+        writer.WritePackedInt(GordoType);
     }
 
     public void Deserialise(PacketReader reader)
     {
         ID = reader.ReadString();
-        NewFoodCount = reader.ReadInt();
-        RequiredFoodCount = reader.ReadInt();
-        GordoType = reader.ReadInt();
+        NewFoodCount = reader.ReadPackedInt();
+        RequiredFoodCount = reader.ReadPackedInt();
+        GordoType = reader.ReadPackedInt();
     }
 }
