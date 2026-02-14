@@ -10,13 +10,15 @@ using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
+using SR2MP.Client;
+using SR2MP.Server;
 
 namespace SR2MP;
 
 public sealed class Main : SR2EExpansionV3
 {
-    public static Client.Client Client { get; private set; }
-    public static Server.Server Server { get; private set; }
+    public static SR2MPClient Client { get; private set; }
+    public static SR2MPServer Server { get; private set; }
 
     public static readonly Assembly Core = typeof(Main).Assembly;
 
@@ -53,8 +55,8 @@ public sealed class Main : SR2EExpansionV3
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
             display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode)");
 
-        Client = new Client.Client();
-        Server = new Server.Server();
+        Client = new SR2MPClient();
+        Server = new SR2MPServer();
     }
 
     public override void OnInitializeMelon()

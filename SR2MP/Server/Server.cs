@@ -10,10 +10,11 @@ using System.Buffers;
 
 namespace SR2MP.Server;
 
-public sealed class Server
+public sealed class SR2MPServer
 {
-    private readonly NetworkManager networkManager;
-    private readonly ClientManager clientManager;
+    public readonly NetworkManager networkManager;
+    public readonly ClientManager clientManager;
+
     private readonly PacketManager packetManager;
 
     private Timer? timeoutTimer;
@@ -23,7 +24,7 @@ public sealed class Server
 
     public event Action? OnServerStarted;
 
-    public Server()
+    public SR2MPServer()
     {
         networkManager = new NetworkManager();
         clientManager = new ClientManager();
@@ -176,9 +177,8 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        var data = writer.ToArray(out var trueLength);
-        networkManager.Send(data, trueLength, endPoint, packet.Reliability);
-        ArrayPool<byte>.Shared.Return(data);
+        var data = writer.ToSpan();
+        networkManager.Send(data, endPoint, packet.Reliability);
     }
 
     public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
@@ -190,33 +190,30 @@ public sealed class Server
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        var data = writer.ToArray(out var trueLength);
+        var data = writer.ToSpan();
 
         var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, trueLength, endpoints, packet.Reliability);
-        ArrayPool<byte>.Shared.Return(data);
+        networkManager.Broadcast(data, endpoints, packet.Reliability);
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
     {
         using var writer = new PacketWriter();
         writer.WritePacket(packet);
-        var data = writer.ToArray(out var trueLength);
+        var data = writer.ToSpan();
 
         foreach (var client in clientManager.GetAllClients())
         {
             if (client.GetClientInfo() != excludedClientInfo)
             {
-                networkManager.Send(data, trueLength, client.EndPoint, packet.Reliability);
+                networkManager.Send(data, client.EndPoint, packet.Reliability);
             }
         }
-
-        ArrayPool<byte>.Shared.Return(data);
     }
 
-    public void SendToAllExcept<T>(T packet, IPEndPoint excludeEndPoint) where T : IPacket
+    public void SendToAllExcept<T>(T packet, IPEndPoint? excludeEndPoint) where T : IPacket
     {
-        var clientInfo = $"{excludeEndPoint.Address}:{excludeEndPoint.Port}";
+        var clientInfo = $"{excludeEndPoint?.Address}:{excludeEndPoint?.Port}";
         SendToAllExcept(packet, clientInfo);
     }
 

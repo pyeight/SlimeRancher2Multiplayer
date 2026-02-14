@@ -30,11 +30,11 @@ public sealed class PacketManager
         foreach (var type in handlerTypes)
         {
             var attribute = type.GetCustomAttribute<PacketHandlerAttribute>();
-            if (attribute == null) continue;
+            if (attribute == null || attribute.HandlerType == HandlerType.Client) continue;
 
             try
             {
-                if (Activator.CreateInstance(type, networkManager, clientManager) is IServerPacketHandler handler)
+                if (Activator.CreateInstance(type, true) is IServerPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
                     SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
@@ -147,8 +147,7 @@ public sealed class PacketManager
         writer.WritePacket(ackPacket);
 
         // no need to acknowledge ACK packets
-        var data = writer.ToArray(out var trueLength);
-        networkManager.Send(data, trueLength, clientEp, PacketReliability.Unreliable);
-        ArrayPool<byte>.Shared.Return(data);
+        var data = writer.ToSpan();
+        networkManager.Send(data, clientEp, PacketReliability.Unreliable);
     }
 }

@@ -11,7 +11,7 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketWriter : PacketBuffer
 {
-    public PacketWriter() : base(256, 0) {}
+    public PacketWriter(int startingCapacity = 256) : base(startingCapacity, 0) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int bytesToAdd)
@@ -325,13 +325,14 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public byte[] ToArray(out int trueLength)
+    public void WriteSpan(ReadOnlySpan<byte> data)
     {
-        EndPackingBools();
-        trueLength = position;
-        var result = ArrayPool<byte>.Shared.Rent(position);
-        Buffer.BlockCopy(buffer, 0, result, 0, position);
-        return result;
+        if (data.IsEmpty)
+            return;
+
+        EnsureCapacity(data.Length);
+        data.CopyTo(buffer.AsSpan(position));
+        position += data.Length;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -373,6 +374,13 @@ public sealed class PacketWriter : PacketBuffer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedEnum<T>(T value) where T : struct, Enum => PacketWriterDels.PackedEnum<T>.Func(this, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ReadOnlySpan<byte> ToSpan()
+    {
+        EndPackingBools();
+        return buffer.AsSpan(0, position);
+    }
 }
 
 /// <summary>

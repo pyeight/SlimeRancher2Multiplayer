@@ -98,7 +98,7 @@ public sealed class NetworkManager
         SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
     }
 
-    public void Send(byte[] data, int trueLength, IPEndPoint endPoint, PacketReliability? reliability = null)
+    public void Send(ReadOnlySpan<byte> data, IPEndPoint endPoint, PacketReliability? reliability = null)
     {
         if (udpClient == null || !isRunning)
         {
@@ -135,7 +135,7 @@ public sealed class NetworkManager
     }
 
     // Broadcast to multiple endpoints efficiently
-    public void Broadcast(byte[] data, int trueLength, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
+    public void Broadcast(ReadOnlySpan<byte> data, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
     {
         if (udpClient == null || !isRunning)
         {

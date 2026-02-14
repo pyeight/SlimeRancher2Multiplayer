@@ -8,7 +8,7 @@ namespace SR2MP;
 
 public sealed class HostCommand : SR2ECommand
 {
-    private static Server.Server? server;
+    private static Server.SR2MPServer? server;
 
     public override string ID => "host";
     public override string Usage => "host <port>";

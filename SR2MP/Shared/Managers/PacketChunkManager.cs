@@ -116,7 +116,7 @@ public static class PacketChunkManager
         return true;
     }
 
-    internal static byte[][] SplitPacket(byte[] data, PacketReliability reliability,// int trueLength,
+    internal static byte[][] SplitPacket(ReadOnlySpan<byte> data, PacketReliability reliability,
         ushort sequenceNumber, out ushort packetId)
     {
         var packetType = data[0];
@@ -136,11 +136,11 @@ public static class PacketChunkManager
         // Compress if threshold is reached
         if (data.Length > CompressionThreshold)
         {
-            var compressed = Compress(data);
-            if (compressed.Length < data.Length * 0.9f)
-            {
-                data = compressed;
-            }
+            using var writer = new PacketWriter();
+            Compress(data, writer);
+
+            if (writer.Position < data.Length * 0.9f)
+                data = writer.ToSpan();
         }
 
         var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
@@ -176,7 +176,7 @@ public static class PacketChunkManager
             buffer[8] = (byte)(sequenceNumber & All8Bits);
             buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
 
-            Buffer.BlockCopy(data, offset, buffer, 10, chunkSize);
+            data.Slice(offset, chunkSize).CopyTo(buffer.AsSpan(10));
             result[index] = buffer;
         }
 
@@ -199,19 +199,15 @@ public static class PacketChunkManager
         }
     }
 
-    private static byte[] Compress(byte[] data)//, int trueLength)
+    private static void Compress(ReadOnlySpan<byte> data, PacketWriter targetWriter)
     {
-        using var output = new MemoryStream();
-        // (byte)PacketType.ReservedDoNotUse instead of 0xFF so shows as used in PacketType.cs
-        output.WriteByte((byte)PacketType.ReservedCompression);
-        output.WriteByte(data[0]);
+        using var writer = new PacketWriter();
+        targetWriter.WriteByte((byte)PacketType.ReservedCompression);
+        targetWriter.WriteByte(data[0]);
 
-        using (var gzip = new GZipStream(output, CompressionLevel.Fastest))
-        {
-            gzip.Write(data, 1, data.Length - 1);
-        }
-
-        return output.ToArray();
+        using var output = new PacketStream(targetWriter);
+        using var gzip = new GZipStream(output, CompressionLevel.Fastest);
+        gzip.Write(data[1..]);
     }
 
     private static byte[] Decompress(byte[] data)

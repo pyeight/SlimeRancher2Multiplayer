@@ -10,10 +10,10 @@ namespace SR2MP.Client.Managers;
 public sealed class ClientPacketManager
 {
     private readonly Dictionary<byte, IClientPacketHandler> handlers = new();
-    private readonly Client client;
+    private readonly SR2MPClient client;
     private readonly RemotePlayerManager playerManager;
 
-    public ClientPacketManager(Client client, RemotePlayerManager playerManager)
+    public ClientPacketManager(SR2MPClient client, RemotePlayerManager playerManager)
     {
         this.client = client;
         this.playerManager = playerManager;
@@ -29,11 +29,11 @@ public sealed class ClientPacketManager
         foreach (var type in handlerTypes)
         {
             var attribute = type.GetCustomAttribute<PacketHandlerAttribute>();
-            if (attribute == null) continue;
+            if (attribute == null || attribute.HandlerType == HandlerType.Server) continue;
 
             try
             {
-                if (Activator.CreateInstance(type, client, playerManager) is IClientPacketHandler handler)
+                if (Activator.CreateInstance(type, false) is IClientPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
                     SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);

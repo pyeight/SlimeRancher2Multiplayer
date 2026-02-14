@@ -11,13 +11,15 @@ public abstract class PacketBuffer : IDisposable
     protected int position = 0;
     protected bool disposed;
 
+    public int Position => position;
+
     protected PacketBuffer(int initialCapacity, int startingIndex)
     {
         buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
         currentBitIndex = startingIndex;
     }
 
-    public int Position => position;
+    public byte this[int index] => !disposed ? buffer[index] : throw new ObjectDisposedException(nameof(PacketBuffer));
 
     public void Dispose()
     {

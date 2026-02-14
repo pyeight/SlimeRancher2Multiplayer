@@ -17,7 +17,7 @@ public sealed class PacketReader : PacketBuffer
     public PacketReader(byte[] data) : base(data.Length, 8)
     {
         DataSize = data.Length;
-        data.CopyTo(buffer, 0);
+        data.AsSpan().CopyTo(buffer);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

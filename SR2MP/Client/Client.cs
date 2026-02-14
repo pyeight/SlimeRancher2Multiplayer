@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Client.Managers;
@@ -13,7 +12,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Client;
 
-public sealed class Client
+public sealed class SR2MPClient
 {
     private UdpClient? udpClient;
     private IPEndPoint? serverEndPoint;
@@ -39,7 +38,7 @@ public sealed class Client
     public event Action<string>? OnPlayerLeft;
     public event Action<string, RemotePlayer>? OnPlayerUpdate;
 
-    public Client()
+    public SR2MPClient()
     {
         packetManager = new ClientPacketManager(this, playerManager);
 
@@ -231,9 +230,9 @@ public sealed class Client
         {
             using var writer = new PacketWriter();
             writer.WritePacket(packet);
-            var data = writer.ToArray(out var trueLength);
+            var data = writer.ToSpan();
 
-            SrLogger.LogPacketSize($"Sending {trueLength} bytes to Server...", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
 
             var reliability = packet.Reliability;
             ushort sequenceNumber = 0;
@@ -257,10 +256,8 @@ public sealed class Client
                 SendRaw(chunk, serverEndPoint);
             }
 
-            SrLogger.LogPacketSize($"Sent {trueLength} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
                 SrLogTarget.Both);
-
-            ArrayPool<byte>.Shared.Return(data);
         }
         catch (Exception ex)
         {
