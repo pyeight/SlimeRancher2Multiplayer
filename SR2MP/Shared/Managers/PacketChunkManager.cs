@@ -136,7 +136,7 @@ public static class PacketChunkManager
         // Compress if threshold is reached
         if (data.Length > CompressionThreshold)
         {
-            using var writer = new PacketWriter();
+            using var writer = new PacketWriter(data.Length);
             Compress(data, writer);
 
             if (writer.Position < data.Length * 0.9f)
