@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.GordoSlime;
 [PacketHandler((byte)PacketType.GordoBurst)]
 public sealed class GordoSlimeBurstHandler : BasePacketHandler<GordoBurstPacket>
 {
-    public GordoSlimeBurstHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(GordoBurstPacket packet, IPEndPoint? _)
     {
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))

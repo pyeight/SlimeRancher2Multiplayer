@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.Player;
 [PacketHandler((byte)PacketType.InitialPlayerUpgrades, HandlerType.Client)]
 public sealed class PlayerUpgradesLoadHandler : BasePacketHandler<InitialUpgradesPacket>
 {
-    public PlayerUpgradesLoadHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(InitialUpgradesPacket packet, IPEndPoint? _)
     {
         var upgradesList = GameContext.Instance.LookupDirector._upgradeDefinitions;

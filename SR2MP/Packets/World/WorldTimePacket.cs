@@ -4,10 +4,12 @@ namespace SR2MP.Packets.World;
 
 public struct WorldTimePacket : IPacket
 {
-    public double Time;
+    public double Time = 0;
 
-    public PacketType Type { get; init; }
+    public PacketType Type { get; set; } = PacketType.FastForward;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+
+    public WorldTimePacket() { }
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteDouble(Time);
 

@@ -7,16 +7,11 @@ namespace SR2MP.Shared.Handlers.LandPlots;
 
 public abstract class LandPlotUpdateHandler<T> : BasePacketHandler<T> where T : LandPlotUpdatePacket, new()
 {
-    protected LandPlotUpdateHandler(bool isServerSide)
-        : base(isServerSide) { }
 }
 
 [PacketHandler((byte)PacketType.LandPlotUpgrade)]
 public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgradePacket>
 {
-    public LandPlotUpgradeHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(LandPlotUpgradePacket packet, IPEndPoint? _)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
@@ -38,9 +33,6 @@ public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgra
 [PacketHandler((byte)PacketType.NewLandPlot)]
 public sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
 {
-    public NewLandPlotHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(NewLandPlotPacket packet, IPEndPoint? _)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];

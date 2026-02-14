@@ -38,7 +38,6 @@ public sealed class PlayerUpdatePacket : IPacket
 
         writer.WritePackedBool(Moving);
         writer.WritePackedBool(Sprinting);
-        writer.EndPackingBools();
     }
 
     public void Deserialise(PacketReader reader)
@@ -59,6 +58,5 @@ public sealed class PlayerUpdatePacket : IPacket
 
         Moving = reader.ReadPackedBool();
         Sprinting = reader.ReadPackedBool();
-        reader.EndPackingBools();
     }
 }

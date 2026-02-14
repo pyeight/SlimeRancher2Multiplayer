@@ -9,9 +9,6 @@ namespace SR2MP.Shared.Handlers.Player;
 
 public abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 {
-    protected BasePlayerLeaveHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected void RemovePlayerData(string playerId)
     {
         playerManager.RemovePlayer(playerId);
@@ -32,9 +29,6 @@ public abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePack
 [PacketHandler((byte)PacketType.BroadcastPlayerLeave, HandlerType.Client)]
 public sealed class ClientPlayerLeaveHandler : BasePlayerLeaveHandler
 {
-    public ClientPlayerLeaveHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(PlayerLeavePacket packet, IPEndPoint? _)
     {
         if (playerManager.GetPlayer(packet.PlayerId) == null)
@@ -51,9 +45,6 @@ public sealed class ClientPlayerLeaveHandler : BasePlayerLeaveHandler
 [PacketHandler((byte)PacketType.PlayerLeave, HandlerType.Server)]
 public sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
 {
-    public ServerPlayerLeaveHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(PlayerLeavePacket packet, IPEndPoint? clientEp)
     {
         var playerId = packet.PlayerId;

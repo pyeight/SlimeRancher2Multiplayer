@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.LandPlots;
 [PacketHandler((byte)PacketType.InitialPlots, HandlerType.Client)]
 public sealed class InitialPlotsHandler : BasePacketHandler<InitialLandPlotsPacket>
 {
-    public InitialPlotsHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(InitialLandPlotsPacket packet, IPEndPoint? _)
     {
         foreach (var plot in packet.Plots)
@@ -48,7 +45,7 @@ public sealed class InitialPlotsHandler : BasePacketHandler<InitialLandPlotsPack
                     var actor = actorManager.ActorTypes[garden.Crop];
                     model.resourceGrowerDefinition =
                         GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation
-                           .RawLookupDictionary._entries.FirstOrDefault(x =>
+                            .RawLookupDictionary._entries.FirstOrDefault(x =>
                                 x.value._primaryResourceType == actor)!.value;
 
                     if (!model.gameObj)

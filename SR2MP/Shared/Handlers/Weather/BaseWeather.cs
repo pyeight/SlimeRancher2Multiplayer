@@ -10,8 +10,7 @@ public abstract class BaseWeatherHandler : BasePacketHandler<WeatherPacket>
 {
     private readonly bool _immediate;
 
-    protected BaseWeatherHandler(bool isServerSide, bool immediate)
-        : base(isServerSide) => _immediate = immediate;
+    protected BaseWeatherHandler(bool immediate) => _immediate = immediate;
 
     protected override sealed bool Handle(WeatherPacket packet, IPEndPoint? _)
     {

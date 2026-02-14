@@ -10,8 +10,6 @@ namespace SR2MP.Shared.Handlers.Access;
 [PacketHandler((byte)PacketType.InitialAccessDoors, HandlerType.Client)]
 public sealed class InitialAccessDoorsHandler : BasePacketHandler<InitialAccessDoorsPacket>
 {
-    public InitialAccessDoorsHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(InitialAccessDoorsPacket packet, IPEndPoint? _)
     {
         var gameModel = SceneContext.Instance.GameModel;

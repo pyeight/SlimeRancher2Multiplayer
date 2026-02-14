@@ -1,6 +1,6 @@
 namespace SR2MP.Packets.Utils;
 
-public interface IClientPacketHandler
+public interface IClientPacketHandler : IPacketHandler
 {
     void Handle(byte[] data);
 }

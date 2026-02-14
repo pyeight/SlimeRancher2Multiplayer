@@ -10,9 +10,6 @@ namespace SR2MP.Shared.Handlers.Player;
 
 public abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 {
-    protected BasePlayerJoinHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected static void InstantiatePlayer(PlayerJoinPacket packet)
     {
         var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
@@ -28,9 +25,6 @@ public abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket
 [PacketHandler((byte)PacketType.BroadcastPlayerJoin, HandlerType.Client)]
 public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
 {
-    public ClientPlayerJoinHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? _)
     {
         if (playerManager.GetPlayer(packet.PlayerId) != null)
@@ -54,9 +48,6 @@ public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
 [PacketHandler((byte)PacketType.PlayerJoin, HandlerType.Server)]
 public sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
 {
-    public ServerPlayerJoinHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? clientEp)
     {
         if (playerManager.GetPlayer(packet.PlayerId) != null)

@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.Currency;
 [PacketHandler((byte)PacketType.CurrencyAdjust)]
 public sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
 {
-    public CurrencyHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(CurrencyPacket packet, IPEndPoint? _)
     {
         var currency = GameContext.Instance.LookupDirector._currencyList._currencies[packet.CurrencyType - 1];

@@ -10,8 +10,6 @@ namespace SR2MP.Shared.Handlers.Actor;
 [PacketHandler((byte)PacketType.ActorUpdate)]
 public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 {
-    public ActorUpdateHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ActorUpdatePacket packet, IPEndPoint? _)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))

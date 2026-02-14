@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.GordoSlime;
 [PacketHandler((byte)PacketType.InitialGordos, HandlerType.Client)]
 public sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordosPacket>
 {
-    public InitialGordoSlimeLoadHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(InitialGordosPacket packet, IPEndPoint? _)
     {
         var gameModel = SceneContext.Instance.GameModel;

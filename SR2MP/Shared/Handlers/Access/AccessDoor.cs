@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.Access;
 [PacketHandler((byte)PacketType.AccessDoor)]
 public sealed class AccessDoorHandler : BasePacketHandler<AccessDoorPacket>
 {
-    public AccessDoorHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(AccessDoorPacket packet, IPEndPoint? _)
     {
         var model = SceneContext.Instance.GameModel.doors[packet.ID];

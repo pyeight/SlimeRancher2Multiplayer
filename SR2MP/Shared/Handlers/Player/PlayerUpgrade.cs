@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.Player;
 [PacketHandler((byte)PacketType.PlayerUpgrade)]
 public sealed class PlayerUpgradeHandler : BasePacketHandler<PlayerUpgradePacket>
 {
-    public PlayerUpgradeHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(PlayerUpgradePacket packet, IPEndPoint? _)
     {
         var model = SceneContext.Instance.PlayerState._model.upgradeModel;

@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.FX;
 [PacketHandler((byte)PacketType.PlayerFX)]
 public sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 {
-    public PlayerFXHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(PlayerFXPacket packet, IPEndPoint? _)
     {
         handlingPacket = true;

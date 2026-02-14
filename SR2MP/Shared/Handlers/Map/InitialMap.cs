@@ -9,9 +9,6 @@ namespace SR2MP.Shared.Handlers.Map;
 [PacketHandler((byte)PacketType.InitialMapEntries, HandlerType.Client)]
 public sealed class InitialMapLoadHandler : BasePacketHandler<InitialMapPacket>
 {
-    public InitialMapLoadHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(InitialMapPacket packet, IPEndPoint? _)
     {
         var eventModel = SceneContext.Instance.eventDirector._model;

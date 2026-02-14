@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.Refinery;
 [PacketHandler((byte)PacketType.RefineryUpdate)]
 public sealed class RefineryUpdateHandler : BasePacketHandler<RefineryUpdatePacket>
 {
-    public RefineryUpdateHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(RefineryUpdatePacket packet, IPEndPoint? _)
     {
         if (!actorManager.ActorTypes.TryGetValue(packet.ItemID, out var identType))

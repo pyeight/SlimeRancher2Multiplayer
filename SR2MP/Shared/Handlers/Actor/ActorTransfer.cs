@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.Actor;
 [PacketHandler((byte)PacketType.ActorTransfer)]
 public sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket>
 {
-    public ActorTransferHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ActorTransferPacket packet, IPEndPoint? _)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))

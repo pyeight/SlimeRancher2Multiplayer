@@ -10,8 +10,6 @@ namespace SR2MP.Shared.Handlers.Access;
 [PacketHandler((byte)PacketType.InitialSwitches, HandlerType.Client)]
 public sealed class InitialSwitchesHandler : BasePacketHandler<InitialSwitchesPacket>
 {
-    public InitialSwitchesHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(InitialSwitchesPacket packet, IPEndPoint? _)
     {
         var gameModel = SceneContext.Instance.GameModel;

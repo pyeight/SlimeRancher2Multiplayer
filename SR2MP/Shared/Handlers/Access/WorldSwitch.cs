@@ -10,8 +10,6 @@ namespace SR2MP.Shared.Handlers.Access;
 [PacketHandler((byte)PacketType.SwitchActivate)]
 public sealed class WorldSwitchHandler : BasePacketHandler<WorldSwitchPacket>
 {
-    public WorldSwitchHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(WorldSwitchPacket packet, IPEndPoint? _)
     {
         var gameModel = SceneContext.Instance.GameModel;

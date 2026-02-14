@@ -8,8 +8,6 @@ namespace SR2MP.Shared.Handlers.Currency;
 [PacketHandler((byte)PacketType.MarketPriceChange, HandlerType.Client)]
 public sealed class MarketPriceHandler : BasePacketHandler<MarketPricePacket>
 {
-    public MarketPriceHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(MarketPricePacket packet, IPEndPoint? _)
     {
         var economy = SceneContext.Instance.PlortEconomyDirector;

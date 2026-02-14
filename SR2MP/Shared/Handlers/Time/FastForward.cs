@@ -5,42 +5,14 @@ using System.Net;
 
 namespace SR2MP.Shared.Handlers.Time;
 
-public abstract class BaseFastForwardHandler : BasePacketHandler<WorldTimePacket>
+[PacketHandler((byte)PacketType.FastForward)]
+public sealed class BaseFastForwardHandler : BasePacketHandler<WorldTimePacket>
 {
-    protected BaseFastForwardHandler(bool isServerSide)
-        : base(isServerSide) { }
-
-    protected static void HandleTime(double time)
-    {
-        handlingPacket = true;
-        SceneContext.Instance.TimeDirector.FastForwardTo(time);
-        handlingPacket = false;
-    }
-}
-
-[PacketHandler((byte)PacketType.BroadcastFastForward, HandlerType.Client)]
-public sealed class ClientFastForwardHandler : BaseFastForwardHandler
-{
-    public ClientFastForwardHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(WorldTimePacket packet, IPEndPoint? _)
     {
-        HandleTime(packet.Time);
+        handlingPacket = true;
+        SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);
+        handlingPacket = false;
         return true;
-    }
-}
-
-[PacketHandler((byte)PacketType.FastForward, HandlerType.Server)]
-public sealed class ServerFastForwardHandler : BaseFastForwardHandler
-{
-    public ServerFastForwardHandler(bool isServerSide)
-        : base(isServerSide) { }
-
-    protected override bool Handle(WorldTimePacket packet, IPEndPoint? clientEp)
-    {
-        HandleTime(packet.Time);
-        PacketSender.SendPacket(packet with { Type = PacketType.BroadcastFastForward }, clientEp);
-        return false;
     }
 }

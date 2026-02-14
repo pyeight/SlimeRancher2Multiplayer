@@ -8,8 +8,6 @@ namespace SR2MP.Shared.Handlers.Internal;
 [PacketHandler((byte)PacketType.ChatMessage)]
 public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
 {
-    public ChatMessageHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ChatMessagePacket packet, IPEndPoint? clientEp)
     {
         if (IsServerSide)

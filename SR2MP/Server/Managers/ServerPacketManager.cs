@@ -7,13 +7,13 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server.Managers;
 
-public sealed class PacketManager
+public sealed class ServerPacketManager
 {
     private readonly Dictionary<byte, IServerPacketHandler> handlers = new();
     private readonly NetworkManager networkManager;
     private readonly ClientManager clientManager;
 
-    public PacketManager(NetworkManager networkManager, ClientManager clientManager)
+    public ServerPacketManager(NetworkManager networkManager, ClientManager clientManager)
     {
         this.networkManager = networkManager;
         this.clientManager = clientManager;
@@ -33,9 +33,10 @@ public sealed class PacketManager
 
             try
             {
-                if (Activator.CreateInstance(type, new[] { true }) is IServerPacketHandler handler)
+                if (Activator.CreateInstance(type) is IServerPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
+                    handler.IsServerSide = true;
                     SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
                 }
             }

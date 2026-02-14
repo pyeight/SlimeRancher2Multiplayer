@@ -10,8 +10,6 @@ namespace SR2MP.Shared.Handlers.Actor;
 [PacketHandler((byte)PacketType.ActorSpawn)]
 public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
 {
-    public ActorSpawnHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ActorSpawnPacket packet, IPEndPoint? _)
     {
         if (actorManager.Actors.ContainsKey(packet.ActorId.Value))

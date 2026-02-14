@@ -8,8 +8,6 @@ namespace SR2MP.Shared.Handlers.Geyser;
 [PacketHandler((byte)PacketType.GeyserTrigger)]
 public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket>
 {
-    public GeyserTriggerHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(GeyserTriggerPacket packet, IPEndPoint? _)
     {
         var geyserObject = GameObject.Find(packet.ObjectPath);

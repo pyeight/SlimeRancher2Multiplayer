@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.LandPlots;
 [PacketHandler((byte)PacketType.ResourceAttach)]
 public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAttachPacket>
 {
-    public GardenResourceAttachHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(ResourceAttachPacket packet, IPEndPoint? _)
     {
         if (packet.PlotID.Length < 1)

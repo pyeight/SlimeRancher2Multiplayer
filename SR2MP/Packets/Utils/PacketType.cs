@@ -17,7 +17,7 @@ public enum PacketType : byte
     HeartbeatAck = 12,            // Server -> Client                             Low (depends on heartbeat)            Automatically time the Clients out if the Server crashes
     WorldTime = 13,               // Server -> All Clients                        Very High (depends on join too)       Updates Time
     FastForward = 14,             // Client -> Server                             Middle (can be manual)                On Sleep & Death
-    BroadcastFastForward = 15,    // Server -> All Clients                        Middle (depends on forward/death)     On Sleep & Death on other clients
+    Unused = 15,                  //
     PlayerFX = 16,                // Both Ways                                    Middle (manual)                       On Player FX
     MovementSound = 17,           // Both Ways                                    Middle (manual)                       On Movement SoundPlay
     CurrencyAdjust = 18,          // Both Ways                                    High (can be manual)                  On Plort sell

@@ -298,7 +298,7 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadNetObject<T>() where T : INetObject, new()
     {
-        var result = new T();
+        var result = PacketReaderDels.NetObjectFactory<T>.Func();
         result.Deserialise(this);
         return result;
     }
@@ -514,4 +514,16 @@ public static class PacketReaderDels
     private static MethodInfo Method(string name) =>
         typeof(PacketReader).GetMethod(name, BindingFlags.Instance | BindingFlags.Public)
         ?? throw new MissingMethodException($"PacketReader missing method: {name}");
+
+    public static class NetObjectFactory<T> where T : INetObject, new()
+    {
+        public static readonly Func<T> Func = CreateFactory();
+
+        private static Func<T> CreateFactory()
+        {
+            var newExp = Expression.New(typeof(T));
+            var lambda = Expression.Lambda<Func<T>>(newExp);
+            return lambda.Compile();
+        }
+    }
 }

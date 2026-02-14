@@ -16,8 +16,6 @@ namespace SR2MP.Shared.Handlers.Internal;
 [PacketHandler((byte)PacketType.Connect, HandlerType.Server)]
 public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 {
-    public ConnectHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ConnectPacket packet, IPEndPoint? clientEp)
     {
         if (clientEp == null)

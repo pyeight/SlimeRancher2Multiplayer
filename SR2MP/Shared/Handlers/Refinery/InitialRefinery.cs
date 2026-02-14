@@ -10,9 +10,6 @@ namespace SR2MP.Shared.Handlers.Refinery;
 [PacketHandler((byte)PacketType.InitialRefinery, HandlerType.Client)]
 public sealed class InitialRefineryHandler : BasePacketHandler<InitialRefineryPacket>
 {
-    public InitialRefineryHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(InitialRefineryPacket packet, IPEndPoint? _)
     {
         MelonCoroutines.Start(InitializeRefinery(packet));

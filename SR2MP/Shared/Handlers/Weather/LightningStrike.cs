@@ -9,9 +9,6 @@ namespace SR2MP.Shared.Handlers.Weather;
 [PacketHandler((byte)PacketType.LightningStrike)]
 public sealed class LightningStrikeHandler : BasePacketHandler<LightningStrikePacket>
 {
-    public LightningStrikeHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(LightningStrikePacket packet, IPEndPoint? _)
     {
         var lightning = Object.Instantiate(NetworkWeatherManager.Lightning.gameObject);

@@ -19,8 +19,6 @@ public sealed class PacketWriter : PacketBuffer
         if (disposed)
             throw new ObjectDisposedException(nameof(PacketWriter));
 
-        EndPackingBools();
-
         if (position + bytesToAdd > buffer.Length)
             ResizeBuffer(bytesToAdd);
     }
@@ -36,6 +34,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteByte(byte value)
     {
+        EndPackingBools();
         EnsureCapacity(1);
         buffer[position++] = value;
     }
@@ -52,6 +51,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUShort(ushort value)
     {
+        EndPackingBools();
         EnsureCapacity(2);
         BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(position), value);
         position += 2;
@@ -63,6 +63,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUInt(uint value)
     {
+        EndPackingBools();
         EnsureCapacity(4);
         BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(position), value);
         position += 4;
@@ -74,6 +75,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteULong(ulong value)
     {
+        EndPackingBools();
         EnsureCapacity(8);
         BinaryPrimitives.WriteUInt64LittleEndian(buffer.AsSpan(position), value);
         position += 8;
@@ -82,6 +84,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat(float value)
     {
+        EndPackingBools();
         EnsureCapacity(4);
         BinaryPrimitives.WriteSingleLittleEndian(buffer.AsSpan(position), value);
         position += 4;
@@ -90,6 +93,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteDouble(double value)
     {
+        EndPackingBools();
         EnsureCapacity(8);
         BinaryPrimitives.WriteDoubleLittleEndian(buffer.AsSpan(position), value);
         position += 8;
@@ -98,6 +102,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector2(Vector2 value)
     {
+        EndPackingBools();
         EnsureCapacity(8);
 
         var span = buffer.AsSpan(position);
@@ -110,6 +115,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector3(Vector3 value)
     {
+        EndPackingBools();
         EnsureCapacity(12);
 
         var span = buffer.AsSpan(position);
@@ -123,6 +129,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteQuaternion(Quaternion value)
     {
+        EndPackingBools();
         EnsureCapacity(16);
 
         var span = buffer.AsSpan(position);
@@ -137,6 +144,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat4(float4 value)
     {
+        EndPackingBools();
         EnsureCapacity(16);
 
         var span = buffer.AsSpan(position);
@@ -166,6 +174,7 @@ public sealed class PacketWriter : PacketBuffer
 
     public void WritePackedUInt(uint value)
     {
+        EndPackingBools();
         EnsureCapacity(5);
 
         while (value >= 0x80)
@@ -182,6 +191,7 @@ public sealed class PacketWriter : PacketBuffer
 
     public void WritePackedULong(ulong value)
     {
+        EndPackingBools();
         EnsureCapacity(10);
 
         while (value >= 0x80)
@@ -200,6 +210,8 @@ public sealed class PacketWriter : PacketBuffer
             WriteUShort(0);
             return;
         }
+
+        EndPackingBools();
 
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
         EnsureCapacity(2 + maxByteCount);
@@ -310,7 +322,7 @@ public sealed class PacketWriter : PacketBuffer
             ResetPackingBools();
     }
 
-    public void EndPackingBools()
+    private void EndPackingBools()
     {
         if (currentBitIndex > 0)
             ResetPackingBools();
@@ -318,9 +330,10 @@ public sealed class PacketWriter : PacketBuffer
 
     private void ResetPackingBools()
     {
-        currentBitIndex = 0;
-        WriteByte(currentPackedByte);
+        EnsureCapacity(1);
+        buffer[position++] = currentPackedByte;
         currentPackedByte = 0;
+        currentBitIndex = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -353,6 +366,7 @@ public sealed class PacketWriter : PacketBuffer
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
 
+        EndPackingBools();
         EnsureCapacity(count);
         position += count;
     }

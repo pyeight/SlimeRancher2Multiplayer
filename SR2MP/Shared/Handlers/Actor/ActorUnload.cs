@@ -8,8 +8,6 @@ namespace SR2MP.Shared.Handlers.Actor;
 [PacketHandler((byte)PacketType.ActorUnload)]
 public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
 {
-    public ActorUnloadHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ActorUnloadPacket packet, IPEndPoint? _)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))

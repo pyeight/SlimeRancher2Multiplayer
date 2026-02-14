@@ -6,10 +6,7 @@ namespace SR2MP.Shared.Handlers.Internal;
 
 public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : IPacket, new()
 {
-    protected readonly bool IsServerSide;
-
-    protected BasePacketHandler(bool isServerSide)
-        => IsServerSide = isServerSide;
+    public bool IsServerSide { protected get; set; }
 
     public void Handle(byte[] data)
     {

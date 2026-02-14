@@ -10,9 +10,6 @@ namespace SR2MP.Shared.Handlers.Map;
 [PacketHandler((byte)PacketType.MapUnlock)]
 public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
 {
-    public MapUnlockHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(MapUnlockPacket packet, IPEndPoint? _)
     {
         var gameEvent = Resources.FindObjectsOfTypeAll<StaticGameEvent>().FirstOrDefault(x => x._dataKey == packet.NodeID);

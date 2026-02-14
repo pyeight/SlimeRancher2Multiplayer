@@ -40,7 +40,7 @@ public sealed class SR2MPClient
 
     public SR2MPClient()
     {
-        packetManager = new ClientPacketManager(this, playerManager);
+        packetManager = new ClientPacketManager(this);
 
         playerManager.OnPlayerAdded += playerId => OnPlayerJoined?.Invoke(playerId);
         playerManager.OnPlayerRemoved += playerId => OnPlayerLeft?.Invoke(playerId);

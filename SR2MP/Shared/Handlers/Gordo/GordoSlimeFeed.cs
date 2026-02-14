@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.GordoSlime;
 [PacketHandler((byte)PacketType.GordoFeed)]
 public sealed class GordoSlimeFeedHandler : BasePacketHandler<GordoFeedPacket>
 {
-    public GordoSlimeFeedHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(GordoFeedPacket packet, IPEndPoint? _)
     {
         if (SceneContext.Instance.GameModel.gordos.TryGetValue(packet.ID, out var gordo))

@@ -10,8 +10,6 @@ namespace SR2MP.Shared.Handlers.Actor;
 [PacketHandler((byte)PacketType.InitialActors, HandlerType.Client)]
 public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
 {
-    public ActorsLoadHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(InitialActorsPacket packet, IPEndPoint? _)
     {
         actorManager.Actors.Clear();

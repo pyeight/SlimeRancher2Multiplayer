@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.SlimePedia;
 [PacketHandler((byte)PacketType.PediaUnlock)]
 public sealed class SlimePediaUnlockHandler : BasePacketHandler<PediaUnlockPacket>
 {
-    public SlimePediaUnlockHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(PediaUnlockPacket packet, IPEndPoint? _)
     {
         handlingPacket = true;

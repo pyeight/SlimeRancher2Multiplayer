@@ -11,12 +11,10 @@ public sealed class ClientPacketManager
 {
     private readonly Dictionary<byte, IClientPacketHandler> handlers = new();
     private readonly SR2MPClient client;
-    private readonly RemotePlayerManager playerManager;
 
-    public ClientPacketManager(SR2MPClient client, RemotePlayerManager playerManager)
+    public ClientPacketManager(SR2MPClient client)
     {
         this.client = client;
-        this.playerManager = playerManager;
     }
 
     public void RegisterHandlers()
@@ -33,9 +31,10 @@ public sealed class ClientPacketManager
 
             try
             {
-                if (Activator.CreateInstance(type, new[] { false }) is IClientPacketHandler handler)
+                if (Activator.CreateInstance(type) is IClientPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
+                    handler.IsServerSide = false;
                     SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
                 }
             }

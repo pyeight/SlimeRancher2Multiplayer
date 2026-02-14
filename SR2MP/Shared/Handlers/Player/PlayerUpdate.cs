@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.Player;
 [PacketHandler((byte)PacketType.PlayerUpdate)]
 public sealed class PlayerUpdateHandler : BasePacketHandler<PlayerUpdatePacket>
 {
-    public PlayerUpdateHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(PlayerUpdatePacket packet, IPEndPoint? clientEp)
     {
         if (IsServerSide)

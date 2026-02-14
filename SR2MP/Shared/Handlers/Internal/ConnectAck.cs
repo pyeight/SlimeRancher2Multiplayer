@@ -11,8 +11,6 @@ namespace SR2MP.Shared.Handlers.Internal;
 [PacketHandler((byte)PacketType.ConnectAck, HandlerType.Client)]
 public sealed class ConnectAckHandler : BasePacketHandler<ConnectAckPacket>
 {
-    public ConnectAckHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ConnectAckPacket packet, IPEndPoint? _)
     {
         var joinPacket = new PlayerJoinPacket

@@ -11,9 +11,6 @@ namespace SR2MP.Shared.Handlers.SlimePedia;
 [PacketHandler((byte)PacketType.InitialPediaEntries, HandlerType.Client)]
 public sealed class InitialSlimePediaLoadHandler : BasePacketHandler<InitialPediaPacket>
 {
-    public InitialSlimePediaLoadHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(InitialPediaPacket packet, IPEndPoint? _)
     {
         var unlocked = packet.Entries.ConvertAll(entry =>

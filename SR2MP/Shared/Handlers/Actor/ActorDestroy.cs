@@ -8,8 +8,6 @@ namespace SR2MP.Shared.Handlers.Actor;
 [PacketHandler((byte)PacketType.ActorDestroy)]
 public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
 {
-    public ActorDestroyHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(ActorDestroyPacket packet, IPEndPoint? _)
     {
         if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))

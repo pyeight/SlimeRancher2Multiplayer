@@ -14,7 +14,7 @@ public sealed class SR2MPServer
     public readonly NetworkManager networkManager;
     public readonly ClientManager clientManager;
 
-    private readonly PacketManager packetManager;
+    private readonly ServerPacketManager packetManager;
 
     private Timer? timeoutTimer;
 
@@ -27,7 +27,7 @@ public sealed class SR2MPServer
     {
         networkManager = new NetworkManager();
         clientManager = new ClientManager();
-        packetManager = new PacketManager(networkManager, clientManager);
+        packetManager = new ServerPacketManager(networkManager, clientManager);
 
         networkManager.OnDataReceived += OnDataReceived;
         clientManager.OnClientRemoved += OnClientRemoved;

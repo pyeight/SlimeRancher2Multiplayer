@@ -9,8 +9,6 @@ namespace SR2MP.Shared.Handlers.FX;
 [PacketHandler((byte)PacketType.WorldFX)]
 public sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
 {
-    public WorldFXHandler(bool isServerSide) : base(isServerSide) { }
-
     protected override bool Handle(WorldFXPacket packet, IPEndPoint? _)
     {
         if (!IsWorldSoundDictionary[packet.FX])

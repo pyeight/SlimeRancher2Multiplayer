@@ -8,9 +8,6 @@ namespace SR2MP.Shared.Handlers.LandPlots;
 [PacketHandler((byte)PacketType.GardenPlant)]
 public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
 {
-    public GardenPlantHandler(bool isServerSide)
-        : base(isServerSide) { }
-
     protected override bool Handle(GardenPlantPacket packet, IPEndPoint? _)
     {
         var model = SceneContext.Instance.GameModel.landPlots[packet.ID];
