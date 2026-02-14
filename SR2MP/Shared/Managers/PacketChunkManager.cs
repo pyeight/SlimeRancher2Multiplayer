@@ -201,7 +201,7 @@ public static class PacketChunkManager
 
     private static void Compress(ReadOnlySpan<byte> data, PacketWriter targetWriter)
     {
-        using var writer = new PacketWriter();
+        // (byte)PacketType.ReservedCompression instead of 0xFF so shows as used in PacketType.cs
         targetWriter.WriteByte((byte)PacketType.ReservedCompression);
         targetWriter.WriteByte(data[0]);
 
