@@ -33,7 +33,7 @@ public sealed class PacketManager
 
             try
             {
-                if (Activator.CreateInstance(type, true) is IServerPacketHandler handler)
+                if (Activator.CreateInstance(type, new[] { true }) is IServerPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
                     SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);

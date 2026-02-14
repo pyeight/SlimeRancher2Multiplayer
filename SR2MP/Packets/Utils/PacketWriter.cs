@@ -27,9 +27,8 @@ public sealed class PacketWriter : PacketBuffer
 
     private void ResizeBuffer(int bytesToAdd)
     {
-        var newSize = Math.Max(buffer.Length * 2, position + bytesToAdd);
-        var newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
-        Buffer.BlockCopy(buffer, 0, newBuffer, 0, position);
+        var newBuffer = ArrayPool<byte>.Shared.Rent(position + bytesToAdd);
+        buffer.AsSpan(0, position).CopyTo(newBuffer);
         ArrayPool<byte>.Shared.Return(buffer);
         buffer = newBuffer;
     }

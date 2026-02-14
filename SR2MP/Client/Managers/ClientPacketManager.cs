@@ -33,7 +33,7 @@ public sealed class ClientPacketManager
 
             try
             {
-                if (Activator.CreateInstance(type, false) is IClientPacketHandler handler)
+                if (Activator.CreateInstance(type, new[] { false }) is IClientPacketHandler handler)
                 {
                     handlers[attribute.PacketType] = handler;
                     SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
