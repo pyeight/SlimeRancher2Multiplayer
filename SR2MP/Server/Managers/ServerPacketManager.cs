@@ -65,7 +65,8 @@ public sealed class ServerPacketManager
         var sequenceNumber = (ushort)(data[8] | (data[9] << 8));
 
         var chunkData = new byte[data.Length - 10];
-        Buffer.BlockCopy(data, 10, chunkData, 0, chunkData.Length);
+        data.AsSpan(10, chunkData.Length).CopyTo(chunkData);
+        // Buffer.BlockCopy(data, 10, chunkData, 0, chunkData.Length);
         // Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
 
         var senderKey = clientEp.ToString();
@@ -83,7 +84,7 @@ public sealed class ServerPacketManager
             var ackPacket = new AckPacket();
             using (var reader = new PacketReader(data))
             {
-                reader.Skip(1);
+                reader.MoveForward(1);
                 ackPacket.Deserialise(reader);
             }
 

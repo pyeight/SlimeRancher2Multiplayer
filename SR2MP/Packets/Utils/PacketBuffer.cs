@@ -1,25 +1,45 @@
-using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace SR2MP.Packets.Utils;
 
 public abstract class PacketBuffer : IDisposable
 {
     protected byte[] buffer;
+
     protected byte currentPackedByte;
     protected int currentBitIndex;
 
     protected int position = 0;
     protected bool disposed;
 
+    private int startingIndex;
+
     public int Position => position;
 
-    protected PacketBuffer(int initialCapacity, int startingIndex)
+    public BufferType BufferType { get; }
+
+    public abstract int DataSize { get; }
+
+    protected PacketBuffer(byte[] data, int starting, BufferType type)
     {
-        buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
-        currentBitIndex = startingIndex;
+        buffer = data;
+        startingIndex = currentBitIndex = starting;
+        BufferType = type;
     }
 
-    public byte this[int index] => !disposed ? buffer[index] : throw new ObjectDisposedException(nameof(PacketBuffer));
+    public byte this[int index] => !disposed
+        ? buffer[index]
+        : throw new ObjectDisposedException(nameof(PacketBuffer));
+
+    protected virtual void OnDispose() { }
+
+    protected abstract void EnsureBounds(int count);
+
+    public abstract void MoveForward(int count);
+
+    public abstract void MoveBack(int count);
+
+    public abstract void EndPackingBools();
 
     public void Dispose()
     {
@@ -27,10 +47,36 @@ public abstract class PacketBuffer : IDisposable
             return;
 
         disposed = true;
-
-        ArrayPool<byte>.Shared.Return(buffer);
+        OnDispose();
         buffer = null!;
-
         GC.SuppressFinalize(this);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Clear()
+    {
+        position = 0;
+        currentBitIndex = startingIndex;
+        currentPackedByte = 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetCursor(long pos)
+    {
+        if (pos is > int.MaxValue or < 0)
+            throw new ArgumentOutOfRangeException(nameof(pos), "Position must be non negative and within int32 bounds.");
+
+        var delta = (int)pos - Position;
+
+        if (delta > 0)
+            MoveForward(delta);
+        else if (delta < 0)
+            MoveBack(-delta);
+    }
+}
+
+public enum BufferType : byte
+{
+    Writer,
+    Reader
 }

@@ -12,13 +12,9 @@ public sealed class PacketReader : PacketBuffer
 {
     private int BytesRemaining => DataSize - position;
 
-    private int DataSize { get; }
+    public override int DataSize => buffer.Length;
 
-    public PacketReader(byte[] data) : base(data.Length, 8)
-    {
-        DataSize = data.Length;
-        data.AsSpan().CopyTo(buffer);
-    }
+    public PacketReader(byte[] data) : base(data, 8, BufferType.Reader) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureReadable(int bytesToRead)
@@ -323,11 +319,28 @@ public sealed class PacketReader : PacketBuffer
         return value;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void EndPackingBools() => currentBitIndex = 8;
+    public override void EndPackingBools() => currentBitIndex = 8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Skip(int count)
+    private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Func(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadToSpan(Span<byte> destination)
+    {
+        EnsureReadable(destination.Length);
+        buffer.AsSpan(position, destination.Length).CopyTo(destination);
+        position += destination.Length;
+    }
+
+    protected override void EnsureBounds(int count) => EnsureReadable(count);
+
+    public override void MoveForward(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
@@ -336,8 +349,7 @@ public sealed class PacketReader : PacketBuffer
         position += count;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Return(int count)
+    public override void MoveBack(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
@@ -348,15 +360,6 @@ public sealed class PacketReader : PacketBuffer
         EndPackingBools();
         position -= count;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Func(this);
 }
 
 /// <summary>

@@ -11,7 +11,10 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketWriter : PacketBuffer
 {
-    public PacketWriter(int startingCapacity = 256) : base(startingCapacity, 0) { }
+    public override int DataSize => position;
+
+    public PacketWriter(int startingCapacity = 256)
+        : base(ArrayPool<byte>.Shared.Rent(startingCapacity), 0, BufferType.Writer) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int bytesToAdd)
@@ -25,7 +28,8 @@ public sealed class PacketWriter : PacketBuffer
 
     private void ResizeBuffer(int bytesToAdd)
     {
-        var newBuffer = ArrayPool<byte>.Shared.Rent(position + bytesToAdd);
+        var newSize = Math.Max(position + bytesToAdd, buffer.Length * 2);
+        var newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
         buffer.AsSpan(0, position).CopyTo(newBuffer);
         ArrayPool<byte>.Shared.Return(buffer);
         buffer = newBuffer;
@@ -322,12 +326,13 @@ public sealed class PacketWriter : PacketBuffer
             ResetPackingBools();
     }
 
-    private void EndPackingBools()
+    public override void EndPackingBools()
     {
         if (currentBitIndex > 0)
             ResetPackingBools();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ResetPackingBools()
     {
         EnsureCapacity(1);
@@ -360,19 +365,18 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteStruct<T>(T value) where T : struct => PacketWriterDels.Struct<T>.Writer(this, value);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void AddGap(int count)
+    public override void MoveForward(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
 
         EndPackingBools();
         EnsureCapacity(count);
+        buffer.AsSpan(position, count).Clear();
         position += count;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void MoveBack(int count)
+    public override void MoveBack(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
@@ -394,6 +398,10 @@ public sealed class PacketWriter : PacketBuffer
         EndPackingBools();
         return buffer.AsSpan(0, position);
     }
+
+    protected override void OnDispose() => ArrayPool<byte>.Shared.Return(buffer);
+
+    protected override void EnsureBounds(int count) => EnsureCapacity(count);
 }
 
 /// <summary>
