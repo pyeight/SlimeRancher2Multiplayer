@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
+using System.Collections;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;
@@ -9,15 +10,21 @@ namespace SR2MP.Server.Managers;
 public static class WeatherUpdateHelper
 {
     private static bool lookupInitialized;
+    private static bool isInitializing;
     private static readonly Dictionary<string, WeatherPatternDefinition> WeatherPatternsFromStateNames = new();
     private static readonly Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> WeatherPatternsByZone = new();
 
-    public static void CreateWeatherPatternLookup(WeatherRegistry registry)
+    public static IEnumerator CreateWeatherPatternLookup(WeatherRegistry registry)
     {
+        isInitializing = true;
+        
+        yield return new WaitFrames(3);
+        
         if (registry == null)
         {
             SrLogger.LogError("WeatherRegistry is null in CreateWeatherPatternLookup", SrLogTarget.Both);
-            return;
+            isInitializing = false;
+            yield break;
         }
 
         try
@@ -28,7 +35,8 @@ public static class WeatherUpdateHelper
             if (registry.ZoneConfigList == null)
             {
                 SrLogger.LogError("WeatherRegistry.ZoneConfigList is null", SrLogTarget.Both);
-                return;
+                isInitializing = false;
+                yield break;
             }
 
             foreach (var config in registry.ZoneConfigList)
@@ -73,11 +81,15 @@ public static class WeatherUpdateHelper
             SrLogger.LogError($"Error in CreateWeatherPatternLookup: {ex}", SrLogTarget.Both);
             lookupInitialized = false;
         }
+        finally
+        {
+            isInitializing = false;
+        }
     }
 
     public static void EnsureLookupInitialized()
     {
-        if (lookupInitialized)
+        if (lookupInitialized || isInitializing)
             return;
 
         try
@@ -90,7 +102,7 @@ public static class WeatherUpdateHelper
                 return;
             }
 
-            CreateWeatherPatternLookup(registry);
+            MelonCoroutines.Start(CreateWeatherPatternLookup(registry));
         }
         catch (Exception ex)
         {
