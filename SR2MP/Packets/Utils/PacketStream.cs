@@ -24,7 +24,7 @@ public sealed class PacketStream<T> : Stream where T : PacketBuffer
         var current = origin switch
         {
             SeekOrigin.Begin => 0,
-            SeekOrigin.End => Length - 1,
+            SeekOrigin.End => Length,
             _ => Position
         };
         return Position = current + offset;
