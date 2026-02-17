@@ -20,6 +20,9 @@ public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
 
         actorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor);
 
+        if (actor == null)
+            return true;
+        
         if (actor!.TryCast<SlimeModel>(out var slime))
             slime.Emotions = packet.Emotions;
 

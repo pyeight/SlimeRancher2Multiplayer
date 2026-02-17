@@ -62,7 +62,9 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
+        
         var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
         networkComponent.nextPosition = position;
         networkComponent.previousRotation = rotation;
@@ -146,7 +148,9 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
+        
         var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
         networkComponent.nextPosition = position;
         networkComponent.previousRotation = rotation;
@@ -215,7 +219,9 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
+        
         var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
         networkComponent.nextPosition = position;
         networkComponent.previousRotation = rotation;
@@ -276,9 +282,6 @@ public sealed partial class NetworkActorManager
 
         plortModel.destroyTime = destroyTime;
 
-        // plortModel._invulnerability.IsInvulnerable = invulnerable;
-        // plortModel._invulnerability.InvulnerabilityPeriod = invulnerablePeriod;
-
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
         {
@@ -297,7 +300,9 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
+        
         var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
         networkComponent.nextPosition = position;
         networkComponent.previousRotation = rotation;
@@ -368,8 +373,6 @@ public sealed partial class NetworkActorManager
         }
 
         produceModel.destroyTime = destroyTime;
-        //produceModel.state = state;
-        //produceModel.progressTime = progress;
 
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -389,7 +392,9 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
+        
         var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
         networkComponent.nextPosition = position;
         networkComponent.previousRotation = rotation;

@@ -30,8 +30,6 @@ public static class OnActorSpawn
         };
 
         Main.SendToAllOrServer(packet);
-
-        actorManager.Actors[id.Value] = actor.GetComponent<IdentifiableActor>()._model;
     }
 
     public static void Postfix(
@@ -40,10 +38,15 @@ public static class OnActorSpawn
         SceneGroup sceneGroup)
     {
         if (handlingPacket) return;
-        __result.AddComponent<NetworkActor>().LocallyOwned = true;
+
+        var networkActor = __result.AddComponent<NetworkActor>();
+        networkActor.LocallyOwned = true;
 
         var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
         var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
+        
+        actorManager.Actors[__result.GetComponent<IdentifiableActor>()._model.actorId.Value] =
+            __result.GetComponent<IdentifiableActor>()._model;
 
         MelonCoroutines.Start(SpawnOverNetwork(actorType, (byte)sceneGroupId, __result));
     }

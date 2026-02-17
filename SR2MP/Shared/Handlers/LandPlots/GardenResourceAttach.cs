@@ -8,6 +8,7 @@ namespace SR2MP.Shared.Handlers.LandPlots;
 [PacketHandler((byte)PacketType.ResourceAttach)]
 public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAttachPacket>
 {
+    private ResourceCycle resourceCycle;
     protected override bool Handle(ResourceAttachPacket packet, IPEndPoint? _)
     {
         if (packet.PlotID.Length < 1)
@@ -42,7 +43,8 @@ public sealed class GardenResourceAttachHandler : BasePacketHandler<ResourceAtta
                             Destroyer.DestroyActor(model.GetGameObject(), "SR2MP.GardenResourceAttachHandler#1");
                         return false;
                     }
-                    model.GetGameObject()?.GetComponent<ResourceCycle>().Attach(joint);
+                    model.GetGameObject()?.TryGetComponent(out resourceCycle);
+                    resourceCycle.Attach(joint);
                 }
             }
         }

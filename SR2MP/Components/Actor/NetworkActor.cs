@@ -124,9 +124,9 @@ public sealed class NetworkActor : MonoBehaviour
                 return;
             }
             
-            isSlime = TryGetComponent<SlimeModel>(out slimeModel);
-            isResource = TryGetComponent<ProduceModel>(out produceModel);
-            isPlort = TryGetComponent<PlortModel>(out plortModel);
+            isSlime = TryGetComponent(out slimeModel);
+            isResource = TryGetComponent(out produceModel);
+            isPlort = TryGetComponent(out plortModel);
 
             emotions = GetComponent<SlimeEmotions>();
             cachedLocallyOwned = LocallyOwned;
