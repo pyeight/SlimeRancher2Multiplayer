@@ -122,7 +122,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class Plort  : Destroyable
+    public sealed class Plort : Destroyable
     {
         public bool Invulnerable;
         public float InvulnerablePeriod;

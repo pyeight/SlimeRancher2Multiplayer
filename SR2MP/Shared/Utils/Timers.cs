@@ -8,14 +8,12 @@ public static class Timers
     private static float playerSyncTimer = 0.125f;
     private static float weatherSyncTimer = 4.5f;
     private static float playerInventorySyncTimer = 5f;
-    private static float planterSyncTimer = 2.5f;
 
     public static float WeatherTimer => weatherSyncTimer;
     public static float ActorTimer => actorSyncTimer;
     public static float PlayerTimer => playerSyncTimer;
     public static float TimeSyncTimer => timeSyncTimer;
     public static float PlayerInventoryTimer => playerInventorySyncTimer;
-    public static float PlanterTimer => planterSyncTimer;
 
     public enum SyncTimerType : byte
     {
@@ -23,8 +21,7 @@ public static class Timers
         ACTOR,
         PLAYER_INVENTORY,
         WORLD_WEATHER,
-        WORLD_TIME,
-        WORLD_PLANTER
+        WORLD_TIME
     }
 
     internal static void SetTimer(SyncTimerType timerType, float value)
@@ -45,9 +42,6 @@ public static class Timers
                 return;
             case SyncTimerType.PLAYER_INVENTORY:
                 playerInventorySyncTimer = value;
-                return;
-            case SyncTimerType.WORLD_PLANTER:
-                planterSyncTimer = value;
                 return;
         }
     }

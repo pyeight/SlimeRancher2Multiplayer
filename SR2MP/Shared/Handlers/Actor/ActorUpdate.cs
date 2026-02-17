@@ -21,13 +21,9 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
         actor.lastRotation = packet.Rotation;
 
         var slime = actor.TryCast<SlimeModel>();
-
-        if (slime != null)
-            slime.Emotions = packet.Emotions;
-
         var resource = actor.TryCast<ProduceModel>();
 
-        if (resource != null)
+        if (packet.UpdateType == ActorUpdateType.Resource && resource != null)
         {
             resource.state = packet.ResourceState;
             resource.progressTime = packet.ResourceProgress;
@@ -35,10 +31,8 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
             return false;
-
-        networkComponent.SavedVelocity = packet.Velocity;
-        networkComponent.nextPosition = packet.Position;
-        networkComponent.nextRotation = packet.Rotation;
+        
+        networkComponent.OnNetworkUpdate(packet);
 
         if (networkComponent.regionMember?._hibernating == true)
         {
@@ -46,10 +40,10 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
             networkComponent.transform.rotation = packet.Rotation;
         }
 
-        if (slime != null)
+        if (packet.UpdateType == ActorUpdateType.Slime && slime != null)
             networkComponent.GetComponent<SlimeEmotions>().SetAll(packet.Emotions);
 
-        if (resource != null)
+        if (packet.UpdateType == ActorUpdateType.Resource && resource != null)
             networkComponent.SetResourceState(packet.ResourceState, packet.ResourceProgress);
 
         return true;

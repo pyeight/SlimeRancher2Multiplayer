@@ -7,16 +7,16 @@ namespace SR2MP.Components.World;
 [RegisterTypeInIl2Cpp(false)]
 public sealed class NetworkWeather : MonoBehaviour
 {
-    private float sendTimer;
+    private float updateTimer;
 
     private void Update()
     {
-        sendTimer += UnityEngine.Time.deltaTime;
+        updateTimer += UnityEngine.Time.deltaTime;
 
-        if (sendTimer < Timers.WeatherTimer)
+        if (updateTimer < Timers.WeatherTimer)
             return;
 
-        sendTimer = 0;
+        updateTimer = 0;
 
         WeatherUpdateHelper.EnsureLookupInitialized();
         WeatherUpdateHelper.SendWeatherUpdate();

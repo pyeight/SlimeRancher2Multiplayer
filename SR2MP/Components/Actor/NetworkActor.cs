@@ -99,6 +99,14 @@ public sealed class NetworkActor : MonoBehaviour
         ? emotions._model.Emotions
         : new float4(0, 0, 0, 0);
 
+    private bool isSlime;
+    private bool isResource;
+    private bool isPlort;
+
+    private SlimeModel slimeModel;
+    private ProduceModel produceModel;
+    private PlortModel plortModel;
+
     private void Start()
     {
         try
@@ -115,6 +123,10 @@ public sealed class NetworkActor : MonoBehaviour
                 Destroy(this);
                 return;
             }
+            
+            isSlime = TryGetComponent<SlimeModel>(out slimeModel);
+            isResource = TryGetComponent<ProduceModel>(out produceModel);
+            isPlort = TryGetComponent<PlortModel>(out plortModel);
 
             emotions = GetComponent<SlimeEmotions>();
             cachedLocallyOwned = LocallyOwned;
@@ -126,6 +138,7 @@ public sealed class NetworkActor : MonoBehaviour
 
             if (!regionMember)
                 return;
+            
             try
             {
                 regionMember.add_BeforeHibernationChanged(
@@ -208,17 +221,39 @@ public sealed class NetworkActor : MonoBehaviour
             SrLogger.LogError($"HibernationChanged error: {ex}", SrLogTarget.Both);
         }
     }
+    
+    public void OnNetworkUpdate(ActorUpdatePacket packet)
+    {
+        if (LocallyOwned || isDestroyed)
+            return;
+        
+        previousPosition = transform.position;
+        previousRotation = transform.rotation;
+        
+        nextPosition = packet.Position;
+        nextRotation = packet.Rotation;
+        SavedVelocity = packet.Velocity;
+        
+        interpolationStart = UnityEngine.Time.unscaledTime;
+        interpolationEnd = interpolationStart + Timers.ActorTimer;
+    }
 
     private void UpdateInterpolation()
     {
         if (LocallyOwned) return;
         if (isDestroyed) return;
+        
+        if (interpolationEnd <= interpolationStart)
+            return;
 
-        var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
-        timer = Mathf.Clamp01(timer);
+        var t = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
+        t = Mathf.Clamp01(t);
 
-        transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
-        transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
+        transform.position = Vector3.Lerp(previousPosition, nextPosition, t);
+        transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, t);
+        
+        if (rigidbody)
+            rigidbody.velocity = SavedVelocity;
     }
 
     private void Update()
@@ -274,31 +309,67 @@ public sealed class NetworkActor : MonoBehaviour
                 nextRotation = transform.rotation;
 
                 var actorId = ActorId;
-                if (actorId.Value == 0)
+                if (actorId.Value == 0) return;
+                
+                ActorUpdateType updateType =
+                    isSlime
+                    ? ActorUpdateType.Slime
+                    : isResource
+                        ? ActorUpdateType.Resource
+                        : isPlort
+                            ? ActorUpdateType.Plort
+                            : ActorUpdateType.Actor;
+                
+                double resourceProgress = 0f;
+                ResourceCycle.State resourceState = ResourceCycle.State.UNRIPE;
+                if (isResource)
                 {
-                    return;
+                    resourceProgress = cycle?._model.progressTime ?? 0f;
+                    resourceState = cycle?._model.state ?? ResourceCycle.State.UNRIPE;
                 }
 
-                var packet = new ActorUpdatePacket
+                var packet = new ActorUpdatePacket()
                 {
-                    ActorId = actorId,
-                    Position = transform.position,
-                    Rotation = transform.rotation,
-                    Velocity = rigidbody ? rigidbody.velocity : Vector3.zero,
-                    Emotions = EmotionsFloat,
-                    ResourceProgress = cycle?._model.progressTime ?? 0f,
-                    ResourceState = cycle?._model.state ?? ResourceCycle.State.EDIBLE
+                    UpdateType = updateType,
                 };
+                
+                if (updateType == ActorUpdateType.Slime)
+                {
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                    packet.Emotions = EmotionsFloat;
+                }
+                else if (updateType == ActorUpdateType.Resource)
+                {
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                    packet.ResourceProgress = resourceProgress;
+                    packet.ResourceState = resourceState;
+                }
+                else if (updateType == ActorUpdateType.Plort)
+                {
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                    // todo: packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false; ??
+                    // todo: packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f; ??
+                    packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false;
+                    packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f;
+                }
+                else
+                {
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                }
 
                 Main.SendToAllOrServer(packet);
-            }
-            else
-            {
-                previousPosition = transform.position;
-                previousRotation = transform.rotation;
-
-                interpolationStart = UnityEngine.Time.unscaledTime;
-                interpolationEnd = UnityEngine.Time.unscaledTime + Timers.ActorTimer;
             }
         }
         catch (Exception ex)
@@ -381,8 +452,8 @@ public sealed class NetworkActor : MonoBehaviour
 
                 if (cycle._preparingToRelease)
                 {
-                    cycle._preparingToRelease = false;
-                    cycle._releaseAt = 0f;
+                    // todo: cycle._preparingToRelease = false;
+                    // todo: cycle._releaseAt = 0f;
                     cycle.ToShake.localPosition = cycle._toShakeDefaultPos;
 
                     if (cycle.ReleaseCue != null)

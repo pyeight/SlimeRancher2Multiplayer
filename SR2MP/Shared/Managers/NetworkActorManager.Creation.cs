@@ -1,4 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
 
@@ -62,4 +63,16 @@ public sealed partial class NetworkActorManager
         ResourceState = model._state,
         ProgressTime = model.progressTime
     };
+    
+    public static ActorUpdateType DetermineUpdateTypeFromModel(ActorModel model)
+    {
+        if (model.TryCast<SlimeModel>() != null)
+            return ActorUpdateType.Slime;
+        if (model.TryCast<ProduceModel>() != null)
+            return ActorUpdateType.Resource;
+        if (model.TryCast<PlortModel>() != null)
+            return ActorUpdateType.Plort;
+        
+        return ActorUpdateType.Actor;
+    }
 }
