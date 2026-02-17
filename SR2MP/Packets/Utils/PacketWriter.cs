@@ -50,58 +50,28 @@ public sealed class PacketWriter : PacketBuffer
     public void WriteSByte(sbyte value) => WriteByte((byte)value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteShort(short value) => WriteUShort((ushort)value);
+    public void WriteShort(short value) => BinaryPrimitives.WriteInt16LittleEndian(WriteAlloc(2), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUShort(ushort value)
-    {
-        EndPackingBools();
-        EnsureCapacity(2);
-        BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(position), value);
-        position += 2;
-    }
+    public void WriteUShort(ushort value) => BinaryPrimitives.WriteUInt16LittleEndian(WriteAlloc(2), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteInt(int value) => WriteUInt((uint)value);
+    public void WriteInt(int value) => BinaryPrimitives.WriteInt32LittleEndian(WriteAlloc(4), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUInt(uint value)
-    {
-        EndPackingBools();
-        EnsureCapacity(4);
-        BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(position), value);
-        position += 4;
-    }
+    public void WriteUInt(uint value) => BinaryPrimitives.WriteUInt32LittleEndian(WriteAlloc(4), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteLong(long value) => WriteULong((ulong)value);
+    public void WriteFloat(float value) => BinaryPrimitives.WriteSingleLittleEndian(WriteAlloc(4), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteULong(ulong value)
-    {
-        EndPackingBools();
-        EnsureCapacity(8);
-        BinaryPrimitives.WriteUInt64LittleEndian(buffer.AsSpan(position), value);
-        position += 8;
-    }
+    public void WriteLong(long value) => BinaryPrimitives.WriteInt64LittleEndian(WriteAlloc(8), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteFloat(float value)
-    {
-        EndPackingBools();
-        EnsureCapacity(4);
-        BinaryPrimitives.WriteSingleLittleEndian(buffer.AsSpan(position), value);
-        position += 4;
-    }
+    public void WriteULong(ulong value) => BinaryPrimitives.WriteUInt64LittleEndian(WriteAlloc(8), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteDouble(double value)
-    {
-        EndPackingBools();
-        EnsureCapacity(8);
-        BinaryPrimitives.WriteDoubleLittleEndian(buffer.AsSpan(position), value);
-        position += 8;
-    }
+    public void WriteDouble(double value) => BinaryPrimitives.WriteDoubleLittleEndian(WriteAlloc(8), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector2(Vector2 value)
@@ -391,6 +361,16 @@ public sealed class PacketWriter : PacketBuffer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedEnum<T>(T value) where T : struct, Enum => PacketWriterDels.PackedEnum<T>.Func(this, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Span<byte> WriteAlloc(int size)
+    {
+        EndPackingBools();
+        EnsureCapacity(size);
+        var span = buffer.AsSpan(position, size);
+        position += size;
+        return span;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> ToSpan()

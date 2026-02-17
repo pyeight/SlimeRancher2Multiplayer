@@ -42,58 +42,28 @@ public sealed class PacketReader : PacketBuffer
     public sbyte ReadSByte() => (sbyte)ReadByte();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public short ReadShort() => (short)ReadUShort();
+    public short ReadShort() => BinaryPrimitives.ReadInt16LittleEndian(ReadRequest(2));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ushort ReadUShort()
-    {
-        EnsureReadable(2);
-        var value = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(position));
-        position += 2;
-        return value;
-    }
+    public ushort ReadUShort() => BinaryPrimitives.ReadUInt16LittleEndian(ReadRequest(2));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int ReadInt() => (int)ReadUInt();
+    public int ReadInt() => BinaryPrimitives.ReadInt32LittleEndian(ReadRequest(4));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public uint ReadUInt()
-    {
-        EnsureReadable(4);
-        var value = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(position));
-        position += 4;
-        return value;
-    }
+    public uint ReadUInt() => BinaryPrimitives.ReadUInt32LittleEndian(ReadRequest(4));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public long ReadLong() => (long)ReadULong();
+    public long ReadLong() => BinaryPrimitives.ReadInt64LittleEndian(ReadRequest(8));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ulong ReadULong()
-    {
-        EnsureReadable(8);
-        var value = BinaryPrimitives.ReadUInt64LittleEndian(buffer.AsSpan(position));
-        position += 8;
-        return value;
-    }
+    public ulong ReadULong() => BinaryPrimitives.ReadUInt64LittleEndian(ReadRequest(8));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float ReadFloat()
-    {
-        EnsureReadable(4);
-        var value = BinaryPrimitives.ReadSingleLittleEndian(buffer.AsSpan(position));
-        position += 4;
-        return value;
-    }
+    public double ReadDouble() => BinaryPrimitives.ReadDoubleLittleEndian(ReadRequest(8));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double ReadDouble()
-    {
-        EnsureReadable(8);
-        var value = BinaryPrimitives.ReadDoubleLittleEndian(buffer.AsSpan(position));
-        position += 8;
-        return value;
-    }
+    public float ReadFloat() => BinaryPrimitives.ReadSingleLittleEndian(ReadRequest(4));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadPackedInt()
@@ -359,6 +329,15 @@ public sealed class PacketReader : PacketBuffer
 
         EndPackingBools();
         position -= count;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ReadOnlySpan<byte> ReadRequest(int size)
+    {
+        EnsureReadable(size);
+        var span = buffer.AsSpan(position, size);
+        position += size;
+        return span;
     }
 }
 
