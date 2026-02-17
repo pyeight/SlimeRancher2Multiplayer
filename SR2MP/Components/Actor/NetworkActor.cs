@@ -221,17 +221,39 @@ public sealed class NetworkActor : MonoBehaviour
             SrLogger.LogError($"HibernationChanged error: {ex}", SrLogTarget.Both);
         }
     }
+    
+    public void OnNetworkUpdate(ActorUpdatePacket packet)
+    {
+        if (LocallyOwned || isDestroyed)
+            return;
+        
+        previousPosition = transform.position;
+        previousRotation = transform.rotation;
+        
+        nextPosition = packet.Position;
+        nextRotation = packet.Rotation;
+        SavedVelocity = packet.Velocity;
+        
+        interpolationStart = UnityEngine.Time.unscaledTime;
+        interpolationEnd = interpolationStart + Timers.ActorTimer;
+    }
 
     private void UpdateInterpolation()
     {
         if (LocallyOwned) return;
         if (isDestroyed) return;
+        
+        if (interpolationEnd <= interpolationStart)
+            return;
 
-        var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
-        timer = Mathf.Clamp01(timer);
+        var t = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
+        t = Mathf.Clamp01(t);
 
-        transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
-        transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
+        transform.position = Vector3.Lerp(previousPosition, nextPosition, t);
+        transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, t);
+        
+        if (rigidbody)
+            rigidbody.velocity = SavedVelocity;
     }
 
     private void Update()
@@ -348,14 +370,6 @@ public sealed class NetworkActor : MonoBehaviour
                 }
 
                 Main.SendToAllOrServer(packet);
-            }
-            else
-            {
-                previousPosition = transform.position;
-                previousRotation = transform.rotation;
-
-                interpolationStart = UnityEngine.Time.unscaledTime;
-                interpolationEnd = UnityEngine.Time.unscaledTime + Timers.ActorTimer;
             }
         }
         catch (Exception ex)

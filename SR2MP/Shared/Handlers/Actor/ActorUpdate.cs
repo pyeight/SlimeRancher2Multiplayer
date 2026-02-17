@@ -31,10 +31,8 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
             return false;
-
-        networkComponent.SavedVelocity = packet.Velocity;
-        networkComponent.nextPosition = packet.Position;
-        networkComponent.nextRotation = packet.Rotation;
+        
+        networkComponent.OnNetworkUpdate(packet);
 
         if (networkComponent.regionMember?._hibernating == true)
         {
