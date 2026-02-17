@@ -14,7 +14,7 @@ public sealed class PacketWriter : PacketBuffer
     public override int DataSize => position;
 
     public PacketWriter(int startingCapacity = 256)
-        : base(ArrayPool<byte>.Shared.Rent(startingCapacity), 0, BufferType.Writer) { }
+        : base(ArrayPool<byte>.Shared.Rent(startingCapacity), 0) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int bytesToAdd)
@@ -132,6 +132,9 @@ public sealed class PacketWriter : PacketBuffer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteEnumAsString<T>(T value) where T : struct, Enum => WriteString(value.ToString());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNetObject<T>(T value) where T : INetObject => value.Serialise(this);

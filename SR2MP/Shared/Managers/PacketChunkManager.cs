@@ -206,7 +206,7 @@ public static class PacketChunkManager
         targetWriter.WriteByte((byte)PacketType.ReservedCompression);
         targetWriter.WriteByte(data[0]);
 
-        using var output = new PacketStream<PacketWriter>(targetWriter);
+        using var output = new PacketWriterStream(targetWriter);
         using var gzip = new GZipStream(output, CompressionLevel.Fastest);
         gzip.Write(data[1..]);
     }

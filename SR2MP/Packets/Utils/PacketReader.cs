@@ -14,7 +14,7 @@ public sealed class PacketReader : PacketBuffer
 
     public override int DataSize => buffer.Length;
 
-    public PacketReader(byte[] data) : base(data, 8, BufferType.Reader) { }
+    public PacketReader(byte[] data) : base(data, 8) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureReadable(int bytesToRead)
@@ -195,6 +195,9 @@ public sealed class PacketReader : PacketBuffer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadEnum<T>() where T : struct, Enum => PacketReaderDels.Enum<T>.Func(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString());
 
     public T[] ReadArray<T>(Func<PacketReader, T> reader)
     {

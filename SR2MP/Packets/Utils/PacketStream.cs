@@ -1,74 +1,84 @@
 namespace SR2MP.Packets.Utils;
 
-public sealed class PacketStream<T> : Stream where T : PacketBuffer
+public abstract class PacketStream<T> : Stream where T : PacketBuffer
 {
-    private readonly T _buffer;
+    protected readonly T _buffer;
+    private readonly bool _leaveOpen;
 
-    public override bool CanSeek => true;
-    public override bool CanRead => _buffer.BufferType == BufferType.Reader;
-    public override bool CanWrite => _buffer.BufferType == BufferType.Writer;
-    public override long Length => _buffer.DataSize;
-    public override long Position
+    public sealed override bool CanSeek => true;
+    public sealed override long Length => _buffer.DataSize;
+
+    public sealed override long Position
     {
         get => _buffer.Position;
-        set => _buffer.SetCursor((int)value);
+        set => _buffer.SetCursor(value);
     }
 
-    public PacketStream(T buffer)
-        => _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
+    public override bool CanRead => false;
+    public override bool CanWrite => false;
 
-    public override void Flush() => _buffer.EndPackingBools();
-
-    public override long Seek(long offset, SeekOrigin origin)
+    protected PacketStream(T buffer, bool leaveOpen = true)
     {
-        var current = origin switch
-        {
-            SeekOrigin.Begin => 0,
-            SeekOrigin.End => Length,
-            _ => Position
-        };
-        return Position = current + offset;
+        _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
+        _leaveOpen = leaveOpen;
     }
 
-    public override void SetLength(long value) => throw new NotSupportedException();
+    public sealed override void Flush() => _buffer.EndPackingBools();
 
-    public override int Read(byte[] buffer, int offset, int count)
+    public sealed override long Seek(long offset, SeekOrigin origin) => Position = offset + (origin switch
     {
-        if (_buffer is not PacketReader reader)
-            throw new NotSupportedException("This stream does not support reading.");
+        SeekOrigin.Begin => 0,
+        SeekOrigin.End => Length,
+        _ => Position
+    });
 
-        var bytesAvailable = (int)(Length - Position);
-        var bytesToRead = Math.Min(count, bytesAvailable);
+    public sealed override void SetLength(long value) => throw new NotSupportedException();
 
-        if (bytesToRead <= 0)
-            return 0;
+    public sealed override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
 
-        reader.ReadToSpan(buffer.AsSpan(offset, bytesToRead));
-        return bytesToRead;
-    }
+    public sealed override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
 
-    public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
-
-    public override void Write(ReadOnlySpan<byte> buffer)
+    protected sealed override void Dispose(bool disposing)
     {
-        if (_buffer is not PacketWriter writer)
-            throw new NotSupportedException("This stream does not support writing.");
+        if (!_leaveOpen)
+            _buffer.Dispose();
 
-        writer.WriteSpan(buffer);
+        base.Dispose(disposing);
     }
 
     public override int Read(Span<byte> buffer)
-    {
-        if (_buffer is not PacketReader reader)
-            throw new NotSupportedException("This stream does not support reading.");
+        => throw new NotSupportedException("This stream does not support reading.");
 
+    public override void Write(ReadOnlySpan<byte> buffer)
+        => throw new NotSupportedException("This stream does not support writing.");
+}
+
+public sealed class PacketWriterStream : PacketStream<PacketWriter>
+{
+    public override bool CanWrite => true;
+
+    public PacketWriterStream(PacketWriter buffer, bool leaveOpen = true)
+        : base(buffer, leaveOpen) { }
+
+    public override void Write(ReadOnlySpan<byte> buffer) => _buffer.WriteSpan(buffer);
+}
+
+public sealed class PacketReaderStream : PacketStream<PacketReader>
+{
+    public override bool CanRead => true;
+
+    public PacketReaderStream(PacketReader buffer, bool leaveOpen = true)
+        : base(buffer, leaveOpen) { }
+
+    public override int Read(Span<byte> buffer)
+    {
         var bytesAvailable = (int)(Length - Position);
         var bytesToRead = Math.Min(buffer.Length, bytesAvailable);
 
         if (bytesToRead <= 0)
             return 0;
 
-        reader.ReadToSpan(buffer);
+        _buffer.ReadToSpan(buffer[..bytesToRead]);
         return bytesToRead;
     }
 }

@@ -16,15 +16,12 @@ public abstract class PacketBuffer : IDisposable
 
     public int Position => position;
 
-    public BufferType BufferType { get; }
-
     public abstract int DataSize { get; }
 
-    protected PacketBuffer(byte[] data, int starting, BufferType type)
+    protected PacketBuffer(byte[] data, int starting)
     {
         buffer = data;
         startingIndex = currentBitIndex = starting;
-        BufferType = type;
     }
 
     public byte this[int index] => !disposed
@@ -73,10 +70,4 @@ public abstract class PacketBuffer : IDisposable
         else if (delta < 0)
             MoveBack(-delta);
     }
-}
-
-public enum BufferType : byte
-{
-    Writer,
-    Reader
 }
