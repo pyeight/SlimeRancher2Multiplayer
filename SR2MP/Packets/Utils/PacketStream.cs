@@ -47,11 +47,28 @@ public sealed class PacketStream<T> : Stream where T : PacketBuffer
         return bytesToRead;
     }
 
-    public override void Write(byte[] buffer, int offset, int count)
+    public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
+
+    public override void Write(ReadOnlySpan<byte> buffer)
     {
         if (_buffer is not PacketWriter writer)
             throw new NotSupportedException("This stream does not support writing.");
 
-        writer.WriteSpan(buffer.AsSpan(offset, count));
+        writer.WriteSpan(buffer);
+    }
+
+    public override int Read(Span<byte> buffer)
+    {
+        if (_buffer is not PacketReader reader)
+            throw new NotSupportedException("This stream does not support reading.");
+
+        var bytesAvailable = (int)(Length - Position);
+        var bytesToRead = Math.Min(buffer.Length, bytesAvailable);
+
+        if (bytesToRead <= 0)
+            return 0;
+
+        reader.ReadToSpan(buffer);
+        return bytesToRead;
     }
 }
