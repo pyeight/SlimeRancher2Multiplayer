@@ -98,7 +98,8 @@ public static class PacketChunkManager
         var offset = 0;
         for (var i = 0; i < totalChunks; i++)
         {
-            Buffer.BlockCopy(packet.chunks[i], 0, fullData, offset, packet.chunks[i].Length);
+            packet.chunks[i].AsSpan().CopyTo(fullData.AsSpan(offset, packet.chunks[i].Length));
+            // Buffer.BlockCopy(packet.chunks[i], 0, fullData, offset, packet.chunks[i].Length);
             offset += packet.chunks[i].Length;
         }
 
@@ -205,7 +206,7 @@ public static class PacketChunkManager
         targetWriter.WriteByte((byte)PacketType.ReservedCompression);
         targetWriter.WriteByte(data[0]);
 
-        using var output = new PacketStream(targetWriter);
+        using var output = new PacketWriterStream(targetWriter);
         using var gzip = new GZipStream(output, CompressionLevel.Fastest);
         gzip.Write(data[1..]);
     }

@@ -12,13 +12,9 @@ public sealed class PacketReader : PacketBuffer
 {
     private int BytesRemaining => DataSize - position;
 
-    private int DataSize { get; }
+    public override int DataSize => buffer.Length;
 
-    public PacketReader(byte[] data) : base(data.Length, 8)
-    {
-        DataSize = data.Length;
-        data.AsSpan().CopyTo(buffer);
-    }
+    public PacketReader(byte[] data) : base(data, 8) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureReadable(int bytesToRead)
@@ -46,58 +42,28 @@ public sealed class PacketReader : PacketBuffer
     public sbyte ReadSByte() => (sbyte)ReadByte();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public short ReadShort() => (short)ReadUShort();
+    public short ReadShort() => BinaryPrimitives.ReadInt16LittleEndian(ReadRequest(2));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ushort ReadUShort()
-    {
-        EnsureReadable(2);
-        var value = BinaryPrimitives.ReadUInt16LittleEndian(buffer.AsSpan(position));
-        position += 2;
-        return value;
-    }
+    public ushort ReadUShort() => BinaryPrimitives.ReadUInt16LittleEndian(ReadRequest(2));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int ReadInt() => (int)ReadUInt();
+    public int ReadInt() => BinaryPrimitives.ReadInt32LittleEndian(ReadRequest(4));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public uint ReadUInt()
-    {
-        EnsureReadable(4);
-        var value = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(position));
-        position += 4;
-        return value;
-    }
+    public uint ReadUInt() => BinaryPrimitives.ReadUInt32LittleEndian(ReadRequest(4));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public long ReadLong() => (long)ReadULong();
+    public long ReadLong() => BinaryPrimitives.ReadInt64LittleEndian(ReadRequest(8));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ulong ReadULong()
-    {
-        EnsureReadable(8);
-        var value = BinaryPrimitives.ReadUInt64LittleEndian(buffer.AsSpan(position));
-        position += 8;
-        return value;
-    }
+    public ulong ReadULong() => BinaryPrimitives.ReadUInt64LittleEndian(ReadRequest(8));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float ReadFloat()
-    {
-        EnsureReadable(4);
-        var value = BinaryPrimitives.ReadSingleLittleEndian(buffer.AsSpan(position));
-        position += 4;
-        return value;
-    }
+    public double ReadDouble() => BinaryPrimitives.ReadDoubleLittleEndian(ReadRequest(8));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double ReadDouble()
-    {
-        EnsureReadable(8);
-        var value = BinaryPrimitives.ReadDoubleLittleEndian(buffer.AsSpan(position));
-        position += 8;
-        return value;
-    }
+    public float ReadFloat() => BinaryPrimitives.ReadSingleLittleEndian(ReadRequest(4));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadPackedInt()
@@ -230,6 +196,9 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadEnum<T>() where T : struct, Enum => PacketReaderDels.Enum<T>.Func(this);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString());
+
     public T[] ReadArray<T>(Func<PacketReader, T> reader)
     {
         var array = new T[ReadUShort()];
@@ -323,11 +292,28 @@ public sealed class PacketReader : PacketBuffer
         return value;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void EndPackingBools() => currentBitIndex = 8;
+    public override void EndPackingBools() => currentBitIndex = 8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Skip(int count)
+    private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Func(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadToSpan(Span<byte> destination)
+    {
+        EnsureReadable(destination.Length);
+        buffer.AsSpan(position, destination.Length).CopyTo(destination);
+        position += destination.Length;
+    }
+
+    protected override void EnsureBounds(int count) => EnsureReadable(count);
+
+    public override void MoveForward(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
@@ -336,8 +322,7 @@ public sealed class PacketReader : PacketBuffer
         position += count;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Return(int count)
+    public override void MoveBack(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
@@ -350,13 +335,13 @@ public sealed class PacketReader : PacketBuffer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Func(this);
+    private ReadOnlySpan<byte> ReadRequest(int size)
+    {
+        EnsureReadable(size);
+        var span = buffer.AsSpan(position, size);
+        position += size;
+        return span;
+    }
 }
 
 /// <summary>

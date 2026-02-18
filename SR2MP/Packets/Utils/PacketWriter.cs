@@ -11,7 +11,10 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketWriter : PacketBuffer
 {
-    public PacketWriter(int startingCapacity = 256) : base(startingCapacity, 0) { }
+    public override int DataSize => position;
+
+    public PacketWriter(int startingCapacity = 256)
+        : base(ArrayPool<byte>.Shared.Rent(startingCapacity), 0) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int bytesToAdd)
@@ -25,7 +28,8 @@ public sealed class PacketWriter : PacketBuffer
 
     private void ResizeBuffer(int bytesToAdd)
     {
-        var newBuffer = ArrayPool<byte>.Shared.Rent(position + bytesToAdd);
+        var newSize = Math.Max(position + bytesToAdd, buffer.Length * 2);
+        var newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
         buffer.AsSpan(0, position).CopyTo(newBuffer);
         ArrayPool<byte>.Shared.Return(buffer);
         buffer = newBuffer;
@@ -46,58 +50,28 @@ public sealed class PacketWriter : PacketBuffer
     public void WriteSByte(sbyte value) => WriteByte((byte)value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteShort(short value) => WriteUShort((ushort)value);
+    public void WriteShort(short value) => BinaryPrimitives.WriteInt16LittleEndian(WriteAlloc(2), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUShort(ushort value)
-    {
-        EndPackingBools();
-        EnsureCapacity(2);
-        BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(position), value);
-        position += 2;
-    }
+    public void WriteUShort(ushort value) => BinaryPrimitives.WriteUInt16LittleEndian(WriteAlloc(2), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteInt(int value) => WriteUInt((uint)value);
+    public void WriteInt(int value) => BinaryPrimitives.WriteInt32LittleEndian(WriteAlloc(4), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUInt(uint value)
-    {
-        EndPackingBools();
-        EnsureCapacity(4);
-        BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(position), value);
-        position += 4;
-    }
+    public void WriteUInt(uint value) => BinaryPrimitives.WriteUInt32LittleEndian(WriteAlloc(4), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteLong(long value) => WriteULong((ulong)value);
+    public void WriteFloat(float value) => BinaryPrimitives.WriteSingleLittleEndian(WriteAlloc(4), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteULong(ulong value)
-    {
-        EndPackingBools();
-        EnsureCapacity(8);
-        BinaryPrimitives.WriteUInt64LittleEndian(buffer.AsSpan(position), value);
-        position += 8;
-    }
+    public void WriteLong(long value) => BinaryPrimitives.WriteInt64LittleEndian(WriteAlloc(8), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteFloat(float value)
-    {
-        EndPackingBools();
-        EnsureCapacity(4);
-        BinaryPrimitives.WriteSingleLittleEndian(buffer.AsSpan(position), value);
-        position += 4;
-    }
+    public void WriteULong(ulong value) => BinaryPrimitives.WriteUInt64LittleEndian(WriteAlloc(8), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteDouble(double value)
-    {
-        EndPackingBools();
-        EnsureCapacity(8);
-        BinaryPrimitives.WriteDoubleLittleEndian(buffer.AsSpan(position), value);
-        position += 8;
-    }
+    public void WriteDouble(double value) => BinaryPrimitives.WriteDoubleLittleEndian(WriteAlloc(8), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector2(Vector2 value)
@@ -158,6 +132,9 @@ public sealed class PacketWriter : PacketBuffer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteEnumAsString<T>(T value) where T : struct, Enum => WriteString(value.ToString());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNetObject<T>(T value) where T : INetObject => value.Serialise(this);
@@ -322,12 +299,13 @@ public sealed class PacketWriter : PacketBuffer
             ResetPackingBools();
     }
 
-    private void EndPackingBools()
+    public override void EndPackingBools()
     {
         if (currentBitIndex > 0)
             ResetPackingBools();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ResetPackingBools()
     {
         EnsureCapacity(1);
@@ -360,19 +338,18 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteStruct<T>(T value) where T : struct => PacketWriterDels.Struct<T>.Writer(this, value);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void AddGap(int count)
+    public override void MoveForward(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
 
         EndPackingBools();
         EnsureCapacity(count);
+        buffer.AsSpan(position, count).Clear();
         position += count;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void MoveBack(int count)
+    public override void MoveBack(int count)
     {
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
@@ -389,11 +366,25 @@ public sealed class PacketWriter : PacketBuffer
     public void WritePackedEnum<T>(T value) where T : struct, Enum => PacketWriterDels.PackedEnum<T>.Func(this, value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Span<byte> WriteAlloc(int size)
+    {
+        EndPackingBools();
+        EnsureCapacity(size);
+        var span = buffer.AsSpan(position, size);
+        position += size;
+        return span;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> ToSpan()
     {
         EndPackingBools();
         return buffer.AsSpan(0, position);
     }
+
+    protected override void OnDispose() => ArrayPool<byte>.Shared.Return(buffer);
+
+    protected override void EnsureBounds(int count) => EnsureCapacity(count);
 }
 
 /// <summary>
