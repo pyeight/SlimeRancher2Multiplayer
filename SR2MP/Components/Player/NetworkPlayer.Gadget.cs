@@ -52,19 +52,19 @@ public partial class NetworkPlayer
     {
         if (IsLocal)
         {
-            UpdateLocalGadgetMode();
+            // UpdateLocalGadgetMode();
             return;
         }
 
         if (cachedOnlineGadgetMode != onlineGadgetMode)
         {
             cachedOnlineGadgetMode = onlineGadgetMode;
-            onNetworkGadgetModeChanged?.Invoke(cachedOnlineGadgetMode);
+            // onNetworkGadgetModeChanged?.Invoke(cachedOnlineGadgetMode);
         }
 
         if (footprintPrefabInstance)
         {
-            UpdateInterpolation(footprintPrefabInstance!);
+            // UpdateInterpolation(footprintPrefabInstance!);
         }
     }
 
