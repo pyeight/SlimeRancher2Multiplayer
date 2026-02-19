@@ -300,7 +300,7 @@ public static class PacketChunkManager
 
         try
         {
-            reader.ReadByte(); // Skip the ReservedCompression flag
+            reader.MoveForward(1); // Skip the ReservedCompression flag
             var originalType = reader.ReadByte();
             var uncompressedLen = reader.ReadPackedInt();
 
