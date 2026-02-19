@@ -68,4 +68,11 @@ public abstract class PacketBuffer : IDisposable
         else if (delta < 0)
             MoveBack(-delta);
     }
+
+    public void Seek(long offset, SeekOrigin origin) => SetCursor(offset + (origin switch
+    {
+        SeekOrigin.Begin => 0,
+        SeekOrigin.End => DataSize,
+        _ => Position
+    }));
 }
