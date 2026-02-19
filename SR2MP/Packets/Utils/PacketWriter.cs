@@ -385,6 +385,15 @@ public sealed class PacketWriter : PacketBuffer
     protected override void OnDispose() => ArrayPool<byte>.Shared.Return(buffer);
 
     protected override void EnsureBounds(int count) => EnsureCapacity(count);
+
+    public void Reset(int initialCapacity = 256)
+    {
+        if (buffer == null)
+            buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
+
+        disposed = false;
+        Clear();
+    }
 }
 
 /// <summary>

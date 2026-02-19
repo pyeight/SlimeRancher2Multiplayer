@@ -14,7 +14,7 @@ public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacket
             ProcessPacket(data, null);
     }
 
-    public void Handle(byte[] data, IPEndPoint clientEp)
+    public void Handle(byte[] data, IPEndPoint? clientEp)
     {
         if (IsServerSide)
             ProcessPacket(data, clientEp);
@@ -22,12 +22,20 @@ public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacket
 
     private void ProcessPacket(byte[] data, IPEndPoint? clientEp)
     {
-        using var reader = new PacketReader(data);
-        var packet = reader.ReadPacket<T>();
-        var shouldSend = Handle(packet, clientEp);
+        var reader = PacketBufferPool.GetReader(data);
 
-        if (IsServerSide && shouldSend)
-            PacketSender.SendPacket(packet, clientEp);
+        try
+        {
+            var packet = reader.ReadPacket<T>();
+            var shouldSend = Handle(packet, clientEp);
+
+            if (IsServerSide && shouldSend)
+                PacketSender.SendPacket(packet, clientEp);
+        }
+        finally
+        {
+            PacketBufferPool.Return(reader);
+        }
     }
 
     protected abstract bool Handle(T packet, IPEndPoint? clientEp);

@@ -226,9 +226,10 @@ public sealed class SR2MPClient
             return;
         }
 
+        var writer = PacketBufferPool.GetWriter();
+
         try
         {
-            using var writer = new PacketWriter();
             writer.WritePacket(packet);
             var data = writer.ToSpan();
 
@@ -262,6 +263,10 @@ public sealed class SR2MPClient
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
+        }
+        finally
+        {
+            PacketBufferPool.Return(writer);
         }
     }
 

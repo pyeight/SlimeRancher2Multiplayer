@@ -133,55 +133,65 @@ public static class PacketChunkManager
         }
 
         packetId = (ushort)id;
+        PacketWriter? compressionWriter = null;
+        var sourceToSplit = data;
 
-        // Compress if threshold is reached
-        if (data.Length > CompressionThreshold)
+        try
         {
-            using var writer = new PacketWriter(data.Length);
-            Compress(data, writer);
+            // Compress if threshold is reached
+            if (data.Length > CompressionThreshold)
+            {
+                compressionWriter = PacketBufferPool.GetWriter(data.Length);
+                Compress(data, compressionWriter);
 
-            if (writer.Position < data.Length * 0.9f)
-                data = writer.ToSpan();
+                if (compressionWriter.Position < data.Length * 0.9f)
+                    sourceToSplit = compressionWriter.ToSpan();
+            }
+
+            var chunkCount = (sourceToSplit.Length + MaxChunkBytes - 1) / MaxChunkBytes;
+            var result = new byte[chunkCount][];
+
+            for (ushort index = 0; index < chunkCount; index++)
+            {
+                var offset = index * MaxChunkBytes;
+                var chunkSize = Math.Min(MaxChunkBytes, sourceToSplit.Length - offset);
+
+                // 10 byte header:
+                var buffer = new byte[10 + chunkSize];
+
+                // Packet Type
+                buffer[0] = packetType;
+
+                // Chunk index
+                buffer[1] = (byte)(index & All8Bits);
+                buffer[2] = (byte)((index >> 8) & All8Bits);
+
+                // Total chunks
+                buffer[3] = (byte)(chunkCount & All8Bits);
+                buffer[4] = (byte)((chunkCount >> 8) & All8Bits);
+
+                // Packet ID
+                buffer[5] = (byte)(packetId & All8Bits);
+                buffer[6] = (byte)((packetId >> 8) & All8Bits);
+
+                // Reliability
+                buffer[7] = (byte)reliability;
+
+                // Sequence number (for ordered packets)
+                buffer[8] = (byte)(sequenceNumber & All8Bits);
+                buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
+
+                sourceToSplit.Slice(offset, chunkSize).CopyTo(buffer.AsSpan(10));
+                result[index] = buffer;
+            }
+
+            return result;
         }
-
-        var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
-        var result = new byte[chunkCount][];
-
-        for (ushort index = 0; index < chunkCount; index++)
+        finally
         {
-            var offset = index * MaxChunkBytes;
-            var chunkSize = Math.Min(MaxChunkBytes, data.Length - offset);
-
-            // 10 byte header:
-            var buffer = new byte[10 + chunkSize];
-
-            // Packet Type
-            buffer[0] = packetType;
-
-            // Chunk index
-            buffer[1] = (byte)(index & All8Bits);
-            buffer[2] = (byte)((index >> 8) & All8Bits);
-
-            // Total chunks
-            buffer[3] = (byte)(chunkCount & All8Bits);
-            buffer[4] = (byte)((chunkCount >> 8) & All8Bits);
-
-            // Packet ID
-            buffer[5] = (byte)(packetId & All8Bits);
-            buffer[6] = (byte)((packetId >> 8) & All8Bits);
-
-            // Reliability
-            buffer[7] = (byte)reliability;
-
-            // Sequence number (for ordered packets)
-            buffer[8] = (byte)(sequenceNumber & All8Bits);
-            buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
-
-            data.Slice(offset, chunkSize).CopyTo(buffer.AsSpan(10));
-            result[index] = buffer;
+            if (compressionWriter != null)
+                PacketBufferPool.Return(compressionWriter);
         }
-
-        return result;
     }
 
     private static void CleanupStalePackets()

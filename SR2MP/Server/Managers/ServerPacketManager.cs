@@ -81,14 +81,18 @@ public sealed class ServerPacketManager
         // Handle reliability ACK packets
         if (packetType == 254)
         {
-            var ackPacket = new AckPacket();
-            using (var reader = new PacketReader(data))
+            var reader = PacketBufferPool.GetReader(data);
+
+            try
             {
-                reader.MoveForward(1);
-                ackPacket.Deserialise(reader);
+                var ackPacket = reader.ReadPacket<AckPacket>();
+                networkManager.HandleAck(clientEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
+            }
+            finally
+            {
+                PacketBufferPool.Return(reader);
             }
 
-            networkManager.HandleAck(clientEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
             return;
         }
 
@@ -144,11 +148,18 @@ public sealed class ServerPacketManager
             OriginalPacketType = packetType
         };
 
-        using var writer = new PacketWriter();
-        writer.WritePacket(ackPacket);
+        var writer = PacketBufferPool.GetWriter();
+        try
+        {
+            writer.WritePacket(ackPacket);
 
-        // no need to acknowledge ACK packets
-        var data = writer.ToSpan();
-        networkManager.Send(data, clientEp, PacketReliability.Unreliable);
+            // no need to acknowledge ACK packets
+            var data = writer.ToSpan();
+            networkManager.Send(data, clientEp, PacketReliability.Unreliable);
+        }
+        finally
+        {
+            PacketBufferPool.Return(writer);
+        }
     }
 }

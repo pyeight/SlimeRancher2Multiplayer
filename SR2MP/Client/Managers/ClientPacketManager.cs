@@ -80,13 +80,18 @@ public sealed class ClientPacketManager
         // Handle reliability ACK packets
         if (packetType == 254)
         {
-            var ackPacket = new AckPacket();
-            using (var reader = new PacketReader(data))
+            var reader = PacketBufferPool.GetReader(data);
+
+            try
             {
-                reader.MoveForward(1);
-                ackPacket.Deserialise(reader);
+                var ackPacket = reader.ReadPacket<AckPacket>();
+                client.HandleAck(serverEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
             }
-            client.HandleAck(serverEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
+            finally
+            {
+                PacketBufferPool.Return(reader);
+            }
+
             return;
         }
 

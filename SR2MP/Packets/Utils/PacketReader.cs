@@ -342,6 +342,14 @@ public sealed class PacketReader : PacketBuffer
         position += size;
         return span;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetBuffer(byte[] data)
+    {
+        buffer = data;
+        disposed = false;
+        Clear();
+    }
 }
 
 /// <summary>
