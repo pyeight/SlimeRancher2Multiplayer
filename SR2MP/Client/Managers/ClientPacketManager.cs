@@ -68,11 +68,11 @@ public sealed class ClientPacketManager
         // Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
 
         // Client uses "server" as sender key
-        var senderKey = "server";
+        const string senderKey = "server";
 
         if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex,
             totalChunks, packetId, senderKey, reliability, sequenceNumber,
-            out data, out var packetReliability, out var packetSequenceNumber))
+            out var reader, out var packetReliability, out var packetSequenceNumber))
         {
             return;
         }
@@ -80,13 +80,16 @@ public sealed class ClientPacketManager
         // Handle reliability ACK packets
         if (packetType == 254)
         {
-            var ackPacket = new AckPacket();
-            using (var reader = new PacketReader(data))
+            try
             {
-                reader.MoveForward(1);
-                ackPacket.Deserialise(reader);
+                var ackPacket = reader.ReadPacket<AckPacket>();
+                client.HandleAck(serverEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
             }
-            client.HandleAck(serverEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
+            finally
+            {
+                PacketBufferPool.Return(reader);
+            }
+
             return;
         }
 
@@ -105,17 +108,31 @@ public sealed class ClientPacketManager
             return;
         }
 
-        if (packetReliability == PacketReliability.ReliableOrdered)
+        if (packetReliability == PacketReliability.ReliableOrdered &&
+            !client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetType))
         {
-            if (!client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetType))
-                return;
+            return;
         }
 
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try
             {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data));
+                MainThreadDispatcher.Enqueue(() =>
+                {
+                    try
+                    {
+                        handler.Handle(reader);
+                    }
+                    catch (Exception ex)
+                    {
+                        SrLogger.LogError($"Error in handler for packet type {packetType}: {ex}", SrLogTarget.Both);
+                    }
+                    finally
+                    {
+                        PacketBufferPool.Return(reader);
+                    }
+                });
             }
             catch (Exception ex)
             {

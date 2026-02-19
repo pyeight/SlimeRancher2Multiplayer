@@ -4,5 +4,5 @@ namespace SR2MP.Packets.Utils;
 
 public interface IServerPacketHandler : IPacketHandler
 {
-    void Handle(byte[] data, IPEndPoint clientEp);
+    void Handle(PacketReader reader, IPEndPoint? clientEp);
 }

@@ -171,20 +171,17 @@ public sealed class SR2MPClient
             catch (SocketException ex)
             {
                 // This prevents WSAEINTR from logging, this is correct
-                if (ex.ErrorCode != 10004 && ex.ErrorCode != 10054)
+                if (ex.ErrorCode is not 10004 and not 10054)
                 {
                     SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}", SrLogTarget.Both);
                 }
 
-                if (ex.ErrorCode == 10054)
+                if (ex.ErrorCode == 10054 && !shownConnectionError)
                 {
-                    if (!shownConnectionError)
-                    {
-                        SrLogger.LogError("The server is not running!\n" +
-                                          "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                          "If this is not the case, check your firewall settings", SrLogTarget.Both);
-                        shownConnectionError = true;
-                    }
+                    SrLogger.LogError("The server is not running!\n" +
+                                      "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
+                                      "If this is not the case, check your firewall settings", SrLogTarget.Both);
+                    shownConnectionError = true;
                 }
 
                 MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
@@ -226,9 +223,10 @@ public sealed class SR2MPClient
             return;
         }
 
+        var writer = PacketBufferPool.GetWriter();
+
         try
         {
-            using var writer = new PacketWriter();
             writer.WritePacket(packet);
             var data = writer.ToSpan();
 
@@ -262,6 +260,10 @@ public sealed class SR2MPClient
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
+        }
+        finally
+        {
+            PacketBufferPool.Return(writer);
         }
     }
 

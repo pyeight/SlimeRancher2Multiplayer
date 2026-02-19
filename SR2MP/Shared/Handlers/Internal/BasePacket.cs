@@ -8,21 +8,20 @@ public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacket
 {
     public bool IsServerSide { protected get; set; }
 
-    public void Handle(byte[] data)
+    public void Handle(PacketReader reader)
     {
         if (!IsServerSide)
-            ProcessPacket(data, null);
+            ProcessPacket(reader, null);
     }
 
-    public void Handle(byte[] data, IPEndPoint clientEp)
+    public void Handle(PacketReader reader, IPEndPoint? clientEp)
     {
         if (IsServerSide)
-            ProcessPacket(data, clientEp);
+            ProcessPacket(reader, clientEp);
     }
 
-    private void ProcessPacket(byte[] data, IPEndPoint? clientEp)
+    private void ProcessPacket(PacketReader reader, IPEndPoint? clientEp)
     {
-        using var reader = new PacketReader(data);
         var packet = reader.ReadPacket<T>();
         var shouldSend = Handle(packet, clientEp);
 

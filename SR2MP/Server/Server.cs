@@ -174,10 +174,17 @@ public sealed class SR2MPServer
 
     public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
     {
-        using var writer = new PacketWriter();
-        writer.WritePacket(packet);
-        var data = writer.ToSpan();
-        networkManager.Send(data, endPoint, packet.Reliability);
+        var writer = PacketBufferPool.GetWriter();
+
+        try
+        {
+            writer.WritePacket(packet);
+            networkManager.Send(writer.ToSpan(), endPoint, packet.Reliability);
+        }
+        finally
+        {
+            PacketBufferPool.Return(writer);
+        }
     }
 
     public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
@@ -187,26 +194,38 @@ public sealed class SR2MPServer
 
     public void SendToAll<T>(T packet) where T : IPacket
     {
-        using var writer = new PacketWriter();
-        writer.WritePacket(packet);
-        var data = writer.ToSpan();
+        var writer = PacketBufferPool.GetWriter();
 
-        var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-        networkManager.Broadcast(data, endpoints, packet.Reliability);
+        try
+        {
+            writer.WritePacket(packet);
+            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
+            networkManager.Broadcast(writer.ToSpan(), endpoints, packet.Reliability);
+        }
+        finally
+        {
+            PacketBufferPool.Return(writer);
+        }
     }
 
     public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
     {
-        using var writer = new PacketWriter();
-        writer.WritePacket(packet);
-        var data = writer.ToSpan();
+        var writer = PacketBufferPool.GetWriter();
 
-        foreach (var client in clientManager.GetAllClients())
+        try
         {
-            if (client.GetClientInfo() != excludedClientInfo)
+            writer.WritePacket(packet);
+            var data = writer.ToSpan();
+
+            foreach (var client in clientManager.GetAllClients())
             {
-                networkManager.Send(data, client.EndPoint, packet.Reliability);
+                if (client.GetClientInfo() != excludedClientInfo)
+                    networkManager.Send(data, client.EndPoint, packet.Reliability);
             }
+        }
+        finally
+        {
+            PacketBufferPool.Return(writer);
         }
     }
 

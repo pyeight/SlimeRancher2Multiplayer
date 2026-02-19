@@ -1,6 +1,8 @@
 using SR2MP.Packets.Utils;
 using System.IO.Compression;
 using System.Collections.Concurrent;
+using LZ4ps;
+using System.Buffers;
 
 namespace SR2MP.Shared.Managers;
 
@@ -44,10 +46,10 @@ public static class PacketChunkManager
 
     internal static bool TryMergePacket(PacketType packetType, byte[] data, ushort chunkIndex,
         ushort totalChunks, ushort packetId, string senderKey, PacketReliability reliability,
-        ushort sequenceNumber, out byte[] fullData, out PacketReliability outReliability,
+        ushort sequenceNumber, out PacketReader reader, out PacketReliability outReliability,
         out ushort outSequenceNumber)
     {
-        fullData = null!;
+        reader = null!;
         outReliability = reliability;
         outSequenceNumber = sequenceNumber;
 
@@ -94,11 +96,12 @@ public static class PacketChunkManager
         for (var i = 0; i < totalChunks; i++)
             totalSize += packet.chunks[i].Length;
 
-        fullData = new byte[totalSize];
+        var assemblyBuffer = ArrayPool<byte>.Shared.Rent(totalSize);
         var offset = 0;
+
         for (var i = 0; i < totalChunks; i++)
         {
-            packet.chunks[i].AsSpan().CopyTo(fullData.AsSpan(offset, packet.chunks[i].Length));
+            packet.chunks[i].AsSpan().CopyTo(assemblyBuffer.AsSpan(offset));
             // Buffer.BlockCopy(packet.chunks[i], 0, fullData, offset, packet.chunks[i].Length);
             offset += packet.chunks[i].Length;
         }
@@ -109,9 +112,25 @@ public static class PacketChunkManager
         IncompletePackets.TryRemove(key, out _);
 
         // Decompress if compressed
-        if (fullData.Length > 0 && fullData[0] == 0xFF)
+        if (totalSize > 0 && assemblyBuffer[0] == (byte)PacketType.ReservedCompression)
         {
-            fullData = Decompress(fullData);
+            var decompWriter = PacketBufferPool.GetWriter(totalSize);
+
+            try
+            {
+                Decompress(assemblyBuffer, decompWriter);
+                var finalBuffer = decompWriter.DetachBuffer(out var finalSize);
+                reader = PacketBufferPool.GetReader(finalBuffer, finalSize, true);
+            }
+            finally
+            {
+                PacketBufferPool.Return(decompWriter);
+                ArrayPool<byte>.Shared.Return(assemblyBuffer);
+            }
+        }
+        else
+        {
+            reader = PacketBufferPool.GetReader(assemblyBuffer, totalSize, true);
         }
 
         return true;
@@ -133,55 +152,65 @@ public static class PacketChunkManager
         }
 
         packetId = (ushort)id;
+        PacketWriter? compressionWriter = null;
+        var sourceToSplit = data;
 
-        // Compress if threshold is reached
-        if (data.Length > CompressionThreshold)
+        try
         {
-            using var writer = new PacketWriter(data.Length);
-            Compress(data, writer);
+            // Compress if threshold is reached
+            if (data.Length > CompressionThreshold)
+            {
+                compressionWriter = PacketBufferPool.GetWriter(data.Length);
+                Compress(data, compressionWriter);
 
-            if (writer.Position < data.Length * 0.9f)
-                data = writer.ToSpan();
+                if (compressionWriter.Position < data.Length * 0.9f)
+                    sourceToSplit = compressionWriter.ToSpan();
+            }
+
+            var chunkCount = (sourceToSplit.Length + MaxChunkBytes - 1) / MaxChunkBytes;
+            var result = new byte[chunkCount][];
+
+            for (ushort index = 0; index < chunkCount; index++)
+            {
+                var offset = index * MaxChunkBytes;
+                var chunkSize = Math.Min(MaxChunkBytes, sourceToSplit.Length - offset);
+
+                // 10 byte header:
+                var buffer = new byte[10 + chunkSize];
+
+                // Packet Type
+                buffer[0] = packetType;
+
+                // Chunk index
+                buffer[1] = (byte)(index & All8Bits);
+                buffer[2] = (byte)((index >> 8) & All8Bits);
+
+                // Total chunks
+                buffer[3] = (byte)(chunkCount & All8Bits);
+                buffer[4] = (byte)((chunkCount >> 8) & All8Bits);
+
+                // Packet ID
+                buffer[5] = (byte)(packetId & All8Bits);
+                buffer[6] = (byte)((packetId >> 8) & All8Bits);
+
+                // Reliability
+                buffer[7] = (byte)reliability;
+
+                // Sequence number (for ordered packets)
+                buffer[8] = (byte)(sequenceNumber & All8Bits);
+                buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
+
+                sourceToSplit.Slice(offset, chunkSize).CopyTo(buffer.AsSpan(10));
+                result[index] = buffer;
+            }
+
+            return result;
         }
-
-        var chunkCount = (data.Length + MaxChunkBytes - 1) / MaxChunkBytes;
-        var result = new byte[chunkCount][];
-
-        for (ushort index = 0; index < chunkCount; index++)
+        finally
         {
-            var offset = index * MaxChunkBytes;
-            var chunkSize = Math.Min(MaxChunkBytes, data.Length - offset);
-
-            // 10 byte header:
-            var buffer = new byte[10 + chunkSize];
-
-            // Packet Type
-            buffer[0] = packetType;
-
-            // Chunk index
-            buffer[1] = (byte)(index & All8Bits);
-            buffer[2] = (byte)((index >> 8) & All8Bits);
-
-            // Total chunks
-            buffer[3] = (byte)(chunkCount & All8Bits);
-            buffer[4] = (byte)((chunkCount >> 8) & All8Bits);
-
-            // Packet ID
-            buffer[5] = (byte)(packetId & All8Bits);
-            buffer[6] = (byte)((packetId >> 8) & All8Bits);
-
-            // Reliability
-            buffer[7] = (byte)reliability;
-
-            // Sequence number (for ordered packets)
-            buffer[8] = (byte)(sequenceNumber & All8Bits);
-            buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
-
-            data.Slice(offset, chunkSize).CopyTo(buffer.AsSpan(10));
-            result[index] = buffer;
+            if (compressionWriter != null)
+                PacketBufferPool.Return(compressionWriter);
         }
-
-        return result;
     }
 
     private static void CleanupStalePackets()
@@ -200,31 +229,108 @@ public static class PacketChunkManager
         }
     }
 
+    // private static void Compress(ReadOnlySpan<byte> data, PacketWriter targetWriter)
+    // {
+    //     // (byte)PacketType.ReservedCompression instead of 0xFF so shows as used in PacketType.cs
+    //     targetWriter.WriteByte((byte)PacketType.ReservedCompression);
+    //     targetWriter.WriteByte(data[0]);
+
+    //     using var output = new PacketWriterStream(targetWriter);
+    //     using var gzip = new GZipStream(output, CompressionLevel.Fastest);
+    //     gzip.Write(data[1..]);
+    // }
+
     private static void Compress(ReadOnlySpan<byte> data, PacketWriter targetWriter)
     {
         // (byte)PacketType.ReservedCompression instead of 0xFF so shows as used in PacketType.cs
         targetWriter.WriteByte((byte)PacketType.ReservedCompression);
         targetWriter.WriteByte(data[0]);
 
-        using var output = new PacketWriterStream(targetWriter);
-        using var gzip = new GZipStream(output, CompressionLevel.Fastest);
-        gzip.Write(data[1..]);
+        var sourceSpan = data[1..];
+        var sourceLen = sourceSpan.Length;
+
+        targetWriter.WritePackedInt(sourceLen);
+
+        var maxOutputSize = sourceLen + (sourceLen / 255) + 16; // Had to google this formula
+
+        var inputBuffer = ArrayPool<byte>.Shared.Rent(sourceLen);
+        var outputBuffer = ArrayPool<byte>.Shared.Rent(maxOutputSize);
+
+        sourceSpan.CopyTo(inputBuffer);
+
+        try
+        {
+            var compressedBytes = LZ4Codec.Encode64(
+                inputBuffer, 0, sourceLen,
+                outputBuffer, 0, maxOutputSize
+            );
+
+            if (compressedBytes > 0)
+                targetWriter.WriteSpan(outputBuffer.AsSpan(0, compressedBytes));
+            else
+                throw new Exception("LZ4 Compression failed");
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(inputBuffer);
+            ArrayPool<byte>.Shared.Return(outputBuffer);
+        }
     }
 
-    private static byte[] Decompress(byte[] data)
+    // private static byte[] Decompress(byte[] data)
+    // {
+    //     using var input = new MemoryStream(data);
+    //     input.ReadByte();
+    //     var packetType = (byte)input.ReadByte();
+
+    //     using var output = new MemoryStream();
+    //     output.WriteByte(packetType);
+
+    //     using (var gzip = new GZipStream(input, CompressionMode.Decompress))
+    //     {
+    //         gzip.CopyTo(output);
+    //     }
+
+    //     return output.ToArray();
+    // }
+
+    private static void Decompress(byte[] data, PacketWriter targetWriter)
     {
-        using var input = new MemoryStream(data);
-        input.ReadByte();
-        var packetType = (byte)input.ReadByte();
+        var reader = PacketBufferPool.GetReader(data);
 
-        using var output = new MemoryStream();
-        output.WriteByte(packetType);
-
-        using (var gzip = new GZipStream(input, CompressionMode.Decompress))
+        try
         {
-            gzip.CopyTo(output);
-        }
+            reader.ReadByte(); // Skip the ReservedCompression flag
+            var originalType = reader.ReadByte();
+            var uncompressedLen = reader.ReadPackedInt();
 
-        return output.ToArray();
+            var compressedLen = reader.BytesRemaining;
+
+            var inputPoolBuffer = ArrayPool<byte>.Shared.Rent(compressedLen);
+            var outputPoolBuffer = ArrayPool<byte>.Shared.Rent(uncompressedLen);
+
+            try
+            {
+                reader.ReadToSpan(inputPoolBuffer.AsSpan(0, compressedLen));
+
+                var actualDecompressed = LZ4Codec.Decode64(
+                    inputPoolBuffer, 0, compressedLen,
+                    outputPoolBuffer, 0, uncompressedLen,
+                    true
+                );
+
+                targetWriter.WriteByte(originalType);
+                targetWriter.WriteSpan(outputPoolBuffer.AsSpan(0, actualDecompressed));
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(inputPoolBuffer);
+                ArrayPool<byte>.Shared.Return(outputPoolBuffer);
+            }
+        }
+        finally
+        {
+            PacketBufferPool.Return(reader);
+        }
     }
 }

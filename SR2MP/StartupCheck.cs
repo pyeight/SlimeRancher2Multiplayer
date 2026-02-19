@@ -96,9 +96,7 @@ public static class StartupCheck
             const string currentModVersion = BuildInfo.DisplayVersion;
             var latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
 
-            var comparison = CompareVersions(currentModVersion, latestVersion);
-
-            switch (comparison)
+            switch (CompareVersions(currentModVersion, latestVersion))
             {
                 case < 0:
                     ShowMessageBox(

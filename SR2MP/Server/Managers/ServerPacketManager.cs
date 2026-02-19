@@ -73,7 +73,7 @@ public sealed class ServerPacketManager
 
         if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex,
             totalChunks, packetId, senderKey, reliability, sequenceNumber,
-            out data, out var packetReliability, out var packetSequenceNumber))
+            out var reader, out var packetReliability, out var packetSequenceNumber))
         {
             return;
         }
@@ -81,14 +81,16 @@ public sealed class ServerPacketManager
         // Handle reliability ACK packets
         if (packetType == 254)
         {
-            var ackPacket = new AckPacket();
-            using (var reader = new PacketReader(data))
+            try
             {
-                reader.MoveForward(1);
-                ackPacket.Deserialise(reader);
+                var ackPacket = reader.ReadPacket<AckPacket>();
+                networkManager.HandleAck(clientEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
+            }
+            finally
+            {
+                PacketBufferPool.Return(reader);
             }
 
-            networkManager.HandleAck(clientEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
             return;
         }
 
@@ -110,17 +112,31 @@ public sealed class ServerPacketManager
         }
 
         // Ordered reliable packets must be processed in sequence
-        if (packetReliability == PacketReliability.ReliableOrdered)
+        if (packetReliability == PacketReliability.ReliableOrdered &&
+            !networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetType))
         {
-            if (!networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetType))
-                return;
+            return;
         }
 
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try
             {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEp));
+                MainThreadDispatcher.Enqueue(() =>
+                {
+                    try
+                    {
+                        handler.Handle(reader, clientEp);
+                    }
+                    catch (Exception ex)
+                    {
+                        SrLogger.LogError($"Error in handler for packet type {packetType}: {ex}", SrLogTarget.Both);
+                    }
+                    finally
+                    {
+                        PacketBufferPool.Return(reader);
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -144,11 +160,18 @@ public sealed class ServerPacketManager
             OriginalPacketType = packetType
         };
 
-        using var writer = new PacketWriter();
-        writer.WritePacket(ackPacket);
+        var writer = PacketBufferPool.GetWriter();
+        try
+        {
+            writer.WritePacket(ackPacket);
 
-        // no need to acknowledge ACK packets
-        var data = writer.ToSpan();
-        networkManager.Send(data, clientEp, PacketReliability.Unreliable);
+            // no need to acknowledge ACK packets
+            var data = writer.ToSpan();
+            networkManager.Send(data, clientEp, PacketReliability.Unreliable);
+        }
+        finally
+        {
+            PacketBufferPool.Return(writer);
+        }
     }
 }

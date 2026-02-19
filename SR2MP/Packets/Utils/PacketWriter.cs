@@ -11,16 +11,20 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketWriter : PacketBuffer
 {
-    public override int DataSize => position;
+    private int size;
+
+    public override int DataSize => size;
 
     public PacketWriter(int startingCapacity = 256)
         : base(ArrayPool<byte>.Shared.Rent(startingCapacity), 0) { }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureCapacity(int bytesToAdd)
     {
         if (disposed)
             throw new ObjectDisposedException(nameof(PacketWriter));
+
+        if (buffer == null)
+            throw new InvalidOperationException("The buffer has been detached and is no longer available.");
 
         if (position + bytesToAdd > buffer.Length)
             ResizeBuffer(bytesToAdd);
@@ -41,6 +45,7 @@ public sealed class PacketWriter : PacketBuffer
         EndPackingBools();
         EnsureCapacity(1);
         buffer[position++] = value;
+        size++;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -83,7 +88,7 @@ public sealed class PacketWriter : PacketBuffer
         BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
         BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
 
-        position += 8;
+        Advance(8);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -97,7 +102,7 @@ public sealed class PacketWriter : PacketBuffer
         BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
         BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
 
-        position += 12;
+        Advance(12);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -112,7 +117,7 @@ public sealed class PacketWriter : PacketBuffer
         BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
         BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
 
-        position += 16;
+        Advance(16);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -127,7 +132,7 @@ public sealed class PacketWriter : PacketBuffer
         BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
         BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
 
-        position += 16;
+        Advance(16);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -194,11 +199,12 @@ public sealed class PacketWriter : PacketBuffer
         EnsureCapacity(2 + maxByteCount);
 
         var lengthIndex = position;
-        position += 2;
+        Advance(2);
 
         var actualCount = Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, position);
         BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
-        position += actualCount;
+
+        Advance(actualCount);
     }
 
     public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)
@@ -322,10 +328,9 @@ public sealed class PacketWriter : PacketBuffer
 
         EnsureCapacity(data.Length);
         data.CopyTo(buffer.AsSpan(position));
-        position += data.Length;
+        Advance(data.Length);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNullable<T>(T? value) where T : struct
     {
         var hasValue = value.HasValue;
@@ -346,7 +351,7 @@ public sealed class PacketWriter : PacketBuffer
         EndPackingBools();
         EnsureCapacity(count);
         buffer.AsSpan(position, count).Clear();
-        position += count;
+        Advance(count);
     }
 
     public override void MoveBack(int count)
@@ -366,12 +371,12 @@ public sealed class PacketWriter : PacketBuffer
     public void WritePackedEnum<T>(T value) where T : struct, Enum => PacketWriterDels.PackedEnum<T>.Func(this, value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Span<byte> WriteAlloc(int size)
+    private Span<byte> WriteAlloc(int count)
     {
         EndPackingBools();
-        EnsureCapacity(size);
-        var span = buffer.AsSpan(position, size);
-        position += size;
+        EnsureCapacity(count);
+        var span = buffer.AsSpan(position, count);
+        Advance(count);
         return span;
     }
 
@@ -382,9 +387,48 @@ public sealed class PacketWriter : PacketBuffer
         return buffer.AsSpan(0, position);
     }
 
-    protected override void OnDispose() => ArrayPool<byte>.Shared.Return(buffer);
+    protected override void OnDispose()
+    {
+        if (buffer != null)
+            ArrayPool<byte>.Shared.Return(buffer);
+    }
 
     protected override void EnsureBounds(int count) => EnsureCapacity(count);
+
+    public void Reset(int initialCapacity = 256)
+    {
+        if (buffer == null)
+            buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
+
+        disposed = false;
+        Clear();
+    }
+
+    public byte[] DetachBuffer(out int length)
+    {
+        EndPackingBools();
+        length = position;
+
+        var detachedBuffer = buffer;
+
+        buffer = null!;
+        Clear();
+
+        return detachedBuffer;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Advance(int count)
+    {
+        position += count;
+        size += count;
+    }
+
+    public override void Clear()
+    {
+        base.Clear();
+        size = 0;
+    }
 }
 
 /// <summary>
