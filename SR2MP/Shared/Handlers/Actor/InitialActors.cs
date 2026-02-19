@@ -17,7 +17,8 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
         var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             SceneContext.Instance.GameModel.identifiables
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
-
+        
+        handlingPacket = true;
         foreach (var (_, value) in toRemove)
         {
             if (value.ident.IsPlayer)
@@ -26,22 +27,17 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
             var gameObject = value.GetGameObject();
 
             if (gameObject)
-                Object.Destroy(gameObject);
-
-            SceneContext.Instance.GameModel.DestroyIdentifiableModel(value);
+                Destroyer.DestroyAny(gameObject, "SR2MP.InitialActors");
         }
-
+        handlingPacket = false;
+        
         SceneContext.Instance.GameModel._actorIdProvider._nextActorId =
             packet.StartingActorID;
         SceneContext.Instance.GameModel.world.worldTime = packet.WorldTime;
 
         foreach (var actor in packet.Actors)
         {
-            if (!actorManager.TrySpawnInitialActor(actor, out var spawnedActor))
-                continue;
-
-            // if (spawnedActor!.TryGetNetworkComponent(out var component))
-            //     component.LocallyOwned = true;
+            if (!actorManager.TrySpawnInitialActor(actor, out var _)) continue;
         }
 
         MelonCoroutines.Start(actorManager.TakeOwnershipOfNearby());

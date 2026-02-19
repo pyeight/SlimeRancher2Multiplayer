@@ -1,4 +1,5 @@
 using System.Net;
+using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
@@ -43,7 +44,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
         Main.Server.SendToClient(ackPacket, clientEp);
 
-        SendGordosPacket(clientEp);
+        SendGordoSlimesPacket(clientEp);
         SendSwitchesPacket(clientEp);
         SendPlotsPacket(clientEp);
         SendActorsPacket(clientEp, PlayerIdGenerator.GetPlayerIDNumber(packet.PlayerId));
@@ -175,6 +176,9 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             actorsList.Add(NetworkActorManager.CreateInitialActor(model));
         }
 
+        foreach (var model in SceneContext.Instance.GameModel.AllGadgets())
+            actorsList.Add(NetworkActorManager.CreateInitialActor(model.Cast<IdentifiableModel>()));
+        
         var actorsPacket = new InitialActorsPacket
         {
             StartingActorID = (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * 10000, (playerIndex * 10000) + 10000),
@@ -206,7 +210,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         Main.Server.SendToClient(switchesPacket, client);
     }
 
-    private static void SendGordosPacket(IPEndPoint client)
+    private static void SendGordoSlimesPacket(IPEndPoint client)
     {
         var gordosList = new List<InitialGordosPacket.Gordo>();
 

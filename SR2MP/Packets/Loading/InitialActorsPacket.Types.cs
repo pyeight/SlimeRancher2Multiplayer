@@ -30,7 +30,8 @@ public sealed partial class InitialActorsPacket
         { ActorType.Basic, typeof(ActorBase) },
         { ActorType.Slime, typeof(Slime) },
         { ActorType.Plort, typeof(Plort) },
-        { ActorType.Resource, typeof(Resource) }
+        { ActorType.Resource, typeof(Resource) },
+        { ActorType.Gadget, typeof(ActorBase) },
     };
 
     public class ActorBase : INetObject
