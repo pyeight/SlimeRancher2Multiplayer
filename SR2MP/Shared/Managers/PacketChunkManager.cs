@@ -1,5 +1,4 @@
 using SR2MP.Packets.Utils;
-using System.IO.Compression;
 using System.Collections.Concurrent;
 using LZ4ps;
 using System.Buffers;
@@ -229,17 +228,6 @@ public static class PacketChunkManager
         }
     }
 
-    // private static void Compress(ReadOnlySpan<byte> data, PacketWriter targetWriter)
-    // {
-    //     // (byte)PacketType.ReservedCompression instead of 0xFF so shows as used in PacketType.cs
-    //     targetWriter.WriteByte((byte)PacketType.ReservedCompression);
-    //     targetWriter.WriteByte(data[0]);
-
-    //     using var output = new PacketWriterStream(targetWriter);
-    //     using var gzip = new GZipStream(output, CompressionLevel.Fastest);
-    //     gzip.Write(data[1..]);
-    // }
-
     private static void Compress(ReadOnlySpan<byte> data, PacketWriter targetWriter)
     {
         // (byte)PacketType.ReservedCompression instead of 0xFF so shows as used in PacketType.cs
@@ -277,30 +265,13 @@ public static class PacketChunkManager
         }
     }
 
-    // private static byte[] Decompress(byte[] data)
-    // {
-    //     using var input = new MemoryStream(data);
-    //     input.ReadByte();
-    //     var packetType = (byte)input.ReadByte();
-
-    //     using var output = new MemoryStream();
-    //     output.WriteByte(packetType);
-
-    //     using (var gzip = new GZipStream(input, CompressionMode.Decompress))
-    //     {
-    //         gzip.CopyTo(output);
-    //     }
-
-    //     return output.ToArray();
-    // }
-
     private static void Decompress(byte[] data, int dataSize, PacketWriter targetWriter)
     {
         var reader = PacketBufferPool.GetReader(data, dataSize);
 
         try
         {
-            reader.ReadByte(); // Skip the ReservedCompression flag
+            reader.MoveForward(1); // Skip the ReservedCompression flag
             var originalType = reader.ReadByte();
             var uncompressedLen = reader.ReadPackedInt();
 
