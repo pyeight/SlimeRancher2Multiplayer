@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace SR2MP.Packets.Utils;
 
 public abstract class PacketBuffer : IDisposable
@@ -24,9 +22,11 @@ public abstract class PacketBuffer : IDisposable
         startingIndex = currentBitIndex = starting;
     }
 
-    public byte this[int index] => !disposed
-        ? buffer[index]
-        : throw new ObjectDisposedException(nameof(PacketBuffer));
+    public byte this[int index] => disposed
+        ? throw new ObjectDisposedException(nameof(PacketBuffer))
+        : (uint)index >= (uint)DataSize
+            ? throw new ArgumentOutOfRangeException(nameof(index), "Index must be within the bounds of the data size.")
+            : buffer[index];
 
     protected virtual void OnDispose() { }
 
@@ -49,15 +49,13 @@ public abstract class PacketBuffer : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Clear()
+    public virtual void Clear()
     {
         position = 0;
         currentBitIndex = startingIndex;
         currentPackedByte = 0;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetCursor(long pos)
     {
         if (pos is > int.MaxValue or < 0)

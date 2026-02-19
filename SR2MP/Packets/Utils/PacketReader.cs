@@ -24,7 +24,6 @@ public sealed class PacketReader : PacketBuffer
         isRented = rented;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureReadable(int bytesToRead)
     {
         if (disposed)
@@ -351,7 +350,6 @@ public sealed class PacketReader : PacketBuffer
         return span;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetBuffer(byte[] data, int size = -1, bool rented = false)
     {
         buffer = data;
