@@ -84,6 +84,7 @@ public partial class NetworkPlayer : MonoBehaviour
         {
             SrLogger.LogWarning("NetworkPlayer has no Animator component!");
         }
+        AwakeGadgetMode();
     }
 
     private void Start()
@@ -119,6 +120,8 @@ public partial class NetworkPlayer : MonoBehaviour
 
     public void Update()
     {
+        UpdateGadgetMode();
+        
         if (model == null)
         {
             model = playerManager.GetPlayer(ID) ?? playerManager.AddPlayer(ID);
