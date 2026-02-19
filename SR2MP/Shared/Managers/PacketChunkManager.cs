@@ -118,7 +118,7 @@ public static class PacketChunkManager
 
             try
             {
-                Decompress(assemblyBuffer, decompWriter);
+                Decompress(assemblyBuffer, totalSize, decompWriter);
                 var finalBuffer = decompWriter.DetachBuffer(out var finalSize);
                 reader = PacketBufferPool.GetReader(finalBuffer, finalSize, true);
             }
@@ -294,9 +294,9 @@ public static class PacketChunkManager
     //     return output.ToArray();
     // }
 
-    private static void Decompress(byte[] data, PacketWriter targetWriter)
+    private static void Decompress(byte[] data, int dataSize, PacketWriter targetWriter)
     {
-        var reader = PacketBufferPool.GetReader(data);
+        var reader = PacketBufferPool.GetReader(data, dataSize);
 
         try
         {
