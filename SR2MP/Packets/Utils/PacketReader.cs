@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
@@ -10,11 +11,18 @@ namespace SR2MP.Packets.Utils;
 
 public sealed class PacketReader : PacketBuffer
 {
-    private int BytesRemaining => DataSize - position;
+    public int BytesRemaining => DataSize - position;
 
-    public override int DataSize => buffer.Length;
+    public override int DataSize => dataSize;
 
-    public PacketReader(byte[] data) : base(data, 8) { }
+    private bool isRented;
+    private int dataSize;
+
+    public PacketReader(byte[] data, int size = -1, bool rented = false) : base(data, 8)
+    {
+        dataSize = size >= 0 ? size : data.Length;
+        isRented = rented;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnsureReadable(int bytesToRead)
@@ -344,11 +352,19 @@ public sealed class PacketReader : PacketBuffer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void SetBuffer(byte[] data)
+    public void SetBuffer(byte[] data, int size = -1, bool rented = false)
     {
         buffer = data;
+        dataSize = size >= 0 ? size : data.Length;
+        isRented = rented;
         disposed = false;
         Clear();
+    }
+
+    protected override void OnDispose()
+    {
+        if (isRented && buffer != null)
+            ArrayPool<byte>.Shared.Return(buffer);
     }
 }
 

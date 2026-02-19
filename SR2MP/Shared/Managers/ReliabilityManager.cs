@@ -74,7 +74,7 @@ public sealed class ReliabilityManager
             return;
 
         var key = GetPacketKey(destination, packetId);
-        var packet = new PendingPacket
+        pendingPackets[key] = new PendingPacket
         {
             Chunks = chunks,
             Destination = destination,
@@ -86,8 +86,6 @@ public sealed class ReliabilityManager
             SendCount = 1,
             SequenceNumber = sequenceNumber
         };
-
-        pendingPackets[key] = packet;
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)

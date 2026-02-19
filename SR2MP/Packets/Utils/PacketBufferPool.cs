@@ -8,12 +8,12 @@ public static class PacketBufferPool
     private static readonly ConcurrentQueue<PacketReader> ReaderPool = new();
     private static readonly ConcurrentQueue<PacketWriter> WriterPool = new();
 
-    public static PacketReader GetReader(byte[] data)
+    public static PacketReader GetReader(byte[] data, int size = -1, bool rented = false)
     {
         if (!ReaderPool.TryDequeue(out var reader))
-            return new(data);
+            return new(data, size, rented);
 
-        reader.SetBuffer(data);
+        reader.SetBuffer(data, size, rented);
         return reader;
     }
 

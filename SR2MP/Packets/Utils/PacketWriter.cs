@@ -22,6 +22,9 @@ public sealed class PacketWriter : PacketBuffer
         if (disposed)
             throw new ObjectDisposedException(nameof(PacketWriter));
 
+        if (buffer == null)
+            throw new InvalidOperationException("The buffer has been detached and is no longer available.");
+
         if (position + bytesToAdd > buffer.Length)
             ResizeBuffer(bytesToAdd);
     }
@@ -382,7 +385,11 @@ public sealed class PacketWriter : PacketBuffer
         return buffer.AsSpan(0, position);
     }
 
-    protected override void OnDispose() => ArrayPool<byte>.Shared.Return(buffer);
+    protected override void OnDispose()
+    {
+        if (buffer != null)
+            ArrayPool<byte>.Shared.Return(buffer);
+    }
 
     protected override void EnsureBounds(int count) => EnsureCapacity(count);
 
@@ -393,6 +400,19 @@ public sealed class PacketWriter : PacketBuffer
 
         disposed = false;
         Clear();
+    }
+
+    public byte[] DetachBuffer(out int length)
+    {
+        EndPackingBools();
+        length = position;
+
+        var detachedBuffer = buffer;
+
+        buffer = null!;
+        position = 0;
+
+        return detachedBuffer;
     }
 }
 

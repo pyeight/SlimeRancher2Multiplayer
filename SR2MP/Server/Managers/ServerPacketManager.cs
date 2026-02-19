@@ -73,7 +73,7 @@ public sealed class ServerPacketManager
 
         if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex,
             totalChunks, packetId, senderKey, reliability, sequenceNumber,
-            out data, out var packetReliability, out var packetSequenceNumber))
+            out var reader, out var packetReliability, out var packetSequenceNumber))
         {
             return;
         }
@@ -81,8 +81,6 @@ public sealed class ServerPacketManager
         // Handle reliability ACK packets
         if (packetType == 254)
         {
-            var reader = PacketBufferPool.GetReader(data);
-
             try
             {
                 var ackPacket = reader.ReadPacket<AckPacket>();
@@ -114,17 +112,31 @@ public sealed class ServerPacketManager
         }
 
         // Ordered reliable packets must be processed in sequence
-        if (packetReliability == PacketReliability.ReliableOrdered)
+        if (packetReliability == PacketReliability.ReliableOrdered &&
+            !networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetType))
         {
-            if (!networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetType))
-                return;
+            return;
         }
 
         if (handlers.TryGetValue(packetType, out var handler))
         {
             try
             {
-                MainThreadDispatcher.Enqueue(() => handler.Handle(data, clientEp));
+                MainThreadDispatcher.Enqueue(() =>
+                {
+                    try
+                    {
+                        handler.Handle(reader, clientEp);
+                    }
+                    catch (Exception ex)
+                    {
+                        SrLogger.LogError($"Error in handler for packet type {packetType}: {ex}", SrLogTarget.Both);
+                    }
+                    finally
+                    {
+                        PacketBufferPool.Return(reader);
+                    }
+                });
             }
             catch (Exception ex)
             {
