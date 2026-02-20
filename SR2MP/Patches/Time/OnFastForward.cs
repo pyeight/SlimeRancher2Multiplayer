@@ -17,10 +17,7 @@ public static class OnFastForward
             Type = PacketType.FastForward,
             Time = fastForwardUntil
         };
-
-        if (Main.Server.IsRunning())
-            Main.Server.SendToAll(packet);
-        else if (Main.Client.IsConnected)
-            Main.Client.SendPacket(packet);
+        
+        Main.SendToAllOrServer(packet);
     }
 }
