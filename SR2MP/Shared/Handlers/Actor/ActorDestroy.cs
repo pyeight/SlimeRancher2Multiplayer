@@ -18,9 +18,10 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
 
         if (!SceneContext.Instance.GameModel.TryGetIdentifiableModel(packet.ActorId, out var actor))
         {
-            SrLogger.LogError($"Tried to destroy actor that doesn't exist!\n\tID: {packet.ActorId}", SrLogTarget.Both);
+            // SrLogger.LogError($"Tried to destroy actor that doesn't exist!\n\tID: {packet.ActorId}", SrLogTarget.Both);
             return false;
         }
+        
         SceneContext.Instance.GameModel.identifiables.Remove(packet.ActorId);
         SceneContext.Instance.GameModel.identifiablesByIdent[actor.ident].Remove(actor);
         SceneContext.Instance.GameModel.DestroyIdentifiableModel(actor);

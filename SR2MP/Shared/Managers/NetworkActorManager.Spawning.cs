@@ -428,6 +428,8 @@ public sealed partial class NetworkActorManager
         }
 
         produceModel.destroyTime = destroyTime;
+        produceModel.state = state;
+        produceModel.progressTime = progress;
 
         SceneContext.Instance.GameModel.identifiables[actorId] = model;
         if (SceneContext.Instance.GameModel.identifiablesByIdent.TryGetValue(type, out var actors))
