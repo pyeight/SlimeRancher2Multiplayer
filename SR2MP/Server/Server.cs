@@ -5,6 +5,7 @@ using SR2MP.Packets.Player;
 using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Models;
+using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
@@ -13,6 +14,7 @@ public sealed class SR2MPServer
 {
     public readonly NetworkManager networkManager;
     public readonly ClientManager clientManager;
+    public readonly ReSyncManager reSyncManager;
 
     private readonly ServerPacketManager packetManager;
 
@@ -27,6 +29,7 @@ public sealed class SR2MPServer
     {
         networkManager = new NetworkManager();
         clientManager = new ClientManager();
+        reSyncManager = new ReSyncManager();
         packetManager = new ServerPacketManager(networkManager, clientManager);
 
         networkManager.OnDataReceived += OnDataReceived;

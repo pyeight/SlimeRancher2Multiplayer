@@ -126,6 +126,9 @@ public sealed partial class MultiplayerUI
         {
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }
+
+        if (GUI.Button(CalculateButtonLayout(6), "Resync All Players"))
+            Main.Server.reSyncManager.SynchronizeAll();
     }
 
     private void ConnectedScreen()
@@ -138,5 +141,8 @@ public sealed partial class MultiplayerUI
         {
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }
+
+        if (GUI.Button(CalculateButtonLayout(6), "Request Resync"))
+            Main.Server.reSyncManager.RequestResync();
     }
 }

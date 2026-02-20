@@ -18,6 +18,7 @@ public sealed class HostCommand : SR2ECommand
         MenuEUtil.CloseOpenMenu();
         server = Main.Server;
         server.Start(int.Parse(args[0]), true);
+        SrLogger.LogMessage("Host command executed!");
         return true;
     }
 }
@@ -46,6 +47,7 @@ public sealed class ChatCommand : SR2ECommand
 
         MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
 
+        SrLogger.LogMessage("Chat command executed!", SrLogTarget.Both);
         return true;
     }
 }
@@ -105,7 +107,26 @@ public sealed class ConnectCommand : SR2ECommand
             return false;
         }
 
+        SrLogger.LogMessage("Connect command executed!", SrLogTarget.Both);
         Main.Client.Connect(ip, port);
+        return true;
+    }
+}
+
+public sealed class ResyncAllCommand : SR2ECommand
+{
+    public override string ID => "resync";
+    public override string Usage => "resync";
+
+    public override bool Execute(string[] args)
+    {
+        if (Main.Client.IsConnected)
+            Main.Server.reSyncManager.RequestResync();
+        
+        if (Main.Server.IsRunning())
+            Main.Server.reSyncManager.SynchronizeAll();
+        
+        SrLogger.LogMessage("Resync command executed!", SrLogTarget.Both);
         return true;
     }
 }

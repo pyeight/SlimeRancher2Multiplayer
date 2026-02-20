@@ -13,28 +13,32 @@ public sealed class ConnectAckHandler : BasePacketHandler<ConnectAckPacket>
 {
     protected override bool Handle(ConnectAckPacket packet, IPEndPoint? _)
     {
-        var joinPacket = new PlayerJoinPacket
+        if (packet.initialJoin)
         {
-            Type = PacketType.PlayerJoin,
-            PlayerId = packet.PlayerId,
-            PlayerName = Main.Username
-        };
+            var joinPacket = new PlayerJoinPacket
+            {
+                Type = PacketType.PlayerJoin,
+                PlayerId = packet.PlayerId,
+                PlayerName = Main.Username
+            };
 
-        PacketSender.SendPacket(joinPacket);
+            PacketSender.SendPacket(joinPacket);
+            
+            SR2MPClient.StartHeartbeat();
+            Main.Client.NotifyConnected();
 
-        SR2MPClient.StartHeartbeat();
-        Main.Client.NotifyConnected();
+            SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})", SrLogTarget.Both);
 
-        SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})", SrLogTarget.Both);
-
+            cheatsEnabled = packet.AllowCheats;
+            
+            // todo: resync players too
+            foreach (var (id, username) in packet.OtherPlayers)
+                SpawnPlayer(id, username);
+        }
+        
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
-
-        cheatsEnabled = packet.AllowCheats;
-
-        foreach (var (id, username) in packet.OtherPlayers)
-            SpawnPlayer(id, username);
-
+        
         return false;
     }
 

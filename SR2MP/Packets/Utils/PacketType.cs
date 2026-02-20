@@ -52,6 +52,7 @@ public enum PacketType : byte
     InitialRefinery = 47,         // Server -> Client                             Low (depends on join)                 Refinery items on join
     LandPlotUpgrade = 48,         // Both Ways                                    Low (manual)                          Land plot upgrade
     PlayerGadgetUpdate = 49,      // Both Ways                                    Very High (depends on player mode)    Gadget Mode toggle
+    ResyncRequest = 50,           // Client -> Server                             Low (manual)                          Request a resync from server
     ReservedAck = 254,            // Both Ways                                    Very High                             For ACK packets
     ReservedCompression = 255     // Both Ways                                    Very High                             For packet compression
 }
