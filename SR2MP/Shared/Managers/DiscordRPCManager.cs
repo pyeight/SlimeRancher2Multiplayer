@@ -32,7 +32,7 @@ public static class DiscordRPCManager
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
         new(new Dictionary<Zone, string>
         {
-            {Zone.Conservatory, "Ranching at the Conservatory"},
+            {Zone.Conservatory, "Ranching in the Conservatory"},
             {Zone.RainbowFields, "Exploring the Rainbow Fields"},
             {Zone.StarlightStand, "Amazed by the Starlight Strands"},
             {Zone.EmberValley, "Finding Boom Slimes in the Ember Valley"},
