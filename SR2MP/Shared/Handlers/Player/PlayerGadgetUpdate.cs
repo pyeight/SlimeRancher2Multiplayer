@@ -14,6 +14,8 @@ public sealed class PlayerGadgetUpdate : BasePacketHandler<PlayerGadgetUpdatePac
         var player = playerObjects[packet.PlayerId].GetComponent<NetworkPlayer>();
 
         player.onlineGadgetMode = packet.Enabled;
+        player.onlineGadgetID = packet.CurrentGadget;
+        player.onlinePlacementValid = packet.ValidPlacement;
         player.OnGadgetPositionReceived(packet.Position, packet.Rotation);
         
         return true;
