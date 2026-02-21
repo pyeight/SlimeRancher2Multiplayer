@@ -54,7 +54,6 @@ public class ReSyncManager
         SendGordoSlimesPacket(endPoint);
         SendSwitchesPacket(endPoint);
         SendPlotsPacket(endPoint);
-        SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
         SendWeatherPacket(endPoint);
         SendUpgradesPacket(endPoint);
         SendRefineryPacket(endPoint);
@@ -62,6 +61,7 @@ public class ReSyncManager
         SendMapPacket(endPoint);
         SendAccessDoorsPacket(endPoint);
         SendPricesPacket(endPoint);
+        SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
