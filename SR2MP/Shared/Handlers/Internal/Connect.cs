@@ -26,7 +26,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         
         var ackPacket = new ConnectAckPacket
         {
-            initialJoin = true,
+            InitialJoin = true,
             PlayerId = packet.PlayerId,
             OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
                 p => (p.PlayerId, p.Username)),

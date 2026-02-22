@@ -16,7 +16,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public class ReSyncManager
+public sealed class ReSyncManager
 {
     private readonly Dictionary<string, DateTime> cooldowns = new();
     private static readonly TimeSpan CooldownDuration = TimeSpan.FromMinutes(2);
@@ -41,7 +41,7 @@ public class ReSyncManager
 
         var ackPacket = new ConnectAckPacket
         {
-            initialJoin = false,
+            InitialJoin = false,
             PlayerId = playerId,
             OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
                 p => (p.PlayerId, p.Username)),

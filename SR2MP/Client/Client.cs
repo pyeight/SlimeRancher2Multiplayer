@@ -3,7 +3,6 @@ using System.Net.Sockets;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
 using SR2MP.Components.UI;
-using SR2MP.Packets;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
@@ -150,8 +149,8 @@ public sealed class SR2MPClient
 
         var remoteEp = udpClient.Client.AddressFamily switch
         {
-            AddressFamily.InterNetwork     => new IPEndPoint(IPAddress.Any, 0),
-            AddressFamily.InterNetworkV6   => new IPEndPoint(IPAddress.IPv6Any, 0),
+            AddressFamily.InterNetwork => new IPEndPoint(IPAddress.Any, 0),
+            AddressFamily.InterNetworkV6 => new IPEndPoint(IPAddress.IPv6Any, 0),
             _ => throw new NotSupportedException("Unsupported address family")
         };
 
@@ -202,18 +201,18 @@ public sealed class SR2MPClient
         // heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
     }
 
-    private void SendHeartbeat(object? state)
-    {
-        if (!isConnected)
-            return;
+    // private void SendHeartbeat(object? state)
+    // {
+    //     if (!isConnected)
+    //         return;
 
-        var heartbeatPacket = new EmptyPacket
-        {
-            Type = PacketType.Heartbeat
-        };
+    //     var heartbeatPacket = new EmptyPacket
+    //     {
+    //         Type = PacketType.Heartbeat
+    //     };
 
-        SendPacket(heartbeatPacket);
-    }
+    //     SendPacket(heartbeatPacket);
+    // }
 
     internal void SendPacket<T>(T packet) where T : IPacket
     {
@@ -316,25 +315,16 @@ public sealed class SR2MPClient
 
             isConnected = false;
 
-            if (heartbeatTimer != null)
-            {
-                heartbeatTimer.Dispose();
-                heartbeatTimer = null;
-            }
+            heartbeatTimer?.Dispose();
+            heartbeatTimer = null;
 
-            if (connectionTimeoutTimer != null)
-            {
-                connectionTimeoutTimer.Dispose();
-                connectionTimeoutTimer = null;
-            }
+            connectionTimeoutTimer?.Dispose();
+            connectionTimeoutTimer = null;
 
             reliabilityManager?.Stop();
 
-            if (udpClient != null)
-            {
-                udpClient.Close();
-                udpClient = null;
-            }
+            udpClient?.Close();
+            udpClient = null;
 
             if (receiveThread is { IsAlive: true })
             {
@@ -343,8 +333,7 @@ public sealed class SR2MPClient
 
             receiveThread = null;
 
-            var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
-            foreach (var playerId in allPlayerIds)
+            foreach (var playerId in playerManager.GetAllPlayers().ConvertAll(p => p.PlayerId))
             {
                 if (!playerObjects.TryGetValue(playerId, out var playerObject))
                     continue;
@@ -371,11 +360,8 @@ public sealed class SR2MPClient
     {
         connectionAcknowledged = true;
 
-        if (connectionTimeoutTimer != null)
-        {
-            connectionTimeoutTimer.Dispose();
-            connectionTimeoutTimer = null;
-        }
+        connectionTimeoutTimer?.Dispose();
+        connectionTimeoutTimer = null;
 
         OnConnected?.Invoke(OwnPlayerId);
     }

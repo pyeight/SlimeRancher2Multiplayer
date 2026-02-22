@@ -13,7 +13,7 @@ public sealed class ConnectAckHandler : BasePacketHandler<ConnectAckPacket>
 {
     protected override bool Handle(ConnectAckPacket packet, IPEndPoint? _)
     {
-        if (packet.initialJoin)
+        if (packet.InitialJoin)
         {
             var joinPacket = new PlayerJoinPacket
             {
