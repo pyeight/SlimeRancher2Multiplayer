@@ -1,6 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Net;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
@@ -8,23 +10,45 @@ public sealed class ReliabilityManager
 {
     private sealed class PendingPacket
     {
-        public byte[][] Chunks { get; init; } = null!;
-        public IPEndPoint Destination { get; init; } = null!;
-        public ushort PacketId { get; init; }
-        public byte PacketType { get; init; }
-        public PacketReliability Reliability { get; init; }
-        public DateTime FirstSendTime { get; init; }
-        public DateTime LastSendTime { get; set; }
-        public int SendCount { get; set; }
-        public ushort SequenceNumber { get; init; }
+        public SplitResult SplitData;
+        public IPEndPoint Destination = null!;
+        public ushort PacketId;
+        public byte PacketType;
+        public PacketReliability Reliability;
+        public DateTime FirstSendTime;
+        public DateTime LastSendTime;
+        public int SendCount;
+        public ushort SequenceNumber;
+
+        public void Initialize(SplitResult splitData, IPEndPoint destination, ushort packetId,
+            byte packetType, PacketReliability reliability, ushort sequenceNumber)
+        {
+            SplitData = splitData;
+            Destination = destination;
+            PacketId = packetId;
+            PacketType = packetType;
+            Reliability = reliability;
+            SequenceNumber = sequenceNumber;
+
+            FirstSendTime = DateTime.UtcNow;
+            LastSendTime = DateTime.UtcNow;
+            SendCount = 1;
+        }
+
+        public void Release()
+        {
+            SplitData.Dispose();
+            Destination = null!;
+        }
     }
 
-    private readonly ConcurrentDictionary<string, PendingPacket> pendingPackets = new();
-    private readonly ConcurrentDictionary<string, ushort> lastProcessedSequence = new();
-
+    private readonly ConcurrentDictionary<PacketKey, PendingPacket> pendingPackets = new();
+    private readonly ConcurrentDictionary<SequenceKey, ushort> lastProcessedSequence = new();
     private readonly ConcurrentDictionary<byte, int> sequenceNumbersByType = new();
 
-    private readonly Action<byte[], IPEndPoint> sendRawCallback;
+    private readonly ConcurrentBag<PendingPacket> packetPool = new();
+
+    private readonly Action<ArraySegment<byte>, IPEndPoint> sendRawCallback;
 
     private Thread? resendThread;
     private volatile bool isRunning;
@@ -33,7 +57,7 @@ public sealed class ReliabilityManager
     private static readonly TimeSpan MaxRetryTime = TimeSpan.FromSeconds(10);
     private const int MaxResendAttempts = 50;
 
-    public ReliabilityManager(Action<byte[], IPEndPoint> sendRawCallback)
+    public ReliabilityManager(Action<ArraySegment<byte>, IPEndPoint> sendRawCallback)
     {
         this.sendRawCallback = sendRawCallback;
     }
@@ -60,6 +84,10 @@ public sealed class ReliabilityManager
             return;
 
         isRunning = false;
+        
+        foreach (var packet in pendingPackets.Values)
+            packet.Release();
+
         pendingPackets.Clear();
         lastProcessedSequence.Clear();
         sequenceNumbersByType.Clear();
@@ -67,33 +95,30 @@ public sealed class ReliabilityManager
         SrLogger.LogMessage("ReliabilityManager stopped", SrLogTarget.Both);
     }
 
-    public void TrackPacket(byte[][] chunks, IPEndPoint destination, ushort packetId,
+    public void TrackPacket(SplitResult splitData, IPEndPoint destination, ushort packetId,
         byte packetType, PacketReliability reliability, ushort sequenceNumber)
     {
         if (reliability == PacketReliability.Unreliable)
             return;
 
-        var key = GetPacketKey(destination, packetId);
-        pendingPackets[key] = new PendingPacket
+        var key = new PacketKey(packetType, packetId, destination);
+            
+        if (!packetPool.TryTake(out var packet))
         {
-            Chunks = chunks,
-            Destination = destination,
-            PacketId = packetId,
-            PacketType = packetType,
-            Reliability = reliability,
-            FirstSendTime = DateTime.UtcNow,
-            LastSendTime = DateTime.UtcNow,
-            SendCount = 1,
-            SequenceNumber = sequenceNumber
-        };
+            packet = new PendingPacket();
+        }
+
+        packet.Initialize(splitData, destination, packetId, packetType, reliability, sequenceNumber);
+        pendingPackets[key] = packet;
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
     {
-        var key = GetPacketKey(sender, packetId);
-
+        var key = new PacketKey(packetType, packetId, sender);
+        
         if (!pendingPackets.TryRemove(key, out var packet))
             return;
+
         var latency = DateTime.UtcNow - packet.FirstSendTime;
         SrLogger.LogPacketSize(
             $"ACK received for packet {packetId} (type={packetType}) after {packet.SendCount} sends, latency={latency.TotalMilliseconds:F1}ms",
@@ -103,7 +128,7 @@ public sealed class ReliabilityManager
     // Checks if an ordered packet should be processed based on sequence number
     public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
     {
-        var key = GetSequenceKey(sender, packetType);
+        var key = new SequenceKey(sender, packetType);
 
         if (!lastProcessedSequence.TryGetValue(key, out var lastSequence))
         {
@@ -149,30 +174,34 @@ public sealed class ReliabilityManager
         {
             try
             {
-                var now = DateTime.UtcNow;
-                var toRemove = new List<string>();
-
-                foreach (var kvp in pendingPackets)
+                var count = pendingPackets.Count;
+                if (count == 0)
                 {
-                    var packet = kvp.Value;
+                    Thread.Sleep(10);
+                    continue;
+                }
 
+                var now = DateTime.UtcNow;
+                var keysToRemove = ArrayPool<PacketKey>.Shared.Rent(count);
+                var removeCount = 0;
+
+                foreach (var (key, packet) in pendingPackets)
+                {
                     // Checks if packet has timed out
                     if (now - packet.FirstSendTime > MaxRetryTime || packet.SendCount >= MaxResendAttempts)
                     {
                         SrLogger.LogWarning(
                             $"Packet {packet.PacketId} (type={packet.PacketType}) failed after {packet.SendCount} attempts",
                             SrLogTarget.Both);
-                        toRemove.Add(kvp.Key);
+                        keysToRemove[removeCount++] = key;
                         continue;
                     }
 
                     // Checks if packet should be resent
                     if (now - packet.LastSendTime > ResendInterval)
                     {
-                        foreach (var chunk in packet.Chunks)
-                        {
-                            sendRawCallback(chunk, packet.Destination);
-                        }
+                        for (var i = 0; i < packet.SplitData.Count; i++)
+                            sendRawCallback(packet.SplitData.Chunks[i], packet.Destination);
 
                         packet.LastSendTime = now;
                         packet.SendCount++;
@@ -187,10 +216,16 @@ public sealed class ReliabilityManager
                 }
 
                 // Removes timed out packets
-                foreach (var key in toRemove)
+                for (var i = 0; i < removeCount; i++)
                 {
-                    pendingPackets.TryRemove(key, out _);
+                    if (!pendingPackets.TryRemove(keysToRemove[i], out var timedOutPacket))
+                        continue;
+
+                    timedOutPacket.Release();
+                    packetPool.Add(timedOutPacket);
                 }
+
+                ArrayPool<PacketKey>.Shared.Return(keysToRemove);
 
                 // todo: Should not cause problems, if it does, remove
                 Thread.Sleep(10);
@@ -200,16 +235,6 @@ public sealed class ReliabilityManager
                 SrLogger.LogError($"ResendLoop error: {ex}", SrLogTarget.Both);
             }
         }
-    }
-
-    private static string GetPacketKey(IPEndPoint endpoint, ushort packetId)
-    {
-        return $"{endpoint}_{packetId}";
-    }
-
-    private static string GetSequenceKey(IPEndPoint endpoint, byte packetType)
-    {
-        return $"{endpoint}_{packetType}";
     }
 
     private static bool IsSequenceNewer(ushort s1, ushort s2)

@@ -299,63 +299,63 @@ public sealed class NetworkActor : MonoBehaviour
 
             if (syncTimer >= 0) return;
 
-            if (LocallyOwned)
+            if (!LocallyOwned)
+                return;
+
+            syncTimer = Timers.ActorTimer;
+
+            previousPosition = transform.position;
+            previousRotation = transform.rotation;
+            nextPosition = transform.position;
+            nextRotation = transform.rotation;
+
+            var actorId = ActorId;
+            if (actorId.Value == 0) return;
+
+            var updateType =
+                isSlime
+                ? ActorUpdateType.Slime
+                : isResource
+                    ? ActorUpdateType.Resource
+                    : isPlort
+                        ? ActorUpdateType.Plort
+                        : ActorUpdateType.Actor;
+
+            double resourceProgress = 0f;
+            var resourceState = ResourceCycle.State.UNRIPE;
+            if (isResource)
             {
-                syncTimer = Timers.ActorTimer;
-
-                previousPosition = transform.position;
-                previousRotation = transform.rotation;
-                nextPosition = transform.position;
-                nextRotation = transform.rotation;
-
-                var actorId = ActorId;
-                if (actorId.Value == 0) return;
-
-                var updateType =
-                    isSlime
-                    ? ActorUpdateType.Slime
-                    : isResource
-                        ? ActorUpdateType.Resource
-                        : isPlort
-                            ? ActorUpdateType.Plort
-                            : ActorUpdateType.Actor;
-
-                double resourceProgress = 0f;
-                var resourceState = ResourceCycle.State.UNRIPE;
-                if (isResource)
-                {
-                    resourceProgress = cycle?._model.progressTime ?? 0f;
-                    resourceState = cycle?._model.state ?? ResourceCycle.State.UNRIPE;
-                }
-
-                var packet = new ActorUpdatePacket
-                {
-                    UpdateType = updateType,
-                    ActorId = actorId,
-                    Position = transform.position,
-                    Rotation = transform.rotation,
-                    Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
-                };
-
-                if (updateType == ActorUpdateType.Slime)
-                {
-                    packet.Emotions = EmotionsFloat;
-                }
-                else if (updateType == ActorUpdateType.Resource)
-                {
-                    packet.ResourceProgress = resourceProgress;
-                    packet.ResourceState = resourceState;
-                }
-                else if (updateType == ActorUpdateType.Plort)
-                {
-                    // todo: packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false; ??
-                    // todo: packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f; ??
-                    packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false;
-                    packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f;
-                }
-
-                Main.SendToAllOrServer(packet);
+                resourceProgress = cycle?._model.progressTime ?? 0f;
+                resourceState = cycle?._model.state ?? ResourceCycle.State.UNRIPE;
             }
+
+            var packet = new ActorUpdatePacket
+            {
+                UpdateType = updateType,
+                ActorId = actorId,
+                Position = transform.position,
+                Rotation = transform.rotation,
+                Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
+            };
+
+            if (updateType == ActorUpdateType.Slime)
+            {
+                packet.Emotions = EmotionsFloat;
+            }
+            else if (updateType == ActorUpdateType.Resource)
+            {
+                packet.ResourceProgress = resourceProgress;
+                packet.ResourceState = resourceState;
+            }
+            else if (updateType == ActorUpdateType.Plort)
+            {
+                // todo: packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false; ??
+                // todo: packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f; ??
+                packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false;
+                packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f;
+            }
+
+            Main.SendToAllOrServer(packet);
         }
         catch (Exception ex)
         {

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
+using System.Buffers;
 
 namespace SR2MP.Server.Managers;
 
@@ -12,7 +13,7 @@ public sealed class NetworkManager
     private Thread? receiveThread;
     private ReliabilityManager? reliabilityManager;
 
-    public event Action<byte[], IPEndPoint>? OnDataReceived;
+    public event Action<byte[], int, IPEndPoint>? OnDataReceived;
 
     public bool IsRunning => isRunning;
 
@@ -71,31 +72,36 @@ public sealed class NetworkManager
 
         SrLogger.LogMessage("Server ReceiveLoop started!", SrLogTarget.Both);
 
-        var remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
+        EndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
+        var receiveBuffer = ArrayPool<byte>.Shared.Rent(2048);
 
-        while (isRunning)
+        try
         {
-            try
+            while (isRunning)
             {
-                var data = udpClient.Receive(ref remoteEp);
+                try
+                {
+                    var receivedBytes = udpClient.Client.ReceiveFrom(receiveBuffer, ref remoteEp);
 
-                if (data.Length == 0)
-                    continue;
-
-                OnDataReceived?.Invoke(data, remoteEp);
-            }
-            catch (SocketException)
-            {
-                // never happens, no timeout set
-            }
-            catch (Exception ex)
-            {
-                if (isRunning)
-                    SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
+                    if (receivedBytes > 0)
+                        OnDataReceived?.Invoke(receiveBuffer, receivedBytes, (IPEndPoint)remoteEp);
+                }
+                catch (SocketException)
+                {
+                    // never happens, no timeout set
+                }
+                catch (Exception ex)
+                {
+                    if (isRunning)
+                        SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
+                }
             }
         }
-
-        SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(receiveBuffer);
+            SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
+        }
     }
 
     public void Send(ReadOnlySpan<byte> data, IPEndPoint endPoint, PacketReliability? reliability = null)
@@ -112,21 +118,18 @@ public sealed class NetworkManager
             ushort sequenceNumber = 0;
 
             if (packetReliability == PacketReliability.ReliableOrdered)
-            {
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
-            }
 
-            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out var packetId);
+            var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out var packetId);
 
             if (packetReliability != PacketReliability.Unreliable)
-            {
-                reliabilityManager?.TrackPacket(chunks, endPoint, packetId, data[0], packetReliability, sequenceNumber);
-            }
+                reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability, sequenceNumber);
 
-            foreach (var chunk in chunks)
-            {
-                SendRaw(chunk, endPoint);
-            }
+            for (var i = 0; i < splitResult.Count; i++)
+                SendRaw(splitResult.Chunks[i], endPoint);
+
+            if (packetReliability == PacketReliability.Unreliable)
+                splitResult.Dispose();
         }
         catch (Exception ex)
         {
@@ -135,7 +138,7 @@ public sealed class NetworkManager
     }
 
     // Broadcast to multiple endpoints efficiently
-    public void Broadcast(ReadOnlySpan<byte> data, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
+    public void Broadcast(ReadOnlySpan<byte> data, IEnumerable<IPEndPoint> endPoints, PacketReliability? reliability = null)
     {
         if (udpClient == null || !isRunning)
         {
@@ -145,30 +148,27 @@ public sealed class NetworkManager
 
         try
         {
-            var finalReliability = reliability ?? PacketReliability.Unreliable;
+            var packetReliability = reliability ?? PacketReliability.Unreliable;
             ushort sequenceNumber = 0;
 
-            if (finalReliability == PacketReliability.ReliableOrdered)
-            {
+            if (packetReliability == PacketReliability.ReliableOrdered)
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
-            }
 
             // Split once, send to many
-            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out var packetId);
+            var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out var packetId);
 
-            foreach (var endpoint in endpoints)
+            foreach (var endPoint in endPoints)
             {
                 // Track for reliability if needed
-                if (finalReliability != PacketReliability.Unreliable)
-                {
-                    reliabilityManager?.TrackPacket(chunks, endpoint, packetId, data[0], finalReliability, sequenceNumber);
-                }
+                if (packetReliability != PacketReliability.Unreliable)
+                    reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability, sequenceNumber);
 
-                foreach (var chunk in chunks)
-                {
-                    SendRaw(chunk, endpoint);
-                }
+                for (var i = 0; i < splitResult.Count; i++)
+                    SendRaw(splitResult.Chunks[i], endPoint);
             }
+
+            if (packetReliability == PacketReliability.Unreliable)
+                splitResult.Dispose();
         }
         catch (Exception ex)
         {
@@ -177,9 +177,10 @@ public sealed class NetworkManager
     }
 
     // Sends raw data without reliability tracking (used for resends or internally)
-    private void SendRaw(byte[] data, IPEndPoint endPoint)
+    private void SendRaw(ArraySegment<byte> data, IPEndPoint endPoint)
     {
-        udpClient?.Send(data, data.Length, endPoint);
+        if (data.Array == null) return;
+        udpClient?.Client.SendTo(data.Array, data.Offset, data.Count, SocketFlags.None, endPoint);
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)

@@ -8,7 +8,7 @@ public sealed class ForceTimeScale : MonoBehaviour
     public float timeScale = 1f;
     public float loadingTimeScale;
 
-    private void Update()
+    public void Update()
     {
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
             return;

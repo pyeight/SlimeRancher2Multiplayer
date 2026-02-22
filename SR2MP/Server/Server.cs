@@ -75,14 +75,14 @@ public sealed class SR2MPServer
         }
     }
 
-    private void OnDataReceived(byte[] data, IPEndPoint clientEp)
+    private void OnDataReceived(byte[] data, int receivedBytes, IPEndPoint clientEp)
     {
-        SrLogger.LogPacketSize($"Received {data.Length} bytes from Client!",
-            $"Received {data.Length} bytes from {clientEp}.");
+        SrLogger.LogPacketSize($"Received {receivedBytes} bytes from Client!",
+            $"Received {receivedBytes} bytes from {clientEp}.");
 
         try
         {
-            packetManager.HandlePacket(data, clientEp);
+            packetManager.HandlePacket(data, receivedBytes, clientEp);
         }
         catch (Exception ex)
         {
@@ -148,18 +148,18 @@ public sealed class SR2MPServer
                 SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
             }
 
-            var allPlayerIds = playerManager.GetAllPlayers().Select(p => p.PlayerId).ToList();
-            foreach (var playerId in allPlayerIds)
+            foreach (var player in playerManager.GetAllPlayers())
             {
-                if (playerObjects.TryGetValue(playerId, out var playerObject))
+                var playerId = player.PlayerId;
+                if (!playerObjects.TryGetValue(playerId, out var playerObject))
+                    continue;
+
+                if (playerObject != null)
                 {
-                    if (playerObject != null)
-                    {
-                        Object.Destroy(playerObject);
-                        SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
-                    }
-                    playerObjects.Remove(playerId);
+                    Object.Destroy(playerObject);
+                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
                 }
+                playerObjects.Remove(playerId);
             }
 
             PacketDeduplication.Clear();

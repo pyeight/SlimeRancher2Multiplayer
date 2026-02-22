@@ -1,21 +1,20 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 
 namespace SR2MP.Shared.Utils;
 
 public static class PacketDeduplication
 {
     // Key format: "PacketType_UniqueId"
-    private static readonly ConcurrentDictionary<string, DateTime> ProcessedPackets = new();
+    private static readonly ConcurrentDictionary<PacketKey, DateTime> ProcessedPackets = new();
 
     private static readonly TimeSpan PacketMemoryDuration = TimeSpan.FromSeconds(30);
 
     private static int processCounter;
     private const int CleanupInterval = 100;
 
-    public static bool IsDuplicate(string packetType, string uniqueId)
+    public static bool IsDuplicate(PacketKey key)
     {
-        var key = $"{packetType}_{uniqueId}";
-
         if (++processCounter >= CleanupInterval)
         {
             processCounter = 0;
@@ -25,11 +24,8 @@ public static class PacketDeduplication
         return !ProcessedPackets.TryAdd(key, DateTime.UtcNow);
     }
 
-    public static void MarkProcessed(string packetType, string uniqueId)
-    {
-        var key = $"{packetType}_{uniqueId}";
-        ProcessedPackets[key] = DateTime.UtcNow;
-    }
+    public static void MarkProcessed(PacketKey key)
+        => ProcessedPackets[key] = DateTime.UtcNow;
 
     public static void Clear()
     {
@@ -40,26 +36,32 @@ public static class PacketDeduplication
 
     private static void Cleanup()
     {
+        var count = ProcessedPackets.Count;
+        if (count == 0) return;
+
+        var keysToRemove = ArrayPool<PacketKey>.Shared.Rent(count);
+        var removeCount = 0;
         var now = DateTime.UtcNow;
-        var toRemove = new List<string>();
 
         foreach (var kvp in ProcessedPackets)
         {
             if (now - kvp.Value > PacketMemoryDuration)
             {
-                toRemove.Add(kvp.Key);
+                keysToRemove[removeCount++] = kvp.Key;
             }
         }
 
-        foreach (var key in toRemove)
+        for (var i = 0; i < removeCount; i++)
         {
-            ProcessedPackets.TryRemove(key, out _);
+            ProcessedPackets.TryRemove(keysToRemove[i], out _);
         }
 
-        if (toRemove.Count > 0)
+        if (removeCount > 0)
         {
-            SrLogger.LogPacketSize($"Cleaned up {toRemove.Count} old packet records", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Cleaned up {removeCount} old packet records", SrLogTarget.Both);
         }
+
+        ArrayPool<PacketKey>.Shared.Return(keysToRemove);
     }
 
     public static int GetTrackedPacketCount() => ProcessedPackets.Count;

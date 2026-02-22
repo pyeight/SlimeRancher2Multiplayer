@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Client.Managers;
@@ -147,53 +148,62 @@ public sealed class SR2MPClient
 
         SrLogger.LogMessage("Client ReceiveLoop started!", SrLogTarget.Both);
 
-        var remoteEp = udpClient.Client.AddressFamily switch
+        EndPoint remoteEp = udpClient.Client.AddressFamily switch
         {
             AddressFamily.InterNetwork => new IPEndPoint(IPAddress.Any, 0),
             AddressFamily.InterNetworkV6 => new IPEndPoint(IPAddress.IPv6Any, 0),
             _ => throw new NotSupportedException("Unsupported address family")
         };
 
-        while (isConnected)
+        var receiveBuffer = ArrayPool<byte>.Shared.Rent(2048);
+
+        try
         {
-            try
+            while (isConnected)
             {
-                var data = udpClient.Receive(ref remoteEp);
-
-                if (data.Length == 0)
-                    continue;
-
-                packetManager.HandlePacket(data, remoteEp);
-                SrLogger.LogPacketSize($"Received {data.Length} bytes",
-                    $"Received {data.Length} bytes from {remoteEp}");
-            }
-            catch (SocketException ex)
-            {
-                // This prevents WSAEINTR from logging, this is correct
-                if (ex.ErrorCode is not 10004 and not 10054)
+                try
                 {
-                    SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}", SrLogTarget.Both);
-                }
+                    var receivedBytes = udpClient.Client.ReceiveFrom(receiveBuffer, ref remoteEp);
 
-                if (ex.ErrorCode == 10054 && !shownConnectionError)
+                    if (receivedBytes == 0)
+                        continue;
+
+                    packetManager.HandlePacket(receiveBuffer, receivedBytes, (IPEndPoint)remoteEp);
+                    SrLogger.LogPacketSize($"Received {receivedBytes} bytes",
+                        $"Received {receivedBytes} bytes from {remoteEp}");
+                }
+                catch (SocketException ex)
                 {
-                    SrLogger.LogError("The server is not running!\n" +
-                                      "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                      "If this is not the case, check your firewall settings", SrLogTarget.Both);
-                    shownConnectionError = true;
-                }
+                    // This prevents WSAEINTR from logging, this is correct
+                    if (ex.ErrorCode is not 10004 and not 10054)
+                    {
+                        SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}", SrLogTarget.Both);
+                    }
 
-                MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
-                Disconnect();
+                    if (ex.ErrorCode == 10054 && !shownConnectionError)
+                    {
+                        SrLogger.LogError("The server is not running!\n" +
+                                          "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
+                                          "If this is not the case, check your firewall settings", SrLogTarget.Both);
+                        shownConnectionError = true;
+                    }
+
+                    MultiplayerUI.Instance.RegisterSystemMessage("Could not join the world, check the MelonLoader console for details", $"SYSTEM_JOIN_10054_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageClose);
+                    Disconnect();
+                }
+                catch (Exception ex)
+                {
+                    SrLogger.LogError($"ReceiveLoop error: {ex}");
+                }
             }
-            catch (Exception ex)
-            {
-                SrLogger.LogError($"ReceiveLoop error: {ex}");
-            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(receiveBuffer);
         }
 
         SrLogger.LogMessage("Client ReceiveLoop ended!", SrLogTarget.Both);
-    }
+        }
 
     internal static void StartHeartbeat()
     {
@@ -236,24 +246,20 @@ public sealed class SR2MPClient
 
             // Get sequence number for ordered packets (pass packet type)
             if (reliability == PacketReliability.ReliableOrdered)
-            {
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
-            }
 
-            var chunks = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
-
-            // Track reliability if needed
+            var splitResult = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
+            
             if (reliability != PacketReliability.Unreliable)
-            {
-                reliabilityManager?.TrackPacket(chunks, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
-            }
+                reliabilityManager?.TrackPacket(splitResult, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
 
-            foreach (var chunk in chunks)
-            {
-                SendRaw(chunk, serverEndPoint);
-            }
+            for (var i = 0; i < splitResult.Count; i++)
+                SendRaw(splitResult.Chunks[i], serverEndPoint);
 
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {chunks.Length} chunk(s) (ID={packetId}).",
+            if (reliability == PacketReliability.Unreliable)
+                splitResult.Dispose();
+
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {splitResult.Count} chunk(s) (ID={packetId}).",
                 SrLogTarget.Both);
         }
         catch (Exception ex)
@@ -267,9 +273,10 @@ public sealed class SR2MPClient
     }
 
     // Sends raw data without reliability tracking (used for resends)
-    private void SendRaw(byte[] data, IPEndPoint endPoint)
+    private void SendRaw(ArraySegment<byte> data, IPEndPoint _)
     {
-        udpClient?.Send(data, data.Length);
+        if (data.Array == null) return;
+        udpClient?.Client.Send(data.Array, data.Offset, data.Count, SocketFlags.None);
     }
 
     // Handle acknowledgement from server, used in client packet manager
@@ -333,10 +340,12 @@ public sealed class SR2MPClient
 
             receiveThread = null;
 
-            foreach (var playerId in playerManager.GetAllPlayers().ConvertAll(p => p.PlayerId))
+            foreach (var player in playerManager.GetAllPlayers())
             {
+                var playerId = player.PlayerId;
                 if (!playerObjects.TryGetValue(playerId, out var playerObject))
                     continue;
+                
                 if (playerObject)
                 {
                     Object.Destroy(playerObject);

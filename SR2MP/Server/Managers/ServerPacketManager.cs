@@ -4,6 +4,8 @@ using SR2MP.Packets.Utils;
 using SR2MP.Packets.Internal;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
+using System.Buffers;
+using SR2MP.Shared;
 
 namespace SR2MP.Server.Managers;
 
@@ -49,37 +51,60 @@ public sealed class ServerPacketManager
         SrLogger.LogMessage($"Total handlers registered: {handlers.Count}", SrLogTarget.Both);
     }
 
-    public void HandlePacket(byte[] data, IPEndPoint clientEp)
+    public void HandlePacket(byte[] data, int receivedBytes, IPEndPoint clientEp)
     {
-        if (data.Length < 10)
+        if (receivedBytes < 10)
         {
-            SrLogger.LogWarning($"Received packet too small for chunk header: {data.Length} bytes", SrLogTarget.Both);
+            SrLogger.LogWarning($"Received packet too small for chunk header: {receivedBytes} bytes", SrLogTarget.Both);
             return;
         }
 
-        var packetType = data[0];
+        var packetTypeHeader = data[0];
         var chunkIndex = (ushort)(data[1] | (data[2] << 8));
         var totalChunks = (ushort)(data[3] | (data[4] << 8));
         var packetId = (ushort)(data[5] | (data[6] << 8));
         var reliability = (PacketReliability)data[7];
         var sequenceNumber = (ushort)(data[8] | (data[9] << 8));
 
-        var chunkData = new byte[data.Length - 10];
-        data.AsSpan(10, chunkData.Length).CopyTo(chunkData);
-        // Buffer.BlockCopy(data, 10, chunkData, 0, chunkData.Length);
-        // Buffer.BlockCopy(data, 10, chunkData, 0, data.Length - 10);
+        var trueChunkLength = receivedBytes - 10;
 
-        var senderKey = clientEp.ToString();
+        var packetType = (PacketType)packetTypeHeader;
 
-        if (!PacketChunkManager.TryMergePacket((PacketType)packetType, chunkData, chunkIndex,
-            totalChunks, packetId, senderKey, reliability, sequenceNumber,
-            out var reader, out var packetReliability, out var packetSequenceNumber))
+        var packetReliability = reliability;
+        var packetSequenceNumber = sequenceNumber;
+
+        PacketReader reader;
+
+        if (totalChunks == 1)
         {
-            return;
+            if (trueChunkLength > 0 && data[10] == (byte)PacketType.ReservedCompression)
+            {
+                reader = PacketChunkManager.DecompressSingleChunk(data, 10, trueChunkLength);
+            }
+            else
+            {
+                var singleChunkData = ArrayPool<byte>.Shared.Rent(trueChunkLength);
+                data.AsSpan(10, trueChunkLength).CopyTo(singleChunkData);
+                reader = PacketBufferPool.GetReader(singleChunkData, trueChunkLength, true);
+            }
+        }
+        else
+        {
+            var chunkData = ArrayPool<byte>.Shared.Rent(trueChunkLength);
+            data.AsSpan(10, trueChunkLength).CopyTo(chunkData);
+
+            if (!PacketChunkManager.TryMergePacket(packetType,
+                chunkData, trueChunkLength, chunkIndex, totalChunks,
+                packetId, clientEp, reliability, sequenceNumber,
+                out reader, out packetReliability, out packetSequenceNumber))
+            {
+                PacketBufferPool.Return(reader);
+                return;
+            }
         }
 
         // Handle reliability ACK packets
-        if (packetType == 254)
+        if (packetTypeHeader == 254)
         {
             try
             {
@@ -98,50 +123,30 @@ public sealed class ServerPacketManager
         // Otherwise clients will resend if the ACK packet was lost
         if (packetReliability != PacketReliability.Unreliable)
         {
-            SendAck(clientEp, packetId, packetType);
+            SendAck(clientEp, packetId, packetTypeHeader);
         }
 
         // Packet deduplication (per client)
-        var packetTypeKey = ((PacketType)packetType).ToString();
-        var uniqueId = $"{senderKey}_{packetId}";
-
-        if (PacketDeduplication.IsDuplicate(packetTypeKey, uniqueId))
+        var packetKey = new PacketKey(packetTypeHeader, packetId, clientEp);
+        
+        if (PacketDeduplication.IsDuplicate(packetKey))
         {
-            SrLogger.LogPacketSize($"Duplicate packet ignored from {senderKey}: {packetTypeKey} (packetId={packetId})", SrLogTarget.Both);
+            PacketBufferPool.Return(reader);
+            SrLogger.LogPacketSize($"Duplicate packet ignored from {clientEp}: {packetType} (packetId={packetId})", SrLogTarget.Both);
             return;
         }
 
         // Ordered reliable packets must be processed in sequence
         if (packetReliability == PacketReliability.ReliableOrdered &&
-            !networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetType))
+            !networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetTypeHeader))
         {
+            PacketBufferPool.Return(reader);
             return;
         }
 
-        if (handlers.TryGetValue(packetType, out var handler))
+        if (handlers.TryGetValue(packetTypeHeader, out var handler))
         {
-            try
-            {
-                MainThreadDispatcher.Enqueue(() =>
-                {
-                    try
-                    {
-                        handler.Handle(reader, clientEp);
-                    }
-                    catch (Exception ex)
-                    {
-                        SrLogger.LogError($"Error in handler for packet type {packetType}: {ex}", SrLogTarget.Both);
-                    }
-                    finally
-                    {
-                        PacketBufferPool.Return(reader);
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogError($"Error handling packet type {packetType}: {ex}", SrLogTarget.Both);
-            }
+            MainThreadDispatcher.Enqueue(new ServerHandleCache(reader, handler, clientEp));
         }
         else
         {
@@ -166,8 +171,7 @@ public sealed class ServerPacketManager
             writer.WritePacket(ackPacket);
 
             // no need to acknowledge ACK packets
-            var data = writer.ToSpan();
-            networkManager.Send(data, clientEp, PacketReliability.Unreliable);
+            networkManager.Send(writer.ToSpan(), clientEp, PacketReliability.Unreliable);
         }
         finally
         {
