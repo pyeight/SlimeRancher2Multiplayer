@@ -21,11 +21,11 @@ public static class GlobalVariables
 
     public static Dictionary<string, GameObject> playerObjects = new();
 
-    public static RemotePlayerManager playerManager = new RemotePlayerManager();
+    public static RemotePlayerManager playerManager = new();
 
-    public static RemoteFXManager fxManager = new RemoteFXManager();
+    public static RemoteFXManager fxManager = new();
 
-    public static NetworkActorManager actorManager = new NetworkActorManager();
+    public static NetworkActorManager actorManager = new();
 
     public static Dictionary<string, GameObject> landPlotObjects = new();
 

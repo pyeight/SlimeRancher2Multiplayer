@@ -11,26 +11,26 @@ public abstract class MpYieldInstruction : IEnumerator
 
     public bool MoveNext() => ShouldWait;
 
-    public void Reset() { }
+    public virtual void Reset() { }
 }
 
 public sealed class WaitForSceneGroupLoad : MpYieldInstruction
 {
     private readonly bool state;
-    private readonly SceneLoader sceneLoader = SystemContext.Instance.SceneLoader;
+    private SceneLoader sceneLoader = SystemContext.Instance.SceneLoader;
+    
+    protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == state;
 
     public WaitForSceneGroupLoad(bool state = true) => this.state = state;
-
-    protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == state;
+    
+    public override void Reset() => sceneLoader = SystemContext.Instance.SceneLoader; // Attempts to fetch the newest instance
 }
 
 public sealed class WaitFrames : MpYieldInstruction
 {
     private readonly byte frames;
     private byte waited;
-
-    public WaitFrames(byte frames) => this.frames = frames;
-
+    
     protected override bool ShouldWait
     {
         get
@@ -39,4 +39,8 @@ public sealed class WaitFrames : MpYieldInstruction
             return waited >= frames;
         }
     }
+
+    public WaitFrames(byte frames) => this.frames = frames;
+
+    public override void Reset() => waited = 0;
 }

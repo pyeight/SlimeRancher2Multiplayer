@@ -19,18 +19,20 @@ using UnityEngine.UI;
 internal sealed class MLEntrypoint : MelonMod
 {
     private SR2EExpansionV3 expansion;
-    bool isCorrectSR2EInstalled;
+    private bool isCorrectSR2EInstalled;
     private string installedSR2Ver = string.Empty;
 
     private System.Collections.IEnumerator CheckForMainMenu(int message)
     {
         yield return new WaitForSeconds(0.1f);
 
-        if (SystemContext.Instance.SceneLoader.IsCurrentSceneGroupMainMenu()) ShowIncompatibilityPopup(message);
-        else MelonCoroutines.Start(CheckForMainMenu(message));
+        if (SystemContext.Instance.SceneLoader.IsCurrentSceneGroupMainMenu())
+            ShowIncompatibilityPopup(message);
+        else
+            MelonCoroutines.Start(CheckForMainMenu(message));
     }
 
-    void ShowIncompatibilityPopup(int message)
+    private void ShowIncompatibilityPopup(int message)
     {
         Time.timeScale = 0;
         var canvas = new GameObject("SR2EExpansionICV1");
@@ -58,7 +60,7 @@ internal sealed class MLEntrypoint : MelonMod
         pr.transform.localRotation = Quaternion.identity;
         var rectT = pr.AddComponent<RectTransform>();
         pr.AddComponent<Image>().color = new Color(0.1882f, 0.2196f, 0.2745f, 1f);
-        rectT.sizeDelta = new Vector2(Screen.currentResolution.width / 1.23f, Screen.currentResolution.height / 1.23f);
+        rectT.sizeDelta = new Vector2(Screen.currentResolution.width, Screen.currentResolution.height) / 1.23f;
 
         var titleObj = new GameObject("TitleText");
         titleObj.transform.SetParent(pr.transform);
@@ -103,7 +105,8 @@ internal sealed class MLEntrypoint : MelonMod
         {
             var pillTex = Resources.FindObjectsOfTypeAll<AssetBundle>().FirstOrDefault((x) => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle")!.LoadAsset("Assets/UI/Textures/MenuDemo/whitePillBg.png").Cast<Texture2D>();
             pill = Sprite.Create(pillTex, new Rect(0f, 0f, pillTex.width, pillTex.height), new Vector2(0.5f, 0.5f), 1f);
-        } catch { }
+        }
+        catch { }
         var img = buttonObj.AddComponent<Image>();
         img.color = new Color(0.2f, 0.2f, 0.2f, 1f);
         img.sprite = pill;
@@ -185,23 +188,16 @@ internal sealed class MLEntrypoint : MelonMod
         }
     }
 
-    static ColorBlock buttonColorBlock
+    private static ColorBlock buttonColorBlock => new()
     {
-        get
-        {
-            var block = new ColorBlock
-            {
-                normalColor = new Color(0.149f, 0.7176f, 0.7961f, 1f),
-                highlightedColor = new Color(0.1098f, 0.2314f, 0.4157f, 1f),
-                pressedColor = new Color(0.1371f, 0.5248f, 0.6792f, 1f),
-                selectedColor = new Color(0.8706f, 0.3098f, 0.5216f, 1f),
-                colorMultiplier = 1f,
-                fadeDuration = 0.1f
-            };
-            block.disabledColor = block.selectedColor;
-            return block;
-        }
-    }
+        normalColor = new Color(0.149f, 0.7176f, 0.7961f, 1f),
+        highlightedColor = new Color(0.1098f, 0.2314f, 0.4157f, 1f),
+        pressedColor = new Color(0.1371f, 0.5248f, 0.6792f, 1f),
+        selectedColor = new Color(0.8706f, 0.3098f, 0.5216f, 1f),
+        colorMultiplier = 1f,
+        fadeDuration = 0.1f,
+        disabledColor = new Color(0.8706f, 0.3098f, 0.5216f, 1f)
+    };
 
     private static void AddButton(Sprite pill, GameObject pr, Vector2 anchorMin, Vector2 anchorMax, string link, string text)
     {
@@ -282,7 +278,12 @@ internal sealed class MLEntrypoint : MelonMod
             MelonCoroutines.Start(CheckForMainMenu(0));
         }
 
-        try { RegisterBrokenInSR2E("Requires SR2E " + BuildInfo.MinSr2EVersion + " or newer!"); }catch { }
+        try
+        {
+            RegisterBrokenInSR2E("Requires SR2E " + BuildInfo.MinSr2EVersion + " or newer!");
+        }
+        catch { }
+
         Unregister();
     }
 
@@ -300,7 +301,9 @@ internal sealed class MLEntrypoint : MelonMod
 
     private static bool IsSameOrNewer(string v1, string v2)
     {
-        if (!TryParse(v1, out var a) || !TryParse(v2, out var b)) return false;
+        if (!TryParse(v1, out var a) || !TryParse(v2, out var b))
+            return false;
+
         for (var i = 0; i < 3; i++)
         {
             if (b[i] > a[i]) return true;
@@ -317,12 +320,15 @@ internal sealed class MLEntrypoint : MelonMod
         if (split.Length != 3) return false;
         parts = new int[3];
         for (var i = 0; i < 3; i++)
+        {
             if (!int.TryParse(split[i], out parts[i]) || parts[i] < 0)
                 return false;
+        }
+
         return true;
     }
 
-    #nullable disable
+#nullable disable
     private void OnSR2EInstalled()
     {
         var type = GetEntrypointType.type;
@@ -333,7 +339,7 @@ internal sealed class MLEntrypoint : MelonMod
         else
         {
             MelonLogger.Error("Main class is not a " + nameof(SR2EExpansionV3) + "!");
-            try { RegisterBrokenInSR2E("Main class is not a " + nameof(SR2EExpansionV3) + "!"); }catch { }
+            try { RegisterBrokenInSR2E("Main class is not a " + nameof(SR2EExpansionV3) + "!"); } catch { }
 
             Unregister();
             return;

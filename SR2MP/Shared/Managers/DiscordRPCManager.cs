@@ -25,6 +25,7 @@ public static class DiscordRPCManager
         FinalBoss,
         Ending
     }
+
     // This can be public, do not freak out :)
     private const string DiscordAppID = "1422276739026911262";
     private static DiscordRpcClient? rpcClient;
@@ -122,7 +123,7 @@ public static class DiscordRPCManager
             : DetailsStringOffline;
         var currentLocation = currentZone ? DefinitionToZone[currentZone!.name] : Zone.MainMenu;
 
-        //if (IsInEndingCutscene)
+        // if (IsInEndingCutscene)
         //    currentLocation = Zone.Ending;
 
         var status = ZoneToStatus[currentLocation];

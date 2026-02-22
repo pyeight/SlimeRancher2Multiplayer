@@ -2,7 +2,6 @@ using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppMonomiPark.SlimeRancher.Util.Extensions;
 using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Packets.Player;
-using SR2MP.Shared.Utils;
 
 namespace SR2MP.Components.Player;
 

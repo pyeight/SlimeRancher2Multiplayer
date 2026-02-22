@@ -107,7 +107,7 @@ public sealed class NetworkActor : MonoBehaviour
     private ProduceModel produceModel;
     private PlortModel plortModel;
 
-    private void Start()
+    public void Start()
     {
         try
         {
@@ -123,22 +123,22 @@ public sealed class NetworkActor : MonoBehaviour
                 Destroy(this);
                 return;
             }
-            
+
             isSlime = TryGetComponent(out slimeModel);
             isResource = TryGetComponent(out produceModel);
             isPlort = TryGetComponent(out plortModel);
 
-            emotions = GetComponent<SlimeEmotions>();
             cachedLocallyOwned = LocallyOwned;
+
+            emotions = GetComponent<SlimeEmotions>();
             rigidbody = GetComponent<Rigidbody>();
             identifiable = GetComponent<Identifiable>();
             cycle = GetComponent<ResourceCycle>();
-
             regionMember = GetComponent<RegionMember>();
 
             if (!regionMember)
                 return;
-            
+
             try
             {
                 regionMember.add_BeforeHibernationChanged(
@@ -221,19 +221,19 @@ public sealed class NetworkActor : MonoBehaviour
             SrLogger.LogError($"HibernationChanged error: {ex}", SrLogTarget.Both);
         }
     }
-    
+
     public void OnNetworkUpdate(ActorUpdatePacket packet)
     {
         if (LocallyOwned || isDestroyed)
             return;
-        
+
         previousPosition = transform.position;
         previousRotation = transform.rotation;
-        
+
         nextPosition = packet.Position;
         nextRotation = packet.Rotation;
         SavedVelocity = packet.Velocity;
-        
+
         interpolationStart = UnityEngine.Time.unscaledTime;
         interpolationEnd = interpolationStart + Timers.ActorTimer;
     }
@@ -242,7 +242,7 @@ public sealed class NetworkActor : MonoBehaviour
     {
         if (LocallyOwned) return;
         if (isDestroyed) return;
-        
+
         if (interpolationEnd <= interpolationStart)
             return;
 
@@ -251,12 +251,12 @@ public sealed class NetworkActor : MonoBehaviour
 
         transform.position = Vector3.Lerp(previousPosition, nextPosition, t);
         transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, t);
-        
+
         if (rigidbody)
             rigidbody.velocity = SavedVelocity;
     }
 
-    private void Update()
+    public void Update()
     {
         if (isDestroyed)
             return;
@@ -310,8 +310,8 @@ public sealed class NetworkActor : MonoBehaviour
 
                 var actorId = ActorId;
                 if (actorId.Value == 0) return;
-                
-                ActorUpdateType updateType =
+
+                var updateType =
                     isSlime
                     ? ActorUpdateType.Slime
                     : isResource
@@ -319,54 +319,39 @@ public sealed class NetworkActor : MonoBehaviour
                         : isPlort
                             ? ActorUpdateType.Plort
                             : ActorUpdateType.Actor;
-                
+
                 double resourceProgress = 0f;
-                ResourceCycle.State resourceState = ResourceCycle.State.UNRIPE;
+                var resourceState = ResourceCycle.State.UNRIPE;
                 if (isResource)
                 {
                     resourceProgress = cycle?._model.progressTime ?? 0f;
                     resourceState = cycle?._model.state ?? ResourceCycle.State.UNRIPE;
                 }
 
-                var packet = new ActorUpdatePacket()
+                var packet = new ActorUpdatePacket
                 {
                     UpdateType = updateType,
+                    ActorId = actorId,
+                    Position = transform.position,
+                    Rotation = transform.rotation,
+                    Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
                 };
-                
+
                 if (updateType == ActorUpdateType.Slime)
                 {
-                    packet.ActorId = actorId;
-                    packet.Position = transform.position;
-                    packet.Rotation = transform.rotation;
-                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
                     packet.Emotions = EmotionsFloat;
                 }
                 else if (updateType == ActorUpdateType.Resource)
                 {
-                    packet.ActorId = actorId;
-                    packet.Position = transform.position;
-                    packet.Rotation = transform.rotation;
-                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
                     packet.ResourceProgress = resourceProgress;
                     packet.ResourceState = resourceState;
                 }
                 else if (updateType == ActorUpdateType.Plort)
                 {
-                    packet.ActorId = actorId;
-                    packet.Position = transform.position;
-                    packet.Rotation = transform.rotation;
-                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
                     // todo: packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false; ??
                     // todo: packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f; ??
                     packet.Invulnerable = plortModel._invulnerability?.IsInvulnerable ?? false;
                     packet.InvulnerablePeriod = plortModel._invulnerability?.InvulnerabilityPeriod ?? 0f;
-                }
-                else
-                {
-                    packet.ActorId = actorId;
-                    packet.Position = transform.position;
-                    packet.Rotation = transform.rotation;
-                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
                 }
 
                 Main.SendToAllOrServer(packet);
@@ -397,7 +382,7 @@ public sealed class NetworkActor : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    public void OnDestroy()
     {
         isDestroyed = true;
         isValid = false;
@@ -417,9 +402,9 @@ public sealed class NetworkActor : MonoBehaviour
             {
                 cycle!._vacuumable.enabled = false;
 
-                if (base.gameObject.transform.localScale.x < cycle._defaultScale.x * 0.33f)
+                if (gameObject.transform.localScale.x < cycle._defaultScale.x * 0.33f)
                 {
-                    base.gameObject.transform.localScale = cycle._defaultScale * 0.33f;
+                    gameObject.transform.localScale = cycle._defaultScale * 0.33f;
                 }
                 break;
             }
@@ -429,16 +414,16 @@ public sealed class NetworkActor : MonoBehaviour
 
                 cycle._vacuumable.enabled = true;
 
-                if (base.gameObject.transform.localScale.x < cycle._defaultScale.x)
+                if (gameObject.transform.localScale.x < cycle._defaultScale.x)
                 {
-                    base.gameObject.transform.localScale = cycle._defaultScale;
+                    gameObject.transform.localScale = cycle._defaultScale;
                 }
 
                 rigidbody.WakeUp();
                 cycle.Eject(rigidbody);
                 cycle.DetachFromJoint();
 
-                TweenUtil.ScaleTo(base.gameObject, cycle._defaultScale, 4f);
+                TweenUtil.ScaleTo(gameObject, cycle._defaultScale, 4f);
                 break;
             }
             case ResourceCycle.State.EDIBLE:
@@ -458,7 +443,7 @@ public sealed class NetworkActor : MonoBehaviour
 
                     if (cycle.ReleaseCue != null)
                     {
-                        var audio = base.GetComponent<SECTR_PointSource>();
+                        var audio = GetComponent<SECTR_PointSource>();
                         audio.Cue = cycle.ReleaseCue;
                         audio.Play();
                     }

@@ -38,7 +38,7 @@ using SR2E.Expansion;
 
 #pragma warning disable RCS1110 // Declare type inside namespace
 
-//Set your main class inside the typeof argument, it has to be an SR2EExpansion
+// Set your main class inside the typeof argument, it has to be an SR2EExpansion
 // ReSharper disable once CheckNamespace
 internal static class GetEntrypointType
 {

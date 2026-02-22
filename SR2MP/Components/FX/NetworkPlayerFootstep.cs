@@ -17,7 +17,9 @@ public sealed class NetworkPlayerFootstep : MonoBehaviour
 
     private float groundCheckDistance = 0.15f;
 
-    private void Awake()
+    private const int GroundedLayer = -1728543467;
+
+    public void Awake()
     {
         spawnAtTransform = transform.GetChild(2);
         footstepFX = fxManager.FootstepFX;
@@ -40,7 +42,7 @@ public sealed class NetworkPlayerFootstep : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider collider)
+    public void OnTriggerEnter(Collider collider)
     {
         if (!collider.CompareTag("Water") && collider.gameObject.layer != LayerMask.NameToLayer("Water"))
             return;
@@ -48,7 +50,7 @@ public sealed class NetworkPlayerFootstep : MonoBehaviour
         footstepParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
-    private void OnTriggerExit(Collider collider)
+    public void OnTriggerExit(Collider collider)
     {
         if (!collider.CompareTag("Water") && collider.gameObject.layer != LayerMask.NameToLayer("Water"))
             return;
@@ -64,10 +66,10 @@ public sealed class NetworkPlayerFootstep : MonoBehaviour
     private bool CheckGrounded(int layer)
         => Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, layer);
 
-    private void Update()
+    public void Update()
     {   // Don't change it, this is the LayerMask qwq
         // "Magic number that breaks everything if you change it"
-        var isGrounded = CheckGrounded(-1728543467);
+        var isGrounded = CheckGrounded(GroundedLayer);
 
         if (isGrounded == playerGrounded)
             return;

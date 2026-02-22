@@ -40,9 +40,7 @@ public static class StartupCheck
             installedGameVersion = versionParts[0];
         }
 
-        var comparison = CompareVersions(installedGameVersion, RequiredGameVersion);
-
-        switch (comparison)
+        switch (CompareVersions(installedGameVersion, RequiredGameVersion))
         {
             case < 0:
                 ShowMessageBox(
@@ -143,9 +141,8 @@ public static class StartupCheck
     {
         try
         {
-#pragma warning disable CA1806
             MessageBoxW(IntPtr.Zero, text, caption, type);
-#pragma warning restore CA1806
+
             if (error)
                 SrLogger.LogError($"{caption}\n{text}", SrLogTarget.Both);
             else

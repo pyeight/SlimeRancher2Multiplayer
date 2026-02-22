@@ -30,7 +30,7 @@ public static class Extensions
         return path;
     }
 
-    /*public static long SR2MPMax(this IEnumerable<long> source)
+    /* public static long SR2MPMax(this IEnumerable<long> source)
     {
         if (source == null)
         {
@@ -68,5 +68,5 @@ public static class Extensions
         }
 
         return (long)value;
-    }*/
+    } */
 }

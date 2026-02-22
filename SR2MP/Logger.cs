@@ -109,7 +109,6 @@ public static class Logger
 
         sr2EAction?.Invoke(publicStr);
         melonAction?.Invoke(publicStr);
-        return;
 
         string FormatLocal(string msg) => msg.StartsWith('[') ? msg : $"[{timestamp}] [{levelStr}] {msg}";
     }

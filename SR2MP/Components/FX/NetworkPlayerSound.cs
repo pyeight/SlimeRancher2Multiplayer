@@ -15,12 +15,12 @@ public sealed class NetworkPlayerSound : MonoBehaviour
     public bool IsPlaying => audioSource.IsPlaying && !audioSource.instance.Paused;
     public SECTR_AudioCue AudioCue => audioSource.Cue;
 
-    private void Awake()
+    public void Awake()
     {
         audioSource = GetComponent<SECTR_PointSource>();
     }
 
-    private void Update()
+    public void Update()
     {
         var hasChanged =  IsPlaying != cachedIsPlaying || AudioCue != cachedAudioCue;
 

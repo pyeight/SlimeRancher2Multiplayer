@@ -70,7 +70,7 @@ public partial class NetworkPlayer : MonoBehaviour
         }
     }
 
-    private void Awake()
+    public void Awake()
     {
         if (transform.GetComponents<NetworkPlayer>().Length > 1)
         {
@@ -87,7 +87,7 @@ public partial class NetworkPlayer : MonoBehaviour
         AwakeGadgetMode();
     }
 
-    private void Start()
+    public void Start()
     {
         if (IsLocal)
         {
@@ -113,7 +113,10 @@ public partial class NetworkPlayer : MonoBehaviour
 
             renderers = allRenderers;
         }
-        else { renderers = GetComponentsInChildren<MeshRenderer>(); }
+        else
+        {
+            renderers = GetComponentsInChildren<MeshRenderer>();
+        }
 
         collider = GetComponentInChildren<Collider>();
     }
@@ -216,13 +219,9 @@ public partial class NetworkPlayer : MonoBehaviour
         if (IsLocal)
             return;
 
-        // This is for the
         collider.enabled = false;
         collider.enabled = true;
     }
 
-    private void LateUpdate()
-    {
-        AnimateArmY();
-    }
+    public void LateUpdate() => AnimateArmY();
 }
