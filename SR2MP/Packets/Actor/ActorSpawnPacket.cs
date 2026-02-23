@@ -24,7 +24,7 @@ public struct ActorSpawnPacket : IPacket
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
         writer.WriteFloat4(Emotions);
-        writer.WriteInt(ActorType);
+        writer.WritePackedInt(ActorType);
         writer.WriteByte(SceneGroup);
     }
 
@@ -34,7 +34,7 @@ public struct ActorSpawnPacket : IPacket
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();
         Emotions = reader.ReadFloat4();
-        ActorType = reader.ReadInt();
+        ActorType = reader.ReadPackedInt();
         SceneGroup = reader.ReadByte();
     }
 }

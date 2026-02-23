@@ -13,13 +13,13 @@ public sealed class ActorTransferPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteLong(ActorId.Value);
-        writer.WriteString(OwnerId);
+        writer.WritePackedLong(ActorId.Value);
+        writer.WriteStringWithoutSize(OwnerId);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        ActorId = new ActorId(reader.ReadLong());
-        OwnerId = reader.ReadString();
+        ActorId = new ActorId(reader.ReadPackedLong());
+        OwnerId = reader.ReadStringWithSize(15)!;
     }
 }

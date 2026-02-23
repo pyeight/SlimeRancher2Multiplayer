@@ -12,13 +12,13 @@ public sealed class PlayerJoinPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteString(PlayerId);
+        writer.WriteStringWithoutSize(PlayerId);
         writer.WriteString(PlayerName ?? "No Name Set");
     }
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadString();
+        PlayerId = reader.ReadStringWithSize(15)!;
         PlayerName = reader.ReadString();
     }
 }

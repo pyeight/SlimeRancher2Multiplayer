@@ -29,7 +29,7 @@ public struct ActorUpdatePacket : IPacket
 
     public readonly void Serialise(PacketWriter writer)
     {
-        writer.WriteLong(ActorId.Value);
+        writer.WritePackedLong(ActorId.Value);
         writer.WriteEnum(UpdateType);
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
@@ -42,7 +42,7 @@ public struct ActorUpdatePacket : IPacket
         else if (UpdateType == ActorUpdateType.Resource)
         {
             writer.WriteDouble(ResourceProgress);
-            writer.WriteEnum(ResourceState);
+            writer.WritePackedEnum(ResourceState);
         }
         else if (UpdateType == ActorUpdateType.Plort)
         {
@@ -53,7 +53,7 @@ public struct ActorUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ActorId = new ActorId(reader.ReadLong());
+        ActorId = new ActorId(reader.ReadPackedLong());
         UpdateType = reader.ReadEnum<ActorUpdateType>();
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();
@@ -66,7 +66,7 @@ public struct ActorUpdatePacket : IPacket
         else if (UpdateType == ActorUpdateType.Resource)
         {
             ResourceProgress = reader.ReadDouble();
-            ResourceState = reader.ReadEnum<ResourceCycle.State>();
+            ResourceState = reader.ReadPackedEnum<ResourceCycle.State>();
         }
         else if (UpdateType == ActorUpdateType.Plort)
         {

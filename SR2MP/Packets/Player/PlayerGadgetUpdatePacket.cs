@@ -17,21 +17,17 @@ public sealed class PlayerGadgetUpdatePacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteBool(Enabled);
-        
-        writer.WriteString(PlayerId);
-
+        writer.WriteStringWithoutSize(PlayerId);
         if (!Enabled) return;
-
         writer.WriteVector3(Position);
         writer.WriteVector3(Rotation);
-        
         writer.WriteInt(CurrentGadget);
     }
 
     public void Deserialise(PacketReader reader)
     {
         Enabled = reader.ReadBool();
-        PlayerId = reader.ReadString();
+        PlayerId = reader.ReadStringWithSize(15)!;
         if (!Enabled) return;
         Position = reader.ReadVector3();
         Rotation = reader.ReadVector3();

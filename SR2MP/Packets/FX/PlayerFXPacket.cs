@@ -35,7 +35,7 @@ public sealed class PlayerFXPacket : IPacket
         if (!IsPlayerSoundDictionary[FX])
             writer.WriteVector3(Position);
         else
-            writer.WriteString(Player);
+            writer.WriteStringWithoutSize(Player);
     }
 
     public void Deserialise(PacketReader reader)
@@ -45,6 +45,6 @@ public sealed class PlayerFXPacket : IPacket
         if (!IsPlayerSoundDictionary[FX])
             Position = reader.ReadVector3();
         else
-            Player = reader.ReadString();
+            Player = reader.ReadStringWithSize(15)!;
     }
 }

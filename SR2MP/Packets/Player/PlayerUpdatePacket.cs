@@ -22,7 +22,7 @@ public sealed class PlayerUpdatePacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteString(PlayerId);
+        writer.WriteStringWithoutSize(PlayerId);
 
         writer.WriteVector3(Position);
         writer.WriteFloat(Rotation);
@@ -42,7 +42,7 @@ public sealed class PlayerUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadString();
+        PlayerId = reader.ReadStringWithSize(15)!;
 
         Position = reader.ReadVector3();
         Rotation = reader.ReadFloat();

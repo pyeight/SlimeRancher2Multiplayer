@@ -9,7 +9,7 @@ public sealed class PlayerLeavePacket : IPacket
     public PacketType Type { get; init; }
     public PacketReliability Reliability => PacketReliability.ReliableOrdered;
 
-    public void Serialise(PacketWriter writer) => writer.WriteString(PlayerId);
+    public void Serialise(PacketWriter writer) => writer.WriteStringWithoutSize(PlayerId);
 
-    public void Deserialise(PacketReader reader) => PlayerId = reader.ReadString();
+    public void Deserialise(PacketReader reader) => PlayerId = reader.ReadStringWithSize(15)!;
 }

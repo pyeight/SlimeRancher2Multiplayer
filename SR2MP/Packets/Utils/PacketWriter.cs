@@ -185,7 +185,7 @@ public sealed class PacketWriter : PacketBuffer
         buffer[position++] = (byte)value;
     }
 
-    public void WriteString(string value)
+    public void WriteString(string? value)
     {
         if (string.IsNullOrEmpty(value))
         {
@@ -205,6 +205,15 @@ public sealed class PacketWriter : PacketBuffer
         BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
 
         Advance(actualCount);
+    }
+    
+    public void WriteStringWithoutSize(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            throw new ArgumentException("Value cannot be null or empty");
+
+        EndPackingBools();
+        Advance(Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, position));
     }
 
     public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)

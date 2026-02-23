@@ -10,7 +10,7 @@ public struct ActorDestroyPacket : IPacket
     public readonly PacketType Type => PacketType.ActorDestroy;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
 
-    public readonly void Serialise(PacketWriter writer) => writer.WriteLong(ActorId.Value);
+    public readonly void Serialise(PacketWriter writer) => writer.WritePackedLong(ActorId.Value);
 
-    public void Deserialise(PacketReader reader) => ActorId = new ActorId(reader.ReadLong());
+    public void Deserialise(PacketReader reader) => ActorId = new ActorId(reader.ReadPackedLong());
 }

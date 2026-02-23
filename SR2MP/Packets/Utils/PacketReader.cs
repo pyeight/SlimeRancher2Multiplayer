@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -187,9 +188,13 @@ public sealed class PacketReader : PacketBuffer
         return new(x, y, z, w);
     }
 
-    public string ReadString()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string ReadString() => ReadStringWithSize(ReadUShort())!;
+
+    public string? ReadStringWithSize(int len)
     {
-        var len = ReadUShort();
+        if (len < 0)
+            return null;
 
         if (len == 0)
             return string.Empty;
