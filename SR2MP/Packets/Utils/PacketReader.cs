@@ -19,16 +19,12 @@ public sealed class PacketReader : PacketBuffer
     private bool isRented;
     private int dataSize;
 
-    public PacketReader(byte[] data, int size = -1, bool rented = false) : base(data, 8)
-    {
-        dataSize = size >= 0 ? size : data.Length;
-        isRented = rented;
-    }
+    public PacketReader() : base(8) { }
 
     private void EnsureReadable(int bytesToRead)
     {
-        if (disposed)
-            throw new ObjectDisposedException(nameof(PacketReader));
+        if (IsRecycled)
+            throw new InvalidOperationException("PacketReader is already recycled!");
 
         if (position + bytesToRead > DataSize)
             throw new EndOfStreamException($"Attempted to read {bytesToRead} bytes, but only {BytesRemaining} remain.");
@@ -360,11 +356,10 @@ public sealed class PacketReader : PacketBuffer
         buffer = data;
         dataSize = size >= 0 ? size : data.Length;
         isRented = rented;
-        disposed = false;
         Clear();
     }
 
-    protected override void OnDispose()
+    protected override void OnRecycle()
     {
         if (isRented && buffer != null)
             ArrayPool<byte>.Shared.Return(buffer);

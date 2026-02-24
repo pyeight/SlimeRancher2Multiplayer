@@ -9,7 +9,7 @@ namespace SR2MP.Shared.Managers;
 
 public static class PacketChunkManager
 {
-    private sealed class IncompletePacket
+    private sealed class IncompletePacket : IRecyclable
     {
         public byte[][] chunks = null!;
         public int[] chunkLengths = null!;
@@ -20,6 +20,8 @@ public static class PacketChunkManager
         public DateTime lastChunkTime;
         public PacketReliability reliability;
         public ushort sequenceNumber;
+
+        public bool IsRecycled { get; set; }
 
         public void Initialize(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
         {
@@ -37,7 +39,7 @@ public static class PacketChunkManager
             Array.Clear(received, 0, totalChunks);
         }
 
-        public void Release()
+        public void Recycle()
         {
             if (chunks != null) ArrayPool<byte[]>.Shared.Return(chunks, true);
             if (chunkLengths != null) ArrayPool<int>.Shared.Return(chunkLengths);
@@ -49,21 +51,11 @@ public static class PacketChunkManager
         }
     }
 
-    private static readonly ConcurrentBag<IncompletePacket> PacketPool = new();
-
     private static IncompletePacket RentIncompletePacket(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
     {
-        if (!PacketPool.TryTake(out var packet))
-            packet = new IncompletePacket();
-
+        var packet = RecyclePool<IncompletePacket>.Borrow();
         packet.Initialize(totalChunks, reliability, sequenceNumber);
         return packet;
-    }
-
-    private static void ReturnIncompletePacket(IncompletePacket packet)
-    {
-        packet.Release();
-        PacketPool.Add(packet);
     }
 
     private static readonly ConcurrentDictionary<PacketKey, IncompletePacket> IncompletePackets = new();
@@ -169,7 +161,7 @@ public static class PacketChunkManager
             reader = PacketBufferPool.GetReader(assemblyBuffer, totalSize, true);
         }
 
-        ReturnIncompletePacket(packet);
+        RecyclePool<IncompletePacket>.Return(packet);
         return true;
     }
 
@@ -284,7 +276,7 @@ public static class PacketChunkManager
                 packet.chunks[c] = null!;
             }
 
-            ReturnIncompletePacket(packet);
+            RecyclePool<IncompletePacket>.Return(packet);
         }
 
         ArrayPool<PacketKey>.Shared.Return(keysToRemove);

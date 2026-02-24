@@ -15,13 +15,12 @@ public sealed class PacketWriter : PacketBuffer
 
     public override int DataSize => size;
 
-    public PacketWriter(int startingCapacity = 256)
-        : base(ArrayPool<byte>.Shared.Rent(startingCapacity), 0) { }
+    public PacketWriter() : base(0) { }
 
     private void EnsureCapacity(int bytesToAdd)
     {
-        if (disposed)
-            throw new ObjectDisposedException(nameof(PacketWriter));
+        if (IsRecycled)
+            throw new InvalidOperationException("PacketWriter is already recycled!");
 
         if (buffer == null)
             throw new InvalidOperationException("The buffer has been detached and is no longer available.");
@@ -396,7 +395,7 @@ public sealed class PacketWriter : PacketBuffer
         return buffer.AsSpan(0, position);
     }
 
-    protected override void OnDispose()
+    protected override void OnRecycle()
     {
         if (buffer != null)
             ArrayPool<byte>.Shared.Return(buffer);
@@ -406,10 +405,7 @@ public sealed class PacketWriter : PacketBuffer
 
     public void Reset(int initialCapacity = 256)
     {
-        if (buffer == null)
-            buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
-
-        disposed = false;
+        buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
         Clear();
     }
 

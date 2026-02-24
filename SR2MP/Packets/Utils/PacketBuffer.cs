@@ -1,6 +1,8 @@
+using SR2MP.Shared.Utils;
+
 namespace SR2MP.Packets.Utils;
 
-public abstract class PacketBuffer : IDisposable
+public abstract class PacketBuffer : IRecyclable
 {
     protected byte[] buffer;
 
@@ -8,27 +10,24 @@ public abstract class PacketBuffer : IDisposable
     protected int currentBitIndex;
 
     protected int position = 0;
-    protected bool disposed;
 
     private int startingIndex;
 
     public int Position => position;
+    
+    public bool IsRecycled { get; set; }
 
     public abstract int DataSize { get; }
 
-    protected PacketBuffer(byte[] data, int starting)
-    {
-        buffer = data;
-        startingIndex = currentBitIndex = starting;
-    }
+    protected PacketBuffer(int starting) => startingIndex = currentBitIndex = starting;
 
-    public byte this[int index] => disposed
-        ? throw new ObjectDisposedException(nameof(PacketBuffer))
+    public byte this[int index] => IsRecycled
+        ? throw new InvalidOperationException("PacketBuffer is already recycled!")
         : (uint)index >= (uint)DataSize
             ? throw new ArgumentOutOfRangeException(nameof(index), "Index must be within the bounds of the data size.")
             : buffer[index];
 
-    protected virtual void OnDispose() { }
+    protected virtual void OnRecycle() { }
 
     protected abstract void EnsureBounds(int count);
 
@@ -38,15 +37,10 @@ public abstract class PacketBuffer : IDisposable
 
     public abstract void EndPackingBools();
 
-    public void Dispose()
+    public void Recycle()
     {
-        if (disposed)
-            return;
-
-        disposed = true;
-        OnDispose();
+        OnRecycle();
         buffer = null!;
-        GC.SuppressFinalize(this);
     }
 
     public virtual void Clear()

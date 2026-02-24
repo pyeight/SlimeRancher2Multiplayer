@@ -8,7 +8,7 @@ namespace SR2MP.Shared.Managers;
 
 public sealed class ReliabilityManager
 {
-    private sealed class PendingPacket
+    private sealed class PendingPacket : IRecyclable
     {
         public SplitResult SplitData;
         public IPEndPoint Destination = null!;
@@ -19,6 +19,8 @@ public sealed class ReliabilityManager
         public DateTime LastSendTime;
         public int SendCount;
         public ushort SequenceNumber;
+        
+        public bool IsRecycled { get; set; }
 
         public void Initialize(SplitResult splitData, IPEndPoint destination, ushort packetId,
             byte packetType, PacketReliability reliability, ushort sequenceNumber)
@@ -35,7 +37,7 @@ public sealed class ReliabilityManager
             SendCount = 1;
         }
 
-        public void Release()
+        public void Recycle()
         {
             SplitData.Dispose();
             Destination = null!;
@@ -45,8 +47,6 @@ public sealed class ReliabilityManager
     private readonly ConcurrentDictionary<PacketKey, PendingPacket> pendingPackets = new();
     private readonly ConcurrentDictionary<SequenceKey, ushort> lastProcessedSequence = new();
     private readonly ConcurrentDictionary<byte, int> sequenceNumbersByType = new();
-
-    private readonly ConcurrentBag<PendingPacket> packetPool = new();
 
     private readonly Action<ArraySegment<byte>, IPEndPoint> sendRawCallback;
 
@@ -86,7 +86,10 @@ public sealed class ReliabilityManager
         isRunning = false;
         
         foreach (var packet in pendingPackets.Values)
-            packet.Release();
+        {
+            packet.Recycle();
+            RecyclePool<PendingPacket>.Return(packet);
+        }
 
         pendingPackets.Clear();
         lastProcessedSequence.Clear();
@@ -102,12 +105,7 @@ public sealed class ReliabilityManager
             return;
 
         var key = new PacketKey(packetType, packetId, destination);
-            
-        if (!packetPool.TryTake(out var packet))
-        {
-            packet = new PendingPacket();
-        }
-
+        var packet = RecyclePool<PendingPacket>.Borrow();
         packet.Initialize(splitData, destination, packetId, packetType, reliability, sequenceNumber);
         pendingPackets[key] = packet;
     }
@@ -218,11 +216,8 @@ public sealed class ReliabilityManager
                 // Removes timed out packets
                 for (var i = 0; i < removeCount; i++)
                 {
-                    if (!pendingPackets.TryRemove(keysToRemove[i], out var timedOutPacket))
-                        continue;
-
-                    timedOutPacket.Release();
-                    packetPool.Add(timedOutPacket);
+                    if (pendingPackets.TryRemove(keysToRemove[i], out var timedOutPacket))
+                        RecyclePool<PendingPacket>.Return(timedOutPacket);
                 }
 
                 ArrayPool<PacketKey>.Shared.Return(keysToRemove);
