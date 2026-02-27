@@ -187,25 +187,13 @@ public sealed class PacketWriter : PacketBuffer
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
         EnsureCapacity(2 + maxByteCount);
 
-        var savedPosition = position;
-        var savedSize = size;
+        var lengthIndex = position;
+        Advance(2);
 
-        try
-        {
-            var lengthIndex = position;
-            Advance(2);
+        var actualCount = Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position));
+        BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
 
-            var actualCount = Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position));
-            BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
-
-            Advance(actualCount);
-        }
-        catch
-        {
-            position = savedPosition;
-            size = savedSize;
-            throw;
-        }
+        Advance(actualCount);
     }
     
     public void WriteStringWithoutSize(string? value)
