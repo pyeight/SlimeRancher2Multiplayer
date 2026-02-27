@@ -49,13 +49,15 @@ public static class PacketChunkManager
             chunkLengths = null!;
             received = null!;
         }
-    }
 
-    private static IncompletePacket RentIncompletePacket(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
-    {
-        var packet = RecyclePool<IncompletePacket>.Borrow();
-        packet.Initialize(totalChunks, reliability, sequenceNumber);
-        return packet;
+        public static IncompletePacket Borrow(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
+        {
+            var packet = RecyclePool<IncompletePacket>.Borrow();
+            packet.Initialize(totalChunks, reliability, sequenceNumber);
+            return packet;
+        }
+        
+        public static void Return(IncompletePacket packet) => RecyclePool<IncompletePacket>.Return(packet);
     }
 
     private static readonly ConcurrentDictionary<PacketKey, IncompletePacket> IncompletePackets = new();
@@ -96,7 +98,7 @@ public static class PacketChunkManager
         var key = new PacketKey((byte)packetType, packetId, senderEp);
 
         var packet = IncompletePackets.GetOrAdd(key, _ =>
-            RentIncompletePacket(totalChunks, reliability, sequenceNumber));
+            IncompletePacket.Borrow(totalChunks, reliability, sequenceNumber));
 
         if (packet.totalChunks != totalChunks)
         {
@@ -161,7 +163,7 @@ public static class PacketChunkManager
             reader = PacketBufferPool.GetReader(assemblyBuffer, totalSize, true);
         }
 
-        RecyclePool<IncompletePacket>.Return(packet);
+        IncompletePacket.Return(packet);
         return true;
     }
 
@@ -276,7 +278,7 @@ public static class PacketChunkManager
                 packet.chunks[c] = null!;
             }
 
-            RecyclePool<IncompletePacket>.Return(packet);
+            IncompletePacket.Return(packet);
         }
 
         ArrayPool<PacketKey>.Shared.Return(keysToRemove);

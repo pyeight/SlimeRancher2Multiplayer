@@ -1,11 +1,12 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using SR2MP.Shared.Utils;
 using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
@@ -78,12 +79,17 @@ public sealed class PacketReader : PacketBuffer
 
     public uint ReadPackedUInt()
     {
+        EnsureReadable(1);
+
         var result = 0u;
         var shift = 0;
 
         while (true)
         {
-            var b = ReadByte();
+            if (position >= DataSize)
+                throw new EndOfStreamException("Unexpected end of stream while reading VarInt.");
+
+            var b = buffer[position++];
             result |= (uint)(b & 0x7F) << shift;
 
             if ((b & 0x80) == 0)
@@ -107,12 +113,17 @@ public sealed class PacketReader : PacketBuffer
 
     public ulong ReadPackedULong()
     {
+        EnsureReadable(1);
+
         var result = 0ul;
         var shift = 0;
 
         while (true)
         {
-            var b = ReadByte();
+            if (position >= DataSize)
+                throw new EndOfStreamException("Unexpected end of stream while reading VarInt.");
+
+            var b = buffer[position++];
             result |= (ulong)(b & 0x7F) << shift;
 
             if ((b & 0x80) == 0)
@@ -130,58 +141,38 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector2 ReadVector2()
     {
-        EnsureReadable(8);
-
-        var span = buffer.AsSpan(position);
-        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
-        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
-
-        position += 8;
-        return new(x, y);
+        var span = ReadRequest(8);
+        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector3 ReadVector3()
     {
-        EnsureReadable(12);
-
-        var span = buffer.AsSpan(position);
-        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
-        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
-        var z = BinaryPrimitives.ReadSingleLittleEndian(span[8..]);
-
-        position += 12;
-        return new(x, y, z);
+        var span = ReadRequest(12);
+        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[8..]));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Quaternion ReadQuaternion()
     {
-        EnsureReadable(16);
-
-        var span = buffer.AsSpan(position);
-        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
-        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
-        var z = BinaryPrimitives.ReadSingleLittleEndian(span[8..]);
-        var w = BinaryPrimitives.ReadSingleLittleEndian(span[12..]);
-
-        position += 16;
-        return new(x, y, z, w);
+        var span = ReadRequest(16);
+        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[8..]),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[12..]));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float4 ReadFloat4()
     {
-        EnsureReadable(16);
-
-        var span = buffer.AsSpan(position);
-        var x = BinaryPrimitives.ReadSingleLittleEndian(span);
-        var y = BinaryPrimitives.ReadSingleLittleEndian(span[4..]);
-        var z = BinaryPrimitives.ReadSingleLittleEndian(span[8..]);
-        var w = BinaryPrimitives.ReadSingleLittleEndian(span[12..]);
-
-        position += 16;
-        return new(x, y, z, w);
+        var span = ReadRequest(16);
+        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[8..]),
+                   BinaryPrimitives.ReadSingleLittleEndian(span[12..]));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -196,7 +187,7 @@ public sealed class PacketReader : PacketBuffer
             return string.Empty;
 
         EnsureReadable(len);
-        var s = Encoding.UTF8.GetString(buffer, position, len);
+        var s = Encoding.UTF8.GetString(buffer.AsSpan(position, len));
         position += len;
         return s;
     }
@@ -283,6 +274,7 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadPacket<T>() where T : IPacket, new()
     {
+        EnsureReadable(1);
         position++;
         return ReadNetObject<T>();
     }
@@ -364,6 +356,15 @@ public sealed class PacketReader : PacketBuffer
         if (isRented && buffer != null)
             ArrayPool<byte>.Shared.Return(buffer);
     }
+
+    public static PacketReader Borrow(byte[] data, int size = -1, bool rented = false)
+    {
+        var reader = RecyclePool<PacketReader>.Borrow();
+        reader.SetBuffer(data, size, rented);
+        return reader;
+    }
+
+    public static void Return(PacketReader reader) => RecyclePool<PacketReader>.Return(reader);
 }
 
 /// <summary>
@@ -472,7 +473,25 @@ public static class PacketReaderDels
 
     private static readonly ConcurrentDictionary<Type, MethodInfo> TypeReadCache = new();
 
-    // Stack overflow my beloved
+    private static readonly ReadOnlyDictionary<Type, string> ReadMethodMap = new(new Dictionary<Type, string>()
+    {
+        [typeof(byte)] = nameof(PacketReader.ReadByte),
+        [typeof(int)] = nameof(PacketReader.ReadInt),
+        [typeof(bool)] = nameof(PacketReader.ReadBool),
+        [typeof(uint)] = nameof(PacketReader.ReadUInt),
+        [typeof(long)] = nameof(PacketReader.ReadLong),
+        [typeof(sbyte)] = nameof(PacketReader.ReadSByte),
+        [typeof(short)] = nameof(PacketReader.ReadShort),
+        [typeof(ulong)] = nameof(PacketReader.ReadULong),
+        [typeof(float)] = nameof(PacketReader.ReadFloat),
+        [typeof(ushort)] = nameof(PacketReader.ReadUShort),
+        [typeof(double)] = nameof(PacketReader.ReadDouble),
+        [typeof(string)] = nameof(PacketReader.ReadString),
+        [typeof(float4)] = nameof(PacketReader.ReadFloat4),
+        [typeof(Vector3)] = nameof(PacketReader.ReadVector3),
+        [typeof(Quaternion)] = nameof(PacketReader.ReadQuaternion),
+    });
+
     private static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
     {
         var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
@@ -491,25 +510,14 @@ public static class PacketReaderDels
         if (TypeReadCache.TryGetValue(type, out var method))
             return method;
 
-        // Possibly the only time I'll ever use single line if statements; I'd rather DIE than do this again lmao
-        if (type == typeof(byte)) method = Method(nameof(PacketReader.ReadByte));
-        else if (type == typeof(int)) method = Method(nameof(PacketReader.ReadInt));
-        else if (type == typeof(bool)) method = Method(nameof(PacketReader.ReadBool));
-        else if (type == typeof(uint)) method = Method(nameof(PacketReader.ReadUInt));
-        else if (type == typeof(long)) method = Method(nameof(PacketReader.ReadLong));
-        else if (type == typeof(sbyte)) method = Method(nameof(PacketReader.ReadSByte));
-        else if (type == typeof(short)) method = Method(nameof(PacketReader.ReadShort));
-        else if (type == typeof(ulong)) method = Method(nameof(PacketReader.ReadULong));
-        else if (type == typeof(float)) method = Method(nameof(PacketReader.ReadFloat));
-        else if (type == typeof(ushort)) method = Method(nameof(PacketReader.ReadUShort));
-        else if (type == typeof(double)) method = Method(nameof(PacketReader.ReadDouble));
-        else if (type == typeof(string)) method = Method(nameof(PacketReader.ReadString));
-        else if (type == typeof(float4)) method = Method(nameof(PacketReader.ReadFloat4));
-        else if (type == typeof(Vector3)) method = Method(nameof(PacketReader.ReadVector3));
-        else if (type == typeof(Quaternion)) method = Method(nameof(PacketReader.ReadQuaternion));
-        else if (type.IsEnum) method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
-        else if (typeof(IPacket).IsAssignableFrom(type)) method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
-        else if (typeof(INetObject).IsAssignableFrom(type)) method = Method(nameof(PacketReader.ReadNetObject)).MakeGenericMethod(type);
+        if (ReadMethodMap.TryGetValue(type, out var methodName))
+            method = Method(methodName);
+        else if (type.IsEnum)
+            method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
+        else if (typeof(IPacket).IsAssignableFrom(type))
+            method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
+        else if (typeof(INetObject).IsAssignableFrom(type))
+            method = Method(nameof(PacketReader.ReadNetObject)).MakeGenericMethod(type);
 
         if (method == null)
             throw new NotSupportedException($"Type {type.Name} is not supported in automatic deserialization.");

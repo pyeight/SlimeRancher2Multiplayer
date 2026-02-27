@@ -1,10 +1,12 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using SR2MP.Shared.Utils;
 using Unity.Mathematics;
 
 namespace SR2MP.Packets.Utils;
@@ -41,7 +43,9 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteByte(byte value)
     {
-        EndPackingBools();
+        if (currentBitIndex > 0)
+            ResetPackingBools();
+
         EnsureCapacity(1);
         buffer[position++] = value;
         size++;
@@ -80,58 +84,38 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector2(Vector2 value)
     {
-        EndPackingBools();
-        EnsureCapacity(8);
-
-        var span = buffer.AsSpan(position);
+        var span = WriteAlloc(8);
         BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
         BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
-
-        Advance(8);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector3(Vector3 value)
     {
-        EndPackingBools();
-        EnsureCapacity(12);
-
-        var span = buffer.AsSpan(position);
+        var span = WriteAlloc(12);
         BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
         BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
         BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
-
-        Advance(12);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteQuaternion(Quaternion value)
     {
-        EndPackingBools();
-        EnsureCapacity(16);
-
-        var span = buffer.AsSpan(position);
+        var span = WriteAlloc(16);
         BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
         BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
         BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
         BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
-
-        Advance(16);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat4(float4 value)
     {
-        EndPackingBools();
-        EnsureCapacity(16);
-
-        var span = buffer.AsSpan(position);
+        var span = WriteAlloc(16);
         BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
         BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
         BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
         BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
-
-        Advance(16);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -158,6 +142,8 @@ public sealed class PacketWriter : PacketBuffer
         EndPackingBools();
         EnsureCapacity(5);
 
+        var start = position;
+
         while (value >= 0x80)
         {
             buffer[position++] = (byte)(value | 0x80);
@@ -165,6 +151,7 @@ public sealed class PacketWriter : PacketBuffer
         }
 
         buffer[position++] = (byte)value;
+        size += position - start;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -175,6 +162,8 @@ public sealed class PacketWriter : PacketBuffer
         EndPackingBools();
         EnsureCapacity(10);
 
+        var start = position;
+
         while (value >= 0x80)
         {
             buffer[position++] = (byte)(value | 0x80);
@@ -182,6 +171,7 @@ public sealed class PacketWriter : PacketBuffer
         }
 
         buffer[position++] = (byte)value;
+        size += position - start;
     }
 
     public void WriteString(string? value)
@@ -197,13 +187,25 @@ public sealed class PacketWriter : PacketBuffer
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
         EnsureCapacity(2 + maxByteCount);
 
-        var lengthIndex = position;
-        Advance(2);
+        var savedPosition = position;
+        var savedSize = size;
 
-        var actualCount = Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, position);
-        BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
+        try
+        {
+            var lengthIndex = position;
+            Advance(2);
 
-        Advance(actualCount);
+            var actualCount = Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position));
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
+
+            Advance(actualCount);
+        }
+        catch
+        {
+            position = savedPosition;
+            size = savedSize;
+            throw;
+        }
     }
     
     public void WriteStringWithoutSize(string? value)
@@ -212,7 +214,9 @@ public sealed class PacketWriter : PacketBuffer
             throw new ArgumentException("Value cannot be null or empty");
 
         EndPackingBools();
-        Advance(Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, position));
+        var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+        EnsureCapacity(maxByteCount);
+        Advance(Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position)));
     }
 
     public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)
@@ -324,6 +328,7 @@ public sealed class PacketWriter : PacketBuffer
     {
         EnsureCapacity(1);
         buffer[position++] = currentPackedByte;
+        size++;
         currentPackedByte = 0;
         currentBitIndex = 0;
     }
@@ -334,6 +339,7 @@ public sealed class PacketWriter : PacketBuffer
         if (data.IsEmpty)
             return;
 
+        EndPackingBools();
         EnsureCapacity(data.Length);
         data.CopyTo(buffer.AsSpan(position));
         Advance(data.Length);
@@ -392,7 +398,7 @@ public sealed class PacketWriter : PacketBuffer
     public ReadOnlySpan<byte> ToSpan()
     {
         EndPackingBools();
-        return buffer.AsSpan(0, position);
+        return buffer.AsSpan(0, size);
     }
 
     protected override void OnRecycle()
@@ -434,6 +440,15 @@ public sealed class PacketWriter : PacketBuffer
         base.Clear();
         size = 0;
     }
+    
+    public static PacketWriter Borrow(int initialCapacity = 256)
+    {
+        var writer = RecyclePool<PacketWriter>.Borrow();
+        writer.Reset(initialCapacity);
+        return writer;
+    }
+
+    public static void Return(PacketWriter writer) => RecyclePool<PacketWriter>.Return(writer);
 }
 
 /// <summary>
@@ -500,8 +515,26 @@ public static class PacketWriterDels
         }
     }
 
-    // See PacketReaderDels for the comments, they're pretty much the same
     private static readonly ConcurrentDictionary<Type, MethodInfo> TypeWriteCache = new();
+
+    private static readonly ReadOnlyDictionary<Type, string> WriteMethodMap = new(new Dictionary<Type, string>()
+    {
+        [typeof(byte)] = nameof(PacketWriter.WriteByte),
+        [typeof(int)] = nameof(PacketWriter.WriteInt),
+        [typeof(uint)] = nameof(PacketWriter.WriteUInt),
+        [typeof(long)] = nameof(PacketWriter.WriteLong),
+        [typeof(bool)] = nameof(PacketWriter.WriteBool),
+        [typeof(short)] = nameof(PacketWriter.WriteShort),
+        [typeof(ulong)] = nameof(PacketWriter.WriteULong),
+        [typeof(sbyte)] = nameof(PacketWriter.WriteSByte),
+        [typeof(float)] = nameof(PacketWriter.WriteFloat),
+        [typeof(ushort)] = nameof(PacketWriter.WriteUShort),
+        [typeof(double)] = nameof(PacketWriter.WriteDouble),
+        [typeof(string)] = nameof(PacketWriter.WriteString),
+        [typeof(float4)] = nameof(PacketWriter.WriteFloat4),
+        [typeof(Vector3)] = nameof(PacketWriter.WriteVector3),
+        [typeof(Quaternion)] = nameof(PacketWriter.WriteQuaternion),
+    });
 
     private static Action<PacketWriter, TTuple> CreateTupleWriter<TTuple>(params Type[] componentTypes)
     {
@@ -522,24 +555,14 @@ public static class PacketWriterDels
         if (TypeWriteCache.TryGetValue(type, out var method))
             return method;
 
-        if (type == typeof(byte)) method = Method(nameof(PacketWriter.WriteByte));
-        else if (type == typeof(int)) method = Method(nameof(PacketWriter.WriteInt));
-        else if (type == typeof(uint)) method = Method(nameof(PacketWriter.WriteUInt));
-        else if (type == typeof(long)) method = Method(nameof(PacketWriter.WriteLong));
-        else if (type == typeof(bool)) method = Method(nameof(PacketWriter.WriteBool));
-        else if (type == typeof(short)) method = Method(nameof(PacketWriter.WriteShort));
-        else if (type == typeof(ulong)) method = Method(nameof(PacketWriter.WriteULong));
-        else if (type == typeof(sbyte)) method = Method(nameof(PacketWriter.WriteSByte));
-        else if (type == typeof(float)) method = Method(nameof(PacketWriter.WriteFloat));
-        else if (type == typeof(ushort)) method = Method(nameof(PacketWriter.WriteUShort));
-        else if (type == typeof(double)) method = Method(nameof(PacketWriter.WriteDouble));
-        else if (type == typeof(string)) method = Method(nameof(PacketWriter.WriteString));
-        else if (type == typeof(float4)) method = Method(nameof(PacketWriter.WriteFloat4));
-        else if (type == typeof(Vector3)) method = Method(nameof(PacketWriter.WriteVector3));
-        else if (type == typeof(Quaternion)) method = Method(nameof(PacketWriter.WriteQuaternion));
-        else if (type.IsEnum) method = Method(nameof(PacketWriter.WriteEnum)).MakeGenericMethod(type);
-        else if (typeof(IPacket).IsAssignableFrom(type)) method = Method(nameof(PacketWriter.WritePacket)).MakeGenericMethod(type);
-        else if (typeof(INetObject).IsAssignableFrom(type)) method = Method(nameof(PacketWriter.WriteNetObject)).MakeGenericMethod(type);
+        if (WriteMethodMap.TryGetValue(type, out var methodName))
+            method = Method(methodName);
+        else if (type.IsEnum)
+            method = Method(nameof(PacketWriter.WriteEnum)).MakeGenericMethod(type);
+        else if (typeof(IPacket).IsAssignableFrom(type))
+            method = Method(nameof(PacketWriter.WritePacket)).MakeGenericMethod(type);
+        else if (typeof(INetObject).IsAssignableFrom(type))
+            method = Method(nameof(PacketWriter.WriteNetObject)).MakeGenericMethod(type);
 
         if (method == null)
             throw new NotSupportedException($"Type {type.Name} is not supported in automatic serialization.");

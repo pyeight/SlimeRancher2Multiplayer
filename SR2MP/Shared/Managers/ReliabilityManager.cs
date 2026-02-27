@@ -42,6 +42,16 @@ public sealed class ReliabilityManager
             SplitData.Dispose();
             Destination = null!;
         }
+
+        public static PendingPacket Borrow(SplitResult splitData, IPEndPoint destination, ushort packetId,
+            byte packetType, PacketReliability reliability, ushort sequenceNumber)
+        {
+            var packet = RecyclePool<PendingPacket>.Borrow();
+            packet.Initialize(splitData, destination, packetId, packetType, reliability, sequenceNumber);
+            return packet;
+        }
+        
+        public static void Return(PendingPacket packet) => RecyclePool<PendingPacket>.Return(packet);
     }
 
     private readonly ConcurrentDictionary<PacketKey, PendingPacket> pendingPackets = new();
@@ -86,10 +96,7 @@ public sealed class ReliabilityManager
         isRunning = false;
         
         foreach (var packet in pendingPackets.Values)
-        {
-            packet.Recycle();
-            RecyclePool<PendingPacket>.Return(packet);
-        }
+            PendingPacket.Return(packet);
 
         pendingPackets.Clear();
         lastProcessedSequence.Clear();
@@ -105,9 +112,7 @@ public sealed class ReliabilityManager
             return;
 
         var key = new PacketKey(packetType, packetId, destination);
-        var packet = RecyclePool<PendingPacket>.Borrow();
-        packet.Initialize(splitData, destination, packetId, packetType, reliability, sequenceNumber);
-        pendingPackets[key] = packet;
+        pendingPackets[key] = PendingPacket.Borrow(splitData, destination, packetId, packetType, reliability, sequenceNumber);;
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
@@ -217,7 +222,7 @@ public sealed class ReliabilityManager
                 for (var i = 0; i < removeCount; i++)
                 {
                     if (pendingPackets.TryRemove(keysToRemove[i], out var timedOutPacket))
-                        RecyclePool<PendingPacket>.Return(timedOutPacket);
+                        PendingPacket.Return(timedOutPacket);
                 }
 
                 ArrayPool<PacketKey>.Shared.Return(keysToRemove);
