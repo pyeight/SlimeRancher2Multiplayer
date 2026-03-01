@@ -27,6 +27,9 @@ public sealed class PacketWriter : PacketBuffer
         if (buffer == null)
             throw new InvalidOperationException("The buffer has been detached and is no longer available.");
 
+        if (currentBitIndex > 0)
+            FlushPackedByte();
+
         if (position + bytesToAdd > buffer.Length)
             ResizeBuffer(bytesToAdd);
     }
@@ -41,15 +44,7 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteByte(byte value)
-    {
-        if (currentBitIndex > 0)
-            ResetPackingBools();
-
-        EnsureCapacity(1);
-        buffer[position++] = value;
-        size++;
-    }
+    public void WriteByte(byte value) => WriteAlloc(1)[0] = value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteBool(bool value) => WriteByte((byte)(value ? 1 : 0));
@@ -82,41 +77,25 @@ public sealed class PacketWriter : PacketBuffer
     public void WriteDouble(double value) => BinaryPrimitives.WriteDoubleLittleEndian(WriteAlloc(8), value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteVector2(Vector2 value)
+    private void WriteFloats(ReadOnlySpan<float> values)
     {
-        var span = WriteAlloc(8);
-        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
-        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
+        var span = WriteAlloc(values.Length * 4);
+
+        for (var i = 0; i < values.Length; i++)
+            BinaryPrimitives.WriteSingleLittleEndian(span[(i * 4)..], values[i]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteVector3(Vector3 value)
-    {
-        var span = WriteAlloc(12);
-        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
-        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
-        BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
-    }
+    public void WriteVector2(Vector2 value) => WriteFloats(stackalloc float[2] { value.x, value.y });
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteQuaternion(Quaternion value)
-    {
-        var span = WriteAlloc(16);
-        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
-        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
-        BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
-        BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
-    }
+    public void WriteVector3(Vector3 value) => WriteFloats(stackalloc float[3] { value.x, value.y, value.z });
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteFloat4(float4 value)
-    {
-        var span = WriteAlloc(16);
-        BinaryPrimitives.WriteSingleLittleEndian(span, value.x);
-        BinaryPrimitives.WriteSingleLittleEndian(span[4..], value.y);
-        BinaryPrimitives.WriteSingleLittleEndian(span[8..], value.z);
-        BinaryPrimitives.WriteSingleLittleEndian(span[12..], value.w);
-    }
+    public void WriteQuaternion(Quaternion value) => WriteFloats(stackalloc float[4] { value.x, value.y, value.z, value.w });
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteFloat4(float4 value) => WriteFloats(stackalloc float[4] { value.x, value.y, value.z, value.w });
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
@@ -137,42 +116,14 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedInt(int value) => WritePackedUInt((uint)((value << 1) ^ (value >> 31)));
 
-    public void WritePackedUInt(uint value)
-    {
-        EndPackingBools();
-        EnsureCapacity(5);
-
-        var start = position;
-
-        while (value >= 0x80)
-        {
-            buffer[position++] = (byte)(value | 0x80);
-            value >>= 7;
-        }
-
-        buffer[position++] = (byte)value;
-        size += position - start;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePackedUInt(uint value) => WriteVarInt(value, 5);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedLong(long value) => WritePackedULong((ulong)((value << 1) ^ (value >> 63)));
 
-    public void WritePackedULong(ulong value)
-    {
-        EndPackingBools();
-        EnsureCapacity(10);
-
-        var start = position;
-
-        while (value >= 0x80)
-        {
-            buffer[position++] = (byte)(value | 0x80);
-            value >>= 7;
-        }
-
-        buffer[position++] = (byte)value;
-        size += position - start;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePackedULong(ulong value) => WriteVarInt(value, 10);
 
     public void WriteString(string? value)
     {
@@ -181,8 +132,6 @@ public sealed class PacketWriter : PacketBuffer
             WriteUShort(0);
             return;
         }
-
-        EndPackingBools();
 
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
         EnsureCapacity(2 + maxByteCount);
@@ -201,81 +150,46 @@ public sealed class PacketWriter : PacketBuffer
         if (string.IsNullOrEmpty(value))
             throw new ArgumentException("Value cannot be null or empty");
 
-        EndPackingBools();
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
         EnsureCapacity(maxByteCount);
         Advance(Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position)));
     }
 
-    public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)
+    private void WriteCollection<T>(int count, IEnumerable<T> items, Action<PacketWriter, T> writer)
     {
-        if (array == null)
-        {
-            WriteUShort(0);
-            return;
-        }
+        WriteUShort((ushort)count);
 
-        WriteUShort((ushort)array.Length);
-
-        foreach (var item in array)
+        foreach (var item in items)
             writer(this, item);
     }
+
+    public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)
+        => WriteCollection(array?.Length ?? 0, array ?? Enumerable.Empty<T>(), writer);
 
     public void WriteList<T>(List<T>? list, Action<PacketWriter, T> writer)
-    {
-        if (list == null)
-        {
-            WriteUShort(0);
-            return;
-        }
-
-        WriteUShort((ushort)list.Count);
-
-        foreach (var item in list)
-            writer(this, item);
-    }
+        => WriteCollection(list?.Count ?? 0, list ?? Enumerable.Empty<T>(), writer);
 
     public void WriteSet<T>(HashSet<T>? set, Action<PacketWriter, T> writer)
+        => WriteCollection(set?.Count ?? 0, set ?? Enumerable.Empty<T>(), writer);
+
+    private void WriteCppCollection<T>(int count, CppCollections.IEnumerable<T> items, Action<PacketWriter, T> writer)
     {
-        if (set == null)
-        {
-            WriteUShort(0);
-            return;
-        }
+        WriteUShort((ushort)count);
 
-        WriteUShort((ushort)set.Count);
-
-        foreach (var item in set)
-            writer(this, item);
+        var enumerator = items.GetEnumerator();
+        var casted = enumerator.Cast<Il2CppSystem.Collections.IEnumerator>();
+        
+        while (casted.MoveNext())
+            writer(this, enumerator.Current);
     }
 
     // public void WriteCppList<T>(CppCollections.List<T>? list, Action<PacketWriter, T> writer)
-    // {
-    //     if (list == null)
-    //     {
-    //         WriteUShort(0);
-    //         return;
-    //     }
-
-    //     WriteUShort((ushort)list.Count);
-
-    //     foreach (var item in list)
-    //         writer(this, item);
-    // }
+    //     => WriteCppCollection(list?.Count ?? 0, list?.TryCast<CppCollections.IEnumerable<T>>(out var casted) == true
+    //         ? casted : Il2CppSystem.Linq.Enumerable.Empty<T>(), writer);
 
     public void WriteCppSet<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer)
-    {
-        if (set == null)
-        {
-            WriteUShort(0);
-            return;
-        }
-
-        WriteUShort((ushort)set.Count);
-
-        foreach (var item in set)
-            writer(this, item);
-    }
+        => WriteCppCollection(set?.Count ?? 0, set?.TryCast<CppCollections.IEnumerable<T>>(out var casted) == true
+            ? casted : Il2CppSystem.Linq.Enumerable.Empty<T>(), writer);
 
     public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
     {
@@ -302,23 +216,23 @@ public sealed class PacketWriter : PacketBuffer
         currentBitIndex++;
 
         if (currentBitIndex == 8)
-            ResetPackingBools();
+            EnsureCapacity(0);
     }
 
-    public override void EndPackingBools()
-    {
-        if (currentBitIndex > 0)
-            ResetPackingBools();
-    }
+    public override void EndPackingBools() => EnsureCapacity(0);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ResetPackingBools()
+    private void FlushPackedByte()
     {
-        EnsureCapacity(1);
-        buffer[position++] = currentPackedByte;
-        size++;
+        var packed = currentPackedByte;
         currentPackedByte = 0;
         currentBitIndex = 0;
+
+        if (position + 1 > buffer.Length)
+            ResizeBuffer(1);
+
+        buffer[position] = packed;
+        Advance(1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -327,7 +241,6 @@ public sealed class PacketWriter : PacketBuffer
         if (data.IsEmpty)
             return;
 
-        EndPackingBools();
         EnsureCapacity(data.Length);
         data.CopyTo(buffer.AsSpan(position));
         Advance(data.Length);
@@ -350,7 +263,6 @@ public sealed class PacketWriter : PacketBuffer
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
 
-        EndPackingBools();
         EnsureCapacity(count);
         buffer.AsSpan(position, count).Clear();
         Advance(count);
@@ -361,7 +273,7 @@ public sealed class PacketWriter : PacketBuffer
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
 
-        EndPackingBools();
+        EnsureCapacity(0);
 
         if (position < count)
             throw new InvalidOperationException("New position cannot be negative.");
@@ -375,7 +287,6 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Span<byte> WriteAlloc(int count)
     {
-        EndPackingBools();
         EnsureCapacity(count);
         var span = buffer.AsSpan(position, count);
         Advance(count);
@@ -385,7 +296,7 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> ToSpan()
     {
-        EndPackingBools();
+        EnsureCapacity(0);
         return buffer.AsSpan(0, size);
     }
 
@@ -405,7 +316,7 @@ public sealed class PacketWriter : PacketBuffer
 
     public byte[] DetachBuffer(out int length)
     {
-        EndPackingBools();
+        EnsureCapacity(0);
         length = position;
 
         var detachedBuffer = buffer;
@@ -420,7 +331,9 @@ public sealed class PacketWriter : PacketBuffer
     private void Advance(int count)
     {
         position += count;
-        size += count;
+
+        if (position > size)
+            size = position;
     }
 
     public override void Clear()
@@ -437,6 +350,22 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     public static void Return(PacketWriter writer) => RecyclePool<PacketWriter>.Return(writer);
+
+    private void WriteVarInt(ulong value, int maxSize)
+    {
+        EnsureCapacity(maxSize);
+
+        while (value >= 0x80)
+        {
+            buffer[position++] = (byte)(value | 0x80);
+            value >>= 7;
+        }
+
+        buffer[position++] = (byte)value;
+
+        if (position > size)
+            size = position;
+    }
 }
 
 /// <summary>

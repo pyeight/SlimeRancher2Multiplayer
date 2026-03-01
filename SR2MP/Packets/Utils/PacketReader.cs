@@ -77,32 +77,8 @@ public sealed class PacketReader : PacketBuffer
         return (int)(val >> 1) ^ -(int)(val & 1);
     }
 
-    public uint ReadPackedUInt()
-    {
-        EnsureReadable(1);
-
-        var result = 0u;
-        var shift = 0;
-
-        while (true)
-        {
-            if (position >= DataSize)
-                throw new EndOfStreamException("Unexpected end of stream while reading VarInt.");
-
-            var b = buffer[position++];
-            result |= (uint)(b & 0x7F) << shift;
-
-            if ((b & 0x80) == 0)
-                break;
-
-            shift += 7;
-
-            if (shift >= 35)
-                throw new InvalidDataException("VarInt too long");
-        }
-
-        return result;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public uint ReadPackedUInt() => (uint)ReadVarInt(35);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public long ReadPackedLong()
@@ -111,68 +87,48 @@ public sealed class PacketReader : PacketBuffer
         return (long)(val >> 1) ^ -(long)(val & 1);
     }
 
-    public ulong ReadPackedULong()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ulong ReadPackedULong() => ReadVarInt(70);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ReadFloats(Span<float> values)
     {
-        EnsureReadable(1);
+        var span = ReadRequest(values.Length * 4);
 
-        var result = 0ul;
-        var shift = 0;
-
-        while (true)
-        {
-            if (position >= DataSize)
-                throw new EndOfStreamException("Unexpected end of stream while reading VarInt.");
-
-            var b = buffer[position++];
-            result |= (ulong)(b & 0x7F) << shift;
-
-            if ((b & 0x80) == 0)
-                break;
-
-            shift += 7;
-
-            if (shift >= 70)
-                throw new InvalidDataException("VarInt too long");
-        }
-
-        return result;
+        for (var i = 0; i < values.Length; i++)
+            values[i] = BinaryPrimitives.ReadSingleLittleEndian(span[(i * 4)..]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector2 ReadVector2()
     {
-        var span = ReadRequest(8);
-        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]));
+        Span<float> v = stackalloc float[2];
+        ReadFloats(v);
+        return new(v[0], v[1]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector3 ReadVector3()
     {
-        var span = ReadRequest(12);
-        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[8..]));
+        Span<float> v = stackalloc float[3];
+        ReadFloats(v);
+        return new(v[0], v[1], v[2]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Quaternion ReadQuaternion()
     {
-        var span = ReadRequest(16);
-        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[8..]),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[12..]));
+        Span<float> v = stackalloc float[4];
+        ReadFloats(v);
+        return new(v[0], v[1], v[2], v[3]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float4 ReadFloat4()
     {
-        var span = ReadRequest(16);
-        return new(BinaryPrimitives.ReadSingleLittleEndian(span),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[4..]),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[8..]),
-                   BinaryPrimitives.ReadSingleLittleEndian(span[12..]));
+        Span<float> v = stackalloc float[4];
+        ReadFloats(v);
+        return new(v[0], v[1], v[2], v[3]);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -365,6 +321,31 @@ public sealed class PacketReader : PacketBuffer
     }
 
     public static void Return(PacketReader reader) => RecyclePool<PacketReader>.Return(reader);
+
+    private ulong ReadVarInt(int maxShift)
+    {
+        var result = 0ul;
+        var shift = 0;
+
+        while (true)
+        {
+            if (position >= DataSize)
+                throw new EndOfStreamException("Unexpected end of stream during VarInt.");
+
+            var b = buffer[position++];
+            result |= (ulong)(b & 0x7F) << shift;
+
+            if ((b & 0x80) == 0)
+                break;
+
+            shift += 7;
+
+            if (shift >= maxShift)
+                throw new InvalidDataException("VarInt too long");
+        }
+
+        return result;
+    }
 }
 
 /// <summary>

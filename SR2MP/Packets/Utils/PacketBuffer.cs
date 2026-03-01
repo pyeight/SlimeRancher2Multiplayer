@@ -11,7 +11,7 @@ public abstract class PacketBuffer : IRecyclable
 
     protected int position = 0;
 
-    private int startingIndex;
+    private readonly int startingIndex;
 
     public int Position => position;
     
