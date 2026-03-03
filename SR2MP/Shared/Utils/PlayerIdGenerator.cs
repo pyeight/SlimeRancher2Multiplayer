@@ -9,14 +9,14 @@ public static class PlayerIdGenerator
     {
         try
         {
-            var systemInfo = $"{Environment.MachineName}{Environment.UserName}";
+            var systemInfo = Environment.MachineName + Environment.UserName;
 
             using var sha256 = SHA256.Create();
             var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
 
             var hash = BitConverter.ToString(hashBytes)
                 .Replace("-", string.Empty)[..9]
-                .ToUpper();
+                .ToUpperInvariant();
 
             var playerId = $"PLAYER_{hash}";
 
