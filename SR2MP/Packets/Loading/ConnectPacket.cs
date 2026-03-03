@@ -14,7 +14,7 @@ public sealed class ConnectPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteString(PlayerId);
+        writer.WriteStringWithoutSize(PlayerId);
         writer.WriteString(Username);
 
         writer.WriteList(ModHashes, PacketWriterDels.UShort);
@@ -22,7 +22,7 @@ public sealed class ConnectPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadString();
+        PlayerId = reader.ReadStringWithSize(16)!;
         Username = reader.ReadString();
     
         ModHashes = reader.ReadList(PacketReaderDels.UShort);
