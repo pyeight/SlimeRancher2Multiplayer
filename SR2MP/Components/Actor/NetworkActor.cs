@@ -30,7 +30,7 @@ public sealed class NetworkActor : MonoBehaviour
     private bool isValid = true;
     private bool isDestroyed;
     private bool? cachedCycleReleasing;
-
+    
     private bool shouldUpdateResourceState;
 
     public bool? CycleReleasing => cycle?._preparingToRelease;
@@ -116,7 +116,7 @@ public sealed class NetworkActor : MonoBehaviour
                 Destroy(this);
                 return;
             }
-
+            
             if (ActorId.Value != 0 && GameState.identifiables.TryGetValue(ActorId, out var identModel))
             {
                 isSlime = identModel.TryCast<SlimeModel>() != null;
@@ -125,13 +125,11 @@ public sealed class NetworkActor : MonoBehaviour
             }
 
             emotions = GetComponent<SlimeEmotions>();
+            cachedLocallyOwned = LocallyOwned;
             rigidbody = GetComponent<Rigidbody>();
             identifiable = GetComponent<Identifiable>();
             cycle = GetComponent<ResourceCycle>();
             regionMember = GetComponent<RegionMember>();
-
-            if (!regionMember)
-                return;
 
             if (!regionMember) return;
 
@@ -207,21 +205,16 @@ public sealed class NetworkActor : MonoBehaviour
             SrLogger.LogError($"HibernationChanged error: {ex}", SrLogTarget.Both);
         }
     }
-
+    
     public void OnNetworkUpdate(ActorUpdatePacket packet)
     {
-        if (LocallyOwned || isDestroyed)
-            return;
-
         if (LocallyOwned || isDestroyed) return;
-
+        
         previousPosition = transform.position;
         previousRotation = transform.rotation;
-
         nextPosition = packet.Position;
         nextRotation = packet.Rotation;
         SavedVelocity = packet.Velocity;
-
         interpolationStart = UnityEngine.Time.unscaledTime;
         interpolationEnd = interpolationStart + Timers.ActorTimer;
     }
@@ -230,9 +223,6 @@ public sealed class NetworkActor : MonoBehaviour
     {
         if (LocallyOwned) return;
         if (isDestroyed) return;
-
-        if (interpolationEnd <= interpolationStart)
-            return;
         if (interpolationEnd <= interpolationStart) return;
 
         var t = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
@@ -240,12 +230,12 @@ public sealed class NetworkActor : MonoBehaviour
 
         transform.position = Vector3.Lerp(previousPosition, nextPosition, t);
         transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, t);
-
+        
         if (rigidbody)
             rigidbody.velocity = SavedVelocity;
     }
 
-    public void Update()
+    private void Update()
     {
         if (isDestroyed) return;
 
@@ -255,16 +245,10 @@ public sealed class NetworkActor : MonoBehaviour
             Destroy(this);
             return;
         }
-
+        
         if (isResource && !LocallyOwned && cycle != null && cycle._model != null && !shouldUpdateResourceState)
             cycle._model.progressTime = double.MaxValue;
-
-        if (shouldUpdateResourceState)
-            shouldUpdateResourceState = false;
-
-        if (isResource && !LocallyOwned && cycle != null && cycle._model != null && !shouldUpdateResourceState)
-            cycle._model.progressTime = double.MaxValue;
-
+        
         if (shouldUpdateResourceState)
             shouldUpdateResourceState = false;
 
@@ -292,62 +276,77 @@ public sealed class NetworkActor : MonoBehaviour
             }
 
             cachedLocallyOwned = LocallyOwned;
-
+            
             syncTimer -= UnityEngine.Time.unscaledDeltaTime;
             UpdateInterpolation();
 
             if (syncTimer >= 0) return;
 
-            if (!LocallyOwned)
-                return;
-
-            syncTimer = Timers.ActorTimer;
-            previousPosition = transform.position;
-            previousRotation = transform.rotation;
-            nextPosition = transform.position;
-            nextRotation = transform.rotation;
-
-            var actorId = ActorId;
-            if (actorId.Value == 0) return;
-
-            ActorUpdateType updateType =
-                    isSlime ? ActorUpdateType.Slime
-                : isResource ? ActorUpdateType.Resource
-                : isPlort ? ActorUpdateType.Plort
-                : ActorUpdateType.Actor;
-
-            double resourceProgress = 0f;
-            ResourceCycle.State resourceState = ResourceCycle.State.UNRIPE;
-            if (isResource && cycle != null && cycle._model != null)
+            if (LocallyOwned)
             {
-                resourceProgress = cycle._model.progressTime;
-                resourceState = cycle._model.state;
-            }
+                syncTimer = Timers.ActorTimer;
+                previousPosition = transform.position;
+                previousRotation = transform.rotation;
+                nextPosition = transform.position;
+                nextRotation = transform.rotation;
 
-            var packet = new ActorUpdatePacket();
-            packet.UpdateType = updateType;
-            packet.ActorId = actorId;
-            packet.Position = transform.position;
-            packet.Rotation = transform.rotation;
-            packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                var actorId = ActorId;
+                if (actorId.Value == 0) return;
 
-            if (updateType == ActorUpdateType.Slime)
-            {
-                packet.Emotions = EmotionsFloat;
-            }
-            else if (updateType == ActorUpdateType.Resource)
-            {
-                packet.ResourceProgress = resourceProgress;
-                packet.ResourceState = resourceState;
-            }
-            else if (updateType == ActorUpdateType.Plort)
-            {
-                var plortModel = GetComponent<PlortModel>();
-                packet.Invulnerable = plortModel?._invulnerability?.IsInvulnerable ?? false;
-                packet.InvulnerablePeriod = plortModel?._invulnerability?.InvulnerabilityPeriod ?? 0f;
-            }
+                ActorUpdateType updateType =
+                      isSlime ? ActorUpdateType.Slime
+                    : isResource ? ActorUpdateType.Resource
+                    : isPlort ? ActorUpdateType.Plort
+                    : ActorUpdateType.Actor;
 
-            Main.SendToAllOrServer(packet);
+                double resourceProgress = 0f;
+                ResourceCycle.State resourceState = ResourceCycle.State.UNRIPE;
+                if (isResource && cycle != null && cycle._model != null)
+                {
+                    resourceProgress = cycle._model.progressTime;
+                    resourceState = cycle._model.state;
+                }
+
+                var packet = new ActorUpdatePacket();
+                packet.UpdateType = updateType;
+
+                if (updateType == ActorUpdateType.Slime)
+                {
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                    packet.Emotions = EmotionsFloat;
+                }
+                else if (updateType == ActorUpdateType.Resource)
+                {
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                    packet.ResourceProgress = resourceProgress;
+                    packet.ResourceState = resourceState;
+                }
+                else if (updateType == ActorUpdateType.Plort)
+                {
+                    var plortModel = GetComponent<PlortModel>();
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                    packet.Invulnerable = plortModel?._invulnerability?.IsInvulnerable ?? false;
+                    packet.InvulnerablePeriod = plortModel?._invulnerability?.InvulnerabilityPeriod ?? 0f;
+                }
+                else
+                {
+                    packet.ActorId = actorId;
+                    packet.Position = transform.position;
+                    packet.Rotation = transform.rotation;
+                    packet.Velocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+                }
+
+                Main.SendToAllOrServer(packet);
+            }
         }
         catch (Exception ex)
         {
@@ -373,7 +372,7 @@ public sealed class NetworkActor : MonoBehaviour
         }
     }
 
-    public void OnDestroy()
+    private void OnDestroy()
     {
         isDestroyed = true;
         isValid = false;
@@ -384,12 +383,12 @@ public sealed class NetworkActor : MonoBehaviour
     public void SetResourceState(ResourceCycle.State state, double progress, bool force = false)
     {
         if (!cycle || cycle == null) return;
-
+        
         shouldUpdateResourceState = true;
-
+        
         if (cycle._model != null)
             cycle._model.progressTime = progress;
-
+        
         if (!force && prevState == state) return;
         prevState = state;
 
