@@ -28,6 +28,7 @@ public sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket
 
         resyncManager.MarkResynced(clientEp);
         resyncManager.SynchronizeClient(clientInfo!.PlayerId, clientEp);
+        resyncManager.LogResyncRequest(clientInfo.PlayerId, clientEp);
         resyncManager.SendSuccessMessage(clientEp);
 
         return false;

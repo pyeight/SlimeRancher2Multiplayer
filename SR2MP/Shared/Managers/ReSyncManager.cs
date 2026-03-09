@@ -82,17 +82,71 @@ public sealed class ReSyncManager
         }
     }
 
+    public void LogResyncRequest(string playerId, IPEndPoint endPoint)
+    {
+        SrLogger.LogMessage($"Player {playerId} requested a resync", $"Player {playerId} ({endPoint}) requested a resync");
+    }
+
     public void SynchronizeAll()
     {
-        foreach (var client in Main.Server.clientManager.GetAllClients())
+        var clients = Main.Server.clientManager.GetAllClients().ToList();
+        
+        var gordosPacket          = CreateGordoSlimesPacket();
+        var switchesPacket        = CreateSwitchesPacket();
+        var plotsPacket           = CreatePlotsPacket();
+        var upgradesPacket        = CreateUpgradesPacket();
+        var refineryPacket        = CreateRefineryPacket();
+        var pediaPacket           = CreatePediaPacket();
+        var mapPacket             = CreateMapPacket();
+        var accessDoorsPacket     = CreateAccessDoorsPacket();
+        var treasurePodsPacket    = CreateTreasurePodsPacket();
+        var pricesPacket          = CreatePricesPacket();
+
+        var money = SceneContext.Instance.PlayerState.GetCurrency(
+            GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
+        var rainbowMoney = SceneContext.Instance.PlayerState.GetCurrency(
+            GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>());
+        
+        SrLogger.LogMessage("Resyncing all players...");
+        
+        foreach (var client in clients)
         {
-            SynchronizeClient(client.PlayerId, client.EndPoint);
+            var approvePacket = new ConnectionApprovePacket
+            {
+                InitialJoin = false,
+                PlayerId = client.PlayerId,
+                OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
+                    p => (p.PlayerId, p.Username)),
+                Money = money,
+                RainbowMoney = rainbowMoney,
+                AllowCheats = Main.AllowCheats
+            };
+            Main.Server.SendToClient(approvePacket, client.EndPoint);
+
+            Main.Server.SendToClient(gordosPacket,          client.EndPoint);
+            Main.Server.SendToClient(switchesPacket,        client.EndPoint);
+            Main.Server.SendToClient(plotsPacket,           client.EndPoint);
+            Main.Server.SendToClient(upgradesPacket,        client.EndPoint);
+            Main.Server.SendToClient(refineryPacket,        client.EndPoint);
+            Main.Server.SendToClient(pediaPacket,           client.EndPoint);
+            Main.Server.SendToClient(mapPacket,             client.EndPoint);
+            Main.Server.SendToClient(accessDoorsPacket,     client.EndPoint);
+            Main.Server.SendToClient(treasurePodsPacket,    client.EndPoint);
+            Main.Server.SendToClient(pricesPacket,          client.EndPoint);
+            
+            SendWeatherPacket(client.EndPoint);
+            
+            SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
+
+            SrLogger.LogPacketSize($"Player {client.PlayerId} resynced!");
         }
+
+        SrLogger.LogMessage($"Resynced {clients.Count} players!");
 
         var chatPacket = new ChatMessagePacket
         {
             Username = "SYSTEM",
-            Message = "Server issued resync for all players.",
+            Message = "You have been resynced by the server.",
             MessageID = $"SYSTEM_RESYNCALL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
             MessageType = MultiplayerUI.SystemMessageConnect
         };
@@ -124,6 +178,9 @@ public sealed class ReSyncManager
     }
 
     private static void SendUpgradesPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateUpgradesPacket(), client);
+
+    private static InitialUpgradesPacket CreateUpgradesPacket()
     {
         var upgrades = new Dictionary<byte, sbyte>();
 
@@ -133,11 +190,13 @@ public sealed class ReSyncManager
                 (sbyte)SceneContext.Instance.PlayerState._model.upgradeModel.GetUpgradeLevel(upgrade));
         }
 
-        var upgradesPacket = new InitialUpgradesPacket { Upgrades = upgrades };
-        Main.Server.SendToClient(upgradesPacket, client);
+        return new InitialUpgradesPacket { Upgrades = upgrades };
     }
 
     private static void SendRefineryPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateRefineryPacket(), client);
+
+    private static InitialRefineryPacket CreateRefineryPacket()
     {
         var refineryItems = new Dictionary<ushort, ushort>();
 
@@ -148,9 +207,7 @@ public sealed class ReSyncManager
             refineryItems.Add(itemId, count);
         }
 
-        var refineryPacket = new InitialRefineryPacket { Items = refineryItems };
-
-        Main.Server.SendToClient(refineryPacket, client);
+        return new InitialRefineryPacket { Items = refineryItems };
     }
 
     private static void SendWeatherPacket(IPEndPoint client)
@@ -172,6 +229,9 @@ public sealed class ReSyncManager
     }
 
     private static void SendPediaPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePediaPacket(), client);
+
+    private static InitialPediaPacket CreatePediaPacket()
     {
         var unlocked = SceneContext.Instance.PediaDirector._pediaModel.unlocked;
 
@@ -180,11 +240,13 @@ public sealed class ReSyncManager
 
         var unlockedIDs = unlockedArray.Select(entry => entry.Cast<PediaEntry>().PersistenceId).ToList();
 
-        var pediasPacket = new InitialPediaPacket { Entries = unlockedIDs };
-        Main.Server.SendToClient(pediasPacket, client);
+        return new InitialPediaPacket { Entries = unlockedIDs };
     }
 
     private static void SendMapPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateMapPacket(), client);
+
+    private static InitialMapPacket CreateMapPacket()
     {
         if (!SceneContext.Instance.eventDirector._model.table.TryGetValue(MapEventKey, out var maps))
         {
@@ -197,12 +259,13 @@ public sealed class ReSyncManager
         foreach (var map in maps)
             mapsList.Add(map.Key);
 
-        var mapPacket = new InitialMapPacket { UnlockedNodes = mapsList };
-
-        Main.Server.SendToClient(mapPacket, client);
+        return new InitialMapPacket { UnlockedNodes = mapsList };
     }
 
     private static void SendAccessDoorsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateAccessDoorsPacket(), client);
+
+    private static InitialAccessDoorsPacket CreateAccessDoorsPacket()
     {
         var accessDoorsList = new List<InitialAccessDoorsPacket.Door>();
 
@@ -211,9 +274,7 @@ public sealed class ReSyncManager
             accessDoorsList.Add(new InitialAccessDoorsPacket.Door { ID = door.Key, State = door.Value.state });
         }
 
-        var accessDoorsPacket = new InitialAccessDoorsPacket { Doors = accessDoorsList };
-
-        Main.Server.SendToClient(accessDoorsPacket, client);
+        return new InitialAccessDoorsPacket { Doors = accessDoorsList };
     }
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
@@ -247,6 +308,9 @@ public sealed class ReSyncManager
     }
 
     private static void SendSwitchesPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateSwitchesPacket(), client);
+
+    private static InitialSwitchesPacket CreateSwitchesPacket()
     {
         var switchesList = new List<InitialSwitchesPacket.Switch>();
 
@@ -258,12 +322,13 @@ public sealed class ReSyncManager
             });
         }
 
-        var switchesPacket = new InitialSwitchesPacket { Switches = switchesList };
-
-        Main.Server.SendToClient(switchesPacket, client);
+        return new InitialSwitchesPacket { Switches = switchesList };
     }
 
     private static void SendGordoSlimesPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateGordoSlimesPacket(), client);
+
+    private static InitialGordosPacket CreateGordoSlimesPacket()
     {
         var gordoSlimeList = new List<InitialGordosPacket.GordoSlime>();
 
@@ -284,12 +349,13 @@ public sealed class ReSyncManager
             });
         }
 
-        var gordosPacket = new InitialGordosPacket { GordoSlimes = gordoSlimeList };
-
-        Main.Server.SendToClient(gordosPacket, client);
+        return new InitialGordosPacket { GordoSlimes = gordoSlimeList };
     }
 
     private static void SendPlotsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePlotsPacket(), client);
+
+    private static InitialLandPlotsPacket CreatePlotsPacket()
     {
         var landplotsList = new List<InitialLandPlotsPacket.BasePlot>();
 
@@ -308,7 +374,9 @@ public sealed class ReSyncManager
                     CollectorAmmo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(slot => (int)slot.GetNextSlot()!,
+                            .Where(slot => slot.GetNextSlot().HasValue)
+                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                                slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
@@ -322,7 +390,9 @@ public sealed class ReSyncManager
                     CollectorAmmo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[CoopAmmo].Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(slot => (int)slot.GetNextSlot()!,
+                            .Where(slot => slot.GetNextSlot().HasValue)
+                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                                slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
@@ -337,7 +407,9 @@ public sealed class ReSyncManager
                     PlortCollectorAmmo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(slot => (int)slot.GetNextSlot()!,
+                            .Where(slot => slot.GetNextSlot().HasValue)
+                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                                slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
@@ -352,7 +424,9 @@ public sealed class ReSyncManager
                     Ammo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[SiloAmmo].Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(slot => (int)slot.GetNextSlot()!,
+                            .Where(slot => slot.GetNextSlot().HasValue)
+                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                                slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
@@ -362,27 +436,33 @@ public sealed class ReSyncManager
                     }
                 },
                 LandPlot.Id.CORRAL => new InitialLandPlotsPacket.CorralData()
-                { 
+                {
                     AutoFeederSpeed = (byte)plot.feederCycleSpeed,
                     PlortCollectorAmmo = new NetworkAmmo()
                     {
-                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots.ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(slot => (int)slot.GetNextSlot()!,
-                            slot => new NetworkAmmoSlot()
-                            {
-                                Count = slot.Count,
-                                Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                            })
+                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
+                            .Where(slot => slot.GetNextSlot().HasValue)
+                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => new NetworkAmmoSlot()
+                                {
+                                    Count = slot.Count,
+                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
+                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
+                                })
                     },
                     AutoFeederAmmo = new NetworkAmmo()
                     {
-                        AmmoSlots = plot.siloAmmo[FeederAmmo].Slots.ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(slot => (int)slot.GetNextSlot()!,
-                            slot => new NetworkAmmoSlot()
-                            {
-                                Count = slot.Count,
-                                Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                            })
+                        AmmoSlots = plot.siloAmmo[FeederAmmo].Slots
+                            .Where(slot => slot.GetNextSlot().HasValue)
+                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => new NetworkAmmoSlot()
+                                {
+                                    Count = slot.Count,
+                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
+                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
+                                })
                     }
                 },
                 _ => null
@@ -394,19 +474,19 @@ public sealed class ReSyncManager
             });
         }
 
-        var landplotsPacket = new InitialLandPlotsPacket { LandPlots = landplotsList };
-
-        Main.Server.SendToClient(landplotsPacket, client);
+        return new InitialLandPlotsPacket { LandPlots = landplotsList };
     }
 
     private static void SendPricesPacket(IPEndPoint client)
-    {
-        var pricesPacket = new MarketPricePacket { Prices = MarketPricesArray! };
+        => Main.Server.SendToClient(CreatePricesPacket(), client);
 
-        Main.Server.SendToClient(pricesPacket, client);
-    }
-    
+    private static MarketPricePacket CreatePricesPacket()
+        => new MarketPricePacket { Prices = MarketPricesArray! };
+
     private static void SendTreasurePodsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateTreasurePodsPacket(), client);
+
+    private static InitialTreasurePodsPacket CreateTreasurePodsPacket()
     {
         var treasurePods = new Dictionary<int, TreasurePod.State>();
 
@@ -415,8 +495,7 @@ public sealed class ReSyncManager
             var podId = int.Parse(treasurePod.key.Replace("pod", ""));
             treasurePods.Add(podId, treasurePod.value.state);
         }
-    
-        var packet = new InitialTreasurePodsPacket() { TreasurePods = treasurePods };
-        Main.Server.SendToClient(packet, client);
+
+        return new InitialTreasurePodsPacket() { TreasurePods = treasurePods };
     }
 }

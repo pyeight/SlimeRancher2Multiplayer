@@ -1,6 +1,6 @@
 using System.Net;
 using SR2MP.Handlers.Internal;
-using SR2MP.Packets.Upgrades;
+using SR2MP.Packets.Upgrade;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.Player;

@@ -110,34 +110,7 @@ public sealed class Main : SR2EExpansionV3
                 break;
 
             case "MainMenuEnvironment":
-                playerPrefab = new GameObject("PLAYER");
-                playerPrefab.SetActive(false);
-                playerPrefab.transform.localScale = Vector3.one * 0.85f;
-
-                var audio = playerPrefab.AddComponent<SECTR_PointSource>();
-                audio.instance = new SECTR_AudioCueInstance();
-
-                var networkComponent = playerPrefab.AddComponent<NetworkPlayer>();
-
-                var playerModel = Object.Instantiate(GameObject.Find("BeatrixMainMenu")).transform;
-                playerModel.parent = playerPrefab.transform;
-                playerModel.localPosition = Vector3.zero;
-                playerModel.localRotation = Quaternion.identity;
-                playerModel.localScale = Vector3.one;
-
-                var name = new GameObject("Username")
-                {
-                    transform = { parent = playerPrefab.transform, localPosition = Vector3.up * 3 }
-                };
-
-                var textComponent = name.AddComponent<TextMeshPro>();
-
-                networkComponent.usernamePanel = textComponent;
-
-                var footstepFX = new GameObject("Footstep") { transform = { parent = playerPrefab.transform } };
-                playerPrefab.AddComponent<NetworkPlayerFootstep>().spawnAtTransform = footstepFX.transform;
-
-                Object.DontDestroyOnLoad(playerPrefab);
+                InitializePlayer("BeatrixMainMenu", true);
 
                 break;
         }
@@ -178,5 +151,38 @@ public sealed class Main : SR2EExpansionV3
         _ = manifestResourceStream.Read(array, 0, array.Length);
         Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));
         File.WriteAllBytes(MelonEnvironment.UserDataDirectory + "/SR2MP/THIRD-PARTY-NOTICES.txt", array);
+    }
+
+    public static void InitializePlayer(string objName, bool scale)
+    {
+        playerPrefab = new GameObject("PLAYER");
+        playerPrefab.SetActive(false);
+        if (scale)
+            playerPrefab.transform.localScale = Vector3.one * 0.85f;
+
+        var audio = playerPrefab.AddComponent<SECTR_PointSource>();
+        audio.instance = new SECTR_AudioCueInstance();
+
+        var networkComponent = playerPrefab.AddComponent<NetworkPlayer>();
+
+        var playerModel = Object.Instantiate(GameObject.Find(objName)).transform;
+        playerModel.parent = playerPrefab.transform;
+        playerModel.localPosition = Vector3.zero;
+        playerModel.localRotation = Quaternion.identity;
+        playerModel.localScale = Vector3.one;
+
+        var name = new GameObject("Username")
+        {
+            transform = { parent = playerPrefab.transform, localPosition = Vector3.up * 3 }
+        };
+
+        var textComponent = name.AddComponent<TextMeshPro>();
+
+        networkComponent.usernamePanel = textComponent;
+
+        var footstepFX = new GameObject("Footstep") { transform = { parent = playerPrefab.transform } };
+        playerPrefab.AddComponent<NetworkPlayerFootstep>().spawnAtTransform = footstepFX.transform;
+
+        Object.DontDestroyOnLoad(playerPrefab);
     }
 }
