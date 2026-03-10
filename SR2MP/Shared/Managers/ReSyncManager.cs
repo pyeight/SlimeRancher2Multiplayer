@@ -374,7 +374,6 @@ public sealed class ReSyncManager
                     CollectorAmmo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
-                            .Where(slot => slot.GetNextSlot().HasValue)
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
@@ -390,7 +389,6 @@ public sealed class ReSyncManager
                     CollectorAmmo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[CoopAmmo].Slots
-                            .Where(slot => slot.GetNextSlot().HasValue)
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
@@ -407,7 +405,6 @@ public sealed class ReSyncManager
                     PlortCollectorAmmo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
-                            .Where(slot => slot.GetNextSlot().HasValue)
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
@@ -424,7 +421,6 @@ public sealed class ReSyncManager
                     Ammo = new NetworkAmmo
                     {
                         AmmoSlots = plot.siloAmmo[SiloAmmo].Slots
-                            .Where(slot => slot.GetNextSlot().HasValue)
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
@@ -441,7 +437,6 @@ public sealed class ReSyncManager
                     PlortCollectorAmmo = new NetworkAmmo()
                     {
                         AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
-                            .Where(slot => slot.GetNextSlot().HasValue)
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
@@ -454,7 +449,6 @@ public sealed class ReSyncManager
                     AutoFeederAmmo = new NetworkAmmo()
                     {
                         AmmoSlots = plot.siloAmmo[FeederAmmo].Slots
-                            .Where(slot => slot.GetNextSlot().HasValue)
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => (int)slot.GetNextSlot()!.Value,
                                 slot => new NetworkAmmoSlot()
