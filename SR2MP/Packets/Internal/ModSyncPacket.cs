@@ -7,7 +7,7 @@ public sealed class ModSyncPacket : IPacket
     public Dictionary<ushort, string> Mods;
 
     public PacketType Type => PacketType.ModSyncAck;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

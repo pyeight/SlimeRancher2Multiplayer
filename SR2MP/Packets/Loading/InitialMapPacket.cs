@@ -7,7 +7,7 @@ public sealed class InitialMapPacket : IPacket
     public List<string> UnlockedNodes;
 
     public PacketType Type => PacketType.InitialMapEntries;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     // todo: Add navigation marker data later.
 

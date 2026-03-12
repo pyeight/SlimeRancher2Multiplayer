@@ -14,7 +14,7 @@ public sealed class ConnectionApprovePacket : IPacket
     public bool AllowCheats;
 
     public PacketType Type => PacketType.ConnectionApprove;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

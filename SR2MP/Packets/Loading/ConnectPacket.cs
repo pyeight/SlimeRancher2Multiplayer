@@ -10,7 +10,7 @@ public sealed class ConnectPacket : IPacket
     public List<ushort> ModHashes;
 
     public PacketType Type => PacketType.Connect;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

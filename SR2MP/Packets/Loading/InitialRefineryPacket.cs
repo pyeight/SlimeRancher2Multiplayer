@@ -7,7 +7,7 @@ public sealed class InitialRefineryPacket : IPacket
     public Dictionary<ushort, ushort> Items;
 
     public PacketType Type => PacketType.InitialRefinery;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteDictionary(Items, PacketWriterDels.UShort, PacketWriterDels.UShort);
 

@@ -10,7 +10,7 @@ public sealed class GardenUpdatePacket : IPacket
     public bool NextSpawnRipens;
 
     public PacketType Type => PacketType.GardenUpdate;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

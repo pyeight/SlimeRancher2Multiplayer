@@ -7,7 +7,7 @@ public sealed class GardenOwnershipPacket : IPacket
     public string GardenID;
 
     public PacketType Type => PacketType.GardenOwnership;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

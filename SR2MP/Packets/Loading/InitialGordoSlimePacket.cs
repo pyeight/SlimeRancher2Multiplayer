@@ -37,7 +37,7 @@ public sealed class InitialGordosPacket : IPacket
     public List<GordoSlime> GordoSlimes;
 
     public PacketType Type => PacketType.InitialGordos;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(GordoSlimes, PacketWriterDels.NetObject<GordoSlime>.Func);
 

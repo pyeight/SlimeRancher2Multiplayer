@@ -23,7 +23,7 @@ public static class PacketChunkManager
 
         public bool IsRecycled { get; set; }
 
-        public void Initialize(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
+        private void Initialize(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
         {
             this.totalChunks = totalChunks;
             this.reliability = reliability;
@@ -65,7 +65,7 @@ public static class PacketChunkManager
     private static int nextPacketId = 1;
 
     private const int MaxChunkBytes = 500;
-    private const int CompressionThreshold = 30;
+    private const int CompressionThreshold = 64;
     private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(30);
 
     private static int packetCounter;
@@ -203,36 +203,44 @@ public static class PacketChunkManager
 
             for (ushort index = 0; index < chunkCount; index++)
             {
-                var offset = index * MaxChunkBytes;
-                var chunkSize = Math.Min(MaxChunkBytes, sourceToSplit.Length - offset);
-                var totalChunkLength = 10 + chunkSize;
+                var chunkOffset = index * MaxChunkBytes;
+                var chunkSize = Math.Min(MaxChunkBytes, sourceToSplit.Length - chunkOffset);
+                var totalChunkLength = HeaderSize + chunkSize;
 
-                // 10 byte header:
+                // 12 byte header:
                 var buffer = ArrayPool<byte>.Shared.Rent(totalChunkLength);
 
-                // Packet Type
+                // [0] Packet type
                 buffer[0] = packetType;
 
-                // Chunk index
+                // [1-2] Chunk index
                 buffer[1] = (byte)(index & All8Bits);
                 buffer[2] = (byte)((index >> 8) & All8Bits);
 
-                // Total chunks
+                // [3-4] Total chunks
                 buffer[3] = (byte)(chunkCount & All8Bits);
                 buffer[4] = (byte)((chunkCount >> 8) & All8Bits);
 
-                // Packet ID
+                // [5-6] Packet ID
                 buffer[5] = (byte)(packetId & All8Bits);
                 buffer[6] = (byte)((packetId >> 8) & All8Bits);
 
-                // Reliability
+                // [7] Reliability
                 buffer[7] = (byte)reliability;
 
-                // Sequence number (for ordered packets)
+                // [8-9] Sequence number
                 buffer[8] = (byte)(sequenceNumber & All8Bits);
                 buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
 
-                sourceToSplit.Slice(offset, chunkSize).CopyTo(buffer.AsSpan(10));
+                // Copy data into buffer at offset 12, then compute CRC over it
+                sourceToSplit.Slice(chunkOffset, chunkSize).CopyTo(buffer.AsSpan(HeaderSize));
+
+                var crc = PacketCRC.Compute(buffer, HeaderSize, chunkSize);
+
+                // [10-11] CRC16 of data
+                buffer[10] = (byte)(crc & All8Bits);
+                buffer[11] = (byte)((crc >> 8) & All8Bits);
+
                 resultChunks[index] = new ArraySegment<byte>(buffer, 0, totalChunkLength);
             }
 
@@ -286,7 +294,6 @@ public static class PacketChunkManager
 
     private static void Compress(ReadOnlySpan<byte> data, PacketWriter targetWriter)
     {
-        // (byte)PacketType.ReservedCompression instead of 0xFF so shows as used in PacketType.cs
         targetWriter.WriteByte((byte)PacketType.ReservedCompression);
         targetWriter.WriteByte(data[0]);
 
@@ -295,7 +302,7 @@ public static class PacketChunkManager
 
         targetWriter.WritePackedInt(sourceLen);
 
-        var maxOutputSize = sourceLen + (sourceLen / 255) + 16; // Had to google this formula
+        var maxOutputSize = sourceLen + (sourceLen / 255) + 16;
 
         var inputBuffer = ArrayPool<byte>.Shared.Rent(sourceLen);
         var outputBuffer = ArrayPool<byte>.Shared.Rent(maxOutputSize);

@@ -58,6 +58,8 @@ public static class GlobalVariables
 
     public const string MapEventKey = "fogRevealed";
     
+    public const byte HeaderSize = 12;
+    
     // Constants for ammo types
     public const string SiloAmmo = "58d5bd4fc903e1c49aba61495aa74014";
     public const string PlortCollectorAmmo = "83f638af7ebb11944b6b55c915889459";

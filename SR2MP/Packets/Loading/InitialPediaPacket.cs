@@ -7,7 +7,7 @@ public sealed class InitialPediaPacket : IPacket
     public List<string> Entries;
 
     public PacketType Type => PacketType.InitialPediaEntries;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(Entries, PacketWriterDels.String);
 

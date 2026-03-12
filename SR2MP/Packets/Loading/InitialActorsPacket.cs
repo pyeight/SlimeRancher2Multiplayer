@@ -18,11 +18,11 @@ public sealed partial class InitialActorsPacket : IPacket
     };
 
     public double WorldTime;
-    public uint StartingActorID = 10000;
+    public uint StartingActorID;
     public List<ActorBase> Actors;
 
     public PacketType Type => PacketType.InitialActors;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

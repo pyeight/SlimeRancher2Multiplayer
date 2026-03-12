@@ -7,7 +7,7 @@ public class InitialTreasurePodsPacket : IPacket
     public Dictionary<int, Il2Cpp.TreasurePod.State> TreasurePods = new();
 
     public PacketType Type => PacketType.InitialTreasurePods;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) =>
         writer.WriteDictionary<int, Il2Cpp.TreasurePod.State>(

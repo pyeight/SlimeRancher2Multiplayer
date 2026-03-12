@@ -51,20 +51,32 @@ public sealed class ClientPacketManager
 
     public void HandlePacket(byte[] data, int receivedBytes, IPEndPoint serverEp)
     {
-        if (receivedBytes < 10)
+        // Header is now 12 bytes: 10 original + 2 CRC
+        if (receivedBytes < HeaderSize)
         {
             SrLogger.LogMessage($"Received packet too small for chunk header: {receivedBytes} bytes", SrLogTarget.Both);
             return;
         }
 
         var packetTypeHeader = data[0];
-        var chunkIndex = (ushort)(data[1] | (data[2] << 8));
-        var totalChunks = (ushort)(data[3] | (data[4] << 8));
-        var packetId = (ushort)(data[5] | (data[6] << 8));
-        var reliability = (PacketReliability)data[7];
-        var sequenceNumber = (ushort)(data[8] | (data[9] << 8));
+        var chunkIndex       = (ushort)(data[1] | (data[2] << 8));
+        var totalChunks      = (ushort)(data[3] | (data[4] << 8));
+        var packetId         = (ushort)(data[5] | (data[6] << 8));
+        var reliability      = (PacketReliability)data[7];
+        var sequenceNumber   = (ushort)(data[8] | (data[9] << 8));
+        var receivedCrc      = (ushort)(data[10] | (data[11] << 8));
 
-        var trueChunkLength = receivedBytes - 10;
+        var trueChunkLength = receivedBytes - HeaderSize;
+        
+        var expectedCrc = PacketCRC.Compute(data, HeaderSize, trueChunkLength);
+        if (receivedCrc != expectedCrc)
+        {
+            SrLogger.LogPacketAcknowledge(
+                $"Corrupted packet dropped: type={packetTypeHeader}" +
+                $"expected=0x{expectedCrc:X4} received=0x{receivedCrc:X4}",
+                SrLogTarget.Both);
+            return;
+        }
 
         var packetType = (PacketType)packetTypeHeader;
 
@@ -75,21 +87,21 @@ public sealed class ClientPacketManager
 
         if (totalChunks == 1)
         {
-            if (trueChunkLength > 0 && data[10] == (byte)PacketType.ReservedCompression)
+            if (trueChunkLength > 0 && data[HeaderSize] == (byte)PacketType.ReservedCompression)
             {
-                reader = PacketChunkManager.DecompressSingleChunk(data, 10, trueChunkLength);
+                reader = PacketChunkManager.DecompressSingleChunk(data, HeaderSize, trueChunkLength);
             }
             else
             {
                 var singleChunkData = ArrayPool<byte>.Shared.Rent(trueChunkLength);
-                data.AsSpan(10, trueChunkLength).CopyTo(singleChunkData);
+                data.AsSpan(HeaderSize, trueChunkLength).CopyTo(singleChunkData);
                 reader = PacketBufferPool.GetReader(singleChunkData, trueChunkLength, true);
             }
         }
         else
         {
             var chunkData = ArrayPool<byte>.Shared.Rent(trueChunkLength);
-            data.AsSpan(10, trueChunkLength).CopyTo(chunkData);
+            data.AsSpan(HeaderSize, trueChunkLength).CopyTo(chunkData);
 
             if (!PacketChunkManager.TryMergePacket(packetType,
                 chunkData, trueChunkLength, chunkIndex, totalChunks,

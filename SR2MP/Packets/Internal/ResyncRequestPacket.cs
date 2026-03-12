@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Internal;
 public readonly struct ResyncRequestPacket : IPacket
 {
     public PacketType Type => PacketType.ResyncRequest;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) { }
 

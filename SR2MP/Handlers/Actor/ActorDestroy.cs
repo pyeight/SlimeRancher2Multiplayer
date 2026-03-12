@@ -16,24 +16,26 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
         //    return false;
         //}
 
-        if (!GameState.TryGetIdentifiableModel(packet.ActorId, out var actor))
+        if (GameState.TryGetIdentifiableModel(packet.ActorId, out var actor))
         {
-            // SrLogger.LogError($"Tried to destroy actor that doesn't exist!\n\tID: {packet.ActorId}", SrLogTarget.Both);
-            return false;
+            GameState.identifiables.Remove(packet.ActorId);
+            GameState.identifiablesByIdent[actor.ident].Remove(actor);
+            GameState.DestroyIdentifiableModel(actor);
+            actorManager.Actors.Remove(actor.actorId.Value);
         }
         
-        GameState.identifiables.Remove(packet.ActorId);
-        GameState.identifiablesByIdent[actor.ident].Remove(actor);
-        GameState.DestroyIdentifiableModel(actor);
-        actorManager.Actors.Remove(actor.actorId.Value);
-
-        var obj = actor.GetGameObject();
+        
         handlingPacket = true;
-
-        if (obj)
-            Destroyer.DestroyAny(actor.GetGameObject(), "SR2MP.ActorDestroyHandler");
-
+        try
+        {
+            var obj = actor.GetGameObject();
+            
+            if (obj)
+                Destroyer.DestroyAny(actor.GetGameObject(), "SR2MP.ActorDestroyHandler"); 
+        }
+        catch {}
         handlingPacket = false;
+        
         return true;
     }
 }

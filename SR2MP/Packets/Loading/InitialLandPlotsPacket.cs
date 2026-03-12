@@ -139,7 +139,7 @@ public sealed class InitialLandPlotsPacket : IPacket
     public List<BasePlot> LandPlots;
 
     public PacketType Type => PacketType.InitialLandPlots;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(LandPlots, PacketWriterDels.NetObject<BasePlot>.Func);
 

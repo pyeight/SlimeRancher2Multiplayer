@@ -7,7 +7,7 @@ public sealed class PlayerLeavePacket : IPacket
     public string PlayerId;
 
     public PacketType Type { get; init; }
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer) => writer.WriteStringWithoutSize(PlayerId);
 

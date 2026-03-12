@@ -10,7 +10,7 @@ public sealed class ChatMessagePacket : IPacket
     public byte MessageType;
 
     public PacketType Type => PacketType.ChatMessage;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
 
     public void Serialise(PacketWriter writer)
     {

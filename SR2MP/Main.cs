@@ -46,7 +46,7 @@ public sealed class Main : SR2EExpansionV3
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
 
         preferences.CreateEntry("recent_port", string.Empty, is_hidden: true);
-        preferences.CreateEntry("recent_ip", "", is_hidden: true);
+        preferences.CreateEntry("recent_ip", string.Empty, is_hidden: true);
         preferences.CreateEntry("host_port", "1919", is_hidden: true);
 
         preferences.CreateEntry("packet_size_log", false, display_name: "Packet Size Logging");
