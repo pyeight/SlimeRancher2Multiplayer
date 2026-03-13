@@ -13,7 +13,7 @@ public static class Extensions
         return number;
     }
 
-    public static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
+    internal static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
     {
         var gameObject = actor.GetGameObject();
 
