@@ -12,9 +12,7 @@ public sealed class InitialTreasurePodsHandler : BasePacketHandler<InitialTreasu
     {
         foreach (var (podId, podState) in packet.TreasurePods)
         {
-            var identifier = $"pod{podId}";
-
-            if (!GameState.pods.TryGetValue(identifier, out var model))
+            if (!GameState.pods.TryGetValue("pod" + podId, out var model))
                 continue;
 
             if (podState == Il2Cpp.TreasurePod.State.OPEN)

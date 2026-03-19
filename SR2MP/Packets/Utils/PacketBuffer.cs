@@ -1,15 +1,18 @@
 using SR2MP.Shared.Utils;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMemberInSuper.Global
+// ReSharper disable InconsistentNaming
 
 namespace SR2MP.Packets.Utils;
 
 public abstract class PacketBuffer : IRecyclable
 {
-    protected byte[] buffer;
+    protected byte[]? buffer;
 
     protected byte currentPackedByte;
     protected int currentBitIndex;
 
-    protected int position = 0;
+    protected int position;
 
     private readonly int startingIndex;
 
@@ -25,7 +28,7 @@ public abstract class PacketBuffer : IRecyclable
         ? throw new InvalidOperationException("PacketBuffer is already recycled!")
         : (uint)index >= (uint)DataSize
             ? throw new ArgumentOutOfRangeException(nameof(index), "Index must be within the bounds of the data size.")
-            : buffer[index];
+            : buffer![index];
 
     protected virtual void OnRecycle() { }
 

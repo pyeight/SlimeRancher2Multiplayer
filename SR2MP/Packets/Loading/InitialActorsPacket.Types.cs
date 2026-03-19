@@ -83,6 +83,7 @@ public sealed partial class InitialActorsPacket
             Emotions = reader.ReadFloat4();
         }
     }
+
     public sealed class LinkedGadget : ActorBase
     {
         public long LinkedActorId;
@@ -135,7 +136,7 @@ public sealed partial class InitialActorsPacket
             base.Serialise(writer);
             writer.WriteDouble(ProgressTime);
             writer.WritePackedEnum(ResourceState);
-            writer.WriteInt(JointIndex);
+            writer.WritePackedInt(JointIndex);
             writer.WriteString(PlotID);
             writer.WriteVector3(SpawnerPosition);
         }
@@ -145,7 +146,7 @@ public sealed partial class InitialActorsPacket
             base.Deserialise(reader);
             ProgressTime = reader.ReadDouble();
             ResourceState = reader.ReadPackedEnum<ResourceCycle.State>();
-            JointIndex = reader.ReadInt();
+            JointIndex = reader.ReadPackedInt();
             PlotID = reader.ReadString();
             SpawnerPosition = reader.ReadVector3();
         }

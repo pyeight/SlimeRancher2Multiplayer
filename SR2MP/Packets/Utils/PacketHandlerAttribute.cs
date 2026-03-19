@@ -6,7 +6,7 @@ public sealed class PacketHandlerAttribute : Attribute
     public byte PacketType { get; }
     public HandlerType HandlerType { get; }
 
-    public PacketHandlerAttribute(byte packetType, HandlerType handlerType = 0)
+    public PacketHandlerAttribute(byte packetType, HandlerType handlerType = HandlerType.Both)
     {
         PacketType = packetType;
         HandlerType = handlerType;

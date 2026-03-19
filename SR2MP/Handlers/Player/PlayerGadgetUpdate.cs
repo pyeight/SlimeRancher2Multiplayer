@@ -13,6 +13,7 @@ public sealed class PlayerGadgetUpdate : BasePacketHandler<PlayerGadgetUpdatePac
     {
         if (!playerObjects.TryGetValue(packet.PlayerId, out var obj)) return true;
 
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         var player = obj?.GetComponent<NetworkPlayer>();
 
         if (player == null) return true;

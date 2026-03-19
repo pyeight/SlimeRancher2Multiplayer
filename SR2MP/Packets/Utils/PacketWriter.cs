@@ -36,7 +36,7 @@ public sealed class PacketWriter : PacketBuffer
 
     private void ResizeBuffer(int bytesToAdd)
     {
-        var newSize = Math.Max(position + bytesToAdd, buffer.Length * 2);
+        var newSize = Math.Max(position + bytesToAdd, buffer!.Length * 2);
         var newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
         buffer.AsSpan(0, position).CopyTo(newBuffer);
         ArrayPool<byte>.Shared.Return(buffer);
@@ -84,8 +84,8 @@ public sealed class PacketWriter : PacketBuffer
             BinaryPrimitives.WriteSingleLittleEndian(span[(i * 4)..], values[i]);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteVector2(Vector2 value) => WriteFloats(stackalloc float[2] { value.x, value.y });
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public void WriteVector2(Vector2 value) => WriteFloats(stackalloc float[2] { value.x, value.y });
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector3(Vector3 value) => WriteFloats(stackalloc float[3] { value.x, value.y, value.z });
@@ -99,8 +99,8 @@ public sealed class PacketWriter : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteEnumAsString<T>(T value) where T : struct, Enum => WriteString(value.ToString());
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public void WriteEnumAsString<T>(T value) where T : struct, Enum => WriteString(value.ToString());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNetObject<T>(T value) where T : INetObject => value.Serialise(this);
@@ -177,9 +177,9 @@ public sealed class PacketWriter : PacketBuffer
     public void WriteList<T>(List<T>? list, Action<PacketWriter, T> writer)
         => WriteCollection(list?.Count ?? 0, list ?? Enumerable.Empty<T>(), writer);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteSet<T>(HashSet<T>? set, Action<PacketWriter, T> writer)
-        => WriteCollection(set?.Count ?? 0, set ?? Enumerable.Empty<T>(), writer);
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public void WriteSet<T>(HashSet<T>? set, Action<PacketWriter, T> writer)
+    //     => WriteCollection(set?.Count ?? 0, set ?? Enumerable.Empty<T>(), writer);
 
     public void WriteCppSet<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer)
     {
@@ -230,7 +230,7 @@ public sealed class PacketWriter : PacketBuffer
         currentPackedByte = 0;
         currentBitIndex = 0;
 
-        if (position + 1 > buffer.Length)
+        if (position + 1 > buffer!.Length)
             ResizeBuffer(1);
 
         buffer[position] = packed;
@@ -248,17 +248,17 @@ public sealed class PacketWriter : PacketBuffer
         Advance(data.Length);
     }
 
-    public void WriteNullable<T>(T? value) where T : struct
-    {
-        var hasValue = value.HasValue;
-        WriteBool(hasValue);
+    // public void WriteNullable<T>(T? value) where T : struct
+    // {
+    //     var hasValue = value.HasValue;
+    //     WriteBool(hasValue);
 
-        if (hasValue)
-            WriteStruct(value!.Value);
-    }
+    //     if (hasValue)
+    //         WriteStruct(value!.Value);
+    // }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteStruct<T>(T value) where T : struct => PacketWriterDels.Struct<T>.Writer(this, value);
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // private void WriteStruct<T>(T value) where T : struct => PacketWriterDels.Struct<T>.Writer(this, value);
 
     public override void MoveForward(int count)
     {
@@ -327,7 +327,7 @@ public sealed class PacketWriter : PacketBuffer
         buffer = null!;
         Clear();
 
-        return detachedBuffer;
+        return detachedBuffer!;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -361,11 +361,11 @@ public sealed class PacketWriter : PacketBuffer
 
         while (value >= 0x80)
         {
-            buffer[position++] = (byte)(value | 0x80);
+            buffer![position++] = (byte)(value | 0x80);
             value >>= 7;
         }
 
-        buffer[position++] = (byte)value;
+        buffer![position++] = (byte)value;
 
         if (position > size)
             size = position;

@@ -32,7 +32,11 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
             if (obj)
                 Destroyer.DestroyAny(actor.GetGameObject(), "SR2MP.ActorDestroyHandler");
         }
-        catch {}
+        catch
+        {
+            // ignored
+        }
+
         handlingPacket = false;
 
         return true;

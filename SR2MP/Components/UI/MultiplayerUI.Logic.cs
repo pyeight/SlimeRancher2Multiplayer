@@ -45,10 +45,10 @@ public sealed partial class MultiplayerUI
         Main.SetConfigValue("recent_port", portInput);
     }
 
-    public static void Kick(string player)
-    {
-        // TODO: Implement kick functionality
-    }
+    // public static void Kick(string player)
+    // {
+    //     // TODO: Implement kick functionality
+    // }
 
     private void Update()
     {

@@ -87,7 +87,7 @@ public sealed class WeatherForecast : INetObject
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteInt(NetworkWeatherManager.GetPersistentID(State));
+        writer.WritePackedInt(NetworkWeatherManager.GetPersistentID(State));
         writer.WriteBool(WeatherStarted);
         writer.WriteDouble(StartTime);
         writer.WriteDouble(EndTime);
@@ -96,7 +96,7 @@ public sealed class WeatherForecast : INetObject
     public void Deserialise(PacketReader reader)
     {
         NetworkWeatherManager.CheckInitialized();
-        State = NetworkWeatherManager.WeatherStates[reader.ReadInt()];
+        State = NetworkWeatherManager.WeatherStates[reader.ReadPackedInt()];
         WeatherStarted = reader.ReadBool();
         StartTime = reader.ReadDouble();
         EndTime = reader.ReadDouble();

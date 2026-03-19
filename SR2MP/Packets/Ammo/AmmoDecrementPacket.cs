@@ -20,8 +20,8 @@ public sealed class AmmoDecrementPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        SlotIndex = reader.ReadInt();
-        Count = reader.ReadInt();
+        SlotIndex = reader.ReadPackedInt();
+        Count = reader.ReadPackedInt();
         ID = reader.ReadString();
     }
 }

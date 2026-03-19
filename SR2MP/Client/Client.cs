@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
 using SR2MP.Components.UI;
-using SR2MP.Packets;
 using SR2MP.Packets.Api;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
@@ -244,15 +243,21 @@ public sealed class SR2MPClient
     internal void SendPacket<T>(T packet) where T : IPacket
         => PrepareAndSend(packet, packet.Reliability, (byte)packet.Type, SerialiseInternalPacket<T>.Func);
 
+    /// <summary>
+    /// Sends a packet over the network.
+    /// </summary>
+    /// <typeparam name="T">The type of the packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    // ReSharper disable once UnusedMember.Global
     public void SendData<T>(T data) where T : ICustomPacket
     {
         var apiHeader = new ApiPacket(data.Reliability);
         PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, SerialiseApiPacket<T>.Func);
     }
 
-    internal delegate void PacketWriterDelegate<TState>(PacketWriter writer, TState state);
+    internal delegate void PacketWriterDelegate<in T>(PacketWriter writer, T state);
 
-    private void PrepareAndSend<TState>(TState state, PacketReliability reliability, byte packetType, PacketWriterDelegate<TState> writeAction)
+    private void PrepareAndSend<T>(T state, PacketReliability reliability, byte packetType, PacketWriterDelegate<T> writeAction)
     {
         if (udpClient == null || serverEndPoint == null || !isConnected)
         {
@@ -404,17 +409,17 @@ public sealed class SR2MPClient
         OnConnected?.Invoke(PlayerId);
     }
 
-    public static RemotePlayer? GetRemotePlayer(string playerId)
-    {
-        return playerManager.GetPlayer(playerId);
-    }
+    // public static RemotePlayer? GetRemotePlayer(string playerId)
+    // {
+    //     return playerManager.GetPlayer(playerId);
+    // }
 
-    public static List<RemotePlayer> GetAllRemotePlayers()
-    {
-        return playerManager.GetAllPlayers();
-    }
+    // public static List<RemotePlayer> GetAllRemotePlayers()
+    // {
+    //     return playerManager.GetAllPlayers();
+    // }
 
-    public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
+    // public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
 
     private static class SerialiseApiPacket<T> where T : ICustomPacket
     {

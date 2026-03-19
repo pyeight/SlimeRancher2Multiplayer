@@ -18,13 +18,13 @@ public abstract class LandPlotUpdatePacket<T> : LandPlotUpdatePacket where T : s
 {
     public T ID;
 
-    public override void Serialise(PacketWriter writer)
+    public sealed override void Serialise(PacketWriter writer)
     {
         base.Serialise(writer);
         writer.WritePackedEnum(ID);
     }
 
-    public override void Deserialise(PacketReader reader)
+    public sealed override void Deserialise(PacketReader reader)
     {
         base.Deserialise(reader);
         ID = reader.ReadPackedEnum<T>();

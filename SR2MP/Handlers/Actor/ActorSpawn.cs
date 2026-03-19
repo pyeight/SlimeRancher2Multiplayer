@@ -23,7 +23,7 @@ public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
         if (actor == null)
             return true;
 
-        if (actor!.TryCast<SlimeModel>(out var slime))
+        if (actor.TryCast<SlimeModel>(out var slime))
             slime.Emotions = packet.Emotions;
 
         return true;

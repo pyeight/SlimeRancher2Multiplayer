@@ -37,7 +37,7 @@ public sealed class PacketReader : PacketBuffer
     public byte ReadByte()
     {
         EnsureReadable(1);
-        return buffer[position++];
+        return buffer![position++];
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -98,12 +98,12 @@ public sealed class PacketReader : PacketBuffer
             values[i] = BinaryPrimitives.ReadSingleLittleEndian(span[i..]);
     }
 
-    public Vector2 ReadVector2()
-    {
-        Span<float> v = stackalloc float[2];
-        ReadFloats(v);
-        return new(v[0], v[1]);
-    }
+    // public Vector2 ReadVector2()
+    // {
+    //     Span<float> v = stackalloc float[2];
+    //     ReadFloats(v);
+    //     return new(v[0], v[1]);
+    // }
 
     public Vector3 ReadVector3()
     {
@@ -146,8 +146,8 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadEnum<T>() where T : struct, Enum => PacketReaderDels.Enum<T>.Func(this);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString());
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString());
 
     private TCollection ReadCollection<TCollection, T>(Func<int, TCollection> factory, Action<TCollection, T> add, Func<PacketReader, T> reader)
     {
@@ -174,9 +174,9 @@ public sealed class PacketReader : PacketBuffer
     public List<T> ReadList<T>(Func<PacketReader, T> reader)
         => ReadCollection(PacketReaderDels.ListFactory<T>.Func, PacketReaderDels.ListAdd<T>.Func, reader);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public HashSet<T> ReadSet<T>(Func<PacketReader, T> reader)
-        => ReadCollection(PacketReaderDels.HashSetFactory<T>.Func, PacketReaderDels.HashSetAdd<T>.Func, reader);
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public HashSet<T> ReadSet<T>(Func<PacketReader, T> reader)
+    //     => ReadCollection(PacketReaderDels.HashSetFactory<T>.Func, PacketReaderDels.HashSetAdd<T>.Func, reader);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CppCollections.HashSet<T> ReadCppSet<T>(Func<PacketReader, T> reader)
@@ -233,11 +233,11 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override void EndPackingBools() => currentBitIndex = 8;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // private T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Func(this);
@@ -316,7 +316,7 @@ public sealed class PacketReader : PacketBuffer
             if (position >= DataSize)
                 throw new EndOfStreamException("Unexpected end of stream during VarInt.");
 
-            var b = buffer[position++];
+            var b = buffer![position++];
             result |= (ulong)(b & 0x7F) << shift;
 
             if ((b & 0x80) == 0)

@@ -15,8 +15,15 @@ public sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
         {
             var fxPrefab = fxManager.WorldFXMap[packet.FX];
             handlingPacket = true;
-            try { FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity); }
-            catch { }
+            try
+            {
+                FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
+            }
+            catch
+            {
+                // ignored
+            }
+
             handlingPacket = false;
         }
         else

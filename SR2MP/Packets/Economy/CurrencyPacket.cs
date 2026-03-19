@@ -13,14 +13,14 @@ public struct CurrencyPacket : IPacket
 
     public readonly void Serialise(PacketWriter writer)
     {
-        writer.WriteInt(NewAmount);
+        writer.WritePackedInt(NewAmount);
         writer.WriteByte(CurrencyType);
         writer.WriteBool(ShowUINotification);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        NewAmount = reader.ReadInt();
+        NewAmount = reader.ReadPackedInt();
         CurrencyType = reader.ReadByte();
         ShowUINotification = reader.ReadBool();
     }

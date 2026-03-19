@@ -11,7 +11,7 @@ public static class NetworkWeatherManager
 {
     public static WeatherRegistry Registry => SceneContext.Instance.WeatherRegistry;
 
-    public static WeatherDirector? Director
+    public static WeatherDirector Director
     {
         get
         {
@@ -84,6 +84,7 @@ public static class NetworkWeatherManager
             var zone = registry._zones[zoneKey];
 
             var forecastCopy = new List<WeatherModel.ForecastEntry>();
+            // ReSharper disable once ForCanBeConvertedToForeach
             for (var i = 0; i < zone.Forecast.Count; i++)
                 forecastCopy.Add(zone.Forecast[i]);
 
@@ -96,7 +97,7 @@ public static class NetworkWeatherManager
 
                 if (patternInstance == null)
                 {
-                    localDirector!.StopState(
+                    localDirector.StopState(
                         forecast.State.Cast<IWeatherState>(),
                         zone.Parameters
                     );
@@ -136,10 +137,11 @@ public static class NetworkWeatherManager
             yield return new WaitFrames(2);
         }
 
-        if (!registry._zones.TryGetValue(localDirector!.Zone, out var activeZone))
+        if (!registry._zones.TryGetValue(localDirector.Zone, out var activeZone))
             yield break;
 
         var activeCopy = new List<WeatherModel.ForecastEntry>();
+        // ReSharper disable once ForCanBeConvertedToForeach
         for (var i = 0; i < activeZone.Forecast.Count; i++)
             activeCopy.Add(activeZone.Forecast[i]);
 

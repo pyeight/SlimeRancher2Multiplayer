@@ -22,7 +22,7 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 
         SlimeModel? slime = null;
         ProduceModel? resource = null;
-        PlortModel? plort = null;
+        // PlortModel? plort = null;
 
         var actorId = packet.ActorId;
         if (actorId.Value != 0 && GameState.identifiables.TryGetValue(actorId, out var identModel))
@@ -31,8 +31,8 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
                 SrLogger.LogWarning("IdentifiableModel is null in update handler!");
 
             slime = identModel!.TryCast<SlimeModel>();
-            resource = identModel!.TryCast<ProduceModel>();
-            plort = identModel!.TryCast<PlortModel>();
+            resource = identModel.TryCast<ProduceModel>();
+            // plort = identModel.TryCast<PlortModel>();
         }
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
@@ -46,6 +46,7 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
             networkComponent.transform.rotation = packet.Rotation;
         }
 
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (packet.UpdateType)
         {
             case ActorUpdateType.Slime when slime != null:

@@ -16,7 +16,7 @@ public sealed class SiloSlotSelectHandler : BasePacketHandler<SiloSlotSelectPack
         if (!model.gameObj) return true;
 
         model.gameObj.GetComponentsInChildren<SiloStorageActivator>()
-            .FirstOrDefault((activator => activator.ActivatorIdx == packet.Side))?
+            .FirstOrDefault(activator => activator.ActivatorIdx == packet.Side)?
             .OnActiveSlotChanged();
 
         return true;

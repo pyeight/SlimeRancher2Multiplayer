@@ -12,7 +12,7 @@ public abstract class BaseWeatherHandler : BasePacketHandler<WeatherPacket>
 
     protected BaseWeatherHandler(bool immediate) => _immediate = immediate;
 
-    protected override sealed bool Handle(WeatherPacket packet, IPEndPoint? _)
+    protected sealed override bool Handle(WeatherPacket packet, IPEndPoint? _)
     {
         MelonCoroutines.Start(NetworkWeatherManager.Apply(packet, _immediate));
         return false;

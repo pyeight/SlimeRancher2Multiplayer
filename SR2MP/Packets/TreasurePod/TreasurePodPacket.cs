@@ -11,11 +11,11 @@ public sealed class TreasurePodPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteInt(ID);
+        writer.WritePackedInt(ID);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadInt();
+        ID = reader.ReadPackedInt();
     }
 }

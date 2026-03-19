@@ -37,7 +37,7 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
 
         foreach (var actor in packet.Actors)
         {
-            if (!actorManager.TrySpawnInitialActor(actor, out var _)) continue;
+            actorManager.TrySpawnInitialActor(actor, out var _);
         }
 
         MelonCoroutines.Start(actorManager.TakeOwnershipOfNearby());

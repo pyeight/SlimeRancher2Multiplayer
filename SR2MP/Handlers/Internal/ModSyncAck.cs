@@ -15,12 +15,16 @@ public sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
         var serverMods = Mods.ToList().ConvertAll(mod => mod.Hash());
 
         foreach (var clientMod in packet.Mods)
+        {
             if (!serverMods.Contains(clientMod.Key))
                 diff.Add(clientMod.Value);
+        }
 
         foreach (var serverMod in Mods)
+        {
             if (!packet.Mods.ContainsKey(serverMod.Hash()))
                 diff.Add(serverMod);
+        }
 
         if (diff.Count == 0) return true;
 

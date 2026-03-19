@@ -10,9 +10,7 @@ public sealed class TreasurePodHandler : BasePacketHandler<TreasurePodPacket>
 {
     protected override bool Handle(TreasurePodPacket packet, IPEndPoint? _)
     {
-        var identifier = $"pod{packet.ID}";
-
-        if (!GameState.pods.TryGetValue(identifier, out var model)) return true;
+        if (!GameState.pods.TryGetValue("pod" + packet.ID, out var model)) return true;
 
         handlingPacket = true;
         model.gameObj?.GetComponent<Il2Cpp.TreasurePod>().Activate();
