@@ -12,9 +12,9 @@ namespace SR2MP.Server;
 
 public sealed class SR2MPServer
 {
-    public readonly NetworkManager networkManager;
-    public readonly ClientManager clientManager;
-    public readonly ReSyncManager reSyncManager;
+    public readonly NetworkManager NetworkManager;
+    public readonly ClientManager ClientManager;
+    public readonly ReSyncManager ReSyncManager;
 
     private readonly ServerPacketManager packetManager;
 
@@ -28,18 +28,18 @@ public sealed class SR2MPServer
 
     public SR2MPServer()
     {
-        networkManager = new NetworkManager();
-        clientManager = new ClientManager();
-        reSyncManager = new ReSyncManager();
-        packetManager = new ServerPacketManager(networkManager, clientManager);
+        NetworkManager = new NetworkManager();
+        ClientManager = new ClientManager();
+        ReSyncManager = new ReSyncManager();
+        packetManager = new ServerPacketManager(NetworkManager, ClientManager);
 
-        networkManager.OnDataReceived += OnDataReceived;
-        clientManager.OnClientRemoved += OnClientRemoved;
+        NetworkManager.OnDataReceived += OnDataReceived;
+        ClientManager.OnClientRemoved += OnClientRemoved;
     }
 
-    public int GetClientCount() => clientManager.ClientCount;
+    // public int GetClientCount() => ClientManager.ClientCount;
 
-    public bool IsRunning() => networkManager.IsRunning;
+    public bool IsRunning() => NetworkManager.IsRunning;
 
     public void Start(int port, bool enableIPv6)
     {
@@ -49,9 +49,9 @@ public sealed class SR2MPServer
             return;
         }
 
-        if (networkManager.IsRunning)
+        if (NetworkManager.IsRunning)
         {
-            SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
+            SrLogger.LogMessage("Server is already running!");
             return;
         }
 
@@ -61,7 +61,7 @@ public sealed class SR2MPServer
 
             packetManager.RegisterHandlers(Main.Core);
             Application.quitting += new Action(Close);
-            networkManager.Start(port, enableIPv6);
+            NetworkManager.Start(port, enableIPv6);
             this.Port = port;
             // Commented because we don't need this yet
             // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
@@ -74,7 +74,7 @@ public sealed class SR2MPServer
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to start server: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to start server: {ex}");
         }
     }
 
@@ -89,7 +89,7 @@ public sealed class SR2MPServer
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}");
         }
     }
 
@@ -103,7 +103,7 @@ public sealed class SR2MPServer
 
         SendToAll(leavePacket);
 
-        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}");
     }
 
     // private void CheckTimeouts(object? state)
@@ -120,7 +120,7 @@ public sealed class SR2MPServer
 
     public void Close()
     {
-        if (!networkManager.IsRunning)
+        if (!NetworkManager.IsRunning)
             return;
 
         var closeChatMessage = new ChatMessagePacket
@@ -160,21 +160,21 @@ public sealed class SR2MPServer
                 if (playerObject != null)
                 {
                     Object.Destroy(playerObject);
-                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
                 }
                 playerObjects.Remove(playerId);
             }
 
             PacketDeduplication.Clear();
-            clientManager.Clear();
+            ClientManager.Clear();
             playerManager.Clear();
-            networkManager.Stop();
+            NetworkManager.Stop();
 
-            SrLogger.LogMessage("Server closed", SrLogTarget.Both);
+            SrLogger.LogMessage("Server closed");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error during server shutdown: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error during server shutdown: {ex}");
         }
     }
 
@@ -185,7 +185,7 @@ public sealed class SR2MPServer
         try
         {
             writer.WritePacket(packet);
-            networkManager.Send(writer.ToSpan(), endPoint, packet.Reliability);
+            NetworkManager.Send(writer.ToSpan(), endPoint, packet.Reliability);
         }
         finally
         {
@@ -205,8 +205,8 @@ public sealed class SR2MPServer
         try
         {
             writer.WritePacket(packet);
-            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-            networkManager.Broadcast(writer.ToSpan(), endpoints, packet.Reliability);
+            var endpoints = ClientManager.GetAllClients().Select(c => c.EndPoint);
+            NetworkManager.Broadcast(writer.ToSpan(), endpoints, packet.Reliability);
         }
         finally
         {
@@ -223,10 +223,10 @@ public sealed class SR2MPServer
             writer.WritePacket(packet);
             var data = writer.ToSpan();
 
-            foreach (var client in clientManager.GetAllClients())
+            foreach (var client in ClientManager.GetAllClients())
             {
                 if (client.GetClientInfo() != excludedClientInfo)
-                    networkManager.Send(data, client.EndPoint, packet.Reliability);
+                    NetworkManager.Send(data, client.EndPoint, packet.Reliability);
             }
         }
         finally
@@ -241,5 +241,5 @@ public sealed class SR2MPServer
         SendToAllExcept(packet, clientInfo);
     }
 
-    public int GetPendingReliablePackets() => networkManager.GetPendingReliablePackets();
+    // public int GetPendingReliablePackets() => NetworkManager.GetPendingReliablePackets();
 }

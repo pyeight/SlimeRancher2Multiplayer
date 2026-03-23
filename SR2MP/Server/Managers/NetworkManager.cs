@@ -21,7 +21,7 @@ public sealed class NetworkManager
     {
         if (isRunning)
         {
-            SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
+            SrLogger.LogMessage("Server is already running!");
             return;
         }
 
@@ -32,12 +32,12 @@ public sealed class NetworkManager
                 udpClient = new UdpClient(AddressFamily.InterNetworkV6);
                 udpClient.Client.DualMode = true;
                 udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}", SrLogTarget.Both);
+                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}");
             }
             else
             {
                 udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-                SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogTarget.Both);
+                SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}");
             }
 
             udpClient.Client.ReceiveBufferSize = 512 * 1024;
@@ -57,7 +57,7 @@ public sealed class NetworkManager
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to start Server: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to start Server: {ex}");
             throw;
         }
     }
@@ -66,11 +66,11 @@ public sealed class NetworkManager
     {
         if (udpClient == null)
         {
-            SrLogger.LogError("Server is null in ReceiveLoop!", SrLogTarget.Both);
+            SrLogger.LogError("Server is null in ReceiveLoop!");
             return;
         }
 
-        SrLogger.LogMessage("Server ReceiveLoop started!", SrLogTarget.Both);
+        SrLogger.LogMessage("Server ReceiveLoop started!");
 
         EndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
         var receiveBuffer = ArrayPool<byte>.Shared.Rent(2048);
@@ -93,14 +93,14 @@ public sealed class NetworkManager
                 catch (Exception ex)
                 {
                     if (isRunning)
-                        SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
+                        SrLogger.LogError($"ReceiveLoop error: {ex}");
                 }
             }
         }
         finally
         {
             ArrayPool<byte>.Shared.Return(receiveBuffer);
-            SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
+            SrLogger.LogMessage("Server ReceiveLoop stopped");
         }
     }
 
@@ -108,7 +108,7 @@ public sealed class NetworkManager
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogWarning("Cannot send: Server not running!", SrLogTarget.Both);
+            SrLogger.LogWarning("Cannot send: Server not running!");
             return;
         }
 
@@ -133,7 +133,7 @@ public sealed class NetworkManager
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Send failed to {endPoint}: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Send failed to {endPoint}: {ex}");
         }
     }
 
@@ -142,7 +142,7 @@ public sealed class NetworkManager
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogWarning("Cannot broadcast: Server not running!", SrLogTarget.Both);
+            SrLogger.LogWarning("Cannot broadcast: Server not running!");
             return;
         }
 
@@ -172,7 +172,7 @@ public sealed class NetworkManager
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Broadcast failed: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Broadcast failed: {ex}");
         }
     }
 
@@ -208,14 +208,14 @@ public sealed class NetworkManager
 
             if (receiveThread is { IsAlive: true })
             {
-                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
+                SrLogger.LogWarning("Receive thread did not stop gracefully");
             }
 
-            SrLogger.LogMessage("Server stopped", SrLogTarget.Both);
+            SrLogger.LogMessage("Server stopped");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error stopping Server: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error stopping Server: {ex}");
         }
     }
 

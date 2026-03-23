@@ -89,7 +89,7 @@ public sealed class ReSyncManager
 
     public void SynchronizeAll()
     {
-        var clients = Main.Server.clientManager.GetAllClients().ToList();
+        var clients = Main.Server.ClientManager.GetAllClients().ToList();
 
         var gordosPacket          = CreateGordoSlimesPacket();
         var switchesPacket        = CreateSwitchesPacket();
@@ -215,7 +215,7 @@ public sealed class ReSyncManager
         var weatherRegistry = Resources.FindObjectsOfTypeAll<WeatherRegistry>().FirstOrDefault();
         if (weatherRegistry == null || weatherRegistry._model == null)
         {
-            SrLogger.LogError("WeatherRegistry or model not found!", SrLogTarget.Both);
+            SrLogger.LogError("WeatherRegistry or model not found!");
             return;
         }
 

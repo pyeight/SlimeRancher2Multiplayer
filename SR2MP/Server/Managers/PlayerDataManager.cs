@@ -21,7 +21,7 @@ public sealed class PlayerDataManager
         if (!Directory.Exists(saveDirectory))
         {
             Directory.CreateDirectory(saveDirectory);
-            SrLogger.LogMessage($"Created save directory: {saveDirectory}", SrLogTarget.Both);
+            SrLogger.LogMessage($"Created save directory: {saveDirectory}");
         }
 
         LoadAllPlayerData();
@@ -39,7 +39,7 @@ public sealed class PlayerDataManager
         var newData = new PlayerData(playerId, playerName);
         playerDataCache[playerId] = newData;
 
-        SrLogger.LogMessage($"Created new player data for: {playerId}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Created new player data for: {playerId}");
         SavePlayerData(newData);
 
         return newData;
@@ -70,7 +70,7 @@ public sealed class PlayerDataManager
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to save player data for {data.PlayerId}: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to save player data for {data.PlayerId}: {ex}");
         }
     }
 
@@ -81,11 +81,11 @@ public sealed class PlayerDataManager
         {
             var json = JsonConvert.SerializeObject(playerDataCache.Values.ToList(), Formatting.Indented);
             File.WriteAllText(SavePath, json);
-            SrLogger.LogMessage($"Saved data for {playerDataCache.Count} players", SrLogTarget.Both);
+            SrLogger.LogMessage($"Saved data for {playerDataCache.Count} players");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to save player data: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to save player data: {ex}");
         }
     }
 
@@ -96,7 +96,7 @@ public sealed class PlayerDataManager
         {
             if (!File.Exists(SavePath))
             {
-                SrLogger.LogMessage("No player data file found, creating new",  SrLogTarget.Both);
+                SrLogger.LogMessage("No player data file found, creating new");
                 return;
             }
 
@@ -110,11 +110,11 @@ public sealed class PlayerDataManager
                 playerDataCache[data.PlayerId] = data;
             }
 
-            SrLogger.LogMessage($"Loaded data for {playerDataCache.Count} players", SrLogTarget.Both);
+            SrLogger.LogMessage($"Loaded data for {playerDataCache.Count} players");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to load player data: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to load player data: {ex}");
         }
     }
 
@@ -138,7 +138,7 @@ public sealed class PlayerDataManager
         if (!playerDataCache.Remove(playerId))
             return false;
         SaveAllPlayerData();
-        SrLogger.LogMessage($"Deleted player data: {playerId}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Deleted player data: {playerId}");
         return true;
     }
 }

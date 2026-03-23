@@ -84,7 +84,7 @@ public static class PacketChunkManager
 
         if (chunkIndex >= totalChunks)
         {
-            SrLogger.LogWarning($"Invalid chunk: index={chunkIndex} >= total={totalChunks}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Invalid chunk: index={chunkIndex} >= total={totalChunks}");
             return false;
         }
 
@@ -102,7 +102,7 @@ public static class PacketChunkManager
 
         if (packet.totalChunks != totalChunks)
         {
-            SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.totalChunks} got={totalChunks}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.totalChunks} got={totalChunks}");
             IncompletePackets.TryRemove(key, out _);
             return false;
         }
@@ -275,7 +275,7 @@ public static class PacketChunkManager
             if (!IncompletePackets.TryRemove(key, out var packet))
                 continue;
 
-            SrLogger.LogWarning($"Timeout: {key.PacketType} from {key.EndPoint} ({packet.receivedCount}/{packet.totalChunks} chunks)", SrLogTarget.Both);
+            SrLogger.LogWarning($"Timeout: {key.PacketType} from {key.EndPoint} ({packet.receivedCount}/{packet.totalChunks} chunks)");
 
             for (var c = 0; c < packet.totalChunks; c++)
             {

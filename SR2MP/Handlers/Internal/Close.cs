@@ -9,7 +9,7 @@ public sealed class CloseHandler : BasePacketHandler<ClosePacket>
 {
     protected override bool Handle(ClosePacket packet, IPEndPoint? clientEp)
     {
-        SrLogger.LogMessage("Server closed, disconnecting!", SrLogTarget.Both);
+        SrLogger.LogMessage("Server closed, disconnecting!");
         Main.Client.Disconnect();
         return false;
     }

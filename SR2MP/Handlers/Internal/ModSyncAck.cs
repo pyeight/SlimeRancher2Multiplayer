@@ -35,7 +35,7 @@ public sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
         var denyPacket = new ConnectionDenyPacket { Reason = reason };
         Main.Server.SendToClient(denyPacket, clientEp!);
 
-        Main.Server.clientManager.RemoveClient(clientEp!);
+        Main.Server.ClientManager.RemoveClient(clientEp!);
 
         return false;
     }

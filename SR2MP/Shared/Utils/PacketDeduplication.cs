@@ -30,7 +30,7 @@ public static class PacketDeduplication
     public static void Clear()
     {
         ProcessedPackets.Clear();
-        SrLogger.LogPacketSize("Packet deduplication cache cleared", SrLogTarget.Both);
+        SrLogger.LogPacketSize("Packet deduplication cache cleared");
         Cleanup();
     }
 
@@ -58,7 +58,7 @@ public static class PacketDeduplication
 
         if (removeCount > 0)
         {
-            SrLogger.LogPacketSize($"Cleaned up {removeCount} old packet records", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Cleaned up {removeCount} old packet records");
         }
 
         ArrayPool<PacketKey>.Shared.Return(keysToRemove);

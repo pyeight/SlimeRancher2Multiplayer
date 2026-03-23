@@ -95,7 +95,6 @@ public sealed partial class NetworkActorManager
 
             yield return TakeOwnershipOfNearby();
         }
-        // ReSharper disable once IteratorNeverReturns
     }
 
     private static bool ActorIDAlreadyInUse(ActorId id)

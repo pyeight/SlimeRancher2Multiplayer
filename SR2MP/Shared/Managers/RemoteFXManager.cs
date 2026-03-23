@@ -138,7 +138,7 @@ public sealed class RemoteFXManager
                 cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
         }
 
-        SrLogger.LogMessage("RemoteFXManager initialized", SrLogTarget.Both);
+        SrLogger.LogMessage("RemoteFXManager initialized");
     }
 
     public bool TryGetFXType(SECTR_AudioCue cue, out PlayerFXType fxType) => TryGetFXType(cue, PlayerAudioCueMap, out fxType);

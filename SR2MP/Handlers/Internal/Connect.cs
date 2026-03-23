@@ -18,7 +18,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
             $"Connect request received with PlayerId: {packet.PlayerId}",
             $"Connect request from {clientEp} with PlayerId: {packet.PlayerId}");
 
-        Main.Server.clientManager.AddClient(clientEp, packet.PlayerId);
+        Main.Server.ClientManager.AddClient(clientEp, packet.PlayerId);
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -72,7 +72,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 
         Main.Server.SendToClient(ackPacket, clientEp);
 
-        Main.Server.reSyncManager.SynchronizeClient(packet.PlayerId, clientEp);
+        Main.Server.ReSyncManager.SynchronizeClient(packet.PlayerId, clientEp);
 
         SrLogger.LogMessage(
             $"Player {packet.PlayerId} successfully connected",

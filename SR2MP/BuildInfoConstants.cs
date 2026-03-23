@@ -1,3 +1,6 @@
+#pragma warning disable RCS1110 // Declare type inside namespace
+// ReSharper disable once CheckNamespace
+
 internal static class BuildInfo
 {
     internal const string Name = "Ranching Together";

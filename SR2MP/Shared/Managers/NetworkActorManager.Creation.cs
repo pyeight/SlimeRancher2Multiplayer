@@ -1,5 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2MP.Packets.Actor;
+// using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
 
@@ -20,6 +20,7 @@ public sealed partial class NetworkActorManager
 
         return CreateInitialActorBase(actor);
     }
+
     public static InitialActorsPacket.ActorBase CreateInitialGadget(GadgetModel gadget)
     {
         return CreateInitialGadgetBase(gadget);
@@ -100,15 +101,15 @@ public sealed partial class NetworkActorManager
         return packet;
     }
 
-    public static ActorUpdateType DetermineUpdateTypeFromModel(ActorModel model)
-    {
-        if (model.TryCast<SlimeModel>() != null)
-            return ActorUpdateType.Slime;
-        if (model.TryCast<ProduceModel>() != null)
-            return ActorUpdateType.Resource;
-        if (model.TryCast<PlortModel>() != null)
-            return ActorUpdateType.Plort;
+    // public static ActorUpdateType DetermineUpdateTypeFromModel(ActorModel model)
+    // {
+    //     if (model.TryCast<SlimeModel>() != null)
+    //         return ActorUpdateType.Slime;
+    //     if (model.TryCast<ProduceModel>() != null)
+    //         return ActorUpdateType.Resource;
+    //     if (model.TryCast<PlortModel>() != null)
+    //         return ActorUpdateType.Plort;
 
-        return ActorUpdateType.Actor;
-    }
+    //     return ActorUpdateType.Actor;
+    // }
 }

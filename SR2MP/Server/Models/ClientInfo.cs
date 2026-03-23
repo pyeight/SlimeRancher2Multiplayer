@@ -9,7 +9,7 @@ public sealed class ClientInfo
 
     private DateTime LastHeartbeat { get; set; }
 
-    public ClientInfo(IPEndPoint endPoint, string playerId = "")
+    internal ClientInfo(IPEndPoint endPoint, string playerId = "")
     {
         EndPoint = endPoint;
         LastHeartbeat = DateTime.UtcNow;
@@ -21,5 +21,5 @@ public sealed class ClientInfo
     public bool IsTimedOut()
         => (DateTime.UtcNow - LastHeartbeat).TotalSeconds > 30;
 
-    public string GetClientInfo() => $"{EndPoint.Address}:{EndPoint.Port}";
+    public string GetClientInfo() => EndPoint.Address + ":" + EndPoint.Port;
 }

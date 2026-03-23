@@ -104,6 +104,6 @@ public sealed class ClientManager
             OnClientRemoved?.Invoke(client);
         }
 
-        SrLogger.LogMessage("All clients cleared", SrLogTarget.Both);
+        SrLogger.LogMessage("All clients cleared");
     }
 }

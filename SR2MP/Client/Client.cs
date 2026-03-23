@@ -52,19 +52,19 @@ public sealed class SR2MPClient
     {
         if (Main.Server.IsRunning())
         {
-            SrLogger.LogWarning("You can not join a world while hosting a server.", SrLogTarget.Both);
+            SrLogger.LogWarning("You can not join a world while hosting a server.");
             return;
         }
 
         if (isConnected)
         {
-            SrLogger.LogWarning("You are already connected to a Server!", SrLogTarget.Both);
+            SrLogger.LogWarning("You are already connected to a Server!");
             return;
         }
 
         if (serverIp == "127.0.0.1" && !devMode)
         {
-            SrLogger.LogWarning("You can not connect to this IP!", SrLogTarget.Both);
+            SrLogger.LogWarning("You can not connect to this IP!");
             SrLogger.LogWarning("If you want to connect to someone on your local network, use their local IP!");
             SrLogger.LogWarning("To get the local IP, check your routers Website or use the 'ìpconfig' command prompt command!");
         }
@@ -77,17 +77,17 @@ public sealed class SR2MPClient
             {
                 if (!Socket.OSSupportsIPv6)
                 {
-                    SrLogger.LogError("IPv6 is not supported on this machine! Please enable IPv6 or use an IPv4 address.", SrLogTarget.Both);
+                    SrLogger.LogError("IPv6 is not supported on this machine! Please enable IPv6 or use an IPv4 address.");
                     throw new NotSupportedException("IPv6 is not available on this system");
                 }
 
                 udpClient = new UdpClient(AddressFamily.InterNetworkV6);
-                SrLogger.LogMessage("Using IPv6 connection", SrLogTarget.Both);
+                SrLogger.LogMessage("Using IPv6 connection");
             }
             else
             {
                 udpClient = new UdpClient(AddressFamily.InterNetwork);
-                SrLogger.LogMessage("Using IPv4 connection", SrLogTarget.Both);
+                SrLogger.LogMessage("Using IPv4 connection");
             }
 
             PacketDeduplication.Clear();
@@ -134,7 +134,7 @@ public sealed class SR2MPClient
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error connecting to the Server: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error connecting to the Server: {ex}");
             isConnected = false;
             throw;
         }
@@ -145,7 +145,7 @@ public sealed class SR2MPClient
         if (connectionAcknowledged || !isConnected)
             return;
 
-        SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds", SrLogTarget.Both);
+        SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds");
         Disconnect();
     }
 
@@ -158,11 +158,11 @@ public sealed class SR2MPClient
     {
         if (udpClient == null)
         {
-            SrLogger.LogError("UDP client is null in ReceiveLoop!", SrLogTarget.Both);
+            SrLogger.LogError("UDP client is null in ReceiveLoop!");
             return;
         }
 
-        SrLogger.LogMessage("Client ReceiveLoop started!", SrLogTarget.Both);
+        SrLogger.LogMessage("Client ReceiveLoop started!");
 
         EndPoint remoteEp = udpClient.Client.AddressFamily switch
         {
@@ -193,14 +193,14 @@ public sealed class SR2MPClient
                     // This prevents WSAEINTR from logging, this is correct
                     if (ex.ErrorCode is not 10004 and not 10054)
                     {
-                        SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}", SrLogTarget.Both);
+                        SrLogger.LogError($"ReceiveLoop error: Socket Exception:{ex.ErrorCode}\n{ex}");
                     }
 
                     if (ex.ErrorCode == 10054 && !shownConnectionError)
                     {
                         SrLogger.LogError("The server is not running!\n" +
                                           "If the server is running, there is something wrong with PlayIt or your tunnel service.\n" +
-                                          "If this is not the case, check your firewall settings", SrLogTarget.Both);
+                                          "If this is not the case, check your firewall settings");
                         shownConnectionError = true;
                     }
 
@@ -218,7 +218,7 @@ public sealed class SR2MPClient
             ArrayPool<byte>.Shared.Return(receiveBuffer);
         }
 
-        SrLogger.LogMessage("Client ReceiveLoop ended!", SrLogTarget.Both);
+        SrLogger.LogMessage("Client ReceiveLoop ended!");
     }
 
     // internal static void StartHeartbeat()
@@ -271,7 +271,7 @@ public sealed class SR2MPClient
         {
             writeAction(writer, state);
             var data = writer.ToSpan();
-            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Sending {data.Length} bytes to Server...");
 
             ushort sequenceNumber = 0;
 
@@ -290,12 +290,11 @@ public sealed class SR2MPClient
             if (reliability == PacketReliability.Unreliable)
                 splitResult.Dispose();
 
-            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {splitResult.Count} chunk(s) (ID={packetId}).",
-                SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {splitResult.Count} chunk(s) (ID={packetId}).");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to send packet: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to send packet: {ex}");
         }
         finally
         {
@@ -367,7 +366,7 @@ public sealed class SR2MPClient
 
             if (receiveThread is { IsAlive: true })
             {
-                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
+                SrLogger.LogWarning("Receive thread did not stop gracefully");
             }
 
             receiveThread = null;
@@ -382,7 +381,7 @@ public sealed class SR2MPClient
                 if (playerObject)
                 {
                     Object.Destroy(playerObject);
-                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
                 }
 
                 playerObjects.Remove(playerId);
@@ -390,12 +389,12 @@ public sealed class SR2MPClient
 
             playerManager.Clear();
 
-            SrLogger.LogMessage("Disconnected from server", SrLogTarget.Both);
+            SrLogger.LogMessage("Disconnected from server");
             OnDisconnected?.Invoke();
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error during disconnect: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error during disconnect: {ex}");
         }
     }
 

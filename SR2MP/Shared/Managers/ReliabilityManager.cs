@@ -85,7 +85,7 @@ public sealed class ReliabilityManager
         };
         resendThread.Start();
 
-        SrLogger.LogMessage("ReliabilityManager started", SrLogTarget.Both);
+        SrLogger.LogMessage("ReliabilityManager started");
     }
 
     public void Stop()
@@ -94,7 +94,7 @@ public sealed class ReliabilityManager
             return;
 
         isRunning = false;
-        
+
         foreach (var packet in pendingPackets.Values)
             PendingPacket.Return(packet);
 
@@ -102,7 +102,7 @@ public sealed class ReliabilityManager
         lastProcessedSequence.Clear();
         sequenceNumbersByType.Clear();
 
-        SrLogger.LogMessage("ReliabilityManager stopped", SrLogTarget.Both);
+        SrLogger.LogMessage("ReliabilityManager stopped");
     }
 
     public void TrackPacket(SplitResult splitData, IPEndPoint destination, ushort packetId,
@@ -118,14 +118,13 @@ public sealed class ReliabilityManager
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
     {
         var key = new PacketKey(packetType, packetId, sender);
-        
+
         if (!pendingPackets.TryRemove(key, out var packet))
             return;
 
         var latency = DateTime.UtcNow - packet.FirstSendTime;
         SrLogger.LogPacketSize(
-            $"ACK received for packet {packetId} (type={packetType}) after {packet.SendCount} sends, latency={latency.TotalMilliseconds:F1}ms",
-            SrLogTarget.Both);
+            $"ACK received for packet {packetId} (type={packetType}) after {packet.SendCount} sends, latency={latency.TotalMilliseconds:F1}ms");
     }
 
     // Checks if an ordered packet should be processed based on sequence number
@@ -232,7 +231,7 @@ public sealed class ReliabilityManager
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"ResendLoop error: {ex}", SrLogTarget.Both);
+                SrLogger.LogError($"ResendLoop error: {ex}");
             }
         }
     }

@@ -26,12 +26,12 @@ public sealed class RemotePlayerManager
 
         if (players.TryAdd(playerId, player))
         {
-            SrLogger.LogMessage($"Remote player added: {playerId}", SrLogTarget.Both);
+            SrLogger.LogMessage($"Remote player added: {playerId}");
             OnPlayerAdded?.Invoke(playerId);
             return player;
         }
 
-        SrLogger.LogWarning($"Remote player already exists: {playerId}", SrLogTarget.Both);
+        SrLogger.LogWarning($"Remote player already exists: {playerId}");
         return players[playerId];
     }
 
@@ -39,7 +39,7 @@ public sealed class RemotePlayerManager
     {
         if (!players.TryRemove(playerId, out _))
             return false;
-        SrLogger.LogMessage($"Remote player removed: {playerId}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Remote player removed: {playerId}");
         OnPlayerRemoved?.Invoke(playerId);
         return true;
     }
@@ -121,6 +121,6 @@ public sealed class RemotePlayerManager
             OnPlayerRemoved?.Invoke(playerId);
         }
 
-        SrLogger.LogMessage("All remote players cleared!", SrLogTarget.Both);
+        SrLogger.LogMessage("All remote players cleared!");
     }
 }

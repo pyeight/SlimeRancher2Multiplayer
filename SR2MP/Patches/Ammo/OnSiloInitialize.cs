@@ -23,7 +23,7 @@ public static class OnSiloInitialize
         }
         catch (Exception e)
         {
-            SrLogger.LogError($"Error on Silo Initialization!\n{e}\n", SrLogTarget.Both);
+            SrLogger.LogError($"Error on Silo Initialization!\n{e}\n");
         }
     }
 }

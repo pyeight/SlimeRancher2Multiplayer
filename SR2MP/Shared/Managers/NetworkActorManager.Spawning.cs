@@ -27,7 +27,7 @@ public sealed partial class NetworkActorManager
 
         gadget.transform.SetPositionAndRotation(position, rotation);
 
-        identModel = model.Cast<IdentifiableModel>();
+        identModel = model.TryCast<IdentifiableModel>();
         return true;
     }
 
@@ -60,7 +60,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation).Cast<IdentifiableModel>();
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -101,7 +101,7 @@ public sealed partial class NetworkActorManager
     private bool TrySpawnInitialGadget(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? identifiableModel)
     {
         identifiableModel = null;
-        
+
         var sceneId = actorData.Scene;
         var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
@@ -118,14 +118,14 @@ public sealed partial class NetworkActorManager
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position);
         model.eulerRotation = rotation.eulerAngles;
 
-        identifiableModel = model.Cast<IdentifiableModel>();
-        
+        identifiableModel = model.TryCast<IdentifiableModel>();
+
         handlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
         handlingPacket = false;
-        
+
         gadget.transform.SetPositionAndRotation(position, rotation);
-        
+
         return true;
     }
 
@@ -134,7 +134,7 @@ public sealed partial class NetworkActorManager
         model = null;
 
         var typeId = actorData.ActorTypeId;
-        
+
         if (Main.RockPlortBug)
             typeId = 25;
 
@@ -143,10 +143,10 @@ public sealed partial class NetworkActorManager
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
             return false;
         }
-        
+
         if (type.isGadget())
             return TrySpawnInitialGadget(actorData, out model);
-        
+
         switch (actorData)
         {
             case InitialActorsPacket.Slime slimeData:
@@ -181,7 +181,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -204,7 +204,7 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
@@ -250,7 +250,7 @@ public sealed partial class NetworkActorManager
             type.Cast<SlimeDefinition>(),
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -275,7 +275,7 @@ public sealed partial class NetworkActorManager
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
@@ -323,7 +323,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -411,7 +411,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
         {

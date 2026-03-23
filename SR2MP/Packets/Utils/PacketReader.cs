@@ -341,7 +341,7 @@ public static class PacketReaderDels
     public static readonly Func<PacketReader, sbyte> SByte = reader => reader.ReadSByte();
     public static readonly Func<PacketReader, string> String = reader => reader.ReadString();
     public static readonly Func<PacketReader, ushort> UShort = reader => reader.ReadUShort();
-    public static readonly Func<PacketReader, int> Int32 = reader => reader.ReadInt();
+    // public static readonly Func<PacketReader, int> Int32 = reader => reader.ReadInt();
     public static readonly Func<PacketReader, int> PackedInt32 = reader => reader.ReadPackedInt();
 
     public static class NetObject<T> where T : INetObject, new()
@@ -521,15 +521,15 @@ public static class PacketReaderDels
         public static readonly Action<List<T>, T> Func = (list, item) => list.Add(item);
     }
 
-    public static class HashSetFactory<T>
-    {
-        public static readonly Func<int, HashSet<T>> Func = count => new HashSet<T>(count);
-    }
+    // public static class HashSetFactory<T>
+    // {
+    //     public static readonly Func<int, HashSet<T>> Func = count => new HashSet<T>(count);
+    // }
 
-    public static class HashSetAdd<T>
-    {
-        public static readonly Action<HashSet<T>, T> Func = (set, item) => set.Add(item);
-    }
+    // public static class HashSetAdd<T>
+    // {
+    //     public static readonly Action<HashSet<T>, T> Func = (set, item) => set.Add(item);
+    // }
 
     public static class CppHashSetFactory<T>
     {

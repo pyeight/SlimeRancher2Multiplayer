@@ -7,7 +7,7 @@ public sealed class PlayerData
     public Vector3 Position { get; set; }
     public Quaternion Rotation { get; set; }
 
-    public PlayerData(string playerId = "", string playerName = "Undefined name", Vector3 position = new Vector3(), Quaternion rotation = new Quaternion())
+    internal PlayerData(string playerId = "", string playerName = "Undefined name", Vector3 position = default, Quaternion rotation = default)
     {
         PlayerId = playerId;
         PlayerName = playerName;

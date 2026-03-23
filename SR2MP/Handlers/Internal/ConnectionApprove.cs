@@ -26,7 +26,7 @@ public sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionAppro
             // SR2MPClient.StartHeartbeat();
             Main.Client.NotifyConnected();
 
-            SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})", SrLogTarget.Both);
+            SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})");
 
             cheatsEnabled = packet.AllowCheats;
 

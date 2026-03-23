@@ -130,18 +130,18 @@ internal sealed class EntryPoint : MelonMod
             AddButton(pill, pr, new Vector2(0.005f, 0.105f), new Vector2(0.3333f, 0.2f),
                 "https://github.com/ThatFinnDev/SR2E/releases", "GitHub");
             AddButton(pill, pr, new Vector2(0.34f, 0.105f), new Vector2(0.6596f, 0.2f),
-                "https://www.nexusmods.com/slimerancher2/mods/60", "Nexusmods");
+                "https://www.nexusmods.com/slimerancher2/mods/60", "NexusMods");
             AddButton(pill, pr, new Vector2(0.6666f, 0.105f), new Vector2(0.995f, 0.2f),
                 "https://sr2e.sr2.dev/downloads", "SR2E Website");
         }
 
-        msgTMP.text = "An error occured with the mod <b>'" + BuildInfo.Name + "'</b>!\n\n";
+        msgTMP.text = "An error occurred with the mod <b>'" + BuildInfo.Name + "'</b>!\n\n";
         switch (message)
         {
             case 0:
             {
                 msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                    "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via Nexusmods, GitHub or the SR2E website.";
+                    "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via NexusMods, GitHub or the SR2E website.";
                 btn.onClick.AddListener((Action)Application.Quit);
                 tmp.text = "Quit";
                 break;
@@ -149,7 +149,7 @@ internal sealed class EntryPoint : MelonMod
             case 1:
             {
                 msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                    $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via Nexusmods, GitHub or the SR2E website.";
+                    $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via NexusMods, GitHub or the SR2E website.";
                 btn.onClick.AddListener((Action)(() =>
                 {
                     var fixTime = true;

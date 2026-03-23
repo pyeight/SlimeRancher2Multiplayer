@@ -22,7 +22,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
         if (Instance)
         {
-            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!", SrLogTarget.Both);
+            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!");
             Destroy(this);
             return;
         }

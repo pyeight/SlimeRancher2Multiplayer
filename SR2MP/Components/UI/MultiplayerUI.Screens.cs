@@ -146,7 +146,7 @@ public sealed partial class MultiplayerUI
         }
 
         if (GUI.Button(CalculateButtonLayout(6), "Resync All Players"))
-            Main.Server.reSyncManager.SynchronizeAll();
+            Main.Server.ReSyncManager.SynchronizeAll();
 
         if (GUI.Button(CalculateButtonLayout(8), "Stop the Server"))
              Main.Server.Close();
@@ -163,7 +163,7 @@ public sealed partial class MultiplayerUI
         }
 
         if (GUI.Button(CalculateButtonLayout(6), "Request Resync"))
-            Main.Server.reSyncManager.RequestResync();
+            Main.Server.ReSyncManager.RequestResync();
 
         if (GUI.Button(CalculateButtonLayout(8), "Disconnect from world"))
             Main.Client.Disconnect();

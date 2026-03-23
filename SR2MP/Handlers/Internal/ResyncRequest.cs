@@ -12,13 +12,13 @@ public sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket
         if (clientEp == null)
             return false;
 
-        if (!Main.Server.clientManager.TryGetClient(clientEp, out var clientInfo))
+        if (!Main.Server.ClientManager.TryGetClient(clientEp, out var clientInfo))
         {
-            SrLogger.LogWarning($"Resync requested for unknown endpoint: {clientEp}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Resync requested for unknown endpoint: {clientEp}");
             return false;
         }
 
-        var resyncManager = Main.Server.reSyncManager;
+        var resyncManager = Main.Server.ReSyncManager;
 
         if (!resyncManager.CanResync(clientEp))
         {

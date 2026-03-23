@@ -18,8 +18,8 @@ public abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePack
             if (playerObj)
             {
                 Object.Destroy(playerObj);
-                if (!IsServerSide) SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
-                else SrLogger.LogMessage($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                if (!IsServerSide) SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
+                else SrLogger.LogMessage($"Destroyed player object for {playerId}");
             }
             playerObjects.Remove(playerId);
         }
@@ -33,7 +33,7 @@ public sealed class ClientPlayerLeaveHandler : BasePlayerLeaveHandler
     {
         if (playerManager.GetPlayer(packet.PlayerId) == null)
         {
-            SrLogger.LogMessage($"Player {packet.PlayerId} doesn't exist (already left?)", SrLogTarget.Both);
+            SrLogger.LogMessage($"Player {packet.PlayerId} doesn't exist (already left?)");
             return false;
         }
 
@@ -51,7 +51,7 @@ public sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
 
         if (playerManager.GetPlayer(playerId) == null)
         {
-            SrLogger.LogMessage($"Player {playerId} doesn't exist (already left?)", SrLogTarget.Both);
+            SrLogger.LogMessage($"Player {playerId} doesn't exist (already left?)");
             return false;
         }
 
@@ -61,7 +61,7 @@ public sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
 
         var leaveUsername = playerManager.GetPlayer(playerId)?.Username ?? "Unknown";
 
-        if (Main.Server.clientManager.RemoveClient(clientInfo))
+        if (Main.Server.ClientManager.RemoveClient(clientInfo))
         {
             RemovePlayerData(playerId);
 

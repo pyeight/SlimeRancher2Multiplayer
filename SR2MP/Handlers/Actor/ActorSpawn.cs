@@ -14,7 +14,7 @@ public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
     {
         if (actorManager.Actors.ContainsKey(packet.ActorId.Value))
         {
-            SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} already exists", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} already exists");
             return false;
         }
 

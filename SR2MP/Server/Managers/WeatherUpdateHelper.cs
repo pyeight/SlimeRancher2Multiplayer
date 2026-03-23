@@ -22,7 +22,7 @@ public static class WeatherUpdateHelper
 
         if (registry == null)
         {
-            SrLogger.LogError("WeatherRegistry is null in CreateWeatherPatternLookup", SrLogTarget.Both);
+            SrLogger.LogError("WeatherRegistry is null in CreateWeatherPatternLookup");
             isInitializing = false;
             yield break;
         }
@@ -34,7 +34,7 @@ public static class WeatherUpdateHelper
 
             if (registry.ZoneConfigList == null)
             {
-                SrLogger.LogError("WeatherRegistry.ZoneConfigList is null", SrLogTarget.Both);
+                SrLogger.LogError("WeatherRegistry.ZoneConfigList is null");
                 isInitializing = false;
                 yield break;
             }
@@ -43,7 +43,7 @@ public static class WeatherUpdateHelper
             {
                 if (!config || !config.Zone || config.Patterns == null)
                 {
-                    SrLogger.LogPacketSize("Skipping null weather config or patterns", SrLogTarget.Both);
+                    SrLogger.LogPacketSize("Skipping null weather config or patterns");
                     continue;
                 }
 
@@ -53,7 +53,7 @@ public static class WeatherUpdateHelper
                 {
                     if (!pattern || pattern._stateList == null)
                     {
-                        SrLogger.LogPacketSize($"Skipping null pattern or state list in zone {config.Zone.name}", SrLogTarget.Both);
+                        SrLogger.LogPacketSize($"Skipping null pattern or state list in zone {config.Zone.name}");
                         continue;
                     }
 
@@ -61,7 +61,7 @@ public static class WeatherUpdateHelper
                     {
                         if (!state || string.IsNullOrEmpty(state.name))
                         {
-                            SrLogger.LogPacketSize($"Skipping null state or state name in pattern {pattern.name}", SrLogTarget.Both);
+                            SrLogger.LogPacketSize($"Skipping null state or state name in pattern {pattern.name}");
                             continue;
                         }
 
@@ -74,11 +74,11 @@ public static class WeatherUpdateHelper
             }
 
             lookupInitialized = true;
-            SrLogger.LogPacketSize($"Weather pattern lookup initialized with {WeatherPatternsFromStateNames.Count} states", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Weather pattern lookup initialized with {WeatherPatternsFromStateNames.Count} states");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error in CreateWeatherPatternLookup: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error in CreateWeatherPatternLookup: {ex}");
             lookupInitialized = false;
         }
         finally
@@ -98,7 +98,7 @@ public static class WeatherUpdateHelper
 
             if (!registry)
             {
-                SrLogger.LogError("Could not find WeatherRegistry in scene", SrLogTarget.Both);
+                SrLogger.LogError("Could not find WeatherRegistry in scene");
                 return;
             }
 
@@ -106,7 +106,7 @@ public static class WeatherUpdateHelper
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error in EnsureLookupInitialized: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error in EnsureLookupInitialized: {ex}");
         }
     }
 
@@ -118,19 +118,19 @@ public static class WeatherUpdateHelper
 
         if (!lookupInitialized)
         {
-            SrLogger.LogWarning("Weather pattern lookup not initialized", SrLogTarget.Both);
+            SrLogger.LogWarning("Weather pattern lookup not initialized");
             return null!;
         }
 
         if (zone == null)
         {
-            SrLogger.LogPacketSize($"Invalid zone: state={stateName}", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Invalid zone: state={stateName}");
             return null!;
         }
 
         if (string.IsNullOrEmpty(stateName))
         {
-            SrLogger.LogPacketSize($"Invalid state name: zone={zone.name}, state={stateName}", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Invalid state name: zone={zone.name}, state={stateName}");
             return null!;
         }
 
@@ -145,15 +145,13 @@ public static class WeatherUpdateHelper
         if (WeatherPatternsFromStateNames.TryGetValue(stateName, out var fallbackPattern))
         {
             SrLogger.LogWarning(
-                $"Using fallback pattern for {zone.name} / {stateName}: {fallbackPattern.name}",
-                SrLogTarget.Both
+                $"Using fallback pattern for {zone.name} / {stateName}: {fallbackPattern.name}"
             );
             return fallbackPattern;
         }
 
         SrLogger.LogPacketSize(
-            $"No pattern found for zone {zone.name} / state {stateName}",
-            SrLogTarget.Both
+            $"No pattern found for zone {zone.name} / state {stateName}"
         );
 
         return null!;
@@ -170,13 +168,13 @@ public static class WeatherUpdateHelper
 
             if (!weatherRegistry)
             {
-                SrLogger.LogError("Could not find WeatherRegistry!", SrLogTarget.Both);
+                SrLogger.LogError("Could not find WeatherRegistry!");
                 return;
             }
 
             if (weatherRegistry._model == null)
             {
-                SrLogger.LogError("Could not find WeatherRegistry._model!", SrLogTarget.Both);
+                SrLogger.LogError("Could not find WeatherRegistry._model!");
                 return;
             }
 
@@ -190,7 +188,7 @@ public static class WeatherUpdateHelper
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error in SendWeatherUpdate: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error in SendWeatherUpdate: {ex}");
         }
     }
 }

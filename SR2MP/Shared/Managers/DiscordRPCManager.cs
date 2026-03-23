@@ -109,7 +109,8 @@ public static class DiscordRPCManager
     }
 
     public static ZoneDefinition? currentZone;
-    public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
+
+    // public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
 
     internal static void UpdatePresence()
     {

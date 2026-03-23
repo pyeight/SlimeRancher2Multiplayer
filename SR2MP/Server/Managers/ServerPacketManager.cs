@@ -39,23 +39,23 @@ public sealed class ServerPacketManager
                 {
                     handlers[attribute.PacketType] = handler;
                     handler.IsServerSide = true;
-                    SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
+                    SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}");
                 }
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Failed to register handler {type.Name}: {ex}", SrLogTarget.Both);
+                SrLogger.LogError($"Failed to register handler {type.Name}: {ex}");
             }
         }
 
-        SrLogger.LogMessage($"Total handlers registered: {handlers.Count}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Total handlers registered: {handlers.Count}");
     }
 
     public void HandlePacket(byte[] data, int receivedBytes, IPEndPoint clientEp)
     {
         if (receivedBytes < HeaderSize)
         {
-            SrLogger.LogWarning($"Received packet too small for chunk header: {receivedBytes} bytes", SrLogTarget.Both);
+            SrLogger.LogWarning($"Received packet too small for chunk header: {receivedBytes} bytes");
             return;
         }
 
@@ -143,7 +143,7 @@ public sealed class ServerPacketManager
         if (PacketDeduplication.IsDuplicate(packetKey))
         {
             PacketReader.Return(reader);
-            SrLogger.LogPacketSize($"Duplicate packet ignored from {clientEp}: {packetType} (packetId={packetId})", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Duplicate packet ignored from {clientEp}: {packetType} (packetId={packetId})");
             return;
         }
 

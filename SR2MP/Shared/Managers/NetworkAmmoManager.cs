@@ -1,4 +1,5 @@
 ﻿using Il2CppMonomiPark.SlimeRancher.Player;
+// ReSharper disable InconsistentNaming
 
 namespace SR2MP.Shared.Managers;
 
@@ -23,7 +24,7 @@ public static class NetworkAmmoManager
 
     public static int GetNextSlot(this AmmoSlotManager ammo, IdentifiableType id)
     {
-        for (int i = 0; i < ammo._ammoModel.Slots.Count; i++)
+        for (var i = 0; i < ammo._ammoModel.Slots.Count; i++)
         {
             var isSlotEmptyOrSameType = ammo.Slots[i]!._count == 0 || ammo.Slots[i]!._id == id;
 
@@ -107,18 +108,30 @@ public static class NetworkAmmoManager
         LandPlotLocation plot = null!;
         Gadget gadget = null!;
 
-        try { plot = silo.GetComponentInParent<LandPlotLocation>(); }
-        catch { }
+        try
+        {
+            plot = silo.GetComponentInParent<LandPlotLocation>();
+        }
+        catch
+        {
+            // ignored
+        }
 
-        try { gadget = silo.GetComponentInParent<Gadget>(); }
-        catch { }
+        try
+        {
+            gadget = silo.GetComponentInParent<Gadget>();
+        }
+        catch
+        {
+            // ignored
+        }
 
         if (plot != null)
             silo.Ammo.RegisterAmmoPointer($"{plot._id}_{silo.AmmoSetReference.name}");
         else if (gadget != null)
             silo.Ammo.RegisterAmmoPointer($"gadget{gadget.GetActorId()}_{silo.AmmoSetReference.name}");
         else
-            SrLogger.LogWarning($"SiloStorage has no known parent type: {silo.name}", SrLogTarget.Both);
+            SrLogger.LogWarning($"SiloStorage has no known parent type: {silo.name}");
     }
 
     public static AmmoSlotDefinition GetSlotDefinition(ushort id)
@@ -129,8 +142,7 @@ public static class NetworkAmmoManager
     public static ushort GetId(AmmoSlotDefinition def)
     {
         var hash = def.name.Hash();
-        if (!slotDefinitions.ContainsKey(hash))
-            slotDefinitions[hash] = def;
+        slotDefinitions.TryAdd(hash, def);
         return hash;
     }
 }

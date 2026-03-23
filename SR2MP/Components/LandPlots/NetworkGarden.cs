@@ -51,7 +51,7 @@ public sealed class NetworkGarden : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}");
         }
     }
 

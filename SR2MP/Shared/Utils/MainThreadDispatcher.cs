@@ -23,7 +23,7 @@ public sealed class MainThreadDispatcher : MonoBehaviour
         Instance = obj.AddComponent<MainThreadDispatcher>();
         DontDestroyOnLoad(obj);
 
-        SrLogger.LogMessage("Main thread dispatcher initialized", SrLogTarget.Both);
+        SrLogger.LogMessage("Main thread dispatcher initialized");
     }
 
 #pragma warning disable CA1822 // Mark members as static
@@ -39,7 +39,7 @@ public sealed class MainThreadDispatcher : MonoBehaviour
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Error executing client packet handler: {ex}", SrLogTarget.Both);
+                SrLogger.LogError($"Error executing client packet handler: {ex}");
             }
             finally
             {
@@ -56,7 +56,7 @@ public sealed class MainThreadDispatcher : MonoBehaviour
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Error executing server packet handler: {ex}", SrLogTarget.Both);
+                SrLogger.LogError($"Error executing server packet handler: {ex}");
             }
             finally
             {

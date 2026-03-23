@@ -37,16 +37,16 @@ public sealed class ClientPacketManager
                 {
                     handlers[attribute.PacketType] = handler;
                     handler.IsServerSide = false;
-                    SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
+                    SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}");
                 }
             }
             catch (Exception ex)
             {
-                SrLogger.LogWarning($"Failed to register client handler {type.Name}: {ex}", SrLogTarget.Both);
+                SrLogger.LogWarning($"Failed to register client handler {type.Name}: {ex}");
             }
         }
 
-        SrLogger.LogMessage($"Total client packet handlers registered: {handlers.Count}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Total client packet handlers registered: {handlers.Count}");
     }
 
     internal void HandlePacket(byte[] data, int receivedBytes, IPEndPoint serverEp)
@@ -54,7 +54,7 @@ public sealed class ClientPacketManager
         // Header is now 12 bytes: 10 original + 2 CRC
         if (receivedBytes < HeaderSize)
         {
-            SrLogger.LogMessage($"Received packet too small for chunk header: {receivedBytes} bytes", SrLogTarget.Both);
+            SrLogger.LogMessage($"Received packet too small for chunk header: {receivedBytes} bytes");
             return;
         }
 
@@ -141,7 +141,7 @@ public sealed class ClientPacketManager
         if (PacketDeduplication.IsDuplicate(packetKey))
         {
             PacketReader.Return(reader);
-            SrLogger.LogPacketSize($"Duplicate packet ignored: {packetType} (packetId={packetId})", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Duplicate packet ignored: {packetType} (packetId={packetId})");
             return;
         }
 
@@ -158,7 +158,7 @@ public sealed class ClientPacketManager
         }
         else
         {
-            SrLogger.LogError($"No client handler found for packet type: {packetType}", SrLogTarget.Both);
+            SrLogger.LogError($"No client handler found for packet type: {packetType}");
         }
     }
 

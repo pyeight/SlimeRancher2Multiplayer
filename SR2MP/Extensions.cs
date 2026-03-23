@@ -48,6 +48,7 @@ public static class Extensions
         }
 
         long? value;
+
         using (IEnumerator<long> e = source.GetEnumerator())
         {
             if (!e.MoveNext())
@@ -58,13 +59,13 @@ public static class Extensions
             }
 
             value = e.Current;
+
             while (e.MoveNext())
             {
                 long? x = e.Current;
+
                 if (x > value)
-                {
                     value = x;
-                }
             }
         }
 

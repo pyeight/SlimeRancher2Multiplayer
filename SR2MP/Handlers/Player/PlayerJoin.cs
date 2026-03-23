@@ -29,17 +29,17 @@ public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
     {
         if (playerManager.GetPlayer(packet.PlayerId) != null)
         {
-            SrLogger.LogPacketSize($"Player {packet.PlayerId} already exists", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Player {packet.PlayerId} already exists");
             return false;
         }
 
         if (packet.PlayerId.Equals(Main.Client.PlayerId))
         {
-            SrLogger.LogMessage("Player join request accepted!", SrLogTarget.Both);
+            SrLogger.LogMessage("Player join request accepted!");
             return false;
         }
 
-        SrLogger.LogMessage($"New Player joined! (PlayerId: {packet.PlayerId})", SrLogTarget.Both);
+        SrLogger.LogMessage($"New Player joined! (PlayerId: {packet.PlayerId})");
         InstantiatePlayer(packet);
         return true;
     }
@@ -52,7 +52,7 @@ public sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
     {
         if (playerManager.GetPlayer(packet.PlayerId) != null)
         {
-            SrLogger.LogWarning($"Player {packet.PlayerId} already exists", SrLogTarget.Both);
+            SrLogger.LogWarning($"Player {packet.PlayerId} already exists");
             return false;
         }
 

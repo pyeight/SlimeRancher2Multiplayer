@@ -63,7 +63,7 @@ internal sealed class NetworkActor : MonoBehaviour
 
             if (attemptedGetIdentifiable >= 10)
             {
-                SrLogger.LogWarning("Failed to get Identifiable after 10 attempts", SrLogTarget.Both);
+                SrLogger.LogWarning("Failed to get Identifiable after 10 attempts");
                 isValid = false;
                 return new ActorId(0);
             }
@@ -75,7 +75,7 @@ internal sealed class NetworkActor : MonoBehaviour
             }
             catch (Exception ex)
             {
-                SrLogger.LogWarning($"Failed to get Identifiable component: {ex.Message}", SrLogTarget.Both);
+                SrLogger.LogWarning($"Failed to get Identifiable component: {ex.Message}");
                 attemptedGetIdentifiable++;
                 isValid = false;
                 return new ActorId(0);
@@ -93,7 +93,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"Failed to get ActorId: {ex.Message}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Failed to get ActorId: {ex.Message}");
             isValid = false;
             return new ActorId(0);
         }
@@ -125,7 +125,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"NetworkActor.Start error: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"NetworkActor.Start error: {ex}");
             isValid = false;
         }
     }
@@ -161,7 +161,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}");
         }
     }
 
@@ -189,7 +189,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"WaitOneFrameOnHibernationChange error: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"WaitOneFrameOnHibernationChange error: {ex}");
             isValid = false;
         }
     }
@@ -205,7 +205,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"HibernationChanged error: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"HibernationChanged error: {ex}");
         }
     }
 
@@ -267,7 +267,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"NetworkActor.Update error: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"NetworkActor.Update error: {ex}");
             isValid = false;
         }
     }
@@ -380,7 +380,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"SetRigidbodyState error: {ex.Message}", SrLogTarget.Both);
+            SrLogger.LogWarning($"SetRigidbodyState error: {ex.Message}");
         }
     }
 
@@ -414,7 +414,7 @@ internal sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"SetResourceState error: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"SetResourceState error: {ex}");
         }
     }
 

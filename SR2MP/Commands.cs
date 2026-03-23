@@ -1,3 +1,4 @@
+/*
 using System.Net;
 using SR2E;
 using SR2E.Utils;
@@ -130,3 +131,4 @@ public sealed class ResyncAllCommand : SR2ECommand
         return true;
     }
 }
+*/
