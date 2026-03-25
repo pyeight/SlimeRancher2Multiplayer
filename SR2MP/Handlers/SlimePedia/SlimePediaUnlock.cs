@@ -10,12 +10,12 @@ public sealed class SlimePediaUnlockHandler : BasePacketHandler<PediaUnlockPacke
 {
     protected override bool Handle(PediaUnlockPacket packet, IPEndPoint? _)
     {
-        handlingPacket = true;
+        HandlingPacket = true;
         SceneContext.Instance.PediaDirector.Unlock(
             GameContext.Instance.AutoSaveDirector
                 ._saveReferenceTranslation._pediaEntryLookup[packet.ID],
             packet.Popup);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

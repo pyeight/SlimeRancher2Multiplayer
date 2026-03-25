@@ -16,14 +16,14 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
 
             if (model.gameObj)
             {
-                handlingPacket = true;
+                HandlingPacket = true;
                 var location = model.gameObj.GetComponent<LandPlotLocation>();
                 var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
                 location.Replace(landPlotComponent, GameContext.Instance.LookupDirector._plotPrefabDict[plot.Type]);
 
                 var landPlotComponent2 = model.gameObj.GetComponentInChildren<LandPlot>();
                 landPlotComponent2.ApplyUpgrades(plot.Upgrades.Cast<CppCollections.IEnumerable<LandPlot.Upgrade>>(), false);
-                handlingPacket = false;
+                HandlingPacket = false;
             }
 
             model.typeId = plot.Type;
@@ -37,15 +37,15 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                     if (!model.gameObj)
                         continue;
                     var gardenPlot = model.gameObj.GetComponentInChildren<LandPlot>();
-                    handlingPacket = true;
+                    HandlingPacket = true;
                     gardenPlot.DestroyAttached();
-                    handlingPacket = false;
+                    HandlingPacket = false;
                     break;
                 }
 
                 case InitialLandPlotsPacket.GardenData garden:
                 {
-                    var actor = actorManager.ActorTypes[garden.Crop];
+                    var actor = ActorManager.ActorTypes[garden.Crop];
                     model.resourceGrowerDefinition =
                         GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation
                             .RawLookupDictionary._entries.FirstOrDefault(x =>
@@ -56,7 +56,7 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
 
                     var gardenCatcher = model.gameObj.GetComponentInChildren<GardenCatcher>();
 
-                    handlingPacket = true;
+                    HandlingPacket = true;
                     if (gardenCatcher.CanAccept(actor))
                     {
                         var plantedObject = gardenCatcher.Plant(actor, true);
@@ -79,7 +79,7 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                             }
                         }
                     }
-                    handlingPacket = false;
+                    HandlingPacket = false;
                     break;
                 }
 
@@ -153,10 +153,10 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                         break;
                     }
 
-                    handlingPacket = true;
+                    HandlingPacket = true;
                     feeder?.SetFeederSpeed((SlimeFeeder.FeedSpeed)corral.AutoFeederSpeed);
                     feeder?.SetFeederSpeedIcon((SlimeFeeder.FeedSpeed)corral.AutoFeederSpeed);
-                    handlingPacket = false;
+                    HandlingPacket = false;
 
                     break;
 

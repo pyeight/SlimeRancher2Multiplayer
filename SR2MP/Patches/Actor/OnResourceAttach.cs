@@ -10,7 +10,7 @@ public static class ResourceCycleAttachPatch
 {
     public static void Prefix(ResourceCycle __instance, Joint joint)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
         if (joint == null) return;
 

@@ -12,7 +12,7 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 {
     protected override bool Handle(ActorUpdatePacket packet, IPEndPoint? _)
     {
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
+        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
             return false;
 
         var actor = model.Cast<ActorModel>();

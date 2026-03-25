@@ -19,13 +19,13 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
             if (!model.gameObj) return true;
             var plot = model.gameObj.GetComponentInChildren<LandPlot>();
 
-            handlingPacket = true;
+            HandlingPacket = true;
             plot.DestroyAttached();
-            handlingPacket = false;
+            HandlingPacket = false;
         }
         else
         {
-            var actor = actorManager.ActorTypes[packet.ActorType];
+            var actor = ActorManager.ActorTypes[packet.ActorType];
 
             model.resourceGrowerDefinition =
                 GameContext.Instance.AutoSaveDirector._saveReferenceTranslation._resourceGrowerTranslation.RawLookupDictionary._entries.FirstOrDefault(x =>
@@ -34,10 +34,10 @@ public sealed class GardenPlantHandler : BasePacketHandler<GardenPlantPacket>
             if (!model.gameObj) return true;
             var garden = model.gameObj.GetComponentInChildren<GardenCatcher>();
 
-            handlingPacket = true;
+            HandlingPacket = true;
             if (garden.CanAccept(actor))
                 garden.Plant(actor, true);
-            handlingPacket = false;
+            HandlingPacket = false;
         }
 
         return true;

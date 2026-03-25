@@ -9,7 +9,7 @@ public static class OnEntryUnlocked
 {
     public static void Postfix(PediaEntry entry, bool showPopup)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var packet = new PediaUnlockPacket
         {

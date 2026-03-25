@@ -30,7 +30,7 @@ internal sealed class NetworkPlayerSound : MonoBehaviour
             return;
 
         // Defaults to PlayerFXType.None
-        if (!fxManager.TryGetFXType(audioSource.Cue, out FXType))
+        if (!FXManager.TryGetFXType(audioSource.Cue, out FXType))
             return;
 
         var packet = new PlayerFXPacket

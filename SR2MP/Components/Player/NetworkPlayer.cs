@@ -128,7 +128,7 @@ internal partial class NetworkPlayer : MonoBehaviour
     {
         if (model == null)
         {
-            model = playerManager.GetPlayer(ID) ?? playerManager.AddPlayer(ID);
+            model = PlayerManager.GetPlayer(ID) ?? PlayerManager.AddPlayer(ID);
 
             if (!UsernamePanel)
                 return;

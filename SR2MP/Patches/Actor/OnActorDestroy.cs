@@ -22,14 +22,14 @@ public static class OnActorDestroy
         }
         catch { }
 
-        if (handlingPacket || !actorObj)
+        if (HandlingPacket || !actorObj)
             return true;
 
         var actor = actorObj.GetComponent<IdentifiableActor>();
         if (!actor)
             return true;
 
-        actorManager.Actors.Remove(actor.GetActorId().Value);
+        ActorManager.Actors.Remove(actor.GetActorId().Value);
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
             return true;

@@ -14,10 +14,10 @@ public sealed class AmmoAddHandler : BasePacketHandler<AmmoAddPacket>
         var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
 
         if (ammo == null) return false;
-        var ident = actorManager.ActorTypes[packet.Identifiable];
-        handlingPacket = true;
+        var ident = ActorManager.ActorTypes[packet.Identifiable];
+        HandlingPacket = true;
         ammo.MaybeAddToSpecificSlot(ident, null, ammo.GetNextSlot(ident));
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

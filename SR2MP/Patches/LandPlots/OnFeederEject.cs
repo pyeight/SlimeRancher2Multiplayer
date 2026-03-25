@@ -9,7 +9,7 @@ public static class OnFeederEject
 {
     public static void Postfix(SlimeFeeder __instance, AmmoSlotManager storageAmmo)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var packet = new AutoFeederDispensePacket()
         {

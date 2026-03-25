@@ -62,7 +62,7 @@ public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
         {
             InitialJoin = true,
             PlayerId = packet.PlayerId,
-            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
+            OtherPlayers = Array.ConvertAll(PlayerManager.GetAllPlayers().ToArray(),
                 p => (p.PlayerId, p.Username)),
             Money = money,
             RainbowMoney = rainbowMoney,

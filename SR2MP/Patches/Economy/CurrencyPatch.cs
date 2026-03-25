@@ -13,7 +13,7 @@ public static class CurrencyPatch
         ICurrency currencyDefinition,
         bool showUiNotification)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (currencyDefinition == null)
@@ -36,7 +36,7 @@ public static class CurrencyPatch
         PlayerState __instance,
         ICurrency currency)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var currencyId = currency.PersistenceId;
 

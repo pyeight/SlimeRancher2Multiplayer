@@ -76,9 +76,9 @@ public sealed partial class NetworkActorManager
 
                 if (actor2.value.sceneGroup != scene)
                     continue;
-                handlingPacket = true;
+                HandlingPacket = true;
                 var obj = InstantiationHelpers.InstantiateActorFromModel(model);
-                handlingPacket = false;
+                HandlingPacket = false;
 
                 if (!obj)
                     continue;
@@ -90,7 +90,7 @@ public sealed partial class NetworkActorManager
                 networkComponent.PreviousRotation = model.lastRotation;
                 networkComponent.NextRotation = model.lastRotation;
 
-                actorManager.Actors.Add(model.actorId.Value, model);
+                ActorManager.Actors.Add(model.actorId.Value, model);
             }
 
             yield return TakeOwnershipOfNearby();

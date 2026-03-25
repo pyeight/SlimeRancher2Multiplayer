@@ -44,7 +44,7 @@ public static class OnGadgetSpawn
         Vector3 position,
         Quaternion rotation)
     {
-        if (!handlingPacket)
+        if (!HandlingPacket)
             MelonCoroutines.Start(SpawnOverNetwork(__result, sceneGroup, position, rotation));
     }
 }

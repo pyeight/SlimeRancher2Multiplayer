@@ -11,7 +11,7 @@ public static class OnGeyserFire
         if (__instance.__1__state != 0)
             return;
 
-        if (handlingPacket)
+        if (HandlingPacket)
             return;
 
         var packet = new GeyserTriggerPacket

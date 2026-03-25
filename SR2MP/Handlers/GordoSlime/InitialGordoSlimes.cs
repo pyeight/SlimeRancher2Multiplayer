@@ -34,7 +34,7 @@ public sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGord
                     fashions = new CppCollections.List<IdentifiableType>(0),
                     gordoEatCount = gordoSlime.EatenCount,
                     gordoSeen = false,
-                    identifiableType = actorManager.ActorTypes[gordoSlime.GordoSlimeType],
+                    identifiableType = ActorManager.ActorTypes[gordoSlime.GordoSlimeType],
                     gameObj = null,
                     targetCount = gordoSlime.RequiredEatCount
                 };

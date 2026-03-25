@@ -10,12 +10,12 @@ public sealed class RefineryUpdateHandler : BasePacketHandler<RefineryUpdatePack
 {
     protected override bool Handle(RefineryUpdatePacket packet, IPEndPoint? _)
     {
-        if (!actorManager.ActorTypes.TryGetValue(packet.ItemID, out var identType))
+        if (!ActorManager.ActorTypes.TryGetValue(packet.ItemID, out var identType))
             return false;
 
-        handlingPacket = true;
+        HandlingPacket = true;
         SceneContext.Instance.GadgetDirector._model.SetCount(identType, packet.ItemCount);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

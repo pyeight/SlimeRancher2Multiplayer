@@ -10,7 +10,7 @@ public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
 {
     protected override bool Handle(ActorUnloadPacket packet, IPEndPoint? _)
     {
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
+        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return false;
 
         if (!actor.TryGetNetworkComponent(out var component))

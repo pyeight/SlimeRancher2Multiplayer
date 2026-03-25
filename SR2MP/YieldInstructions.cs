@@ -5,7 +5,7 @@ namespace SR2MP;
 
 public abstract class MpYieldInstruction : IEnumerator
 {
-    public object? Current => null;
+    public virtual object? Current => null;
 
     protected abstract bool ShouldWait { get; }
 
@@ -16,31 +16,28 @@ public abstract class MpYieldInstruction : IEnumerator
 
 public sealed class WaitForSceneGroupLoad : MpYieldInstruction
 {
-    private readonly bool state;
+    private readonly bool targetState;
+
     private SceneLoader sceneLoader = SystemContext.Instance.SceneLoader;
 
-    protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == state;
+    public override object Current => sceneLoader;
 
-    public WaitForSceneGroupLoad(bool state = true) => this.state = state;
+    protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == targetState;
+
+    public WaitForSceneGroupLoad(bool waitWhileLoading = true) => targetState = waitWhileLoading;
 
     public override void Reset() => sceneLoader = SystemContext.Instance.SceneLoader; // Attempts to fetch the newest instance
 }
 
 public sealed class WaitFrames : MpYieldInstruction
 {
-    private readonly byte frames;
+    private readonly byte framesToWait;
+
     private byte waited;
 
-    protected override bool ShouldWait
-    {
-        get
-        {
-            waited++;
-            return waited >= frames;
-        }
-    }
+    protected override bool ShouldWait => waited++ < framesToWait;
 
-    public WaitFrames(byte frames) => this.frames = frames;
+    public WaitFrames(byte frames) => framesToWait = frames;
 
     public override void Reset() => waited = 0;
 }

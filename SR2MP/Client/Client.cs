@@ -43,9 +43,9 @@ public sealed class SR2MPClient
     {
         packetManager = new ClientPacketManager(this);
 
-        playerManager.OnPlayerAdded += playerId => OnPlayerJoined?.Invoke(playerId);
-        playerManager.OnPlayerRemoved += playerId => OnPlayerLeft?.Invoke(playerId);
-        playerManager.OnPlayerUpdated += (playerId, player) => OnPlayerUpdate?.Invoke(playerId, player);
+        PlayerManager.OnPlayerAdded += playerId => OnPlayerJoined?.Invoke(playerId);
+        PlayerManager.OnPlayerRemoved += playerId => OnPlayerLeft?.Invoke(playerId);
+        PlayerManager.OnPlayerUpdated += (playerId, player) => OnPlayerUpdate?.Invoke(playerId, player);
     }
 
     internal void Connect(string serverIp, int port)
@@ -371,11 +371,11 @@ public sealed class SR2MPClient
 
             receiveThread = null;
 
-            foreach (var player in playerManager.GetAllPlayers())
+            foreach (var player in PlayerManager.GetAllPlayers())
             {
                 var playerId = player.PlayerId;
 
-                if (!playerObjects.TryGetValue(playerId, out var playerObject))
+                if (!PlayerObjects.TryGetValue(playerId, out var playerObject))
                     continue;
 
                 if (playerObject)
@@ -384,10 +384,10 @@ public sealed class SR2MPClient
                     SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
                 }
 
-                playerObjects.Remove(playerId);
+                PlayerObjects.Remove(playerId);
             }
 
-            playerManager.Clear();
+            PlayerManager.Clear();
 
             SrLogger.LogMessage("Disconnected from server");
             OnDisconnected?.Invoke();

@@ -105,7 +105,7 @@ public sealed class Main : SR2EExpansionV3
                         Client.Disconnect();
                 });
 
-                playerManager.OnPlayerAdded += _ => DiscordRPCManager.UpdatePresence();
+                PlayerManager.OnPlayerAdded += _ => DiscordRPCManager.UpdatePresence();
 
                 break;
 
@@ -118,7 +118,7 @@ public sealed class Main : SR2EExpansionV3
 
     public override void AfterGameContext(GameContext gameContext)
     {
-        actorManager.Initialize(gameContext);
+        ActorManager.Initialize(gameContext);
         NetworkSceneManager.Initialize(gameContext);
         NetworkAmmoManager.Initialize();
 

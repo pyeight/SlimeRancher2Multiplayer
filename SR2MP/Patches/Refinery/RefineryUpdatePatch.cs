@@ -9,7 +9,7 @@ public static class RefineryUpdate
 {
     public static void Postfix(GadgetsModel __instance, IdentifiableType type, int newCount)
     {
-        if (handlingPacket)
+        if (HandlingPacket)
             return;
 
         var packet = new RefineryUpdatePacket

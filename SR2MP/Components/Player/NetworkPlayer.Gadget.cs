@@ -201,7 +201,7 @@ internal partial class NetworkPlayer
             return;
         }
 
-        if (!actorManager.ActorTypes.TryGetValue(gadgetID, out var type))
+        if (!ActorManager.ActorTypes.TryGetValue(gadgetID, out var type))
         {
             SrLogger.LogWarning($"OnGadgetIDChanged: no actor type found for id {gadgetID}");
             return;

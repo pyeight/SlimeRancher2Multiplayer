@@ -21,9 +21,9 @@ public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgra
         if (model.gameObj)
         {
             var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
-            handlingPacket = true;
+            HandlingPacket = true;
             landPlotComponent.AddUpgrade(packet.ID);
-            handlingPacket = false;
+            HandlingPacket = false;
         }
 
         return true;
@@ -44,10 +44,10 @@ public sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
             var location = model.gameObj.GetComponent<LandPlotLocation>();
             var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
 
-            handlingPacket = true;
+            HandlingPacket = true;
             location.Replace(landPlotComponent,
                 GameContext.Instance.LookupDirector._plotPrefabDict[packet.ID]);
-            handlingPacket = false;
+            HandlingPacket = false;
         }
 
         return true;

@@ -11,7 +11,7 @@ public sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket
 {
     protected override bool Handle(ActorTransferPacket packet, IPEndPoint? _)
     {
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
+        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return false;
 
         if (!actor.TryGetNetworkComponent(out var component))

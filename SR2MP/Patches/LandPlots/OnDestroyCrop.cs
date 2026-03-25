@@ -8,7 +8,7 @@ public static class OnDestroyCrop
 {
     public static void Postfix(LandPlot __instance)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
 

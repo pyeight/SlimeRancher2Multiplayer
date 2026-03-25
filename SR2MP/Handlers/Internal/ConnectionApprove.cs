@@ -47,8 +47,8 @@ public sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionAppro
         playerObject.gameObject.SetActive(true);
         playerObject.ID = id;
         playerObject.gameObject.name = id;
-        playerObjects.Add(id, playerObject.gameObject);
-        playerManager.AddPlayer(id).Username = name;
+        PlayerObjects.Add(id, playerObject.gameObject);
+        PlayerManager.AddPlayer(id).Username = name;
         Object.DontDestroyOnLoad(playerObject);
     }
 }

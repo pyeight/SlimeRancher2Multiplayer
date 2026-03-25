@@ -1,7 +1,7 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.UI;
-using Il2CppMonomiPark.SlimeRancher.Weather;
-using Il2CppMonomiPark.SlimeRancher.World;
+// using Il2CppMonomiPark.SlimeRancher.Weather;
+// using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Shared.Managers;
 using PriceDictionary = Il2CppSystem.Collections.Generic.Dictionary<Il2Cpp.IdentifiableType, Il2CppMonomiPark.SlimeRancher.Economy.PlortEconomyDirector.CurrValueEntry>;
 
@@ -21,25 +21,23 @@ public static class GlobalVariables
 
     internal static GameObject playerPrefab;
 
-    public static Dictionary<string, GameObject> playerObjects = new();
+    public static readonly Dictionary<string, GameObject> PlayerObjects = new();
 
-    public static RemotePlayerManager playerManager = new();
+    public static readonly RemotePlayerManager PlayerManager = new();
 
-    public static RemoteFXManager fxManager = new();
+    public static readonly RemoteFXManager FXManager = new();
 
-    public static NetworkActorManager actorManager = new();
+    public static readonly NetworkActorManager ActorManager = new();
 
-    public static Dictionary<string, GameObject> landPlotObjects = new();
+    // public static Dictionary<string, GameObject> landPlotObjects = new();
 
-    public static Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone;
+    // public static Dictionary<ZoneDefinition, Dictionary<string, WeatherPatternDefinition>> weatherPatternsByZone;
 
-    public static Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames;
-
-    public static MarketUI? marketUI;
+    // public static Dictionary<string, WeatherPatternDefinition> weatherPatternsFromStateNames;
 
     // To prevent stuff from being stuck in
     // an infinite sending loop
-    public static bool handlingPacket = false;
+    public static bool HandlingPacket { get; internal set; }
 
     public static string LocalID =>
         Main.Server.IsRunning()
@@ -54,7 +52,7 @@ public static class GlobalVariables
             entry => (entry.value?.CurrValue ?? 0f, entry.value?.PrevValue ?? 0f))
         : null;
 
-    public static MarketUI? marketUIInstance;
+    public static MarketUI? MarketUIInstance { get; internal set; }
 
     public const string MapEventKey = "fogRevealed";
 

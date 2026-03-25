@@ -115,12 +115,12 @@ public static class DiscordRPCManager
     internal static void UpdatePresence()
     {
         var online = Main.Server.IsRunning() || Main.Client.IsConnected;
-        var solo = playerManager.PlayerCount < 2;
+        var solo = PlayerManager.PlayerCount < 2;
 
         var details = online
             ? solo
                 ? DetailsStringOnlineSolo
-                : string.Format(DetailsStringOnline, playerManager.PlayerCount)
+                : string.Format(DetailsStringOnline, PlayerManager.PlayerCount)
             : DetailsStringOffline;
         var currentLocation = currentZone ? DefinitionToZone[currentZone!.name] : Zone.MainMenu;
 

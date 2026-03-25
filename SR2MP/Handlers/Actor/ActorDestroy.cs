@@ -21,10 +21,10 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
             GameState.identifiables.Remove(packet.ActorId);
             GameState.identifiablesByIdent[actor.ident].Remove(actor);
             GameState.DestroyIdentifiableModel(actor);
-            actorManager.Actors.Remove(actor.actorId.Value);
+            ActorManager.Actors.Remove(actor.actorId.Value);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         try
         {
             var obj = actor.GetGameObject();
@@ -37,7 +37,7 @@ public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
             // ignored
         }
 
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

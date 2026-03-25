@@ -21,9 +21,9 @@ public sealed partial class NetworkActorManager
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position);
         model.eulerRotation = rotation.eulerAngles;
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         gadget.transform.SetPositionAndRotation(position, rotation);
 
@@ -77,9 +77,9 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
@@ -91,7 +91,7 @@ public sealed partial class NetworkActorManager
         networkComponent.PreviousRotation = rotation;
         networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         actor.GetComponent<ResourceCycle>()?.AttachToNearest();
 
@@ -120,9 +120,9 @@ public sealed partial class NetworkActorManager
 
         identifiableModel = model.TryCast<IdentifiableModel>();
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         gadget.transform.SetPositionAndRotation(position, rotation);
 
@@ -198,9 +198,9 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
@@ -212,7 +212,7 @@ public sealed partial class NetworkActorManager
         networkComponent.PreviousRotation = rotation;
         networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         return true;
     }
@@ -269,9 +269,9 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
@@ -283,7 +283,7 @@ public sealed partial class NetworkActorManager
         networkComponent.PreviousRotation = rotation;
         networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         return true;
     }
@@ -350,9 +350,9 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
@@ -364,7 +364,7 @@ public sealed partial class NetworkActorManager
         networkComponent.PreviousRotation = rotation;
         networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         var plortInvulnerability = actor.GetComponent<PlortInvulnerability>();
         if (plortInvulnerability)
@@ -444,9 +444,9 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
@@ -458,7 +458,7 @@ public sealed partial class NetworkActorManager
         networkComponent.PreviousRotation = rotation;
         networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         var cycle = actor.GetComponent<ResourceCycle>();
 
@@ -491,9 +491,9 @@ public sealed partial class NetworkActorManager
 
             if (targetJoint != null)
             {
-                handlingPacket = true;
+                HandlingPacket = true;
                 cycle.Attach(targetJoint);
-                handlingPacket = false;
+                HandlingPacket = false;
 
                 produceModel.state = state;
                 produceModel.progressTime = progress;

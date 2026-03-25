@@ -15,9 +15,9 @@ public sealed class AmmoDecrementHandler : BasePacketHandler<AmmoDecrementPacket
 
         if (ammo == null) return false;
 
-        handlingPacket = true;
+        HandlingPacket = true;
         ammo.Decrement(packet.SlotIndex, packet.Count);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

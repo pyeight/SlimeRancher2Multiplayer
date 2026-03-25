@@ -12,7 +12,7 @@ public sealed class PlayerUpdateHandler : BasePacketHandler<PlayerUpdatePacket>
     {
         if (packet.PlayerId == LocalID) return false;
 
-        playerManager.UpdatePlayer(
+        PlayerManager.UpdatePlayer(
             packet.PlayerId,
             packet.Position,
             packet.Rotation,

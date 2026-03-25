@@ -17,9 +17,9 @@ public sealed class InitialTreasurePodsHandler : BasePacketHandler<InitialTreasu
 
             if (podState == Il2Cpp.TreasurePod.State.OPEN)
             {
-                handlingPacket = true;
+                HandlingPacket = true;
                 model.gameObj?.GetComponent<Il2Cpp.TreasurePod>().Activate();
-                handlingPacket = false;
+                HandlingPacket = false;
             }
             model.state = new ObservableValue<Il2Cpp.TreasurePod.State>(podState);
         }

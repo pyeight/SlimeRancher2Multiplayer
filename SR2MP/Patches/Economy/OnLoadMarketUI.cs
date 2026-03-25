@@ -8,6 +8,6 @@ public static class OnLoadMarketUI
 {
     public static void Postfix(MarketUI __instance)
     {
-        marketUIInstance = __instance;
+        MarketUIInstance = __instance;
     }
 }

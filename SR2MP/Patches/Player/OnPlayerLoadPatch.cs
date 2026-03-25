@@ -33,7 +33,7 @@ public static class OnPlayerLoadPatch
                 networkPlayer.ID = id;
                 networkPlayer.IsLocal = true;
 
-                playerManager.AddPlayer(id).Username = Main.Username;
+                PlayerManager.AddPlayer(id).Username = Main.Username;
             };
 
             Main.Server.OnServerStarted += () =>
@@ -41,7 +41,7 @@ public static class OnPlayerLoadPatch
                 if (!__instance)
                     return;
 
-                playerManager.AddPlayer(Main.Server.PlayerId).Username = Main.Username;
+                PlayerManager.AddPlayer(Main.Server.PlayerId).Username = Main.Username;
 
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
                 networkPlayer.ID = Main.Server.PlayerId;

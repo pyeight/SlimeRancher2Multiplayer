@@ -10,9 +10,9 @@ public sealed class BaseFastForwardHandler : BasePacketHandler<WorldTimePacket>
 {
     protected override bool Handle(WorldTimePacket packet, IPEndPoint? _)
     {
-        handlingPacket = true;
+        HandlingPacket = true;
         SceneContext.Instance.TimeDirector.FastForwardTo(packet.Time);
-        handlingPacket = false;
+        HandlingPacket = false;
         return true;
     }
 }

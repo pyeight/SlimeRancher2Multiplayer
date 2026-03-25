@@ -63,7 +63,7 @@ public static class NetworkWeatherManager
 
     internal static IEnumerator Apply(WeatherPacket packet, bool immediate)
     {
-        handlingPacket = true;
+        HandlingPacket = true;
 
         var registry = Registry;
         var localDirector = Director;
@@ -171,6 +171,6 @@ public static class NetworkWeatherManager
             yield return new WaitFrames(3);
         }
 
-        handlingPacket = false;
+        HandlingPacket = false;
     }
 }

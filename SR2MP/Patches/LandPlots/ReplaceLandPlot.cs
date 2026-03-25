@@ -8,7 +8,7 @@ public static class ReplaceLandPlot
 {
     public static void Postfix(LandPlotLocation __instance, GameObject replacementPrefab)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
 

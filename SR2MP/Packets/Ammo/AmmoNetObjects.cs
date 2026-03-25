@@ -63,7 +63,7 @@ public struct NetworkAmmoSlot : INetObject
     public readonly AmmoSlot ToGameAmmoSlot() => new()
     {
         _count = Count,
-        _id = actorManager.ActorTypes[Identifiable],
+        _id = ActorManager.ActorTypes[Identifiable],
         // _isUnlockedValue = new NullableFloatProperty(1),
         // _maxCountValue = new NullableFloatProperty(MaxCount),
     };

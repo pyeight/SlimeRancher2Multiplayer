@@ -13,9 +13,9 @@ public sealed class AccessDoorHandler : BasePacketHandler<AccessDoorPacket>
     {
         var model = GameState.doors[packet.ID];
 
-        handlingPacket = true;
+        HandlingPacket = true;
         model.gameObj.GetComponent<AccessDoor>().CurrState = packet.State;
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

@@ -11,12 +11,12 @@ public static class WeatherDirectorStatePatches
     public static bool Prefix()
     {
         WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
+        return !Main.Client.IsConnected || HandlingPacket;
     }
 
     public static void Postfix()
     {
-        if (Main.Server.IsRunning() && !handlingPacket)
+        if (Main.Server.IsRunning() && !HandlingPacket)
         {
             WeatherUpdateHelper.SendWeatherUpdate();
         }

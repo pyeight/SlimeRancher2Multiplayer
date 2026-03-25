@@ -13,10 +13,10 @@ public sealed class PlortCollectionHandler : BasePacketHandler<PlortCollectionPa
         var model = GameState.landPlots[packet.ID];
         var collector = model.gameObj.GetComponentInChildren<PlortCollector>();
 
-        handlingPacket =  true;
+        HandlingPacket =  true;
         collector._endCollectAt = packet.EndTime;
         collector.StartCollection();
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

@@ -141,7 +141,7 @@ internal sealed partial class MultiplayerUI
         DrawText($"You are the hosting on port: {Main.Server.Port}");
         DrawText("All players:");
 
-        foreach (var player in playerManager.GetAllPlayers())
+        foreach (var player in PlayerManager.GetAllPlayers())
         {
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }
@@ -158,7 +158,7 @@ internal sealed partial class MultiplayerUI
         DrawText("You are connected to the server.");
         DrawText("All players:");
 
-        foreach (var player in playerManager.GetAllPlayers())
+        foreach (var player in PlayerManager.GetAllPlayers())
         {
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
         }

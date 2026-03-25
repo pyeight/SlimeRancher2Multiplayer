@@ -16,7 +16,7 @@ public static class WeatherRegistryPatches
     public static bool RunPatternStatePrefix()
     {
         WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
+        return !Main.Client.IsConnected || HandlingPacket;
     }
 
     [HarmonyPatch(nameof(WeatherRegistry.StopPatternState)), HarmonyPrefix]
@@ -27,6 +27,6 @@ public static class WeatherRegistryPatches
         if (!zone)
             return false;
 
-        return !Main.Client.IsConnected || handlingPacket;
+        return !Main.Client.IsConnected || HandlingPacket;
     }
 }

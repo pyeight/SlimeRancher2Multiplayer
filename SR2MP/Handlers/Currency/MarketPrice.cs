@@ -21,7 +21,7 @@ public sealed class MarketPriceHandler : BasePacketHandler<MarketPricePacket>
             i++;
         }
 
-        marketUIInstance?.EconUpdate();
+        MarketUIInstance?.EconUpdate();
         return false;
     }
 }

@@ -13,9 +13,9 @@ public sealed class AutoFeederSpeedHandler : BasePacketHandler<AutoFeederSpeedPa
         var model = GameState.landPlots[packet.ID];
         var feeder = model.gameObj.GetComponentInChildren<SlimeFeeder>();
 
-        handlingPacket = true;
+        HandlingPacket = true;
         feeder.SetFeederSpeed(packet.Speed);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

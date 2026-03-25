@@ -45,7 +45,7 @@ public sealed class ReSyncManager
         {
             InitialJoin = false,
             PlayerId = playerId,
-            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
+            OtherPlayers = Array.ConvertAll(PlayerManager.GetAllPlayers().ToArray(),
                 p => (p.PlayerId, p.Username)),
             Money = money,
             RainbowMoney = rainbowMoney,
@@ -114,7 +114,7 @@ public sealed class ReSyncManager
             {
                 InitialJoin = false,
                 PlayerId = client.PlayerId,
-                OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
+                OtherPlayers = Array.ConvertAll(PlayerManager.GetAllPlayers().ToArray(),
                     p => (p.PlayerId, p.Username)),
                 Money = money,
                 RainbowMoney = rainbowMoney,
@@ -284,7 +284,7 @@ public sealed class ReSyncManager
     {
         var actorsList = new List<InitialActorsPacket.ActorBase>();
 
-        foreach (var (_, model) in actorManager.Actors)
+        foreach (var (_, model) in ActorManager.Actors)
         {
             actorsList.Add(NetworkActorManager.CreateInitialActor(model));
         }

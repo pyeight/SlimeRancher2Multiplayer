@@ -37,7 +37,7 @@ public static class OnActorSpawn
         GameObject original,
         SceneGroup sceneGroup)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var networkActor = __result.AddComponent<NetworkActor>();
         networkActor.LocallyOwned = true;
@@ -45,7 +45,7 @@ public static class OnActorSpawn
         var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
         var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
 
-        actorManager.Actors[__result.GetComponent<IdentifiableActor>()._model.actorId.Value] =
+        ActorManager.Actors[__result.GetComponent<IdentifiableActor>()._model.actorId.Value] =
             __result.GetComponent<IdentifiableActor>()._model;
 
         MelonCoroutines.Start(SpawnOverNetwork(actorType, (byte)sceneGroupId, __result));

@@ -9,7 +9,7 @@ public static class OnFastForward
 {
     public static void Postfix(double fastForwardUntil)
     {
-        if (handlingPacket)
+        if (HandlingPacket)
             return;
 
         var packet = new WorldTimePacket

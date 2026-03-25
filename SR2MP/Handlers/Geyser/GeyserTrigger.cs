@@ -12,7 +12,7 @@ public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket
     {
         var geyserObject = GameObject.Find(packet.ObjectPath);
 
-        handlingPacket = true;
+        HandlingPacket = true;
 
         if (geyserObject)
         {
@@ -20,7 +20,7 @@ public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket
             geyser.StartCoroutine(geyser.RunGeyser(packet.Duration));
         }
 
-        handlingPacket = false;
+        HandlingPacket = false;
         return true;
     }
 }

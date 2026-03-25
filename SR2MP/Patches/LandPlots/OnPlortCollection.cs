@@ -8,7 +8,7 @@ public static class OnPlortCollection
 {
     public static void Postfix(PlortCollector __instance)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var packet = new PlortCollectionPacket()
         {

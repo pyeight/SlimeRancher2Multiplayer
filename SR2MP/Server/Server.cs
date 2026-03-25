@@ -151,10 +151,10 @@ public sealed class SR2MPServer
                 SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
             }
 
-            foreach (var player in playerManager.GetAllPlayers())
+            foreach (var player in PlayerManager.GetAllPlayers())
             {
                 var playerId = player.PlayerId;
-                if (!playerObjects.TryGetValue(playerId, out var playerObject))
+                if (!PlayerObjects.TryGetValue(playerId, out var playerObject))
                     continue;
 
                 if (playerObject != null)
@@ -162,12 +162,12 @@ public sealed class SR2MPServer
                     Object.Destroy(playerObject);
                     SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
                 }
-                playerObjects.Remove(playerId);
+                PlayerObjects.Remove(playerId);
             }
 
             PacketDeduplication.Clear();
             ClientManager.Clear();
-            playerManager.Clear();
+            PlayerManager.Clear();
             NetworkManager.Stop();
 
             SrLogger.LogMessage("Server closed");

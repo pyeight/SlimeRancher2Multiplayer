@@ -24,7 +24,7 @@ public sealed class GordoSlimeFeedHandler : BasePacketHandler<GordoSlimeFeedPack
                 gordoSeen = false,
                 gameObj = null,
                 targetCount = packet.RequiredFoodCount,
-                identifiableType = actorManager.ActorTypes[packet.GordoType]
+                identifiableType = ActorManager.ActorTypes[packet.GordoType]
             };
 
             GameState.gordos.Add(packet.ID, gordo);

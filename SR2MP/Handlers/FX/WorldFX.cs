@@ -13,8 +13,8 @@ public sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
     {
         if (!IsWorldSoundDictionary[packet.FX])
         {
-            var fxPrefab = fxManager.WorldFXMap[packet.FX];
-            handlingPacket = true;
+            var fxPrefab = FXManager.WorldFXMap[packet.FX];
+            HandlingPacket = true;
             try
             {
                 FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
@@ -24,11 +24,11 @@ public sealed class WorldFXHandler : BasePacketHandler<WorldFXPacket>
                 // ignored
             }
 
-            handlingPacket = false;
+            HandlingPacket = false;
         }
         else
         {
-            var cue = fxManager.WorldAudioCueMap[packet.FX];
+            var cue = FXManager.WorldAudioCueMap[packet.FX];
             RemoteFXManager.PlayTransientAudio(cue, packet.Position, WorldSoundVolumeDictionary[packet.FX]);
         }
 

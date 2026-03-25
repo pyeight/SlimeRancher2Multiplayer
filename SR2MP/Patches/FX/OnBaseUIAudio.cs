@@ -13,12 +13,12 @@ public static class OnPlayUIAudio
     {
         if (!SceneContext.Instance)
             return true;
-        if (!fxManager.TryGetFXType(cue, out WorldFXType fxType))
+        if (!FXManager.TryGetFXType(cue, out WorldFXType fxType))
             return true;
 
         SendPacket(fxType, SceneContext.Instance.player.transform.position);
 
-        RemoteFXManager.PlayTransientAudio(fxManager.WorldAudioCueMap[fxType], SceneContext.Instance.player.transform.position, 1f);
+        RemoteFXManager.PlayTransientAudio(FXManager.WorldAudioCueMap[fxType], SceneContext.Instance.player.transform.position, 1f);
 
         return false;
     }

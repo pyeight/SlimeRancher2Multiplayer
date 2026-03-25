@@ -12,13 +12,13 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
 {
     protected override bool Handle(InitialActorsPacket packet, IPEndPoint? _)
     {
-        actorManager.Actors.Clear();
+        ActorManager.Actors.Clear();
 
         var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             GameState.identifiables
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
-        handlingPacket = true;
+        HandlingPacket = true;
         foreach (var (_, value) in toRemove)
         {
             if (value.ident.IsPlayer)
@@ -29,7 +29,7 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
             if (gameObject)
                 Destroyer.DestroyAny(gameObject, "SR2MP.InitialActors");
         }
-        handlingPacket = false;
+        HandlingPacket = false;
 
         GameState._actorIdProvider._nextActorId =
             packet.StartingActorID;
@@ -37,10 +37,10 @@ public sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
 
         foreach (var actor in packet.Actors)
         {
-            actorManager.TrySpawnInitialActor(actor, out var _);
+            ActorManager.TrySpawnInitialActor(actor, out var _);
         }
 
-        MelonCoroutines.Start(actorManager.TakeOwnershipOfNearby());
+        MelonCoroutines.Start(ActorManager.TakeOwnershipOfNearby());
 
         return false;
     }

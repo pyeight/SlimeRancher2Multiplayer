@@ -12,7 +12,7 @@ internal sealed class NetworkWorldFX : MonoBehaviour
     [UsedImplicitly]
     public void OnEnable()
     {
-        if (handlingPacket)
+        if (HandlingPacket)
             return;
 
         var packet = new WorldFXPacket

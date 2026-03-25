@@ -15,12 +15,12 @@ public sealed class GordoSlimeBurstHandler : BasePacketHandler<GordoSlimeBurstPa
         {
             gordoSlime.GordoEatenCount = gordoSlime.targetCount + 1;
 
-            handlingPacket = true;
+            HandlingPacket = true;
 
             if (gordoSlime.gameObj)
                 gordoSlime.gameObj.GetComponent<GordoEat>().ImmediateReachedTarget();
 
-            handlingPacket = false;
+            HandlingPacket = false;
         }
         else
         {

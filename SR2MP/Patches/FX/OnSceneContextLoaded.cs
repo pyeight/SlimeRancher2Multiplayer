@@ -11,7 +11,7 @@ public static class OnSceneContextLoaded
     {
         yield return new WaitForSceneGroupLoad();
 
-        fxManager.Initialize();
+        FXManager.Initialize();
     }
 
     public static void Postfix()

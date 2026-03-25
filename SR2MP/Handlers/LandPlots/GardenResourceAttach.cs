@@ -11,7 +11,7 @@ public sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPack
 {
     protected override bool Handle(ResourceAttachPacket packet, IPEndPoint? _)
     {
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
+        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
             return false;
 
         var actor = model.Cast<ActorModel>();
@@ -67,9 +67,9 @@ public sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPack
         if (targetJoint == null)
             return false;
 
-        handlingPacket = true;
+        HandlingPacket = true;
         cycle.Attach(targetJoint);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         currentGarden!._spawned.Add(cycle.gameObject);
 

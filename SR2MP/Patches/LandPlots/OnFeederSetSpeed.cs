@@ -8,7 +8,7 @@ public static class OnFeederSetSpeed
 {
     public static void Postfix(SlimeFeeder __instance, SlimeFeeder.FeedSpeed speed)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var packet = new AutoFeederSpeedPacket()
         {

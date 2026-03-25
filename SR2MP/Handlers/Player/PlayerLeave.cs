@@ -11,9 +11,9 @@ public abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePack
 {
     protected void RemovePlayerData(string playerId)
     {
-        playerManager.RemovePlayer(playerId);
+        PlayerManager.RemovePlayer(playerId);
 
-        if (playerObjects.TryGetValue(playerId, out var playerObj))
+        if (PlayerObjects.TryGetValue(playerId, out var playerObj))
         {
             if (playerObj)
             {
@@ -21,7 +21,7 @@ public abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePack
                 if (!IsServerSide) SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
                 else SrLogger.LogMessage($"Destroyed player object for {playerId}");
             }
-            playerObjects.Remove(playerId);
+            PlayerObjects.Remove(playerId);
         }
     }
 }
@@ -31,7 +31,7 @@ public sealed class ClientPlayerLeaveHandler : BasePlayerLeaveHandler
 {
     protected override bool Handle(PlayerLeavePacket packet, IPEndPoint? _)
     {
-        if (playerManager.GetPlayer(packet.PlayerId) == null)
+        if (PlayerManager.GetPlayer(packet.PlayerId) == null)
         {
             SrLogger.LogMessage($"Player {packet.PlayerId} doesn't exist (already left?)");
             return false;
@@ -49,7 +49,7 @@ public sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
     {
         var playerId = packet.PlayerId;
 
-        if (playerManager.GetPlayer(playerId) == null)
+        if (PlayerManager.GetPlayer(playerId) == null)
         {
             SrLogger.LogMessage($"Player {playerId} doesn't exist (already left?)");
             return false;
@@ -59,7 +59,7 @@ public sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
         SrLogger.LogMessage($"Player leave request received (PlayerId: {playerId})",
             $"Player leave request from {clientInfo} (PlayerId: {playerId})");
 
-        var leaveUsername = playerManager.GetPlayer(playerId)?.Username ?? "Unknown";
+        var leaveUsername = PlayerManager.GetPlayer(playerId)?.Username ?? "Unknown";
 
         if (Main.Server.ClientManager.RemoveClient(clientInfo))
         {

@@ -9,7 +9,7 @@ public static class OnPlayerUpgraded
 {
     public static void Postfix(UpgradeDefinition definition)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
 

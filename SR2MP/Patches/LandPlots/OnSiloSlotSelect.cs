@@ -8,7 +8,7 @@ public static class OnSiloSlotSelect
 {
     public static void Postfix(SiloStorageActivator __instance)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var packet = new SiloSlotSelectPacket()
         {

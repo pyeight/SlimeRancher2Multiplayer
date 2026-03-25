@@ -15,9 +15,9 @@ public sealed class AmmoAddToSlotHandler : BasePacketHandler<AmmoAddToSlotPacket
 
         if (ammo == null) return false;
 
-        handlingPacket = true;
-        ammo.MaybeAddToSpecificSlot(actorManager.ActorTypes[packet.Identifiable], null, packet.SlotIndex, packet.Count);
-        handlingPacket = false;
+        HandlingPacket = true;
+        ammo.MaybeAddToSpecificSlot(ActorManager.ActorTypes[packet.Identifiable], null, packet.SlotIndex, packet.Count);
+        HandlingPacket = false;
 
         return true;
     }

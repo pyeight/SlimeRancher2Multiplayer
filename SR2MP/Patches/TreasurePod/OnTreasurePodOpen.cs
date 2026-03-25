@@ -8,7 +8,7 @@ internal static class OnTreasurePodOpen
 {
     public static void Postfix(Il2Cpp.TreasurePod __instance)
     {
-        if (handlingPacket)
+        if (HandlingPacket)
             return;
 
         var packet = new TreasurePodPacket()

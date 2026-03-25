@@ -23,7 +23,7 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
     public void Awake()
     {
         SpawnAtTransform = transform.GetChild(2);
-        FootstepFX = fxManager.FootstepFX;
+        FootstepFX = FXManager.FootstepFX;
 
         FootstepFXInstance = Instantiate(FootstepFX, SpawnAtTransform.position, SpawnAtTransform.rotation);
         FootstepFXInstance.transform.SetParent(SpawnAtTransform.transform);

@@ -18,13 +18,13 @@ public sealed class InitialRefineryHandler : BasePacketHandler<InitialRefineryPa
 
     private static IEnumerator InitializeRefinery(InitialRefineryPacket packet)
     {
-        handlingPacket = true;
+        HandlingPacket = true;
 
         var newItemCounts = new CppCollections.Dictionary<IdentifiableType, int>();
 
         foreach (var item in packet.Items)
         {
-            if (actorManager.ActorTypes.TryGetValue(item.Key, out var identType))
+            if (ActorManager.ActorTypes.TryGetValue(item.Key, out var identType))
             {
                 newItemCounts.Add(identType, item.Value);
             }
@@ -35,6 +35,6 @@ public sealed class InitialRefineryHandler : BasePacketHandler<InitialRefineryPa
 
         SceneContext.Instance.GadgetDirector._model._itemCounts = newItemCounts;
 
-        handlingPacket = false;
+        HandlingPacket = false;
     }
 }

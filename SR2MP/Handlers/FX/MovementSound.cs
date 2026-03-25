@@ -11,7 +11,7 @@ public sealed class MovementSoundHandler : BasePacketHandler<MovementSoundPacket
 {
     protected override bool Handle(MovementSoundPacket packet, IPEndPoint? _)
     {
-        RemoteFXManager.PlayTransientAudio(fxManager.AllCues[packet.CueName], packet.Position, IsServerSide ? 0.45f : 0.8f);
+        RemoteFXManager.PlayTransientAudio(FXManager.AllCues[packet.CueName], packet.Position, IsServerSide ? 0.45f : 0.8f);
         return true;
     }
 }

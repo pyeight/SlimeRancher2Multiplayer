@@ -8,7 +8,7 @@ public static class OnGordoBurst
 {
     public static void Prefix(GordoEat __instance)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var packet = new GordoSlimeBurstPacket
         {

@@ -31,11 +31,11 @@ public sealed class InitialSwitchesHandler : BasePacketHandler<InitialSwitchesPa
                 var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
                 var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
 
-                handlingPacket = true;
+                HandlingPacket = true;
                 primary?.SetStateForAll(worldSwitch.State, true);
                 secondary?.SetState(worldSwitch.State, true);
                 invisible?.SetStateForAll(worldSwitch.State, true);
-                handlingPacket = false;
+                HandlingPacket = false;
             }
             else
             {

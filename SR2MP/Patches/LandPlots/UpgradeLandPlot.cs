@@ -8,7 +8,7 @@ public static class UpgradeLandPlot
 {
     public static void Postfix(LandPlot __instance, LandPlot.Upgrade upgrade)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
 

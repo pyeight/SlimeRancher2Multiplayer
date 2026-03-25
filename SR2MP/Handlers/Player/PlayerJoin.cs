@@ -16,8 +16,8 @@ public abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket
         playerObject.gameObject.SetActive(true);
         playerObject.ID = packet.PlayerId;
         playerObject.gameObject.name = packet.PlayerId;
-        playerObjects.Add(packet.PlayerId, playerObject.gameObject);
-        playerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName!;
+        PlayerObjects.Add(packet.PlayerId, playerObject.gameObject);
+        PlayerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName!;
         Object.DontDestroyOnLoad(playerObject);
     }
 }
@@ -27,7 +27,7 @@ public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
 {
     protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? _)
     {
-        if (playerManager.GetPlayer(packet.PlayerId) != null)
+        if (PlayerManager.GetPlayer(packet.PlayerId) != null)
         {
             SrLogger.LogPacketSize($"Player {packet.PlayerId} already exists");
             return false;
@@ -50,7 +50,7 @@ public sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
 {
     protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? clientEp)
     {
-        if (playerManager.GetPlayer(packet.PlayerId) != null)
+        if (PlayerManager.GetPlayer(packet.PlayerId) != null)
         {
             SrLogger.LogWarning($"Player {packet.PlayerId} already exists");
             return false;

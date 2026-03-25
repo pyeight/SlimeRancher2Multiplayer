@@ -9,7 +9,7 @@ public static class PlantGarden
 {
     public static void Postfix(GardenCatcher __instance, IdentifiableType cropId)
     {
-        if (handlingPacket)
+        if (HandlingPacket)
             return;
 
         var packet = new GardenPlantPacket
