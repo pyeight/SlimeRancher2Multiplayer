@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class PlortCollectionPacket : IPacket
+internal sealed class PlortCollectionPacket : IPacket
 {
     public string ID;
     public double EndTime;

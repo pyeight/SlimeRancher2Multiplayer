@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public sealed class WeatherPacket : IPacket
+internal sealed class WeatherPacket : IPacket
 {
     public Dictionary<byte, WeatherZoneData> Zones;
 
@@ -60,7 +60,7 @@ public sealed class WeatherPacket : IPacket
     }
 }
 
-public sealed class WeatherZoneData : INetObject
+internal sealed class WeatherZoneData : INetObject
 {
     public List<WeatherForecast> WeatherForecasts;
     public Vector3 WindSpeed;
@@ -78,7 +78,7 @@ public sealed class WeatherZoneData : INetObject
     }
 }
 
-public sealed class WeatherForecast : INetObject
+internal sealed class WeatherForecast : INetObject
 {
     public WeatherStateDefinition State;
     public bool WeatherStarted;

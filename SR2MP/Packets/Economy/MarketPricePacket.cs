@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Economy;
 
-public sealed class MarketPricePacket : IPacket
+internal sealed class MarketPricePacket : IPacket
 {
     public (float Current, float Previous)[] Prices;
 

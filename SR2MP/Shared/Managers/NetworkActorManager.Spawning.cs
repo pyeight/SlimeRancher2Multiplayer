@@ -5,7 +5,7 @@ using SR2MP.Packets.Loading;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed partial class NetworkActorManager
+internal sealed partial class NetworkActorManager
 {
     private bool TrySpawnNetworkGadget(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? identModel)
     {

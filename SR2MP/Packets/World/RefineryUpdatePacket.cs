@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.World;
 
-public sealed class RefineryUpdatePacket : IPacket
+internal sealed class RefineryUpdatePacket : IPacket
 {
     public ushort ItemCount;
     public ushort ItemID;

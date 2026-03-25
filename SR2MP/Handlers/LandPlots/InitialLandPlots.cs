@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.InitialLandPlots, HandlerType.Client)]
-public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlotsPacket>
+internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlotsPacket>
 {
     protected override bool Handle(InitialLandPlotsPacket packet, IPEndPoint? _)
     {

@@ -5,7 +5,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed partial class NetworkActorManager
+internal sealed partial class NetworkActorManager
 {
     public static InitialActorsPacket.ActorBase CreateInitialActor(IdentifiableModel actor)
     {

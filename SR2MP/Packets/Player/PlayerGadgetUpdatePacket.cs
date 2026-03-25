@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerGadgetUpdatePacket : IPacket
+internal sealed class PlayerGadgetUpdatePacket : IPacket
 {
     public bool Enabled;
     public string PlayerId;

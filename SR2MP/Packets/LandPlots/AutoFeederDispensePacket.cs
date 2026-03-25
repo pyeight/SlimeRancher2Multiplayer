@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class AutoFeederDispensePacket : IPacket
+internal sealed class AutoFeederDispensePacket : IPacket
 {
     public string ID;
     public double NextTime;

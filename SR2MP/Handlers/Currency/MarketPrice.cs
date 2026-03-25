@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Currency;
 
 [PacketHandler((byte)PacketType.MarketPriceChange, HandlerType.Client)]
-public sealed class MarketPriceHandler : BasePacketHandler<MarketPricePacket>
+internal sealed class MarketPriceHandler : BasePacketHandler<MarketPricePacket>
 {
     protected override bool Handle(MarketPricePacket packet, IPEndPoint? _)
     {

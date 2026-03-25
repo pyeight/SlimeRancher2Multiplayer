@@ -3,7 +3,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Actor;
 
-public sealed class ResourceAttachPacket : IPacket
+internal sealed class ResourceAttachPacket : IPacket
 {
     public ActorId ActorId;
     public string PlotID;

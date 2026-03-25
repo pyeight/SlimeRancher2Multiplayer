@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.GordoSlime;
 
 [PacketHandler((byte)PacketType.InitialGordos, HandlerType.Client)]
-public sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordosPacket>
+internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordosPacket>
 {
     protected override bool Handle(InitialGordosPacket packet, IPEndPoint? _)
     {

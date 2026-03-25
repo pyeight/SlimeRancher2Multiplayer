@@ -6,7 +6,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Handlers.Refinery;
 
 [PacketHandler((byte)PacketType.RefineryUpdate)]
-public sealed class RefineryUpdateHandler : BasePacketHandler<RefineryUpdatePacket>
+internal sealed class RefineryUpdateHandler : BasePacketHandler<RefineryUpdatePacket>
 {
     protected override bool Handle(RefineryUpdatePacket packet, IPEndPoint? _)
     {

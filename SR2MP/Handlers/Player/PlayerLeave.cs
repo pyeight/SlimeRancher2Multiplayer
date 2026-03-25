@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.Player;
 
-public abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
+internal abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 {
     protected void RemovePlayerData(string playerId)
     {
@@ -27,7 +27,7 @@ public abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePack
 }
 
 [PacketHandler((byte)PacketType.BroadcastPlayerLeave, HandlerType.Client)]
-public sealed class ClientPlayerLeaveHandler : BasePlayerLeaveHandler
+internal sealed class ClientPlayerLeaveHandler : BasePlayerLeaveHandler
 {
     protected override bool Handle(PlayerLeavePacket packet, IPEndPoint? _)
     {
@@ -43,7 +43,7 @@ public sealed class ClientPlayerLeaveHandler : BasePlayerLeaveHandler
 }
 
 [PacketHandler((byte)PacketType.PlayerLeave, HandlerType.Server)]
-public sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
+internal sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
 {
     protected override bool Handle(PlayerLeavePacket packet, IPEndPoint? clientEp)
     {

@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class SiloSlotSelectPacket : IPacket
+internal sealed class SiloSlotSelectPacket : IPacket
 {
     public byte Side;
     public byte Index;

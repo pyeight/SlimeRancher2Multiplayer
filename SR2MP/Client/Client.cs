@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using SR2MP.Api;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
 using SR2MP.Components.UI;
@@ -251,7 +252,13 @@ public sealed class SR2MPClient
     // ReSharper disable once UnusedMember.Global
     public void SendData<T>(T data) where T : ICustomPacket
     {
-        var apiHeader = new ApiPacket(data.Reliability);
+        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        {
+            SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
+            return;
+        }
+
+        var apiHeader = new ApiPacket(data.Reliability, modId);
         PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, SerialiseApiPacket<T>.Func);
     }
 

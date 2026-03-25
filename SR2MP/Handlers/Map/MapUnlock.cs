@@ -8,7 +8,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Handlers.Map;
 
 [PacketHandler((byte)PacketType.MapUnlock)]
-public sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
+internal sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
 {
     protected override bool Handle(MapUnlockPacket packet, IPEndPoint? _)
     {

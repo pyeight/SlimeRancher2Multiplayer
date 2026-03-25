@@ -7,7 +7,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.FX;
 
 [PacketHandler((byte)PacketType.PlayerFX)]
-public sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
+internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 {
     protected override bool Handle(PlayerFXPacket packet, IPEndPoint? _)
     {

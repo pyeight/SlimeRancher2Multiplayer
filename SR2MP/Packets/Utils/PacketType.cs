@@ -1,6 +1,6 @@
 namespace SR2MP.Packets.Utils;
 
-public enum PacketType : byte
+internal enum PacketType : byte
 {   // Type                       // Hierarchy                                    // Frequency                          // Use Case
     None = 0,                     // Both Ways                                    Unused                                Empty packet data, exists for convention purposes and default none value
     Connect = 1,                  // Client -> Server                             Low (manual)                          Try to connect to Server

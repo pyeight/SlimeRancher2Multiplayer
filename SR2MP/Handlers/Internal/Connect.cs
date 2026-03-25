@@ -8,7 +8,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.Internal;
 
 [PacketHandler((byte)PacketType.Connect, HandlerType.Server)]
-public sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
+internal sealed class ConnectHandler : BasePacketHandler<ConnectPacket>
 {
     protected override bool Handle(ConnectPacket packet, IPEndPoint? clientEp)
     {

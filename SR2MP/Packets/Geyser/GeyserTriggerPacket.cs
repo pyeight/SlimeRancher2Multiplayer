@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Geyser;
 
-public sealed class GeyserTriggerPacket : IPacket
+internal sealed class GeyserTriggerPacket : IPacket
 {
     // Couldn't find an ID system for these, so I need to access them through GameObject.Find
     public string ObjectPath;

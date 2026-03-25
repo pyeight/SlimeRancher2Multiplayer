@@ -6,7 +6,7 @@ using SR2MP.Packets.Actor;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed partial class NetworkActorManager
+internal sealed partial class NetworkActorManager
 {
     public readonly Dictionary<long, IdentifiableModel> Actors    = new();
     public readonly Dictionary<int, IdentifiableType> ActorTypes  = new();

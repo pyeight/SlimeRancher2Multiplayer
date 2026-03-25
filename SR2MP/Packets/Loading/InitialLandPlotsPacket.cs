@@ -3,9 +3,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialLandPlotsPacket : IPacket
+internal sealed class InitialLandPlotsPacket : IPacket
 {
-    public sealed class BasePlot : INetObject
+    internal sealed class BasePlot : INetObject
     {
         public override string ToString() => ID;
 
@@ -52,7 +52,7 @@ public sealed class InitialLandPlotsPacket : IPacket
         }
     }
 
-    public struct GardenData : INetObject
+    internal struct GardenData : INetObject
     {
         public int Crop;
 
@@ -61,7 +61,7 @@ public sealed class InitialLandPlotsPacket : IPacket
         public void Deserialise(PacketReader reader) => Crop = reader.ReadInt();
     }
 
-    public sealed class SiloData : INetObject
+    internal sealed class SiloData : INetObject
     {
         public List<byte> SelectedSlots;
         public NetworkAmmo Ammo;
@@ -79,7 +79,7 @@ public sealed class InitialLandPlotsPacket : IPacket
         }
     }
 
-    public sealed class CorralData : INetObject
+    internal sealed class CorralData : INetObject
     {
         public NetworkAmmo PlortCollectorAmmo;
         public NetworkAmmo AutoFeederAmmo;
@@ -101,7 +101,7 @@ public sealed class InitialLandPlotsPacket : IPacket
     }
 
     // Data for Coop or Pond
-    public sealed class CoopPondData : INetObject
+    internal sealed class CoopPondData : INetObject
     {
         public NetworkAmmo CollectorAmmo;
 
@@ -111,7 +111,7 @@ public sealed class InitialLandPlotsPacket : IPacket
     }
 
     // Data for Incinerators
-    public sealed class IncineratorData : INetObject
+    internal sealed class IncineratorData : INetObject
     {
         public NetworkAmmo PlortCollectorAmmo;
         public float AshLevel;

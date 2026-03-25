@@ -3,7 +3,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Actor;
 
-public sealed class ActorTransferPacket : IPacket
+internal sealed class ActorTransferPacket : IPacket
 {
     public ActorId ActorId;
     public string OwnerId;

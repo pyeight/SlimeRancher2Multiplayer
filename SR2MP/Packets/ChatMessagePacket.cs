@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets;
 
-public sealed class ChatMessagePacket : IPacket
+internal sealed class ChatMessagePacket : IPacket
 {
     public string Username;
     public string Message;

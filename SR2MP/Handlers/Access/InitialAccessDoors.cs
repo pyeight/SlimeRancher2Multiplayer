@@ -8,7 +8,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Access;
 
 [PacketHandler((byte)PacketType.InitialAccessDoors, HandlerType.Client)]
-public sealed class InitialAccessDoorsHandler : BasePacketHandler<InitialAccessDoorsPacket>
+internal sealed class InitialAccessDoorsHandler : BasePacketHandler<InitialAccessDoorsPacket>
 {
     protected override bool Handle(InitialAccessDoorsPacket packet, IPEndPoint? _)
     {

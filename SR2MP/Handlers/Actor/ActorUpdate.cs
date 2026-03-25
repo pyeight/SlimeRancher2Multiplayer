@@ -8,7 +8,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorUpdate)]
-public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
+internal sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 {
     protected override bool Handle(ActorUpdatePacket packet, IPEndPoint? _)
     {

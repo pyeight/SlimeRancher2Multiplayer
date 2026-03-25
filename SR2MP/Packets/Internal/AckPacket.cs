@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.Internal;
 
-public struct AckPacket : IPacket
+internal struct AckPacket : IPacket
 {
     public ushort PacketId;
     public byte OriginalPacketType;

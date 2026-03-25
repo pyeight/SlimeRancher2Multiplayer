@@ -7,7 +7,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.Ammo;
 
 [PacketHandler((byte)PacketType.AmmoAdd)]
-public sealed class AmmoAddHandler : BasePacketHandler<AmmoAddPacket>
+internal sealed class AmmoAddHandler : BasePacketHandler<AmmoAddPacket>
 {
     protected override bool Handle(AmmoAddPacket packet, IPEndPoint? _)
     {

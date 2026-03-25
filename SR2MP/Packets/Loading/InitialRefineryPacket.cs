@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialRefineryPacket : IPacket
+internal sealed class InitialRefineryPacket : IPacket
 {
     public Dictionary<ushort, ushort> Items;
 

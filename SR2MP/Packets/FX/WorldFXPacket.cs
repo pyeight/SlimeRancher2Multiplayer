@@ -2,9 +2,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.FX;
 
-public struct WorldFXPacket : IPacket
+internal struct WorldFXPacket : IPacket
 {
-    public enum WorldFXType : byte
+    internal enum WorldFXType : byte
     {
         None,
         BuyPlot,

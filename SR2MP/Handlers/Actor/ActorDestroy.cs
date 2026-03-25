@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorDestroy)]
-public sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
+internal sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket>
 {
     protected override bool Handle(ActorDestroyPacket packet, IPEndPoint? _)
     {

@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class GardenUpdatePacket : IPacket
+internal sealed class GardenUpdatePacket : IPacket
 {
     public string GardenID;
     public double NextSpawnTime;

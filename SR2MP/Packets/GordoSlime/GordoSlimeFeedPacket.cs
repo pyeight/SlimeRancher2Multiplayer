@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.GordoSlime;
 
-public sealed class GordoSlimeFeedPacket : IPacket
+internal sealed class GordoSlimeFeedPacket : IPacket
 {
     public string ID;
     public int NewFoodCount;

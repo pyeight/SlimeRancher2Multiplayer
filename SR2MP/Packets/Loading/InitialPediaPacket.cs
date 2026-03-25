@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialPediaPacket : IPacket
+internal sealed class InitialPediaPacket : IPacket
 {
     public List<string> Entries;
 

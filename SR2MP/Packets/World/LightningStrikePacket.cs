@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.World;
 
-public struct LightningStrikePacket : IPacket
+internal struct LightningStrikePacket : IPacket
 {
     public Vector3 Position;
 

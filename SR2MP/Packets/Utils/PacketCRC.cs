@@ -1,6 +1,6 @@
 ﻿namespace SR2MP.Packets.Utils;
 
-public static class PacketCRC
+internal static class PacketCRC
 {
     public static ushort Compute(byte[] data, int offset, int length)
     {

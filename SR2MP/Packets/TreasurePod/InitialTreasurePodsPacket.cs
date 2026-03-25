@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.TreasurePod;
 
-public sealed class InitialTreasurePodsPacket : IPacket
+internal sealed class InitialTreasurePodsPacket : IPacket
 {
     public Dictionary<int, Il2Cpp.TreasurePod.State> TreasurePods;
 

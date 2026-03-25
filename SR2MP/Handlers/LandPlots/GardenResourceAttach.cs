@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.ResourceAttach)]
-public sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPacket>
+internal sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPacket>
 {
     protected override bool Handle(ResourceAttachPacket packet, IPEndPoint? _)
     {

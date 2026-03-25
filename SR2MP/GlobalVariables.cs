@@ -25,9 +25,9 @@ public static class GlobalVariables
 
     public static readonly RemotePlayerManager PlayerManager = new();
 
-    public static readonly RemoteFXManager FXManager = new();
+    internal static readonly RemoteFXManager FXManager = new();
 
-    public static readonly NetworkActorManager ActorManager = new();
+    internal static readonly NetworkActorManager ActorManager = new();
 
     // public static Dictionary<string, GameObject> landPlotObjects = new();
 

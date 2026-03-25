@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Upgrade;
 
-public struct PlayerUpgradePacket : IPacket
+internal struct PlayerUpgradePacket : IPacket
 {
     public byte UpgradeID;
 

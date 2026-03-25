@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class AutoFeederSpeedPacket : IPacket
+internal sealed class AutoFeederSpeedPacket : IPacket
 {
     public SlimeFeeder.FeedSpeed Speed;
     public string ID;

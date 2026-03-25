@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorUnload)]
-public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
+internal sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
 {
     protected override bool Handle(ActorUnloadPacket packet, IPEndPoint? _)
     {

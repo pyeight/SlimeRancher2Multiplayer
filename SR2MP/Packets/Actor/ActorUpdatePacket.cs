@@ -6,7 +6,7 @@ using Unity.Mathematics;
 namespace SR2MP.Packets.Actor;
 
 [StructLayout(LayoutKind.Auto)]
-public struct ActorUpdatePacket : IPacket
+internal struct ActorUpdatePacket : IPacket
 {
     public ActorId ActorId;
 

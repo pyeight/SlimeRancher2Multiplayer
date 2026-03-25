@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class ConnectionDenyPacket : IPacket
+internal sealed class ConnectionDenyPacket : IPacket
 {
     public string Reason;
 

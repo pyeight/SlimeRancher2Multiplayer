@@ -6,7 +6,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Handlers.Time;
 
 [PacketHandler((byte)PacketType.FastForward)]
-public sealed class BaseFastForwardHandler : BasePacketHandler<WorldTimePacket>
+internal sealed class BaseFastForwardHandler : BasePacketHandler<WorldTimePacket>
 {
     protected override bool Handle(WorldTimePacket packet, IPEndPoint? _)
     {

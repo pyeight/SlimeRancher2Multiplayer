@@ -8,7 +8,7 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorSpawn)]
-public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
+internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
 {
     protected override bool Handle(ActorSpawnPacket packet, IPEndPoint? _)
     {

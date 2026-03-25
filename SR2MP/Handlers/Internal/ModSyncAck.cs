@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Internal;
 
 [PacketHandler((byte)PacketType.ModSyncAck, HandlerType.Server)]
-public sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
+internal sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
 {
     protected override bool Handle(ModSyncPacket packet, IPEndPoint? clientEp)
     {

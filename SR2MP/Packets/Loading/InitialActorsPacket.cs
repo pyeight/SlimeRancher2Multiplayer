@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed partial class InitialActorsPacket : IPacket
+internal partial class InitialActorsPacket : IPacket
 {
     private static readonly Func<PacketReader, ActorBase> ReadFunction = reader =>
     {

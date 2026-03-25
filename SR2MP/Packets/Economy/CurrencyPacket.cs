@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Economy;
 
-public struct CurrencyPacket : IPacket
+internal struct CurrencyPacket : IPacket
 {
     public int NewAmount;
     public byte CurrencyType;

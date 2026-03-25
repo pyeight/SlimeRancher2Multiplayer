@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerUpdatePacket : IPacket
+internal sealed class PlayerUpdatePacket : IPacket
 {
     public string PlayerId;
     public Vector3 Position;

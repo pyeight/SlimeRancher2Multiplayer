@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Player;
 
 [PacketHandler((byte)PacketType.InitialPlayerUpgrades, HandlerType.Client)]
-public sealed class PlayerUpgradesLoadHandler : BasePacketHandler<InitialUpgradesPacket>
+internal sealed class PlayerUpgradesLoadHandler : BasePacketHandler<InitialUpgradesPacket>
 {
     protected override bool Handle(InitialUpgradesPacket packet, IPEndPoint? _)
     {

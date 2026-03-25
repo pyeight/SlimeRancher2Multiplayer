@@ -8,7 +8,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Internal;
 
 [PacketHandler((byte)PacketType.ConnectionApprove, HandlerType.Client)]
-public sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApprovePacket>
+internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApprovePacket>
 {
     protected override bool Handle(ConnectionApprovePacket packet, IPEndPoint? _)
     {

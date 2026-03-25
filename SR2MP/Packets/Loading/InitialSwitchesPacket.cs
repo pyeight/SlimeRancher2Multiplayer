@@ -2,9 +2,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialSwitchesPacket : IPacket
+internal sealed class InitialSwitchesPacket : IPacket
 {
-    public sealed class Switch : INetObject
+    internal sealed class Switch : INetObject
     {
         public string ID;
         public SwitchHandler.State State;

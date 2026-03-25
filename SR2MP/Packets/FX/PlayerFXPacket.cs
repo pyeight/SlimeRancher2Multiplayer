@@ -2,9 +2,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.FX;
 
-public sealed class PlayerFXPacket : IPacket
+internal sealed class PlayerFXPacket : IPacket
 {
-    public enum PlayerFXType : byte
+    internal enum PlayerFXType : byte
     {
         None,
         VacReject,

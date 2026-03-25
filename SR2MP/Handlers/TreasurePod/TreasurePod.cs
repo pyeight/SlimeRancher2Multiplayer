@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.TreasurePod;
 
 [PacketHandler((byte)PacketType.TreasurePod)]
-public sealed class TreasurePodHandler : BasePacketHandler<TreasurePodPacket>
+internal sealed class TreasurePodHandler : BasePacketHandler<TreasurePodPacket>
 {
     protected override bool Handle(TreasurePodPacket packet, IPEndPoint? _)
     {

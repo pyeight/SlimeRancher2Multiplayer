@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.Ammo;
 
-public sealed class AmmoDecrementPacket : IPacket
+internal sealed class AmmoDecrementPacket : IPacket
 {
     public int SlotIndex;
     public int Count;

@@ -5,12 +5,12 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.LandPlots;
 
-public abstract class LandPlotUpdateHandler<T> : BasePacketHandler<T> where T : LandPlotUpdatePacket, new()
+internal abstract class LandPlotUpdateHandler<T> : BasePacketHandler<T> where T : LandPlotUpdatePacket, new()
 {
 }
 
 [PacketHandler((byte)PacketType.LandPlotUpgrade)]
-public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgradePacket>
+internal sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgradePacket>
 {
     protected override bool Handle(LandPlotUpgradePacket packet, IPEndPoint? _)
     {
@@ -31,7 +31,7 @@ public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgra
 }
 
 [PacketHandler((byte)PacketType.NewLandPlot)]
-public sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
+internal sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
 {
     protected override bool Handle(NewLandPlotPacket packet, IPEndPoint? _)
     {

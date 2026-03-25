@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.GordoSlime;
 
 [PacketHandler((byte)PacketType.GordoBurst)]
-public sealed class GordoSlimeBurstHandler : BasePacketHandler<GordoSlimeBurstPacket>
+internal sealed class GordoSlimeBurstHandler : BasePacketHandler<GordoSlimeBurstPacket>
 {
     protected override bool Handle(GordoSlimeBurstPacket packet, IPEndPoint? _)
     {

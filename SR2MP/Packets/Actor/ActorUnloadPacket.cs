@@ -4,7 +4,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Packets.Actor;
 
 // Not sure what to call it, 'unload' as in when the actor leaves render distance.
-public struct ActorUnloadPacket : IPacket
+internal struct ActorUnloadPacket : IPacket
 {
     public ActorId ActorId;
 

@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Switch;
 
-public sealed class WorldSwitchPacket : IPacket
+internal sealed class WorldSwitchPacket : IPacket
 {
     public string ID;
     public SwitchHandler.State State;

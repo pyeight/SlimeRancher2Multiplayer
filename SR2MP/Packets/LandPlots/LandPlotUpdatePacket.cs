@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.LandPlots;
 
-public abstract class LandPlotUpdatePacket : IPacket
+internal abstract class LandPlotUpdatePacket : IPacket
 {
     public string PlotID;
 
@@ -14,7 +14,7 @@ public abstract class LandPlotUpdatePacket : IPacket
     public virtual void Deserialise(PacketReader reader) => PlotID = reader.ReadString();
 }
 
-public abstract class LandPlotUpdatePacket<T> : LandPlotUpdatePacket where T : struct, Enum
+internal abstract class LandPlotUpdatePacket<T> : LandPlotUpdatePacket where T : struct, Enum
 {
     public T ID;
 
@@ -31,12 +31,12 @@ public abstract class LandPlotUpdatePacket<T> : LandPlotUpdatePacket where T : s
     }
 }
 
-public sealed class LandPlotUpgradePacket : LandPlotUpdatePacket<LandPlot.Upgrade>
+internal sealed class LandPlotUpgradePacket : LandPlotUpdatePacket<LandPlot.Upgrade>
 {
     public override PacketType Type => PacketType.LandPlotUpgrade;
 }
 
-public sealed class NewLandPlotPacket : LandPlotUpdatePacket<LandPlot.Id>
+internal sealed class NewLandPlotPacket : LandPlotUpdatePacket<LandPlot.Id>
 {
     public override PacketType Type => PacketType.NewLandPlot;
 }

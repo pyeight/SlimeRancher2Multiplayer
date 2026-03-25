@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Pedia;
 
-public sealed class PediaUnlockPacket : IPacket
+internal sealed class PediaUnlockPacket : IPacket
 {
     public string ID;
     public bool Popup;

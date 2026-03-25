@@ -3,7 +3,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public sealed class AccessDoorPacket : IPacket
+internal sealed class AccessDoorPacket : IPacket
 {
     public string ID;
     public AccessDoor.State State;

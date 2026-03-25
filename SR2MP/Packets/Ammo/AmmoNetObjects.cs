@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 
 namespace SR2MP.Packets.Ammo;
 
-public sealed class NetworkAmmo : INetObject
+internal sealed class NetworkAmmo : INetObject
 {
     public Dictionary<int, NetworkAmmoSlot> AmmoSlots = new();
 
@@ -35,7 +35,7 @@ public sealed class NetworkAmmo : INetObject
     }
 }
 
-public struct NetworkAmmoSlot : INetObject
+internal struct NetworkAmmoSlot : INetObject
 {
     public int Identifiable;
     public int Count;

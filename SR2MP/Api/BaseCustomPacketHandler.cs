@@ -4,7 +4,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Api;
 
-public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : ICustomPacket, new()
+public abstract class BaseCustomPacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : ICustomPacket, new()
 {
     public bool IsServerSide { protected get; set; }
 

@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Actor;
 
-public struct ActorSpawnPacket : IPacket
+internal struct ActorSpawnPacket : IPacket
 {
     public ActorId ActorId;
     public Quaternion Rotation;

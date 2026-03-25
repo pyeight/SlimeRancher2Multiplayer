@@ -2,9 +2,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialGordosPacket : IPacket
+internal sealed class InitialGordosPacket : IPacket
 {
-    public sealed class GordoSlime : INetObject
+    internal sealed class GordoSlime : INetObject
     {
         public string Id;
         public int EatenCount;

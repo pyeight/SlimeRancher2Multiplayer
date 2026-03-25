@@ -7,7 +7,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Handlers.Access;
 
 [PacketHandler((byte)PacketType.AccessDoor)]
-public sealed class AccessDoorHandler : BasePacketHandler<AccessDoorPacket>
+internal sealed class AccessDoorHandler : BasePacketHandler<AccessDoorPacket>
 {
     protected override bool Handle(AccessDoorPacket packet, IPEndPoint? _)
     {

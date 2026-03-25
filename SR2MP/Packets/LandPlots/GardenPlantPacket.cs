@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class GardenPlantPacket : IPacket
+internal sealed class GardenPlantPacket : IPacket
 {
     public string ID;
     public int ActorType;

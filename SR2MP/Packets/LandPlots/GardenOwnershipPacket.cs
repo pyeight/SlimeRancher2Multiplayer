@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class GardenOwnershipPacket : IPacket
+internal sealed class GardenOwnershipPacket : IPacket
 {
     public string GardenID;
 

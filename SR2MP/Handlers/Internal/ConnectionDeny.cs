@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Internal;
 
 [PacketHandler((byte)PacketType.ConnectionDeny, HandlerType.Client)]
-public sealed class ConnectionDenyHandler : BasePacketHandler<ConnectionDenyPacket>
+internal sealed class ConnectionDenyHandler : BasePacketHandler<ConnectionDenyPacket>
 {
     protected override bool Handle(ConnectionDenyPacket packet, IPEndPoint? _)
     {

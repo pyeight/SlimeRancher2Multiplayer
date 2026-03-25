@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorTransfer)]
-public sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket>
+internal sealed class ActorTransferHandler : BasePacketHandler<ActorTransferPacket>
 {
     protected override bool Handle(ActorTransferPacket packet, IPEndPoint? _)
     {

@@ -3,9 +3,9 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed partial class InitialActorsPacket
+internal partial class InitialActorsPacket
 {
-    public enum ActorType : byte
+    internal enum ActorType : byte
     {
         Basic = 0,
 
@@ -34,7 +34,7 @@ public sealed partial class InitialActorsPacket
         { ActorType.Gadget,   typeof(ActorBase) },
     };
 
-    public class ActorBase : INetObject
+    internal class ActorBase : INetObject
     {
         public long ActorId;
         public Vector3 Position;
@@ -65,7 +65,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class Slime : ActorBase
+    internal sealed class Slime : ActorBase
     {
         public float4 Emotions;
 
@@ -84,7 +84,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class LinkedGadget : ActorBase
+    internal sealed class LinkedGadget : ActorBase
     {
         public long LinkedActorId;
 
@@ -103,7 +103,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public abstract class Destroyable : ActorBase
+    internal abstract class Destroyable : ActorBase
     {
         public double DestroyTime;
 
@@ -120,7 +120,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class Resource : Destroyable
+    internal sealed class Resource : Destroyable
     {
         public double ProgressTime;
         public ResourceCycle.State ResourceState;
@@ -152,7 +152,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class Plort : Destroyable
+    internal sealed class Plort : Destroyable
     {
         public bool Invulnerable;
         public float InvulnerablePeriod;

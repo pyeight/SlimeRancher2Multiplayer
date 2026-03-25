@@ -8,7 +8,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.Player;
 
-public abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
+internal abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 {
     protected static void InstantiatePlayer(PlayerJoinPacket packet)
     {
@@ -23,7 +23,7 @@ public abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket
 }
 
 [PacketHandler((byte)PacketType.BroadcastPlayerJoin, HandlerType.Client)]
-public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
+internal sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
 {
     protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? _)
     {
@@ -46,7 +46,7 @@ public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
 }
 
 [PacketHandler((byte)PacketType.PlayerJoin, HandlerType.Server)]
-public sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
+internal sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
 {
     protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? clientEp)
     {

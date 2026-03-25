@@ -3,7 +3,7 @@ using SR2MP.Components.FX;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed class RemoteFXManager
+internal sealed class RemoteFXManager
 {
     // ReSharper disable once MemberCanBePrivate.Global
     public readonly Dictionary<string, GameObject> AllFX = new();

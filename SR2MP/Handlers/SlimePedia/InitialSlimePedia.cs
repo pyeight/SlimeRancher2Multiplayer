@@ -9,7 +9,7 @@ using Enumerable = Il2CppSystem.Linq.Enumerable;
 namespace SR2MP.Handlers.SlimePedia;
 
 [PacketHandler((byte)PacketType.InitialPediaEntries, HandlerType.Client)]
-public sealed class InitialSlimePediaLoadHandler : BasePacketHandler<InitialPediaPacket>
+internal sealed class InitialSlimePediaLoadHandler : BasePacketHandler<InitialPediaPacket>
 {
     protected override bool Handle(InitialPediaPacket packet, IPEndPoint? _)
     {

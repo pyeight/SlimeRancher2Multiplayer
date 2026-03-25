@@ -8,7 +8,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Refinery;
 
 [PacketHandler((byte)PacketType.InitialRefinery, HandlerType.Client)]
-public sealed class InitialRefineryHandler : BasePacketHandler<InitialRefineryPacket>
+internal sealed class InitialRefineryHandler : BasePacketHandler<InitialRefineryPacket>
 {
     protected override bool Handle(InitialRefineryPacket packet, IPEndPoint? _)
     {

@@ -66,7 +66,7 @@ public sealed class Main : SR2EExpansionV3
         LoadRPCAssembly();
     }
 
-    public static void SendToAllOrServer<T>(T packet) where T : IPacket
+    internal static void SendToAllOrServer<T>(T packet) where T : IPacket
     {
         if (Client.IsConnected)
         {

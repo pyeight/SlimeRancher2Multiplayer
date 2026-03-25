@@ -3,7 +3,7 @@
 
 namespace SR2MP.Shared.Managers;
 
-public static class NetworkAmmoManager
+internal static class NetworkAmmoManager
 {
     public static void Initialize()
     {

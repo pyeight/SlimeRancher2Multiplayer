@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Currency;
 
 [PacketHandler((byte)PacketType.CurrencyAdjust)]
-public sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
+internal sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
 {
     protected override bool Handle(CurrencyPacket packet, IPEndPoint? _)
     {

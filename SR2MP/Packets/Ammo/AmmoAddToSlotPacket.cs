@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.Ammo;
 
-public sealed class AmmoAddToSlotPacket : IPacket
+internal sealed class AmmoAddToSlotPacket : IPacket
 {
     public int Identifiable;
     public int SlotIndex;

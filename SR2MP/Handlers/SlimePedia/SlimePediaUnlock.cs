@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.SlimePedia;
 
 [PacketHandler((byte)PacketType.PediaUnlock)]
-public sealed class SlimePediaUnlockHandler : BasePacketHandler<PediaUnlockPacket>
+internal sealed class SlimePediaUnlockHandler : BasePacketHandler<PediaUnlockPacket>
 {
     protected override bool Handle(PediaUnlockPacket packet, IPEndPoint? _)
     {

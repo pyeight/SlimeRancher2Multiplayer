@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public struct WorldTimePacket : IPacket
+internal struct WorldTimePacket : IPacket
 {
     public double Time;
 

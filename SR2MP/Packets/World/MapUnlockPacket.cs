@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public sealed class MapUnlockPacket : IPacket
+internal sealed class MapUnlockPacket : IPacket
 {
     public string NodeID;
 

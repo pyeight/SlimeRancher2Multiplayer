@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Api;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Api;
@@ -194,7 +195,13 @@ public sealed class SR2MPServer
     /// <param name="endPoint">The endpoint of the client to receive the packet.</param>
     public void SendDataToClient<T>(T data, IPEndPoint endPoint) where T : ICustomPacket
     {
-        var apiHeader = new ApiPacket(data.Reliability);
+        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        {
+            SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
+            return;
+        }
+
+        var apiHeader = new ApiPacket(data.Reliability, modId);
         PrepareAndSendToClient((apiHeader, data), apiHeader.Reliability, endPoint, SerialiseApiPacket<T>.Func);
     }
 
@@ -242,7 +249,13 @@ public sealed class SR2MPServer
     // ReSharper disable once UnusedMember.Global
     public void SendDataToAll<T>(T data) where T : ICustomPacket
     {
-        var apiHeader = new ApiPacket(data.Reliability);
+        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        {
+            SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
+            return;
+        }
+
+        var apiHeader = new ApiPacket(data.Reliability, modId);
         PrepareAndSendToAll((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Func);
     }
 
@@ -278,7 +291,13 @@ public sealed class SR2MPServer
     /// <param name="excludedClientInfo">The client info string to exclude from the broadcast.</param>
     public void SendDataToAllExcept<T>(T data, string excludedClientInfo) where T : ICustomPacket
     {
-        var apiHeader = new ApiPacket(data.Reliability);
+        if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
+        {
+            SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
+            return;
+        }
+
+        var apiHeader = new ApiPacket(data.Reliability, modId);
         PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Func, excludedClientInfo);
     }
 

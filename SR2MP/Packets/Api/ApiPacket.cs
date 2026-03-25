@@ -2,14 +2,20 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Api;
 
-internal readonly struct ApiPacket : IPacket
+internal struct ApiPacket : IPacket
 {
-    public PacketType Type => PacketType.ApiCall;
+    public readonly PacketType Type => PacketType.ApiCall;
     public PacketReliability Reliability { get; }
 
-    public ApiPacket(PacketReliability reliability) => Reliability = reliability;
+    public ushort ModId;
 
-    public void Deserialise(PacketReader reader) { }
+    public ApiPacket(PacketReliability reliability, ushort modId)
+    {
+        Reliability = reliability;
+        ModId = modId;
+    }
 
-    public void Serialise(PacketWriter writer) { }
+    public void Deserialise(PacketReader reader) => ModId = reader.ReadUShort();
+
+    public readonly void Serialise(PacketWriter writer) => writer.WriteUShort(ModId);
 }

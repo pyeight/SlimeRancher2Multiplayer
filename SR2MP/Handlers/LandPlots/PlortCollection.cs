@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.PlortCollection)]
-public sealed class PlortCollectionHandler : BasePacketHandler<PlortCollectionPacket>
+internal sealed class PlortCollectionHandler : BasePacketHandler<PlortCollectionPacket>
 {
     protected override bool Handle(PlortCollectionPacket packet, IPEndPoint? _)
     {

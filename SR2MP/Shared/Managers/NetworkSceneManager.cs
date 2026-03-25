@@ -2,7 +2,7 @@ using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 
 namespace SR2MP.Shared.Managers;
 
-public static class NetworkSceneManager
+internal static class NetworkSceneManager
 {
     private static readonly Dictionary<int, SceneGroup> AllSceneGroups = new();
 

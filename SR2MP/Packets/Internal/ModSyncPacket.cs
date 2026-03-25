@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Internal;
 
-public sealed class ModSyncPacket : IPacket
+internal sealed class ModSyncPacket : IPacket
 {
     public Dictionary<ushort, string> Mods;
 

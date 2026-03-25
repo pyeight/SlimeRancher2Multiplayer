@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialMapPacket : IPacket
+internal sealed class InitialMapPacket : IPacket
 {
     public List<string> UnlockedNodes;
 

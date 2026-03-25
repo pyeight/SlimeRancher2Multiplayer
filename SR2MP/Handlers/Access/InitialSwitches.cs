@@ -8,7 +8,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Access;
 
 [PacketHandler((byte)PacketType.InitialSwitches, HandlerType.Client)]
-public sealed class InitialSwitchesHandler : BasePacketHandler<InitialSwitchesPacket>
+internal sealed class InitialSwitchesHandler : BasePacketHandler<InitialSwitchesPacket>
 {
     protected override bool Handle(InitialSwitchesPacket packet, IPEndPoint? _)
     {

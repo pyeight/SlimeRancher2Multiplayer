@@ -6,7 +6,7 @@ using SR2MP.Packets.World;
 
 namespace SR2MP.Handlers.Weather;
 
-public abstract class BaseWeatherHandler : BasePacketHandler<WeatherPacket>
+internal abstract class BaseWeatherHandler : BasePacketHandler<WeatherPacket>
 {
     private readonly bool _immediate;
 

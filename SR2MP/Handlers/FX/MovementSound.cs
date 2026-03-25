@@ -7,7 +7,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.FX;
 
 [PacketHandler((byte)PacketType.MovementSound)]
-public sealed class MovementSoundHandler : BasePacketHandler<MovementSoundPacket>
+internal sealed class MovementSoundHandler : BasePacketHandler<MovementSoundPacket>
 {
     protected override bool Handle(MovementSoundPacket packet, IPEndPoint? _)
     {

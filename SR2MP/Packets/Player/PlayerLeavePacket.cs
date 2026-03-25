@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerLeavePacket : IPacket
+internal sealed class PlayerLeavePacket : IPacket
 {
     public string PlayerId;
 

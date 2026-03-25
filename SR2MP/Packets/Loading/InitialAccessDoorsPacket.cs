@@ -3,9 +3,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialAccessDoorsPacket : IPacket
+internal sealed class InitialAccessDoorsPacket : IPacket
 {
-    public sealed class Door : INetObject
+    internal sealed class Door : INetObject
     {
         public string ID;
         public AccessDoor.State State;

@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.Internal;
 
 [PacketHandler((byte)PacketType.ResyncRequest, HandlerType.Server)]
-public sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket>
+internal sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket>
 {
     protected override bool Handle(ResyncRequestPacket packet, IPEndPoint? clientEp)
     {

@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.TreasurePod;
 
-public sealed class TreasurePodPacket : IPacket
+internal sealed class TreasurePodPacket : IPacket
 {
     public int ID;
 

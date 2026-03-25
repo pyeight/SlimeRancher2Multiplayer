@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.SiloSlotSelect)]
-public sealed class SiloSlotSelectHandler : BasePacketHandler<SiloSlotSelectPacket>
+internal sealed class SiloSlotSelectHandler : BasePacketHandler<SiloSlotSelectPacket>
 {
     protected override bool Handle(SiloSlotSelectPacket packet, IPEndPoint? _)
     {

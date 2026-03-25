@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Geyser;
 
 [PacketHandler((byte)PacketType.GeyserTrigger)]
-public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket>
+internal sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket>
 {
     protected override bool Handle(GeyserTriggerPacket packet, IPEndPoint? _)
     {

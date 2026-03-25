@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.Ammo;
 
-public sealed class AmmoAddPacket : IPacket
+internal sealed class AmmoAddPacket : IPacket
 {
     public int Identifiable;
     public int Count;

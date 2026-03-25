@@ -5,7 +5,7 @@ namespace SR2MP.Packets.FX;
 // Do not rewrite this, the movement SFX comes in many materials and types (36 different sounds).
 // Il2CppMonomiPark.SlimeRancher.VFX.EnvironmentInteraction;
 // GroundCollisionMaterials.GroundCollisionMaterialType.X
-public sealed class MovementSoundPacket : IPacket
+internal sealed class MovementSoundPacket : IPacket
 {
     public Vector3 Position;
     public string CueName;

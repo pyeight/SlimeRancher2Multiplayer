@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.AutoFeederSpeed)]
-public sealed class AutoFeederSpeedHandler : BasePacketHandler<AutoFeederSpeedPacket>
+internal sealed class AutoFeederSpeedHandler : BasePacketHandler<AutoFeederSpeedPacket>
 {
     protected override bool Handle(AutoFeederSpeedPacket packet, IPEndPoint? _)
     {
