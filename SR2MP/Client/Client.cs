@@ -255,8 +255,6 @@ public sealed class SR2MPClient
         PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, SerialiseApiPacket<T>.Func);
     }
 
-    internal delegate void PacketWriterDelegate<in T>(PacketWriter writer, T state);
-
     private void PrepareAndSend<T>(T state, PacketReliability reliability, byte packetType, PacketWriterDelegate<T> writeAction)
     {
         if (udpClient == null || serverEndPoint == null || !isConnected)
@@ -419,18 +417,4 @@ public sealed class SR2MPClient
     // }
 
     // public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
-
-    private static class SerialiseApiPacket<T> where T : ICustomPacket
-    {
-        public static readonly PacketWriterDelegate<(ApiPacket Packet, T Data)> Func = (writer, state) =>
-        {
-            writer.WritePacket(state.Packet);
-            writer.WriteCustomPacket(state.Data);
-        };
-    }
-
-    private static class SerialiseInternalPacket<T> where T : IPacket
-    {
-        public static readonly PacketWriterDelegate<T> Func = (writer, packet) => writer.WritePacket(packet);
-    }
 }

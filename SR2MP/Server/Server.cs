@@ -1,6 +1,7 @@
 using System.Net;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
+using SR2MP.Packets.Api;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Server.Managers;
@@ -178,56 +179,51 @@ public sealed class SR2MPServer
         }
     }
 
-    public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
+    internal void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
+        => PrepareAndSendToClient(packet, packet.Reliability, endPoint, SerialiseInternalPacket<T>.Func);
+
+    // ReSharper disable once UnusedMember.Global
+    internal void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
+        => SendToClient(packet, client.EndPoint);
+
+    /// <summary>
+    /// Sends a custom packet to a specific client endpoint.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    /// <param name="endPoint">The endpoint of the client to receive the packet.</param>
+    public void SendDataToClient<T>(T data, IPEndPoint endPoint) where T : ICustomPacket
+    {
+        var apiHeader = new ApiPacket(data.Reliability);
+        PrepareAndSendToClient((apiHeader, data), apiHeader.Reliability, endPoint, SerialiseApiPacket<T>.Func);
+    }
+
+    /// <summary>
+    /// Sends a custom packet to a specific client.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    /// <param name="client">The client info of the recipient.</param>
+    // ReSharper disable once UnusedMember.Global
+    public void SendDataToClient<T>(T data, ClientInfo client) where T : ICustomPacket
+        => SendDataToClient(data, client.EndPoint);
+
+    private void PrepareAndSendToClient<T>(T state, PacketReliability reliability, IPEndPoint endPoint, PacketWriterDelegate<T> writeAction)
     {
         var writer = PacketWriter.Borrow();
 
         try
         {
-            writer.WritePacket(packet);
-            NetworkManager.Send(writer.ToSpan(), endPoint, packet.Reliability);
-        }
-        finally
-        {
-            PacketWriter.Return(writer);
-        }
-    }
-
-    public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
-    {
-        SendToClient(packet, client.EndPoint);
-    }
-
-    public void SendToAll<T>(T packet) where T : IPacket
-    {
-        var writer = PacketWriter.Borrow();
-
-        try
-        {
-            writer.WritePacket(packet);
-            var endpoints = ClientManager.GetAllClients().Select(c => c.EndPoint);
-            NetworkManager.Broadcast(writer.ToSpan(), endpoints, packet.Reliability);
-        }
-        finally
-        {
-            PacketWriter.Return(writer);
-        }
-    }
-
-    public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
-    {
-        var writer = PacketWriter.Borrow();
-
-        try
-        {
-            writer.WritePacket(packet);
+            writeAction(writer, state);
             var data = writer.ToSpan();
 
-            foreach (var client in ClientManager.GetAllClients())
-            {
-                if (client.GetClientInfo() != excludedClientInfo)
-                    NetworkManager.Send(data, client.EndPoint, packet.Reliability);
-            }
+            NetworkManager.Send(data, endPoint, reliability);
+
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to client at {endPoint}.");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Failed to send packet to client {endPoint}: {ex}");
         }
         finally
         {
@@ -235,10 +231,109 @@ public sealed class SR2MPServer
         }
     }
 
-    public void SendToAllExcept<T>(T packet, IPEndPoint? excludeEndPoint) where T : IPacket
+    internal void SendToAll<T>(T packet) where T : IPacket
+        => PrepareAndSendToAll(packet, packet.Reliability, SerialiseInternalPacket<T>.Func);
+
+    /// <summary>
+    /// Broadcasts a custom packet to all connected clients.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    // ReSharper disable once UnusedMember.Global
+    public void SendDataToAll<T>(T data) where T : ICustomPacket
+    {
+        var apiHeader = new ApiPacket(data.Reliability);
+        PrepareAndSendToAll((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Func);
+    }
+
+    private void PrepareAndSendToAll<T>(T state, PacketReliability reliability, PacketWriterDelegate<T> writeAction)
+    {
+        var writer = PacketWriter.Borrow();
+
+        try
+        {
+            writeAction(writer, state);
+            var data = writer.ToSpan();
+
+            var endpoints = ClientManager.GetAllClients().Select(c => c.EndPoint);
+            NetworkManager.Broadcast(data, endpoints, reliability);
+
+            SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to all clients.");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Failed to broadcast packet to all: {ex}");
+        }
+        finally
+        {
+            PacketWriter.Return(writer);
+        }
+    }
+
+    /// <summary>
+    /// Broadcasts a custom packet to all clients except the specified one.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    /// <param name="excludedClientInfo">The client info string to exclude from the broadcast.</param>
+    public void SendDataToAllExcept<T>(T data, string excludedClientInfo) where T : ICustomPacket
+    {
+        var apiHeader = new ApiPacket(data.Reliability);
+        PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Func, excludedClientInfo);
+    }
+
+    /// <summary>
+    /// Broadcasts a custom packet to all clients except the specified endpoint.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    /// <param name="excludeEndPoint">The endpoint to exclude from the broadcast.</param>
+    // ReSharper disable once UnusedMember.Global
+    public void SendDataToAllExcept<T>(T data, IPEndPoint? excludeEndPoint) where T : ICustomPacket
+    {
+        var clientInfo = $"{excludeEndPoint?.Address}:{excludeEndPoint?.Port}";
+        SendDataToAllExcept(data, clientInfo);
+    }
+
+    internal void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
+        => PrepareAndSendToAllExcept(packet, packet.Reliability, SerialiseInternalPacket<T>.Func, excludedClientInfo);
+
+    internal void SendToAllExcept<T>(T packet, IPEndPoint? excludeEndPoint) where T : IPacket
     {
         var clientInfo = $"{excludeEndPoint?.Address}:{excludeEndPoint?.Port}";
         SendToAllExcept(packet, clientInfo);
+    }
+
+    private void PrepareAndSendToAllExcept<T>(T state, PacketReliability reliability, PacketWriterDelegate<T> writeAction, string excludedClientInfo)
+    {
+        var writer = PacketWriter.Borrow();
+
+        try
+        {
+            writeAction(writer, state);
+            var data = writer.ToSpan();
+
+            var sentCount = 0;
+
+            foreach (var client in ClientManager.GetAllClients())
+            {
+                if (client.GetClientInfo() == excludedClientInfo)
+                    continue;
+
+                NetworkManager.Send(data, client.EndPoint, reliability);
+                sentCount++;
+            }
+
+            SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to {sentCount} client(s).");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Failed to broadcast packet: {ex}");
+        }
+        finally
+        {
+            PacketWriter.Return(writer);
+        }
     }
 
     // public int GetPendingReliablePackets() => NetworkManager.GetPendingReliablePackets();
