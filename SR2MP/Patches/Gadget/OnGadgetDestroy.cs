@@ -4,7 +4,7 @@ using SR2MP.Packets.Actor;
 namespace SR2MP.Patches.Gadget;
 
 [HarmonyPatch(typeof(Destroyer), nameof(Destroyer.DestroyGadget))]
-public static class OnGadgetDestroy
+internal static class OnGadgetDestroy
 {
     public static void Prefix(GameObject gadgetObj)
     {

@@ -9,7 +9,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Actor;
 
 [HarmonyPatch(typeof(InstantiationHelpers), nameof(InstantiationHelpers.InstantiateActor))]
-public static class OnActorSpawn
+internal static class OnActorSpawn
 {
     private static IEnumerator SpawnOverNetwork(int actorType, byte sceneGroup, GameObject actor)
     {

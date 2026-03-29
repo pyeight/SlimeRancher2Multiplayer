@@ -4,7 +4,7 @@ using SR2MP.Packets.FX;
 namespace SR2MP.Patches.FX;
 
 [HarmonyPatch(typeof(SECTR_PointSource), nameof(SECTR_PointSource.Play))]
-public static class OnPointSourcePlay
+internal static class OnPointSourcePlay
 {
     public static void Postfix(SECTR_PointSource __instance)
     {

@@ -7,7 +7,7 @@ using SR2MP.Server.Managers;
 
 namespace SR2MP.Client.Managers;
 
-public static class NetworkWeatherManager
+internal static class NetworkWeatherManager
 {
     public static WeatherRegistry Registry => SceneContext.Instance.WeatherRegistry;
 

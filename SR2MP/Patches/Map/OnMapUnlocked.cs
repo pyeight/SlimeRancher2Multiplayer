@@ -5,7 +5,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Patches.Map;
 
 [HarmonyPatch(typeof(MapNodeActivator), nameof(MapNodeActivator.Activate))]
-public static class OnMapUnlocked
+internal static class OnMapUnlocked
 {
     public static void Postfix(MapNodeActivator __instance)
     {

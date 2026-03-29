@@ -4,7 +4,7 @@ using SR2MP.Components.LandPlots;
 namespace SR2MP.Patches.LandPlots;
 
 [HarmonyPatch(typeof(SpawnResource), nameof(SpawnResource.Awake))]
-public static class SpawnResourceAwakePatch
+internal static class SpawnResourceAwakePatch
 {
     public static void Postfix(SpawnResource __instance)
     {

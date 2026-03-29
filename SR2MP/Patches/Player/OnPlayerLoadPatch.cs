@@ -6,7 +6,7 @@ using SR2MP.Components.Player;
 namespace SR2MP.Patches.Player;
 
 [HarmonyPatch(typeof(SRCharacterController), nameof(SRCharacterController.Awake))]
-public static class OnPlayerLoadPatch
+internal static class OnPlayerLoadPatch
 {
     public static void Postfix(SRCharacterController __instance)
     {

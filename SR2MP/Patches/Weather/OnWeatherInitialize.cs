@@ -5,7 +5,7 @@ using SR2MP.Components.World;
 namespace SR2MP.Patches.Weather;
 
 [HarmonyPatch(typeof(SceneContext), nameof(SceneContext.Start))]
-public static class OnWeatherInitialize
+internal static class OnWeatherInitialize
 {
     private static bool injectedToServer;
 

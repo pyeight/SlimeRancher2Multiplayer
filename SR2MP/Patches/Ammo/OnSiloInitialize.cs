@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Ammo;
 
 [HarmonyPatch(typeof(SiloStorage), nameof(SiloStorage.InitAmmo))]
-public static class OnSiloInitialize
+internal static class OnSiloInitialize
 {
     public static void Postfix(SiloStorage __instance)
     {

@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Actor;
 
 [HarmonyPatch(typeof(SceneContext), nameof(SceneContext.Start))]
-public static class OnGameLoadPatch
+internal static class OnGameLoadPatch
 {
     public static void Postfix() => Main.Server.OnServerStarted += () =>
     {

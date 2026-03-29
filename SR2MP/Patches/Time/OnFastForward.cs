@@ -5,7 +5,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Patches.Time;
 
 [HarmonyPatch(typeof(TimeDirector), nameof(TimeDirector.FastForwardTo))]
-public static class OnFastForward
+internal static class OnFastForward
 {
     public static void Postfix(double fastForwardUntil)
     {

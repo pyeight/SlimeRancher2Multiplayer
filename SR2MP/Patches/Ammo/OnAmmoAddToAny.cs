@@ -9,7 +9,7 @@ namespace SR2MP.Patches.Ammo;
     typeof(Identifiable),
     typeof(SlimeAppearance.AppearanceSaveSet),
     typeof(bool))]
-public static class OnAmmoAddToAny
+internal static class OnAmmoAddToAny
 {
     public static void Postfix(AmmoSlotManager __instance, ref bool __result, IdentifiableType id)
     {
@@ -22,7 +22,7 @@ public static class OnAmmoAddToAny
         {
             Identifiable = NetworkActorManager.GetPersistentID(id),
             Count = 1,
-            ID = __instance.GetPlotID()!,
+            ID = __instance.GetPlotID(),
         };
 
         if (packet.ID == null) return;

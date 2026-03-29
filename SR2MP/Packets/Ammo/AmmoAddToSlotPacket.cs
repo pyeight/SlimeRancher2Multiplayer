@@ -7,7 +7,7 @@ internal sealed class AmmoAddToSlotPacket : IPacket
     public int Identifiable;
     public int SlotIndex;
     public int Count;
-    public string ID;
+    public string? ID;
 
     public PacketType Type => PacketType.AmmoAddToSlot;
     public PacketReliability Reliability => PacketReliability.Reliable;

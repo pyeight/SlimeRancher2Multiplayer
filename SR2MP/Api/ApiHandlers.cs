@@ -39,11 +39,7 @@ public static class ApiHandlers
     {
         var gotName = assembly.GetName();
         var name = gotName.Name;
-        var fullName = assembly.FullName
-            ?? gotName.FullName
-            ?? gotName.Name
-            ?? assembly.ManifestModule.Name
-            ?? throw new InvalidOperationException("Unable to determine assembly identity for API registration.");
+        var fullName = assembly.FullName ?? gotName.FullName;
         var modId = ComputeDeterministicModId(fullName);
 
         // Fast path: assembly already registered with same id
@@ -71,11 +67,7 @@ public static class ApiHandlers
 
         // Ensure only one thread wins registration for this ModId.
         if (!Holders.TryAdd(modId, holder))
-        {
-            // Another thread registered in the meantime; re-run through safe path.
-            RegisterHandlers(assembly);
             return;
-        }
 
         AssemblyIdMap[fullName] = modId;
 

@@ -10,6 +10,7 @@
       <Configurations>Debug;Release</Configurations>
       <DebugType>embedded</DebugType>
       <NoWarn>1701;1702;RCS1037;CS0436</NoWarn>
+      <OutputType>Library</OutputType>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

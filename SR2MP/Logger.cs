@@ -70,6 +70,9 @@ public static class Logger
 
     private static void LogInternal(object? message, LogLevel level, SrLogTarget target, Action<string>? sr2EAction, Action<string>? melonAction)
     {
+        if (target == SrLogTarget.Neither)
+            return;
+
         var msgString = message?.ToString() ?? "message was null!";
         var formattedLine = Format(msgString, level);
 

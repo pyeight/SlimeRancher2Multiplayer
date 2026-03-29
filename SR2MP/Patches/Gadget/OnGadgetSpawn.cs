@@ -9,7 +9,7 @@ using Unity.Mathematics;
 namespace SR2MP.Patches.Gadget;
 
 [HarmonyPatch(typeof(GadgetDirector), nameof(GadgetDirector.InstantiateGadget))]
-public static class OnGadgetSpawn
+internal static class OnGadgetSpawn
 {
     private static IEnumerator SpawnOverNetwork(
         GameObject result,

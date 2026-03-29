@@ -4,7 +4,7 @@ using SR2MP.Packets.Actor;
 namespace SR2MP.Patches.Actor;
 
 [HarmonyPatch(typeof(Destroyer), nameof(Destroyer.DestroyActor), typeof(GameObject), typeof(string), typeof(bool))]
-public static class OnActorDestroy
+internal static class OnActorDestroy
 {
     public static bool Prefix(GameObject actorObj, string source)
     {
@@ -20,7 +20,10 @@ public static class OnActorDestroy
                 }
             }
         }
-        catch { }
+        catch
+        {
+            // ignored
+        }
 
         if (HandlingPacket || !actorObj)
             return true;

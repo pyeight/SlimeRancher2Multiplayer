@@ -4,7 +4,7 @@ using SR2E.Managers;
 namespace SR2MP.Patches.Compatibility;
 
 [HarmonyPatch(typeof(SR2ECommandManager), nameof(SR2ECommandManager.ExecuteByString), typeof(string), typeof(bool), typeof(bool))]
-public static class ConsoleCheatPatch
+internal static class ConsoleCheatPatch
 {
     public static bool Prefix(string input)
     {

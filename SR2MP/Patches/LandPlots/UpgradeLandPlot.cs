@@ -4,7 +4,7 @@ using SR2MP.Packets.LandPlots;
 namespace SR2MP.Patches.LandPlots;
 
 [HarmonyPatch(typeof(LandPlot), nameof(LandPlot.AddUpgrade))]
-public static class UpgradeLandPlot
+internal static class UpgradeLandPlot
 {
     public static void Postfix(LandPlot __instance, LandPlot.Upgrade upgrade)
     {

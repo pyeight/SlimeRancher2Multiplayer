@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Ammo;
 
 [HarmonyPatch(typeof(AmmoSlotManager), nameof(AmmoSlotManager.Decrement), typeof(int), typeof(int))]
-public static class OnAmmoDecrement
+internal static class OnAmmoDecrement
 {
     public static void Postfix(AmmoSlotManager __instance, int index, int count)
     {
@@ -18,7 +18,7 @@ public static class OnAmmoDecrement
         {
             SlotIndex = index,
             Count = count,
-            ID = __instance.GetPlotID()!
+            ID = __instance.GetPlotID()
         };
 
         if (packet.ID == null) return;

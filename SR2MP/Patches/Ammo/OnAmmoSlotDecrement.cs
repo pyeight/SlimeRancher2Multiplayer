@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Ammo;
 
 [HarmonyPatch(typeof(AmmoSlot), nameof(AmmoSlot.DecrementAmmo))]
-public static class OnAmmoSlotDecrement
+internal static class OnAmmoSlotDecrement
 {
     public static void Postfix(AmmoSlot __instance)
     {

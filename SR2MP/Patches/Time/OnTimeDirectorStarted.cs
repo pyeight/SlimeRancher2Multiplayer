@@ -5,7 +5,7 @@ using SR2MP.Components.Time;
 namespace SR2MP.Patches.Time;
 
 [HarmonyPatch(typeof(SceneContext), nameof(SceneContext.Start))]
-public static class OnTimeDirectorStarted
+internal static class OnTimeDirectorStarted
 {
     private static bool injectedToServer;
 

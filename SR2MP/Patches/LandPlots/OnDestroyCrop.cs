@@ -4,7 +4,7 @@ using SR2MP.Packets.LandPlots;
 namespace SR2MP.Patches.LandPlots;
 
 [HarmonyPatch(typeof(LandPlot), nameof(LandPlot.DestroyAttached))]
-public static class OnDestroyCrop
+internal static class OnDestroyCrop
 {
     public static void Postfix(LandPlot __instance)
     {

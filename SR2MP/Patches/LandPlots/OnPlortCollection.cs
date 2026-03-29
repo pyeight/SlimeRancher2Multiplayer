@@ -4,7 +4,7 @@ using SR2MP.Packets.LandPlots;
 namespace SR2MP.Patches.LandPlots;
 
 [HarmonyPatch(typeof(PlortCollector), nameof(PlortCollector.StartCollection))]
-public static class OnPlortCollection
+internal static class OnPlortCollection
 {
     public static void Postfix(PlortCollector __instance)
     {

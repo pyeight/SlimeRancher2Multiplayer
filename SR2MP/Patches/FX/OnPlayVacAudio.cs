@@ -5,7 +5,7 @@ using SR2MP.Packets.FX;
 namespace SR2MP.Patches.FX;
 
 [HarmonyPatch(typeof(VacuumItem), nameof(VacuumItem.PlayTransientAudio))]
-public static class OnPlayVacAudio
+internal static class OnPlayVacAudio
 {
     // Note: You CAN rename cue by using [HarmonyArgument(0)] SECTR_AudioCue youNewName - Az
     public static void Postfix(SECTR_AudioCue cue)

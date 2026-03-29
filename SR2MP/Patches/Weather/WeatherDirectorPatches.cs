@@ -6,7 +6,7 @@ namespace SR2MP.Patches.Weather;
 
 [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.StopState))]
 [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
-public static class WeatherDirectorStatePatches
+internal static class WeatherDirectorStatePatches
 {
     public static bool Prefix()
     {

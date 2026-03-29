@@ -6,7 +6,7 @@ internal sealed class AmmoDecrementPacket : IPacket
 {
     public int SlotIndex;
     public int Count;
-    public string ID;
+    public string? ID;
 
     public PacketType Type => PacketType.AmmoDecrement;
     public PacketReliability Reliability => PacketReliability.Reliable;

@@ -5,7 +5,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.LandPlots;
 
 [HarmonyPatch(typeof(GardenCatcher), nameof(GardenCatcher.Plant))]
-public static class PlantGarden
+internal static class PlantGarden
 {
     public static void Postfix(GardenCatcher __instance, IdentifiableType cropId)
     {

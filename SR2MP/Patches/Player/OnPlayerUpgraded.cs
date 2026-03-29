@@ -5,7 +5,7 @@ using SR2MP.Packets.Upgrade;
 namespace SR2MP.Patches.Player;
 
 [HarmonyPatch(typeof(UpgradeModel), nameof(UpgradeModel.IncrementUpgradeLevel))]
-public static class OnPlayerUpgraded
+internal static class OnPlayerUpgraded
 {
     public static void Postfix(UpgradeDefinition definition)
     {

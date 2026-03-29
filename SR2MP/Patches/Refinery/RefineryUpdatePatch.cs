@@ -5,7 +5,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Patches.Refinery;
 
 [HarmonyPatch(typeof(GadgetsModel), nameof(GadgetsModel.SetCount))]
-public static class RefineryUpdate
+internal static class RefineryUpdate
 {
     public static void Postfix(GadgetsModel __instance, IdentifiableType type, int newCount)
     {

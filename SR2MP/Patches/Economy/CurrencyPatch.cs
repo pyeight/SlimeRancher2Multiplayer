@@ -5,7 +5,7 @@ using SR2MP.Packets.Economy;
 namespace SR2MP.Patches.Economy;
 
 [HarmonyPatch(typeof(PlayerState))]
-public static class CurrencyPatch
+internal static class CurrencyPatch
 {
     [HarmonyPostfix, HarmonyPatch(nameof(PlayerState.AddCurrency))]
     public static void AddCurrency(

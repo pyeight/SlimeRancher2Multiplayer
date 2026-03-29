@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.FX;
 
 [HarmonyPatch(typeof(BaseUI), nameof(BaseUI.Play))]
-public static class OnPlayUIAudio
+internal static class OnPlayUIAudio
 {
     [HarmonyPrefix]
     public static bool OnPlay(SECTR_AudioCue cue)

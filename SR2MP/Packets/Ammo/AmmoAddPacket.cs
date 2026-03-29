@@ -6,7 +6,7 @@ internal sealed class AmmoAddPacket : IPacket
 {
     public int Identifiable;
     public int Count;
-    public string ID;
+    public string? ID;
 
     public PacketType Type => PacketType.AmmoAdd;
     public PacketReliability Reliability => PacketReliability.Reliable;

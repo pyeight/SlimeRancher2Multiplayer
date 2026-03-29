@@ -7,7 +7,7 @@ namespace SR2MP.Patches.Ammo
 {
     [HarmonyPatch(typeof(AmmoSlotManager), nameof(AmmoSlotManager.MaybeAddToSpecificSlot), typeof(IdentifiableType),
         typeof(Identifiable), typeof(int), typeof(int), typeof(bool))]
-    public static class OnAmmoAddToSlot
+    internal static class OnAmmoAddToSlot
     {
         public static void Postfix(AmmoSlotManager __instance, ref bool __result, IdentifiableType id, int slotIdx, int count)
         {
@@ -21,7 +21,7 @@ namespace SR2MP.Patches.Ammo
                 Identifiable = NetworkActorManager.GetPersistentID(id),
                 SlotIndex = slotIdx,
                 Count = count,
-                ID = __instance.GetPlotID()!
+                ID = __instance.GetPlotID()
             };
 
             if (packet.ID == null) return;

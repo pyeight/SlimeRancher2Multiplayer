@@ -3,7 +3,7 @@ using SR2MP.Components.Actor;
 
 namespace SR2MP;
 
-public static class Extensions
+internal static class Extensions
 {
     public static ushort Hash(this string defName)
     {

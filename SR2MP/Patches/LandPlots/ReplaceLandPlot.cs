@@ -4,7 +4,7 @@ using SR2MP.Packets.LandPlots;
 namespace SR2MP.Patches.LandPlots;
 
 [HarmonyPatch(typeof(LandPlotLocation), nameof(LandPlotLocation.Replace))]
-public static class ReplaceLandPlot
+internal static class ReplaceLandPlot
 {
     public static void Postfix(LandPlotLocation __instance, GameObject replacementPrefab)
     {

@@ -4,7 +4,7 @@ using MelonLoader;
 
 namespace SR2MP;
 
-public static class StartupCheck
+internal static class StartupCheck
 {
     private const string RequiredGameVersion = BuildInfo.ExactRequiredGameVersion;
     private const string VersionUrl = "https://raw.githubusercontent.com/pyeight/SlimeRancher2Multiplayer/refs/heads/master/latestModVersion.txt";

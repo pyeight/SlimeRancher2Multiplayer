@@ -6,7 +6,7 @@ using SR2MP.Packets.Actor;
 namespace SR2MP.Patches.Actor;
 
 [HarmonyPatch(typeof(ResourceCycle), nameof(ResourceCycle.Attach))]
-public static class ResourceCycleAttachPatch
+internal static class ResourceCycleAttachPatch
 {
     public static void Prefix(ResourceCycle __instance, Joint joint)
     {

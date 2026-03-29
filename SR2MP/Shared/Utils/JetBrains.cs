@@ -15,7 +15,7 @@ public enum ImplicitUseTargetFlags
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public sealed class MeansImplicitUseAttribute : Attribute
+internal sealed class MeansImplicitUseAttribute : Attribute
 {
     public MeansImplicitUseAttribute() { }
 
@@ -24,3 +24,6 @@ public sealed class MeansImplicitUseAttribute : Attribute
     public MeansImplicitUseAttribute(ImplicitUseTargetFlags targetFlags) { }
 #pragma warning restore RCS1163 // Unused parameter
 }
+
+[AttributeUsage(AttributeTargets.All)]
+internal sealed class PublicAPIAttribute : Attribute { }
