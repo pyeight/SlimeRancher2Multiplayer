@@ -28,7 +28,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <summary>
     /// Initializes a new instance of the <see cref="PacketWriter"/> class.
     /// </summary>
-    [Obsolete("Use PacketWriter,Borrow instead!", true)]
+    [Obsolete("Use PacketWriter.Borrow instead!", true)]
     public PacketWriter() : base(0) { }
 
     private void EnsureCapacity(int bytesToAdd)
