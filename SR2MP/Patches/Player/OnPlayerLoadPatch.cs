@@ -10,7 +10,7 @@ internal static class OnPlayerLoadPatch
 {
     public static void Postfix(SRCharacterController __instance)
     {
-        if (Main.Server.IsRunning())
+        if (Main.Server.IsRunning)
         {
             var networkPlayer = __instance.AddComponent<NetworkPlayer>();
             networkPlayer.ID = Main.Server.PlayerId;

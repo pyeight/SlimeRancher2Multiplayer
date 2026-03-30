@@ -11,5 +11,5 @@ internal sealed class MapUnlockPacket : IPacket
 
     public void Serialise(PacketWriter writer) => writer.WriteString(NodeID);
 
-    public void Deserialise(PacketReader reader) => NodeID = reader.ReadString();
+    public void Deserialise(PacketReader reader) => NodeID = reader.ReadString()!;
 }

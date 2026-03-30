@@ -58,7 +58,7 @@ internal static class NetworkAmmoManager
     // public static AmmoSlotManager? GetAmmo(this AmmoSlot slot)
     //     => slotToAmmo.TryGetValue(slot.Pointer, out var ammoTuple) ? ammoTuple.ammo : null;
 
-    public static AmmoSlotManager? GetAmmo(string id) => IDToAmmo.GetValueOrDefault(id);
+    public static AmmoSlotManager? GetAmmo(string? id) => IDToAmmo!.GetValueOrDefault(id);
 
     public static void ClearAmmoCache()
     {

@@ -33,7 +33,7 @@ internal sealed class ConnectionApprovePacket : IPacket
         InitialJoin = reader.ReadPackedBool();
         AllowCheats = reader.ReadPackedBool();
 
-        PlayerId = reader.ReadString();
+        PlayerId = reader.ReadString()!;
         OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Func);
 
         Money = reader.ReadPackedInt();

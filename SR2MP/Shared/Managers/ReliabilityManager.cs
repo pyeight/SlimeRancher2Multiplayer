@@ -6,7 +6,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed class ReliabilityManager
+internal sealed class ReliabilityManager
 {
     private sealed class PendingPacket : IRecyclable
     {

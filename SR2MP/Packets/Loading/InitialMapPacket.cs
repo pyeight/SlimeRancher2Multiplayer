@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 internal sealed class InitialMapPacket : IPacket
 {
-    public List<string> UnlockedNodes;
+    public List<string?> UnlockedNodes;
 
     public PacketType Type => PacketType.InitialMapEntries;
     public PacketReliability Reliability => PacketReliability.Reliable;

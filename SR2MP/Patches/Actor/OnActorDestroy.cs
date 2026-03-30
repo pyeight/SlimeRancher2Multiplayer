@@ -12,7 +12,7 @@ internal static class OnActorDestroy
 
         try
         {
-            if (Main.Server.IsRunning() || Main.Client.IsConnected)
+            if (Main.Server.IsRunning || Main.Client.IsConnected)
             {
                 if (source is "SlimeFeral.Awake")
                 {
@@ -34,7 +34,7 @@ internal static class OnActorDestroy
 
         ActorManager.Actors.Remove(actor.GetActorId().Value);
 
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
             return true;
 
         try

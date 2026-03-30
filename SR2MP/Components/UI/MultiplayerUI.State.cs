@@ -26,7 +26,7 @@ internal sealed partial class MultiplayerUI
         var inGame = ContextShortcuts.inGame;
         var loading = GetIsLoading();
         var connected = Main.Client.IsConnected;
-        var hosting = Main.Server.IsRunning();
+        var hosting = Main.Server.IsRunning;
 
         if (!string.IsNullOrWhiteSpace(ConnectionFailedReason))
         {

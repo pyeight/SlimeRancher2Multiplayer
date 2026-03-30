@@ -57,7 +57,7 @@ public sealed class RemotePlayerManager
         bool sprinting = false,
         float lookY = 0f)
     {
-        var playerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning() ? Main.Server.PlayerId : string.Empty);
+        var playerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning ? Main.Server.PlayerId : string.Empty);
         var updatePacket = new PlayerUpdatePacket
         {
             PlayerId = playerId,

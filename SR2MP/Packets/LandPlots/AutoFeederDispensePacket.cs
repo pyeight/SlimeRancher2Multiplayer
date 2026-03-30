@@ -18,7 +18,7 @@ internal sealed class AutoFeederDispensePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadString()!;
         NextTime = reader.ReadDouble();
     }
 }

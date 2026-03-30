@@ -18,7 +18,7 @@ internal sealed class GardenPlantPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadString()!;
         ActorType = reader.ReadPackedInt();
     }
 }

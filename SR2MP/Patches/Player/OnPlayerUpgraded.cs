@@ -11,7 +11,7 @@ internal static class OnPlayerUpgraded
     {
         if (HandlingPacket) return;
 
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
 
         var packet = new PlayerUpgradePacket { UpgradeID = (byte)definition._uniqueId };
 

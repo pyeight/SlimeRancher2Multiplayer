@@ -10,7 +10,7 @@ internal sealed class ForceTimeScale : MonoBehaviour
 
     public void Update()
     {
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
             return;
 
         if (GameContext.Instance.InputDirector._paused.Map.enabled)

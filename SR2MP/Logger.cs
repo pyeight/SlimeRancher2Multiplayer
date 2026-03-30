@@ -1,13 +1,17 @@
 using System.Text;
+using JetBrains.Annotations;
 using MelonLoader;
 using MelonLoader.Logging;
 using MelonLoader.Utils;
 using SR2E.Managers;
 // ReSharper disable InconsistentNaming
-// ReSharper disable UnusedMember.Global
 
 namespace SR2MP;
 
+/// <summary>
+/// A utility class for handling formatted logging across file outputs, MelonLoader consoles, and SR2E management.
+/// </summary>
+[PublicAPI]
 public static class Logger
 {
     private enum LogLevel : byte
@@ -18,12 +22,31 @@ public static class Logger
         Error
     }
 
+    /// <summary>
+    /// Specifies the file destination(s) for a logged message.
+    /// </summary>
     [Flags]
     public enum LogTarget : byte
     {
-        Neither = 0, // Required to follow the standard but PLEASE don't use this value!
+        /// <summary>
+        /// Do not log to any file target.
+        /// </summary>
+        /// <remarks>Required to follow the standard but PLEASE don't use this value!</remarks>
+        Neither = 0,
+
+        /// <summary>
+        /// Log to the main public log file.
+        /// </summary>
         Main = 1 << 0,
+
+        /// <summary>
+        /// Log to the sensitive log file.
+        /// </summary>
         Sensitive = 1 << 1,
+
+        /// <summary>
+        /// Log to both the main and sensitive log files.
+        /// </summary>
         Both = Main | Sensitive
     }
 
@@ -44,30 +67,62 @@ public static class Logger
         _sensitiveLogHandler = new LogHandler(Path.Combine(folderPath, "sensitive.log"));
     }
 
+    /// <summary>
+    /// Logs a standard informational message.
+    /// </summary>
+    /// <inheritdoc cref="LogInternal"/>
     public static void LogMessage(object? message, SrLogTarget target = SrLogTarget.Both)
         => LogInternal(message, LogLevel.Message, target, SR2ELogManager.SendMessage, _melonLogger.Msg);
 
+    /// <summary>
+    /// Logs a warning message.
+    /// </summary>
+    /// <inheritdoc cref="LogInternal"/>
     public static void LogWarning(object? message, SrLogTarget target = SrLogTarget.Both)
         => LogInternal(message, LogLevel.Warning, target, SR2ELogManager.SendWarning, _melonLogger.Warning);
 
+    /// <summary>
+    /// Logs an error message.
+    /// </summary>
+    /// <inheritdoc cref="LogInternal"/>
     public static void LogError(object? message, SrLogTarget target = SrLogTarget.Both)
         => LogInternal(message, LogLevel.Error, target, SR2ELogManager.SendError, _melonLogger.Error);
 
+    /// <summary>
+    /// Logs a debug message, which bypasses SR2E and MelonLoader outputs.
+    /// </summary>
+    /// <inheritdoc cref="LogInternal"/>
     public static void LogDebug(object? message, SrLogTarget target = SrLogTarget.Both)
         => LogInternal(message, LogLevel.Debug, target, null, null);
 
+    /// <summary>
+    /// Logs packet size information, if packet size logging is globally enabled.
+    /// </summary>
+    /// <inheritdoc cref="LogInternal"/>
     public static void LogPacketSize(object? message, SrLogTarget target = SrLogTarget.Both)
     {
         if (Main.PacketSizeLogging)
             LogInternal(message, LogLevel.Message, target, null, _melonLogger.Msg);
     }
 
-    public static void LogPacketAcknowledge(object? message, SrLogTarget target = SrLogTarget.Main)
+    /// <summary>
+    /// Logs packet acknowledgment information, if packet acknowledgment logging is globally enabled.
+    /// </summary>
+    /// <inheritdoc cref="LogInternal"/>
+    public static void LogPacketAcknowledge(object? message, SrLogTarget target = SrLogTarget.Both)
     {
         if (Main.PacketAcknowledgeLogging)
             LogInternal(message, LogLevel.Warning, target, null, _melonLogger.Msg);
     }
 
+    /// <summary>
+    /// Backing method for logging messages of various levels.
+    /// </summary>
+    /// <param name="message">The message to log.</param>
+    /// <param name="level">The message level.</param>
+    /// <param name="target">The intended log file targets.</param>
+    /// <param name="sr2EAction">The SR2E logging action.</param>
+    /// <param name="melonAction">The MelonLoader logging action.</param>
     private static void LogInternal(object? message, LogLevel level, SrLogTarget target, Action<string>? sr2EAction, Action<string>? melonAction)
     {
         if (target == SrLogTarget.Neither)
@@ -89,24 +144,52 @@ public static class Logger
         melonAction?.Invoke(msgString);
     }
 
+    /// <summary>
+    /// Logs a standard informational message, separating public output from sensitive file output.
+    /// </summary>
+    /// <inheritdoc cref="LogSplit"/>
     public static void LogMessage(object? publicMsg, object? sensitiveMsg)
         => LogSplit(publicMsg, sensitiveMsg, LogLevel.Message, SR2ELogManager.SendMessage, _melonLogger.Msg);
 
+    /// <summary>
+    /// Logs a warning message, separating public output from sensitive file output.
+    /// </summary>
+    /// <inheritdoc cref="LogSplit"/>
     public static void LogWarning(object? publicMsg, object? sensitiveMsg)
         => LogSplit(publicMsg, sensitiveMsg, LogLevel.Warning, SR2ELogManager.SendWarning, _melonLogger.Warning);
 
+    /// <summary>
+    /// Logs an error message, separating public output from sensitive file output.
+    /// </summary>
+    /// <inheritdoc cref="LogSplit"/>
     public static void LogError(object? publicMsg, object? sensitiveMsg)
         => LogSplit(publicMsg, sensitiveMsg, LogLevel.Error, SR2ELogManager.SendError, _melonLogger.Error);
 
+    /// <summary>
+    /// Logs a debug message, separating public output from sensitive file output.
+    /// </summary>
+    /// <inheritdoc cref="LogSplit"/>
     public static void LogDebug(object? publicMsg, object? sensitiveMsg)
         => LogSplit(publicMsg, sensitiveMsg, LogLevel.Debug, null, null);
 
+    /// <summary>
+    /// Logs packet size information if globally enabled, separating public output from sensitive file output.
+    /// </summary>
+    /// <inheritdoc cref="LogSplit"/>
     public static void LogPacketSize(object? publicMsg, object? sensitiveMsg)
     {
         if (Main.PacketSizeLogging)
             LogSplit(publicMsg, sensitiveMsg, LogLevel.Message, null, _melonLogger.Msg);
     }
 
+    /// <summary>
+    /// Backing method for logging separate messages of separate importance.
+    /// </summary>
+    /// <param name="publicMsg">The message sent to public logs and MelonLoader.</param>
+    /// <param name="sensitiveMsg">The detailed message sent only to the sensitive log file.</param>
+    /// <param name="level">The message level.</param>
+    /// <param name="sr2EAction">The SR2E logging action.</param>
+    /// <param name="melonAction">The MelonLoader logging action.</param>
     private static void LogSplit(object? publicMsg, object? sensitiveMsg, LogLevel level, Action<string>? sr2EAction, Action<string>? melonAction)
     {
         var publicStr = publicMsg?.ToString() ?? "public message was null!";

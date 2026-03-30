@@ -24,7 +24,7 @@ internal sealed class GordoSlimeFeedPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadString()!;
         NewFoodCount = reader.ReadPackedInt();
         RequiredFoodCount = reader.ReadPackedInt();
         GordoType = reader.ReadPackedInt();

@@ -8,7 +8,7 @@ internal static class ConsoleCheatPatch
 {
     public static bool Prefix(string input)
     {
-        if (!(Main.Server.IsRunning() || Main.Client.IsConnected))
+        if (!(Main.Server.IsRunning || Main.Client.IsConnected))
             return true;
 
         if (cheatsEnabled)

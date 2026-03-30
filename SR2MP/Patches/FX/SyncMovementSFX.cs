@@ -22,7 +22,7 @@ internal static class SyncMovementSfx
             Position = __instance.Position
         };
 
-        if (Main.Server.IsRunning())
+        if (Main.Server.IsRunning)
         {
             Main.Server.SendToAll(packet);
         }

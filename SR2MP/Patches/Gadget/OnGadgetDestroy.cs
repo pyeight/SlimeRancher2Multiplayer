@@ -10,7 +10,7 @@ internal static class OnGadgetDestroy
     {
         if (SystemContext.Instance.SceneLoader.IsSceneLoadInProgress) return;
 
-        if ((!Main.Server.IsRunning() && !Main.Client.IsConnected) || HandlingPacket || !gadgetObj)
+        if ((!Main.Server.IsRunning && !Main.Client.IsConnected) || HandlingPacket || !gadgetObj)
             return;
 
         var gadget = gadgetObj.GetComponent<Il2CppMonomiPark.SlimeRancher.World.Gadget>();

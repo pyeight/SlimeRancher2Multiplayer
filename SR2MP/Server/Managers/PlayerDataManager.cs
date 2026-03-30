@@ -3,7 +3,7 @@
 
 // namespace SR2MP.Server.Managers;
 
-// public sealed class PlayerDataManager
+// internal sealed class PlayerDataManager
 // {
 //     private readonly Dictionary<string, PlayerData> playerDataCache = new();
 //     private readonly string saveDirectory;

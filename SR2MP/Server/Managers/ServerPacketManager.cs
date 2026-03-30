@@ -10,7 +10,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server.Managers;
 
-public sealed class ServerPacketManager
+internal sealed class ServerPacketManager
 {
     private readonly Dictionary<byte, IServerPacketHandler> handlers = new();
     private readonly NetworkManager networkManager;

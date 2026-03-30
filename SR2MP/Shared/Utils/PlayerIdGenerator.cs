@@ -3,7 +3,7 @@ using System.Text;
 
 namespace SR2MP.Shared.Utils;
 
-public static class PlayerIdGenerator
+internal static class PlayerIdGenerator
 {
     public static string GeneratePersistentPlayerId()
     {
@@ -38,14 +38,14 @@ public static class PlayerIdGenerator
         return number;
     }
 
-    public static bool IsValidPlayerId(string playerId)
-    {
-        if (string.IsNullOrWhiteSpace(playerId))
-            return false;
+    // public static bool IsValidPlayerId(string playerId)
+    // {
+    //     if (string.IsNullOrWhiteSpace(playerId))
+    //         return false;
 
-        if (!playerId.StartsWith("PLAYER_"))
-            return false;
+    //     if (!playerId.StartsWith("PLAYER_"))
+    //         return false;
 
-        return playerId.Length == 16;
-    }
+    //     return playerId.Length == 16;
+    // }
 }

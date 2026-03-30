@@ -13,7 +13,7 @@ internal static class OnAmmoAddToAny
 {
     public static void Postfix(AmmoSlotManager __instance, ref bool __result, IdentifiableType id)
     {
-        if ((!Main.Client.IsConnected && !Main.Server.IsRunning()) || HandlingPacket) return;
+        if ((!Main.Client.IsConnected && !Main.Server.IsRunning) || HandlingPacket) return;
 
         if (!__result)
             return;

@@ -7,7 +7,7 @@ using SR2MP.Packets.World;
 
 namespace SR2MP.Server.Managers;
 
-public static class WeatherUpdateHelper
+internal static class WeatherUpdateHelper
 {
     private static bool lookupInitialized;
     private static bool isInitializing;
@@ -159,7 +159,7 @@ public static class WeatherUpdateHelper
 
     public static void SendWeatherUpdate()
     {
-        if (!Main.Server.IsRunning())
+        if (!Main.Server.IsRunning)
             return;
 
         try

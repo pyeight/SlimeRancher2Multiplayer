@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using HarmonyLib;
+using JetBrains.Annotations;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Api;
@@ -23,6 +24,10 @@ internal sealed class ApiHolder
     }
 }
 
+/// <summary>
+/// A registry class to handle API usage by other projects.
+/// </summary>
+[PublicAPI]
 public static class ApiHandlers
 {
     internal static readonly ConcurrentDictionary<ushort, ApiHolder> Holders = new();
@@ -30,12 +35,11 @@ public static class ApiHandlers
     internal static readonly ConcurrentDictionary<string, ushort> AssemblyIdMap = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Registers all custom packet handlers and packet types to the multiplayer API for the given assembly. <br />
-    /// ModId is deterministic and derived from the assembly's fully qualified name.
+    /// Registers all custom packet handlers and types to the multiplayer API for the given assembly.
     /// </summary>
     /// <param name="assembly">The assembly to register handlers and packet types from.</param>
-    // ReSharper disable once UnusedMember.Global
-    public static void RegisterHandlers(Assembly assembly)
+    /// <returns>The registered assembly's network id.</returns>
+    public static ushort RegisterHandlers(Assembly assembly)
     {
         var gotName = assembly.GetName();
         var name = gotName.Name;
@@ -52,11 +56,11 @@ public static class ApiHandlers
 
                 SrLogger.LogMessage(
                     $"[{name}] API handlers already registered for ModId {modId}; refreshed custom packet mappings.");
-                return;
+                return modId;
             }
 
-            // Rare deterministic hash collision against a different assembly.
-            // Keep deterministic behavior and fail loudly for safety.
+            // Rare deterministic hash collision against a different assembly
+            // Keep deterministic behavior and fail loudly for safety
             throw new InvalidOperationException(
                 $"ModId collision detected for id {modId}. " +
                 $"Assembly '{fullName}' collides with already registered assembly '{existingHolder.Assembly.FullName}'. " +
@@ -67,7 +71,7 @@ public static class ApiHandlers
 
         // Ensure only one thread wins registration for this ModId.
         if (!Holders.TryAdd(modId, holder))
-            return;
+            return modId;
 
         AssemblyIdMap[fullName] = modId;
 
@@ -81,10 +85,11 @@ public static class ApiHandlers
         SrLogger.LogMessage($"[{name}] ModId: {modId}");
         SrLogger.LogMessage($"[{name}] Client handlers registered: {holder.ClientHandlers.Count}");
         SrLogger.LogMessage($"[{name}] Server handlers registered: {holder.ServerHandlers.Count}");
+        return modId;
     }
 
     /// <summary>
-    /// Computes a deterministic 16-bit ModId from assembly fully qualified name. <br />
+    /// Computes a deterministic 16-bit ModId from assembly fully qualified name.<br/>
     /// Uses FNV-1a 32-bit and folds to 16-bit to avoid arithmetic overflow exceptions and keep deterministic results.
     /// </summary>
     private static ushort ComputeDeterministicModId(string assemblyFullName)

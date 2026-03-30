@@ -53,7 +53,7 @@ internal sealed class ChatCommand : SR2ECommand
     }
 }
 
-public sealed class ConnectCommand : SR2ECommand
+internal sealed class ConnectCommand : SR2ECommand
 {
     public override string ID => "connect";
     public override string Usage => "connect <ip/domain[:port]>";
@@ -114,7 +114,7 @@ public sealed class ConnectCommand : SR2ECommand
     }
 }
 
-public sealed class ResyncAllCommand : SR2ECommand
+internal sealed class ResyncAllCommand : SR2ECommand
 {
     public override string ID => "resync";
     public override string Usage => "resync";
@@ -124,7 +124,7 @@ public sealed class ResyncAllCommand : SR2ECommand
         if (Main.Client.IsConnected)
             Main.Server.reSyncManager.RequestResync();
 
-        if (Main.Server.IsRunning())
+        if (Main.Server.IsRunning)
             Main.Server.reSyncManager.SynchronizeAll();
 
         SrLogger.LogMessage("Resync command executed!", SrLogTarget.Both);

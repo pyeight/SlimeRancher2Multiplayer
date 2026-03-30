@@ -117,7 +117,7 @@ internal static class DiscordRPCManager
 
     internal static void UpdatePresence()
     {
-        var online = Main.Server.IsRunning() || Main.Client.IsConnected;
+        var online = Main.Server.IsRunning || Main.Client.IsConnected;
         var solo = PlayerManager.PlayerCount < 2;
 
         var details = online

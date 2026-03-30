@@ -11,5 +11,5 @@ internal sealed class ConnectionDenyPacket : IPacket
 
     public void Serialise(PacketWriter writer) => writer.WriteString(Reason);
 
-    public void Deserialise(PacketReader reader) => Reason = reader.ReadString();
+    public void Deserialise(PacketReader reader) => Reason = reader.ReadString()!;
 }

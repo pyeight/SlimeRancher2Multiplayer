@@ -18,7 +18,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed class ReSyncManager
+internal sealed class ReSyncManager
 {
     private readonly Dictionary<string, DateTime> cooldowns = new();
     private static readonly TimeSpan CooldownDuration = TimeSpan.FromMinutes(2);
@@ -237,7 +237,7 @@ public sealed class ReSyncManager
         var unlockedArray = Il2CppSystem.Linq.Enumerable
             .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
-        var unlockedIDs = unlockedArray.Select(entry => entry.Cast<PediaEntry>().PersistenceId).ToList();
+        var unlockedIDs = unlockedArray.Select(entry => entry.TryCast<PediaEntry>()?.PersistenceId).ToList();
 
         return new InitialPediaPacket { Entries = unlockedIDs };
     }
@@ -253,7 +253,7 @@ public sealed class ReSyncManager
             SceneContext.Instance.eventDirector._model.table[MapEventKey] = maps;
         }
 
-        var mapsList = new List<string>();
+        var mapsList = new List<string?>();
 
         foreach (var map in maps)
             mapsList.Add(map.Key);

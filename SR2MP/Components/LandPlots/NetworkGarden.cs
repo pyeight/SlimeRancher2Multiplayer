@@ -92,7 +92,7 @@ internal sealed class NetworkGarden : MonoBehaviour
 
         syncTimer = 0;
 
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
             return;
 
         var packet = new GardenUpdatePacket

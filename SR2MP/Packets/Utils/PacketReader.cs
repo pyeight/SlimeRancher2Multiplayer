@@ -34,6 +34,7 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Initializes a new instance of the <see cref="PacketReader"/> class.
     /// </summary>
+    [Obsolete("Use PacketReader.Borrow instead!", true)]
     public PacketReader() : base(8) { }
 
     /// <summary>
@@ -251,7 +252,7 @@ public sealed class PacketReader : PacketBuffer
     /// <returns>The read string.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string ReadString(bool returnNullOnZero = false) => ReadStringWithSize(ReadUShort(), returnNullOnZero)!;
+    public string? ReadString(bool returnNullOnZero = false) => ReadStringWithSize(ReadUShort(), returnNullOnZero);
 
     /// <summary>
     /// Reads a UTF-8 encoded string of the specified length.
@@ -293,7 +294,7 @@ public sealed class PacketReader : PacketBuffer
     /// <returns>The parsed enum value.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString());
+    public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString()!);
 
     private TCollection ReadCollection<TCollection, T>(Func<int, TCollection> factory, Action<TCollection, T> add, Func<PacketReader, T> reader)
     {
@@ -604,7 +605,7 @@ public static class PacketReaderDels
     /// <summary>
     /// A delegate to read a string.
     /// </summary>
-    public static readonly Func<PacketReader, string> String = reader => reader.ReadString();
+    public static readonly Func<PacketReader, string?> String = reader => reader.ReadString();
 
     /// <summary>
     /// A delegate to read a ushort.

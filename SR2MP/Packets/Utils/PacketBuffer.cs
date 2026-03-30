@@ -1,7 +1,5 @@
 using JetBrains.Annotations;
 using SR2MP.Shared.Utils;
-// ReSharper disable UnusedMember.Global
-// ReSharper disable UnusedMemberInSuper.Global
 // ReSharper disable InconsistentNaming
 
 namespace SR2MP.Packets.Utils;
@@ -27,9 +25,7 @@ public abstract class PacketBuffer : IRecyclable
     /// </summary>
     public int Position => position;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether this buffer has been recycled.
-    /// </summary>
+    /// <inheritdoc cref="IRecyclable.IsRecycled"/>
     public bool IsRecycled { get; set; }
 
     /// <summary>
@@ -43,7 +39,7 @@ public abstract class PacketBuffer : IRecyclable
     /// <param name="starting">
     /// The starting bit index used when packing booleans and when resetting state in <see cref="Clear"/>.
     /// </param>
-    protected PacketBuffer(int starting) => startingIndex = currentBitIndex = starting;
+    protected internal PacketBuffer(int starting) => startingIndex = currentBitIndex = starting;
 
     /// <summary>
     /// Gets the byte at the specified index.

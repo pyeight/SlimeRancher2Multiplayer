@@ -11,7 +11,7 @@ namespace SR2MP.Patches.Ammo
     {
         public static void Postfix(AmmoSlotManager __instance, ref bool __result, IdentifiableType id, int slotIdx, int count)
         {
-            if ((!Main.Client.IsConnected && !Main.Server.IsRunning()) || HandlingPacket) return;
+            if ((!Main.Client.IsConnected && !Main.Server.IsRunning) || HandlingPacket) return;
 
             if (!__result)
                 return;

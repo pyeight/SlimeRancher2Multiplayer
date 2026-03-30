@@ -34,7 +34,7 @@ internal sealed partial class NetworkActorManager
             yield return new WaitForSceneGroupLoad(false);
             yield return new WaitForSceneGroupLoad();
 
-            if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+            if (!Main.Server.IsRunning && !Main.Client.IsConnected)
                 continue;
 
             if (!SystemContext.Instance.SceneLoader.IsCurrentSceneGroupGameplay())

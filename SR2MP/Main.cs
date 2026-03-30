@@ -22,7 +22,7 @@ public sealed class Main : SR2EExpansionV3
 
     public static readonly Assembly Core = typeof(Main).Assembly;
 
-    static MelonPreferences_Category preferences;
+    private static MelonPreferences_Category preferences;
 
     public static string Username => preferences.GetEntry<string>("username").Value;
     public static string SavedConnectPort => preferences.GetEntry<string>("recent_port").Value;
@@ -73,7 +73,7 @@ public sealed class Main : SR2EExpansionV3
             Client.SendPacket(packet);
         }
 
-        if (Server.IsRunning())
+        if (Server.IsRunning)
         {
             Server.SendToAll(packet);
         }
@@ -99,7 +99,7 @@ public sealed class Main : SR2EExpansionV3
                 Application.quitting += new Action(() =>
                 {
                     DiscordRPCManager.Shutdown();
-                    if (Server.IsRunning())
+                    if (Server.IsRunning)
                         Server.Close();
                     if (Client.IsConnected)
                         Client.Disconnect();

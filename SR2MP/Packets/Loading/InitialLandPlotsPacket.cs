@@ -36,7 +36,7 @@ internal sealed class InitialLandPlotsPacket : IPacket
 
         public void Deserialise(PacketReader reader)
         {
-            ID = reader.ReadString();
+            ID = reader.ReadString()!;
             Type = reader.ReadPackedEnum<LandPlot.Id>();
             Upgrades = reader.ReadCppSet(PacketReaderDels.PackedEnum<LandPlot.Upgrade>.Func);
 

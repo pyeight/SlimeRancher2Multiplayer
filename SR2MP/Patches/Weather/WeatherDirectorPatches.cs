@@ -16,7 +16,7 @@ internal static class WeatherDirectorStatePatches
 
     public static void Postfix()
     {
-        if (Main.Server.IsRunning() && !HandlingPacket)
+        if (Main.Server.IsRunning && !HandlingPacket)
         {
             WeatherUpdateHelper.SendWeatherUpdate();
         }

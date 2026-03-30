@@ -12,7 +12,7 @@ internal static class PriceResetPatch
 
     public static void Postfix()
     {
-        if (!Main.Server.IsRunning())
+        if (!Main.Server.IsRunning)
             return;
 
         var packet = new MarketPricePacket { Prices = MarketPricesArray! };

@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 internal sealed class InitialPediaPacket : IPacket
 {
-    public List<string> Entries;
+    public List<string?> Entries;
 
     public PacketType Type => PacketType.InitialPediaEntries;
     public PacketReliability Reliability => PacketReliability.Reliable;

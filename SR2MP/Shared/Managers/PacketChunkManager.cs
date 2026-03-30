@@ -7,7 +7,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public static class PacketChunkManager
+internal static class PacketChunkManager
 {
     private sealed class IncompletePacket : IRecyclable
     {

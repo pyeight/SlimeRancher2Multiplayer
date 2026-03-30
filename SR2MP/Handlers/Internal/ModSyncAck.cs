@@ -10,7 +10,7 @@ internal sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
 {
     protected override bool Handle(ModSyncPacket packet, IPEndPoint? clientEp)
     {
-        var diff = new List<string>();
+        var diff = new List<string?>();
 
         var serverMods = Mods.ToList().ConvertAll(mod => mod.Hash());
 

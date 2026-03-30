@@ -5,7 +5,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Shared.Utils;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class MainThreadDispatcher : MonoBehaviour
+internal sealed class MainThreadDispatcher : MonoBehaviour
 {
     public static MainThreadDispatcher Instance { get; private set; }
 

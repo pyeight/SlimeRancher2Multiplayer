@@ -20,7 +20,7 @@ internal sealed class WorldSwitchPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadString()!;
         State = reader.ReadPackedEnum<SwitchHandler.State>();
         Immediate = reader.ReadBool();
     }

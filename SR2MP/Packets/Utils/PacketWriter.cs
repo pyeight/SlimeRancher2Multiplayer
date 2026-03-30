@@ -28,6 +28,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <summary>
     /// Initializes a new instance of the <see cref="PacketWriter"/> class.
     /// </summary>
+    [Obsolete("Use PacketWriter,Borrow instead!", true)]
     public PacketWriter() : base(0) { }
 
     private void EnsureCapacity(int bytesToAdd)
@@ -633,7 +634,7 @@ public static class PacketWriterDels
     /// <summary>
     /// A delegate to write a string.
     /// </summary>
-    public static readonly Action<PacketWriter, string> String = (writer, value) => writer.WriteString(value);
+    public static readonly Action<PacketWriter, string?> String = (writer, value) => writer.WriteString(value);
 
     /// <summary>
     /// A delegate to write a ushort.

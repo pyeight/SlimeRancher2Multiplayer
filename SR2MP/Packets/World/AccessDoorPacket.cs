@@ -19,7 +19,7 @@ internal sealed class AccessDoorPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadString()!;
         State = reader.ReadPackedEnum<AccessDoor.State>();
     }
 }

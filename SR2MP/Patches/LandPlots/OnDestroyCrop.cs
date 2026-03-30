@@ -10,7 +10,7 @@ internal static class OnDestroyCrop
     {
         if (HandlingPacket) return;
 
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
 
         if (!__instance)
             return;

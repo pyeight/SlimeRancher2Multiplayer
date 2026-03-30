@@ -10,7 +10,7 @@ internal sealed class ModSyncHandler : BasePacketHandler<EmptyPacket>
 {
     protected override bool Handle(EmptyPacket packet, IPEndPoint? clientEp)
     {
-        var mods = Mods.ToDictionary(x => x.Hash(), x => x);
+        var mods = Mods.ToDictionary(x => x.Hash(), x => (string?)x);
         var modSyncPacket = new ModSyncPacket() { Mods = mods };
         Main.Client.SendPacket(modSyncPacket);
 

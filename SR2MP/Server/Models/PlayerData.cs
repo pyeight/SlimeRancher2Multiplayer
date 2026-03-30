@@ -1,6 +1,6 @@
 // namespace SR2MP.Server.Models;
 
-// public sealed class PlayerData
+// internal sealed class PlayerData
 // {
 //     public string PlayerId { get; set; }
 //     public string PlayerName { get; set; }

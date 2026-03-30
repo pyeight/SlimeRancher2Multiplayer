@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using JetBrains.Annotations;
 using SR2MP.Api;
 using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
@@ -51,7 +52,7 @@ public sealed class SR2MPClient
 
     internal void Connect(string serverIp, int port)
     {
-        if (Main.Server.IsRunning())
+        if (Main.Server.IsRunning)
         {
             SrLogger.LogWarning("You can not join a world while hosting a server.");
             return;
@@ -249,7 +250,7 @@ public sealed class SR2MPClient
     /// </summary>
     /// <typeparam name="T">The type of the packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
-    // ReSharper disable once UnusedMember.Global
+    [PublicAPI]
     public void SendData<T>(T data) where T : ICustomPacket
     {
         if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))

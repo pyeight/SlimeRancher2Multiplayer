@@ -12,7 +12,7 @@ internal static class OnWeatherInitialize
     public static void Postfix(SceneContext __instance)
     {
         // This is temporary until we have a proper GUI (we should not host in the menu)
-        if (Main.Server.IsRunning())
+        if (Main.Server.IsRunning)
         {
             __instance.gameObject.AddComponent<NetworkWeather>();
         }

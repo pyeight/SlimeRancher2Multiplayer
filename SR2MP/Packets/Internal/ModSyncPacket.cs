@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Internal;
 
 internal sealed class ModSyncPacket : IPacket
 {
-    public Dictionary<ushort, string> Mods;
+    public Dictionary<ushort, string?> Mods;
 
     public PacketType Type => PacketType.ModSyncAck;
     public PacketReliability Reliability => PacketReliability.Reliable;

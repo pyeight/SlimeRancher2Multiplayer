@@ -40,7 +40,7 @@ public static class GlobalVariables
     public static bool HandlingPacket { get; internal set; }
 
     public static string LocalID =>
-        Main.Server.IsRunning()
+        Main.Server.IsRunning
             ? Main.Server.PlayerId
             : Main.Client.IsConnected
                 ? Main.Client.PlayerId

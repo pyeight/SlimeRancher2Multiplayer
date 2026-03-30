@@ -1,4 +1,5 @@
 using System.Net;
+using JetBrains.Annotations;
 using SR2MP.Api;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
@@ -12,23 +13,45 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
+[PublicAPI]
 public sealed class SR2MPServer
 {
-    public readonly NetworkManager NetworkManager;
-    public readonly ClientManager ClientManager;
-    public readonly ReSyncManager ReSyncManager;
+    internal readonly NetworkManager NetworkManager;
+    internal readonly ClientManager ClientManager;
+    internal readonly ReSyncManager ReSyncManager;
 
     private readonly ServerPacketManager packetManager;
 
     private Timer? timeoutTimer;
 
     // Just here so that the port is viewable.
+
+    /// <summary>
+    /// Gets or sets a value that denotes the server's port.
+    /// </summary>
     public int Port { get; private set; }
+
+    /// <summary>
+    /// Gets or sets a value that denotes the host player's player ID.
+    /// </summary>
     public string PlayerId { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// An event that is invoked when the server connects.
+    /// </summary>
     public event Action? OnServerStarted;
 
-    public SR2MPServer()
+    /// <summary>
+    /// Gets the number of clients currently connected.
+    /// </summary>
+    public int GetClientCount => ClientManager.ClientCount;
+
+    /// <summary>
+    /// Gets a value indicating the running status of the server.
+    /// </summary>
+    public bool IsRunning => NetworkManager.IsRunning;
+
+    internal SR2MPServer()
     {
         NetworkManager = new NetworkManager();
         ClientManager = new ClientManager();
@@ -39,11 +62,7 @@ public sealed class SR2MPServer
         ClientManager.OnClientRemoved += OnClientRemoved;
     }
 
-    // public int GetClientCount() => ClientManager.ClientCount;
-
-    public bool IsRunning() => NetworkManager.IsRunning;
-
-    public void Start(int port, bool enableIPv6)
+    internal void Start(int port, bool enableIPv6)
     {
         if (Main.Client.IsConnected)
         {
@@ -120,7 +139,7 @@ public sealed class SR2MPServer
     //     }
     // }
 
-    public void Close()
+    internal void Close()
     {
         if (!NetworkManager.IsRunning)
             return;
@@ -183,10 +202,6 @@ public sealed class SR2MPServer
     internal void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
         => PrepareAndSendToClient(packet, packet.Reliability, endPoint, SerialiseInternalPacket<T>.Func);
 
-    // ReSharper disable once UnusedMember.Global
-    internal void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
-        => SendToClient(packet, client.EndPoint);
-
     /// <summary>
     /// Sends a custom packet to a specific client endpoint.
     /// </summary>
@@ -211,7 +226,6 @@ public sealed class SR2MPServer
     /// <typeparam name="T">The type of the custom packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
     /// <param name="client">The client info of the recipient.</param>
-    // ReSharper disable once UnusedMember.Global
     public void SendDataToClient<T>(T data, ClientInfo client) where T : ICustomPacket
         => SendDataToClient(data, client.EndPoint);
 
@@ -246,7 +260,6 @@ public sealed class SR2MPServer
     /// </summary>
     /// <typeparam name="T">The type of the custom packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
-    // ReSharper disable once UnusedMember.Global
     public void SendDataToAll<T>(T data) where T : ICustomPacket
     {
         if (!ApiHandlers.PacketTypeMap.TryGetValue(data.GetType(), out var modId))
@@ -307,7 +320,6 @@ public sealed class SR2MPServer
     /// <typeparam name="T">The type of the custom packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
     /// <param name="excludeEndPoint">The endpoint to exclude from the broadcast.</param>
-    // ReSharper disable once UnusedMember.Global
     public void SendDataToAllExcept<T>(T data, IPEndPoint? excludeEndPoint) where T : ICustomPacket
     {
         var clientInfo = $"{excludeEndPoint?.Address}:{excludeEndPoint?.Port}";
@@ -355,5 +367,5 @@ public sealed class SR2MPServer
         }
     }
 
-    // public int GetPendingReliablePackets() => NetworkManager.GetPendingReliablePackets();
+    // internal int GetPendingReliablePackets() => NetworkManager.GetPendingReliablePackets();
 }

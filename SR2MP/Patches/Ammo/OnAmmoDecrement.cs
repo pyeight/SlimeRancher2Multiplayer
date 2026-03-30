@@ -10,7 +10,7 @@ internal static class OnAmmoDecrement
 {
     public static void Postfix(AmmoSlotManager __instance, int index, int count)
     {
-        if ((!Main.Client.IsConnected && !Main.Server.IsRunning()) || HandlingPacket) return;
+        if ((!Main.Client.IsConnected && !Main.Server.IsRunning) || HandlingPacket) return;
 
         if (__instance.Slots[index]!._count <= 0) __instance.Slots[index]!._id = null;
 

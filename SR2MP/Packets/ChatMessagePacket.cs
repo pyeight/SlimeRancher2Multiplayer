@@ -22,9 +22,9 @@ internal sealed class ChatMessagePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Username = reader.ReadString();
-        Message = reader.ReadString();
-        MessageID = reader.ReadString();
+        Username = reader.ReadString()!;
+        Message = reader.ReadString()!;
+        MessageID = reader.ReadString()!;
         MessageType = reader.ReadByte();
     }
 }
