@@ -283,14 +283,16 @@ public sealed class ReSyncManager
 
         foreach (var (_, model) in actorManager.Actors)
         {
+            if (model.TryCast<GadgetModel>(out _))
+                continue;
+
             actorsList.Add(NetworkActorManager.CreateInitialActor(model));
         }
 
         foreach (var model in GameState.AllGadgets())
         {
-            var gadget = model.TryCast<GadgetModel>();
-            if (gadget == null)
-                return;
+            if (!model.TryCast<GadgetModel>(out var gadget))
+                continue;
 
             actorsList.Add(NetworkActorManager.CreateInitialGadget(gadget));
         }
@@ -373,30 +375,30 @@ public sealed class ReSyncManager
                 {
                     CollectorAmmo = new NetworkAmmo
                     {
-                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
+                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo]?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
                                     Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                                     SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })
+                                })!
                     }
                 },
                 LandPlot.Id.COOP => new InitialLandPlotsPacket.CoopPondData()
                 {
                     CollectorAmmo = new NetworkAmmo
                     {
-                        AmmoSlots = plot.siloAmmo[CoopAmmo].Slots
+                        AmmoSlots = plot.siloAmmo[CoopAmmo]?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => plot.siloAmmo[CoopAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
                                     Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                                     SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })
+                                })!
                     }
                 },
                 LandPlot.Id.INCINERATOR => new InitialLandPlotsPacket.IncineratorData()
@@ -404,15 +406,15 @@ public sealed class ReSyncManager
                     AshLevel = plot.ashUnits,
                     PlortCollectorAmmo = new NetworkAmmo
                     {
-                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
+                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo]?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
                                     Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                                     SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })
+                                })!
                     }
                 },
                 LandPlot.Id.SILO => new InitialLandPlotsPacket.SiloData
@@ -422,7 +424,7 @@ public sealed class ReSyncManager
                     {
                         AmmoSlots = plot.siloAmmo[SiloAmmo].Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => plot.siloAmmo[SiloAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
@@ -438,7 +440,7 @@ public sealed class ReSyncManager
                     {
                         AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
@@ -450,7 +452,7 @@ public sealed class ReSyncManager
                     {
                         AmmoSlots = plot.siloAmmo[FeederAmmo].Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => (int)slot.GetNextSlot()!.Value,
+                                slot => plot.siloAmmo[FeederAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
                                 {
                                     Count = slot.Count,
@@ -486,8 +488,8 @@ public sealed class ReSyncManager
 
         foreach (var treasurePod in GameState.pods)
         {
-            var podId = int.Parse(treasurePod.key.Replace("pod", ""));
-            treasurePods.Add(podId, treasurePod.value.state);
+            if (int.TryParse(treasurePod.key.Replace("pod", ""), out var podId))
+                treasurePods.Add(podId, treasurePod.value.state);
         }
 
         return new InitialTreasurePodsPacket() { TreasurePods = treasurePods };

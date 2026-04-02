@@ -105,33 +105,41 @@ public sealed class InitialLandPlotsPacket : IPacket
     // Data for Coop or Pond
     public class CoopPondData : INetObject
     {
-        public NetworkAmmo CollectorAmmo;
+        public NetworkAmmo? CollectorAmmo;
 
         public  void Serialise(PacketWriter writer)
         {
-            writer.WriteNetObject(CollectorAmmo);
+            writer.WriteBool(CollectorAmmo != null);
+            if (CollectorAmmo != null)
+                writer.WriteNetObject(CollectorAmmo);
         }
 
         public void Deserialise(PacketReader reader)
         {
-            CollectorAmmo = reader.ReadNetObject<NetworkAmmo>();
+            if (reader.ReadBool())
+                CollectorAmmo = reader.ReadNetObject<NetworkAmmo>();
         }
     }
     // Data for Incinerators
     public class IncineratorData : INetObject
     {
-        public NetworkAmmo PlortCollectorAmmo;
+        public NetworkAmmo? PlortCollectorAmmo;
         public float AshLevel;
         
         public void Serialise(PacketWriter writer)
         {
-            writer.WriteNetObject(PlortCollectorAmmo);
+            writer.WriteBool(PlortCollectorAmmo != null);
+            if (PlortCollectorAmmo != null)
+                writer.WriteNetObject(PlortCollectorAmmo);
+            
             writer.WriteFloat(AshLevel);
         }
 
         public void Deserialise(PacketReader reader)
         {
-            PlortCollectorAmmo = reader.ReadNetObject<NetworkAmmo>();
+            if (reader.ReadBool())
+                PlortCollectorAmmo = reader.ReadNetObject<NetworkAmmo>();
+            
             AshLevel = reader.ReadFloat();
         }
     }

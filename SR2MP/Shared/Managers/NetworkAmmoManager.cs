@@ -59,7 +59,7 @@ public static class NetworkAmmoManager
         return null;
     }
     
-    public static int? GetNextSlot(this AmmoSlot slot)
+    public static int? GetSlotIndex(this AmmoSlot slot)
     {
         if (slotToAmmo.TryGetValue(slot.Pointer, out var ammoTuple))
             return ammoTuple.index;

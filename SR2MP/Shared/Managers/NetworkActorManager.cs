@@ -166,4 +166,13 @@ public sealed partial class NetworkActorManager
             i = 0;
         }
     }
+
+    public static GadgetModel? GetLinkedGadget(GadgetModel model)
+        => GameState.identifiables._entries.FirstOrDefault(x =>
+            x.value.ident == model.ident
+            && model != x.value
+            && (model.ident.Cast<GadgetDefinition>().BuyInPairs 
+                || model.ident.Cast<GadgetDefinition>().LinkedDefinition
+                || model.ident.Cast<GadgetDefinition>().LinkedGadgetRange != 0f))?
+            .value.Cast<GadgetModel>()!;
 }

@@ -1,5 +1,7 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Player;
 using SR2MP.Packets.Actor;
+using SR2MP.Packets.Ammo;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
 
@@ -20,8 +22,19 @@ public sealed partial class NetworkActorManager
 
         return CreateInitialActorBase(actor);
     }
+
     public static InitialActorsPacket.ActorBase CreateInitialGadget(GadgetModel gadget)
     {
+        if (gadget.TryCast<DroneStationGadgetModel>(out var drone))
+            
+        
+        if (GetLinkedGadget(gadget) != null)
+        {
+            if (GetAmmoFromGadget(gadget) != null)
+                return CreateInitialAmmoGadget(gadget);
+            
+            return CreateInitialLinkedGadget(gadget);
+        }
         return CreateInitialGadgetBase(gadget);
     }
 
@@ -41,6 +54,19 @@ public sealed partial class NetworkActorManager
         Rotation = model.GetRot(),
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
     };
+    private static InitialActorsPacket.DroneStation CreateInitialDroneStation(DroneStationGadgetModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.GetRot(),
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        DroneType = model._type,
+        DroneInStation = model._isDroneAtStation,
+        // 0.8333 is looking quite random, but i couldnt find an actual const or variable that gave the correct output.
+        // This number was taken from a UE Hook on GetCurrEnergy on DroneStationGadgetModel.
+        Charge = model.GetCurrEnergy(SceneContext.Instance.TimeDirector, 0.8333f)  
+    };
 
     private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model) => new()
     {
@@ -50,6 +76,36 @@ public sealed partial class NetworkActorManager
         Rotation = model.lastRotation,
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
         Emotions = model.Emotions
+    };
+    private static InitialActorsPacket.LinkedGadget CreateInitialLinkedGadget(GadgetModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.GetRot(),
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        LinkedActorId = GetLinkedGadget(model).actorId.Value
+    };
+    private static InitialActorsPacket.LinkedAmmoGadget CreateInitialAmmoGadget(GadgetModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.GetRot(),
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        LinkedActorId = GetLinkedGadget(model)!.actorId.Value,
+        Ammo = new NetworkAmmo()
+        {
+            AmmoSlots = GetAmmoFromGadget(model)!.Slots
+                .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                    slot => (int)slot.GetSlotIndex()!,
+                    slot => new NetworkAmmoSlot()
+                    {
+                        Count = slot.Count,
+                        Identifiable = GetPersistentID(slot._id),
+                        SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
+                    })
+        }
     };
 
     private static InitialActorsPacket.Plort CreateInitialPlort(PlortModel model) => new()
@@ -110,5 +166,13 @@ public sealed partial class NetworkActorManager
             return ActorUpdateType.Plort;
         
         return ActorUpdateType.Actor;
+    }
+    // not sure if there are more...
+    private static AmmoModel? GetAmmoFromGadget(GadgetModel model)
+    {
+        if (model.TryCast(out WarpDepotModel? warp))
+            return warp.ammo;
+        
+        return null!;
     }
 }

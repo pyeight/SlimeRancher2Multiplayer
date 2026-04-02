@@ -1,4 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Drone;
+using SR2MP.Packets.Ammo;
 using SR2MP.Packets.Utils;
 using Unity.Mathematics;
 
@@ -23,16 +25,25 @@ public sealed partial class InitialActorsPacket
 
         // Drones
         RanchDrone = 8,
-        ExplorerDrone = 9
+        ExplorerDrone = 9,
+        DroneStation = 10,
     }
 
     private static Dictionary<ActorType, Type> actorTypes = new(ActorTypeComparer.Instance)
     {
         { ActorType.Basic, typeof(ActorBase) },
+        
         { ActorType.Slime, typeof(Slime) },
         { ActorType.Plort, typeof(Plort) },
         { ActorType.Resource, typeof(Resource) },
+        
         { ActorType.Gadget, typeof(ActorBase) },
+        { ActorType.LinkedGadget, typeof(LinkedGadget) },
+        { ActorType.LinkedGadgetWithAmmo, typeof(LinkedAmmoGadget) },
+        
+        { ActorType.DroneStation, typeof(DroneStation) },
+        { ActorType.RanchDrone, typeof(RanchDrone) },
+        { ActorType.ExplorerDrone, typeof(ExplorerDrone) },
     };
 
     public class ActorBase : INetObject
@@ -84,7 +95,90 @@ public sealed partial class InitialActorsPacket
             Emotions = reader.ReadFloat4();
         }
     }
-    public sealed class LinkedGadget : ActorBase
+    public sealed class DroneStation : ActorBase
+    {
+        public float Charge;
+        public DroneType DroneType;
+        public bool DroneInStation;
+
+        public DroneTask Task;
+        protected override ActorType Type => ActorType.ExplorerDrone;
+
+        public override void Serialise(PacketWriter writer)
+        {
+            base.Serialise(writer);
+            writer.WriteFloat(Charge);
+            writer.WriteEnum(DroneType);
+            writer.WriteBool(DroneInStation);
+            
+            writer.WriteNetObject(Task);
+        }
+
+        public override void Deserialise(PacketReader reader)
+        {
+            base.Deserialise(reader);
+            Charge = reader.ReadFloat();
+            DroneType = reader.ReadEnum<DroneType>();
+            DroneInStation = reader.ReadBool();
+
+            Task = reader.ReadNetObject<DroneTask>();
+        }
+    }
+    
+    public class ExplorerDrone : ActorBase
+    {
+        public ActorId Station;
+        
+        protected override ActorType Type => ActorType.ExplorerDrone;
+
+        public override void Serialise(PacketWriter writer)
+        {
+            base.Serialise(writer);
+            writer.WriteLong(Station.Value);
+        }
+
+        public override void Deserialise(PacketReader reader)
+        {
+            base.Deserialise(reader);
+            Station = new ActorId(reader.ReadLong());
+        }
+    }
+    
+    public sealed class RanchDrone : ExplorerDrone
+    {
+        public NetworkAmmo Ammo;
+        protected override ActorType Type => ActorType.RanchDrone;
+
+        public override void Serialise(PacketWriter writer)
+        {
+            base.Serialise(writer);
+            writer.WriteNetObject(Ammo);
+        }
+
+        public override void Deserialise(PacketReader reader)
+        {
+            base.Deserialise(reader);
+            Ammo = reader.ReadNetObject<NetworkAmmo>();
+        }
+    }
+    public sealed class LinkedAmmoGadget : LinkedGadget
+    {
+        public NetworkAmmo Ammo;
+        protected override ActorType Type => ActorType.LinkedGadgetWithAmmo;
+
+        public override void Serialise(PacketWriter writer)
+        {
+            base.Serialise(writer);
+            writer.WriteNetObject(Ammo);
+        }
+
+        public override void Deserialise(PacketReader reader)
+        {
+            base.Deserialise(reader);
+            Ammo = reader.ReadNetObject<NetworkAmmo>();
+        }
+    }
+    public class LinkedGadget : ActorBase
     {
         public long LinkedActorId;
         
@@ -181,5 +275,29 @@ public sealed partial class InitialActorsPacket
         public bool Equals(ActorType x, ActorType y) => x == y;
 
         public int GetHashCode(ActorType obj) => (int)obj;
+    }
+
+    public struct DroneTask : INetObject
+    {
+        public int TargetIdent;
+        public DroneTaskTargetType Target;
+        public DroneTaskSinkType Sink;
+        public DroneTaskSourceType Source;
+        
+        public void Serialise(PacketWriter writer)
+        {
+            writer.WriteInt(TargetIdent);
+            writer.WriteEnum(Target);
+            writer.WriteEnum(Sink);
+            writer.WriteEnum(Source);
+        }
+
+        public void Deserialise(PacketReader reader)
+        {
+            TargetIdent = reader.ReadInt();
+            Target = reader.ReadEnum<DroneTaskTargetType>();
+            Sink = reader.ReadEnum<DroneTaskSinkType>();
+            Source = reader.ReadEnum<DroneTaskSourceType>();
+        }
     }
 }
