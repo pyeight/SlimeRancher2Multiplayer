@@ -2,6 +2,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2E.Utils;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Loading;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
@@ -100,6 +101,15 @@ public sealed partial class NetworkActorManager
 
     private bool TrySpawnInitialGadget(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? identifiableModel)
     {
+        switch (actorData)
+        {
+            case InitialActorsPacket.LinkedAmmoGadget linkedAmmoData:
+                return TrySpawnInitialAmmoGadget(linkedAmmoData, out identifiableModel);
+            case InitialActorsPacket.LinkedGadget linkedData: // i dont know how to set this up for linked gadgets to work, but its possible they auto work
+                return TrySpawnInitialLinkedGadget(linkedData, out identifiableModel);
+            case InitialActorsPacket.Resource resourceData:
+                return TrySpawnInitialResource(resourceData, out identifiableModel);
+        }
         identifiableModel = null;
         
         var sceneId = actorData.Scene;
@@ -122,6 +132,71 @@ public sealed partial class NetworkActorManager
         
         handlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
+        handlingPacket = false;
+        
+        gadget.transform.SetPositionAndRotation(position, rotation);
+        
+        return true;
+    }
+    // place holder ig
+    private bool TrySpawnInitialLinkedGadget(InitialActorsPacket.LinkedGadget actorData, out IdentifiableModel? identifiableModel)
+    {
+        identifiableModel = null;
+        
+        var sceneId = actorData.Scene;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var typeId = actorData.ActorTypeId;
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
+            return false;
+        }
+
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position);
+        model.eulerRotation = rotation.eulerAngles;
+
+        identifiableModel = model.Cast<IdentifiableModel>();
+        
+        handlingPacket = true;
+        var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
+        handlingPacket = false;
+        
+        gadget.transform.SetPositionAndRotation(position, rotation);
+        
+        return true;
+    }
+    
+    private bool TrySpawnInitialAmmoGadget(InitialActorsPacket.LinkedAmmoGadget actorData, out IdentifiableModel? identifiableModel)
+    {
+        identifiableModel = null;
+        
+        var sceneId = actorData.Scene;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var typeId = actorData.ActorTypeId;
+
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
+            return false;
+        }
+
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        var gadgetModel = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position);
+        gadgetModel.eulerRotation = rotation.eulerAngles;
+
+        if (gadgetModel.TryCast<WarpDepotModel>(out var depotModel))
+            depotModel.ammo = actorData.Ammo.ToGameAmmo()._ammoModel;
+        
+        identifiableModel = gadgetModel.Cast<IdentifiableModel>();
+        
+        handlingPacket = true;
+        var gadget = GadgetDirector.InstantiateGadgetFromModel(gadgetModel);
         handlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);

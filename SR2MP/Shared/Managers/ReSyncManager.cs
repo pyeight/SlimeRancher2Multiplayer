@@ -406,7 +406,9 @@ public sealed class ReSyncManager
                     AshLevel = plot.ashUnits,
                     PlortCollectorAmmo = new NetworkAmmo
                     {
-                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo]?.Slots
+                        AmmoSlots = (!plot.siloAmmo.ContainsKey(PlortCollectorAmmo)
+                                ? null
+                                : plot.siloAmmo[PlortCollectorAmmo])?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
