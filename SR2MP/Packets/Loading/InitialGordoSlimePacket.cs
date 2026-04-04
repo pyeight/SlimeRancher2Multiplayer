@@ -39,7 +39,7 @@ internal sealed class InitialGordosPacket : IPacket
     public PacketType Type => PacketType.InitialGordos;
     public PacketReliability Reliability => PacketReliability.Reliable;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(GordoSlimes, PacketWriterDels.NetObject<GordoSlime>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteList(GordoSlimes, PacketWriterDels.NetObject<GordoSlime>.Writer);
 
-    public void Deserialise(PacketReader reader) => GordoSlimes = reader.ReadList(PacketReaderDels.NetObject<GordoSlime>.Func);
+    public void Deserialise(PacketReader reader) => GordoSlimes = reader.ReadList(PacketReaderDels.NetObject<GordoSlime>.Reader)!;
 }

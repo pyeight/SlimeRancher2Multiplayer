@@ -16,6 +16,6 @@ internal sealed class ModSyncPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Mods = reader.ReadDictionary(PacketReaderDels.UShort, PacketReaderDels.String);
+        Mods = reader.ReadDictionary(PacketReaderDels.UShort, PacketReaderDels.String)!;
     }
 }

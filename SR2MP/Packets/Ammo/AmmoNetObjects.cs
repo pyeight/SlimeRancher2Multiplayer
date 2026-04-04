@@ -12,12 +12,12 @@ internal sealed class NetworkAmmo : INetObject
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteDictionary(AmmoSlots, PacketWriterDels.PackedInt32, PacketWriterDels.NetObject<NetworkAmmoSlot>.Func);
+        writer.WriteDictionary(AmmoSlots, PacketWriterDels.PackedInt32, PacketWriterDels.NetObject<NetworkAmmoSlot>.Writer);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        AmmoSlots = reader.ReadDictionary(PacketReaderDels.PackedInt32, PacketReaderDels.NetObject<NetworkAmmoSlot>.Func);
+        AmmoSlots = reader.ReadDictionary(PacketReaderDels.PackedInt32, PacketReaderDels.NetObject<NetworkAmmoSlot>.Reader)!;
     }
 
     public AmmoSlotManager ToGameAmmo()

@@ -200,7 +200,7 @@ public sealed class SR2MPServer
     }
 
     internal void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
-        => PrepareAndSendToClient(packet, packet.Reliability, endPoint, SerialiseInternalPacket<T>.Func);
+        => PrepareAndSendToClient(packet, packet.Reliability, endPoint, SerialiseInternalPacket<T>.Serialiser);
 
     /// <summary>
     /// Sends a custom packet to a specific client endpoint.
@@ -217,7 +217,7 @@ public sealed class SR2MPServer
         }
 
         var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSendToClient((apiHeader, data), apiHeader.Reliability, endPoint, SerialiseApiPacket<T>.Func);
+        PrepareAndSendToClient((apiHeader, data), apiHeader.Reliability, endPoint, SerialiseApiPacket<T>.Serialiser);
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ public sealed class SR2MPServer
     }
 
     internal void SendToAll<T>(T packet) where T : IPacket
-        => PrepareAndSendToAll(packet, packet.Reliability, SerialiseInternalPacket<T>.Func);
+        => PrepareAndSendToAll(packet, packet.Reliability, SerialiseInternalPacket<T>.Serialiser);
 
     /// <summary>
     /// Broadcasts a custom packet to all connected clients.
@@ -269,7 +269,7 @@ public sealed class SR2MPServer
         }
 
         var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSendToAll((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Func);
+        PrepareAndSendToAll((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Serialiser);
     }
 
     private void PrepareAndSendToAll<T>(T state, PacketReliability reliability, PacketWriterDelegate<T> writeAction)
@@ -311,7 +311,7 @@ public sealed class SR2MPServer
         }
 
         var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Func, excludedClientInfo);
+        PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Serialiser, excludedClientInfo);
     }
 
     /// <summary>
@@ -327,7 +327,7 @@ public sealed class SR2MPServer
     }
 
     internal void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
-        => PrepareAndSendToAllExcept(packet, packet.Reliability, SerialiseInternalPacket<T>.Func, excludedClientInfo);
+        => PrepareAndSendToAllExcept(packet, packet.Reliability, SerialiseInternalPacket<T>.Serialiser, excludedClientInfo);
 
     internal void SendToAllExcept<T>(T packet, IPEndPoint? excludeEndPoint) where T : IPacket
     {

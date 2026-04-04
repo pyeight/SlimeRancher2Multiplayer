@@ -13,9 +13,9 @@ internal sealed class WeatherPacket : IPacket
     public PacketType Type { get; private init; }
     public PacketReliability Reliability => PacketReliability.Reliable;
 
-    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Zones, PacketWriterDels.Byte, PacketWriterDels.NetObject<WeatherZoneData>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Zones, PacketWriterDels.Byte, PacketWriterDels.NetObject<WeatherZoneData>.Writer);
 
-    public void Deserialise(PacketReader reader) => Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Func);
+    public void Deserialise(PacketReader reader) => Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Reader)!;
 
     public static IEnumerator CreateFromModel(
         WeatherModel model,
@@ -67,13 +67,13 @@ internal sealed class WeatherZoneData : INetObject
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteList(WeatherForecasts, PacketWriterDels.NetObject<WeatherForecast>.Func);
+        writer.WriteList(WeatherForecasts, PacketWriterDels.NetObject<WeatherForecast>.Writer);
         writer.WriteVector3(WindSpeed);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        WeatherForecasts = reader.ReadList(PacketReaderDels.NetObject<WeatherForecast>.Func);
+        WeatherForecasts = reader.ReadList(PacketReaderDels.NetObject<WeatherForecast>.Reader)!;
         WindSpeed = reader.ReadVector3();
     }
 }

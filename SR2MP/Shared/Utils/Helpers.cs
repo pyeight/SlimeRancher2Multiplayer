@@ -8,4 +8,6 @@ internal static class Helpers
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryCast<T>(this Il2CppObjectBase baseObj, [NotNullWhen(true)] out T? castedObj) where T : Il2CppObjectBase => (castedObj = baseObj.TryCast<T>()) != null;
+
+    public static bool IsNullOrEmpty<T>(this IEnumerable<T>? enumerable) => enumerable?.Any() != true;
 }

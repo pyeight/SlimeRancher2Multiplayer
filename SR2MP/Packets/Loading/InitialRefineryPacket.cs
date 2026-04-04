@@ -11,5 +11,5 @@ internal sealed class InitialRefineryPacket : IPacket
 
     public void Serialise(PacketWriter writer) => writer.WriteDictionary(Items, PacketWriterDels.UShort, PacketWriterDels.UShort);
 
-    public void Deserialise(PacketReader reader) => Items = reader.ReadDictionary(PacketReaderDels.UShort, PacketReaderDels.UShort);
+    public void Deserialise(PacketReader reader) => Items = reader.ReadDictionary(PacketReaderDels.UShort, PacketReaderDels.UShort)!;
 }

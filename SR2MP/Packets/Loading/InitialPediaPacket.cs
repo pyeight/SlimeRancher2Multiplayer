@@ -11,5 +11,5 @@ internal sealed class InitialPediaPacket : IPacket
 
     public void Serialise(PacketWriter writer) => writer.WriteList(Entries, PacketWriterDels.String);
 
-    public void Deserialise(PacketReader reader) => Entries = reader.ReadList(PacketReaderDels.String);
+    public void Deserialise(PacketReader reader) => Entries = reader.ReadList(PacketReaderDels.String)!;
 }

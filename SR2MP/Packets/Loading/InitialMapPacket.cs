@@ -18,6 +18,6 @@ internal sealed class InitialMapPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        UnlockedNodes = reader.ReadList(PacketReaderDels.String);
+        UnlockedNodes = reader.ReadList(PacketReaderDels.String)!;
     }
 }

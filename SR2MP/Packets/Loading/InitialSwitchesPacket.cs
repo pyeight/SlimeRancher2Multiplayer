@@ -27,7 +27,7 @@ internal sealed class InitialSwitchesPacket : IPacket
     public PacketType Type => PacketType.InitialSwitches;
     public PacketReliability Reliability => PacketReliability.Reliable;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Writer);
 
-    public void Deserialise(PacketReader reader) => Switches = reader.ReadList(PacketReaderDels.NetObject<Switch>.Func);
+    public void Deserialise(PacketReader reader) => Switches = reader.ReadList(PacketReaderDels.NetObject<Switch>.Reader)!;
 }

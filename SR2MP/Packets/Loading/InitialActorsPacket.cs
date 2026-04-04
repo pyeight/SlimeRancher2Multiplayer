@@ -28,13 +28,13 @@ internal partial class InitialActorsPacket : IPacket
     {
         writer.WritePackedUInt(StartingActorID);
         writer.WriteDouble(WorldTime);
-        writer.WriteList(Actors, PacketWriterDels.NetObject<ActorBase>.Func);
+        writer.WriteList(Actors, PacketWriterDels.NetObject<ActorBase>.Writer);
     }
 
     public void Deserialise(PacketReader reader)
     {
         StartingActorID = reader.ReadPackedUInt();
         WorldTime = reader.ReadDouble();
-        Actors = reader.ReadList(ReadFunction);
+        Actors = reader.ReadList(ReadFunction)!;
     }
 }

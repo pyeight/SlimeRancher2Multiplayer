@@ -25,6 +25,6 @@ internal sealed class ConnectPacket : IPacket
         PlayerId = reader.ReadStringWithSize(16)!;
         Username = reader.ReadString()!;
 
-        ModHashes = reader.ReadList(PacketReaderDels.UShort);
+        ModHashes = reader.ReadList(PacketReaderDels.UShort)!;
     }
 }

@@ -243,7 +243,7 @@ public sealed class SR2MPClient
     // }
 
     internal void SendPacket<T>(T packet) where T : IPacket
-        => PrepareAndSend(packet, packet.Reliability, (byte)packet.Type, SerialiseInternalPacket<T>.Func);
+        => PrepareAndSend(packet, packet.Reliability, (byte)packet.Type, SerialiseInternalPacket<T>.Serialiser);
 
     /// <summary>
     /// Sends a packet over the network.
@@ -260,7 +260,7 @@ public sealed class SR2MPClient
         }
 
         var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, SerialiseApiPacket<T>.Func);
+        PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, SerialiseApiPacket<T>.Serialiser);
     }
 
     private void PrepareAndSend<T>(T state, PacketReliability reliability, byte packetType, PacketWriterDelegate<T> writeAction)

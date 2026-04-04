@@ -29,7 +29,7 @@ internal sealed class InitialLandPlotsPacket : IPacket
         {
             writer.WriteString(ID);
             writer.WritePackedEnum(Type);
-            writer.WriteCppSet(Upgrades, PacketWriterDels.PackedEnum<LandPlot.Upgrade>.Func);
+            writer.WriteCppSet(Upgrades, PacketWriterDels.PackedEnum<LandPlot.Upgrade>.Writer);
 
             Data?.Serialise(writer);
         }
@@ -38,7 +38,7 @@ internal sealed class InitialLandPlotsPacket : IPacket
         {
             ID = reader.ReadString()!;
             Type = reader.ReadPackedEnum<LandPlot.Id>();
-            Upgrades = reader.ReadCppSet(PacketReaderDels.PackedEnum<LandPlot.Upgrade>.Func);
+            Upgrades = reader.ReadCppSet(PacketReaderDels.PackedEnum<LandPlot.Upgrade>.Reader)!;
 
             if (!DataTypes.TryGetValue(Type, out var dataType))
             {
@@ -75,7 +75,7 @@ internal sealed class InitialLandPlotsPacket : IPacket
         public void Deserialise(PacketReader reader)
         {
             Ammo = reader.ReadNetObject<NetworkAmmo>();
-            SelectedSlots = reader.ReadList(PacketReaderDels.Byte);
+            SelectedSlots = reader.ReadList(PacketReaderDels.Byte)!;
         }
     }
 
@@ -134,7 +134,7 @@ internal sealed class InitialLandPlotsPacket : IPacket
     public PacketType Type => PacketType.InitialLandPlots;
     public PacketReliability Reliability => PacketReliability.Reliable;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(LandPlots, PacketWriterDels.NetObject<BasePlot>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteList(LandPlots, PacketWriterDels.NetObject<BasePlot>.Writer);
 
-    public void Deserialise(PacketReader reader) => LandPlots = reader.ReadList(PacketReaderDels.NetObject<BasePlot>.Func);
+    public void Deserialise(PacketReader reader) => LandPlots = reader.ReadList(PacketReaderDels.NetObject<BasePlot>.Reader)!;
 }

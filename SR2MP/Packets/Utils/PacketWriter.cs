@@ -13,7 +13,7 @@ using Unity.Mathematics;
 namespace SR2MP.Packets.Utils;
 
 /// <summary>
-/// A reusable writer for packing primitive types, structs, and objects into a byte buffer for network transmission.
+/// A reusable writer for packing data into a byte buffer for network transmission.
 /// </summary>
 [PublicAPI]
 public sealed class PacketWriter : PacketBuffer
@@ -23,14 +23,20 @@ public sealed class PacketWriter : PacketBuffer
     /// <summary>
     /// Gets the total size of the data written to this buffer.
     /// </summary>
+    // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
     public override int DataSize => size;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PacketWriter"/> class.
+    /// Initialises a new instance of the <see cref="PacketWriter"/> class.
     /// </summary>
     [Obsolete("Use PacketWriter.Borrow instead!", true)]
     public PacketWriter() : base(0) { }
 
+    /// <summary>
+    /// Ensures that the writer has enough space to write the provided number of bytes.
+    /// </summary>
+    /// <param name="bytesToAdd">The number of bytes to add.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
     private void EnsureCapacity(int bytesToAdd)
     {
         if (IsRecycled)
@@ -56,90 +62,90 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Writes a single byte to the buffer.
+    /// Writes a byte.
     /// </summary>
     /// <param name="value">The byte to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteByte(byte value) => WriteAlloc(1)[0] = value;
 
     /// <summary>
-    /// Writes a boolean value to the buffer as a single byte.
+    /// Writes a boolean.
     /// </summary>
     /// <param name="value">The boolean to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteBool(bool value) => WriteByte((byte)(value ? 1 : 0));
 
     /// <summary>
-    /// Writes a signed byte to the buffer.
+    /// Writes an sbyte.
     /// </summary>
     /// <param name="value">The signed byte to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteSByte(sbyte value) => WriteByte((byte)value);
 
     /// <summary>
-    /// Writes a 16-bit signed integer using little-endian encoding.
+    /// Writes a short.
     /// </summary>
     /// <param name="value">The short to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteShort(short value) => BinaryPrimitives.WriteInt16LittleEndian(WriteAlloc(2), value);
 
     /// <summary>
-    /// Writes a 16-bit unsigned integer using little-endian encoding.
+    /// Writes a ushort.
     /// </summary>
     /// <param name="value">The unsigned short to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUShort(ushort value) => BinaryPrimitives.WriteUInt16LittleEndian(WriteAlloc(2), value);
 
     /// <summary>
-    /// Writes a 32-bit signed integer using little-endian encoding.
+    /// Writes an int.
     /// </summary>
     /// <param name="value">The integer to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteInt(int value) => BinaryPrimitives.WriteInt32LittleEndian(WriteAlloc(4), value);
 
     /// <summary>
-    /// Writes a 32-bit unsigned integer using little-endian encoding.
+    /// Writes a uint.
     /// </summary>
     /// <param name="value">The unsigned integer to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteUInt(uint value) => BinaryPrimitives.WriteUInt32LittleEndian(WriteAlloc(4), value);
 
     /// <summary>
-    /// Writes a single-precision floating-point number using little-endian encoding.
+    /// Writes a float.
     /// </summary>
     /// <param name="value">The float to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat(float value) => BinaryPrimitives.WriteSingleLittleEndian(WriteAlloc(4), value);
 
     /// <summary>
-    /// Writes a 64-bit signed integer using little-endian encoding.
+    /// Writes a long.
     /// </summary>
     /// <param name="value">The long to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteLong(long value) => BinaryPrimitives.WriteInt64LittleEndian(WriteAlloc(8), value);
 
     /// <summary>
-    /// Writes a 64-bit unsigned integer using little-endian encoding.
+    /// Writes a ulong.
     /// </summary>
     /// <param name="value">The unsigned long to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteULong(ulong value) => BinaryPrimitives.WriteUInt64LittleEndian(WriteAlloc(8), value);
 
     /// <summary>
-    /// Writes a double-precision floating-point number using little-endian encoding.
+    /// Writes a double.
     /// </summary>
     /// <param name="value">The double to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteDouble(double value) => BinaryPrimitives.WriteDoubleLittleEndian(WriteAlloc(8), value);
 
@@ -152,60 +158,61 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Writes a Vector2 structure composed of 2 floats.
+    /// Writes a Vector2.
     /// </summary>
     /// <param name="value">The Vector2 to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector2(Vector2 value) => WriteFloats(stackalloc float[2] { value.x, value.y });
 
     /// <summary>
-    /// Writes a Vector3 structure composed of 3 floats.
+    /// Writes a Vector3.
     /// </summary>
     /// <param name="value">The Vector3 to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteVector3(Vector3 value) => WriteFloats(stackalloc float[3] { value.x, value.y, value.z });
 
     /// <summary>
-    /// Writes a Quaternion structure composed of 4 floats.
+    /// Writes a Quaternion.
     /// </summary>
     /// <param name="value">The Quaternion to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteQuaternion(Quaternion value) => WriteFloats(stackalloc float[4] { value.x, value.y, value.z, value.w });
 
     /// <summary>
-    /// Writes a float4 structure composed of 4 floats.
+    /// Writes a float4.
     /// </summary>
     /// <param name="value">The float4 to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteFloat4(float4 value) => WriteFloats(stackalloc float[4] { value.x, value.y, value.z, value.w });
 
     /// <summary>
-    /// Writes an enum value to the buffer.
+    /// Writes an enum value.
     /// </summary>
     /// <typeparam name="T">The type of the enum.</typeparam>
     /// <param name="value">The enum value to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Func(this, value);
+    public void WriteEnum<T>(T value) where T : struct, Enum => PacketWriterDels.Enum<T>.Writer(this, value);
 
     /// <summary>
     /// Writes an enum value by its string representation.
     /// </summary>
     /// <typeparam name="T">The type of the enum.</typeparam>
     /// <param name="value">The enum value to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteEnumAsString<T>(T value) where T : struct, Enum => WriteString(value.ToString());
 
     /// <summary>
-    /// Writes an object that implements <see cref="INetObject"/> by invoking its Serialise method.
+    /// Writes an object that implements <see cref="INetObject"/>.
     /// </summary>
     /// <typeparam name="T">The type of the network object.</typeparam>
     /// <param name="value">The network object to serialize.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteNetObject<T>(T value) where T : INetObject => value.Serialise(this);
 
@@ -217,10 +224,11 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Writes a custom packet to the buffer, including its header byte.
+    /// Writes a packet that implements <see cref="ICustomPacket"/>.
     /// </summary>
     /// <typeparam name="T">The type of the custom packet.</typeparam>
     /// <param name="value">The custom packet to serialize.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteCustomPacket<T>(T value) where T : ICustomPacket
     {
@@ -229,68 +237,65 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Writes a 32-bit signed integer using variable-length ZigZag encoding.
+    /// Writes a packed int.
     /// </summary>
     /// <param name="value">The integer to pack and write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedInt(int value) => WritePackedUInt((uint)((value << 1) ^ (value >> 31)));
 
     /// <summary>
-    /// Writes a 32-bit unsigned integer using variable-length encoding.
+    /// Writes a packed uint.
     /// </summary>
     /// <param name="value">The unsigned integer to pack and write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedUInt(uint value) => WriteVarInt(value, 5);
 
     /// <summary>
-    /// Writes a 64-bit signed integer using variable-length ZigZag encoding.
+    /// Writes a packed long.
     /// </summary>
     /// <param name="value">The long to pack and write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedLong(long value) => WritePackedULong((ulong)((value << 1) ^ (value >> 63)));
 
     /// <summary>
-    /// Writes a 64-bit unsigned integer using variable-length encoding.
+    /// Writes a packed ulong.
     /// </summary>
     /// <param name="value">The unsigned long to pack and write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WritePackedULong(ulong value) => WriteVarInt(value, 10);
 
     /// <summary>
-    /// Writes a UTF-8 encoded string prefixed by its length as a ushort. Null or empty strings write a length of 0.
+    /// Writes a string prefixed by its length. Null or empty strings write a length of 0.
     /// </summary>
     /// <param name="value">The string to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
-    public void WriteString(string? value)
+    /// <param name="countType">The header type used to store string byte length.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    /// <inheritdoc cref="WriteCount"/>
+    public void WriteString(string? value, CountType countType = CountType.UShort)
     {
         if (string.IsNullOrEmpty(value))
         {
-            WriteUShort(0);
+            WriteCount(0, countType);
             return;
         }
 
-        var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
-        EnsureCapacity(2 + maxByteCount);
+        var byteCount = Encoding.UTF8.GetByteCount(value);
+        WriteCount(byteCount, countType);
 
-        var lengthIndex = position;
-        Advance(2);
-
-        var actualCount = Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position));
-        BinaryPrimitives.WriteUInt16LittleEndian(buffer.AsSpan(lengthIndex), (ushort)actualCount);
-
-        Advance(actualCount);
+        EnsureCapacity(byteCount);
+        Advance(Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position)));
     }
 
     /// <summary>
-    /// Writes a UTF-8 encoded string without prefixing its length.
+    /// Writes a string without prefixing its length.
     /// </summary>
     /// <param name="value">The string to write.</param>
     /// <exception cref="ArgumentException">Thrown if the provided string is null or empty.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     public void WriteStringWithoutSize(string? value)
     {
         if (string.IsNullOrEmpty(value))
@@ -301,80 +306,142 @@ public sealed class PacketWriter : PacketBuffer
         Advance(Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position)));
     }
 
-    private void WriteCollection<T>(int count, IEnumerable<T> items, Action<PacketWriter, T> writer)
+    // ReSharper disable InvalidXmlDocComment
+
+    /// <summary>
+    /// Writes a collection with a configurable count header.
+    /// </summary>
+    /// <param name="count">The number of items to serialise.</param>
+    /// <param name="countType">The header type used to store array length.</param>
+    /// <inheritdoc cref="WriteCount"/>
+    /// <inheritdoc cref="WriteCollectionWithoutSize"/>
+    private void WriteCollectionWithSize<T>(int count, IEnumerable<T> items, Action<PacketWriter, T> writer, CountType countType)
     {
-        WriteUShort((ushort)count);
+        WriteCount(count, countType);
 
         foreach (var item in items)
             writer(this, item);
     }
 
     /// <summary>
-    /// Writes an array prefixed by its length as a ushort.
+    /// Writes a collection without serialising its count first.
     /// </summary>
+    /// <param name="items">The sequence of items to serialise.</param>
+    /// <param name="writer">The delegate used to write each element.</param>
     /// <typeparam name="T">The element type.</typeparam>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    private void WriteCollectionWithoutSize<T>(IEnumerable<T>? items, Action<PacketWriter, T> writer)
+    {
+        // ReSharper disable once PossibleMultipleEnumeration
+        if (items.IsNullOrEmpty())
+            throw new InvalidDataException("Collection cannot be null or empty.");
+
+        // ReSharper disable once PossibleMultipleEnumeration
+        foreach (var item in items!)
+            writer(this, item);
+    }
+
+    /// <summary>
+    /// Writes an array prefixed by its length.
+    /// </summary>
     /// <param name="array">The array to write.</param>
-    /// <param name="writer">The delegate used to write each element.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="WriteCollectionWithSize{T}"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer)
-        => WriteCollection(array?.Length ?? 0, array ?? Enumerable.Empty<T>(), writer);
+    public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
+        => WriteCollectionWithSize(array?.Length ?? 0, array ?? Enumerable.Empty<T>(), writer, countType);
 
     /// <summary>
-    /// Writes a List prefixed by its length as a ushort.
+    /// Writes an array without prefixing its length.
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="array">The array to write.</param>
+    /// <inheritdoc cref="WriteCollectionWithoutSize{T}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteArrayWithoutSize<T>(T[]? array, Action<PacketWriter, T> writer)
+        => WriteCollectionWithoutSize(array, writer);
+
+    /// <summary>
+    /// Writes a List prefixed by its length.
+    /// </summary>
     /// <param name="list">The list to write.</param>
-    /// <param name="writer">The delegate used to write each element.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="WriteCollectionWithSize{T}"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteList<T>(List<T>? list, Action<PacketWriter, T> writer)
-        => WriteCollection(list?.Count ?? 0, list ?? Enumerable.Empty<T>(), writer);
+    public void WriteList<T>(List<T>? list, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
+        => WriteCollectionWithSize(list?.Count ?? 0, list ?? Enumerable.Empty<T>(), writer, countType);
 
     /// <summary>
-    /// Writes a HashSet prefixed by its length as a ushort.
+    /// Writes a List without prefixing its length.
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="set">The set to write.</param>
-    /// <param name="writer">The delegate used to write each element.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <param name="list">The list to write.</param>
+    /// <inheritdoc cref="WriteCollectionWithoutSize{T}"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteSet<T>(HashSet<T>? set, Action<PacketWriter, T> writer)
-        => WriteCollection(set?.Count ?? 0, set ?? Enumerable.Empty<T>(), writer);
+    public void WriteListWithoutSize<T>(List<T>? list, Action<PacketWriter, T> writer)
+        => WriteCollectionWithoutSize(list, writer);
 
     /// <summary>
-    /// Writes a custom CppCollections HashSet prefixed by its length as a ushort.
+    /// Writes a HashSet prefixed by its length.
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
     /// <param name="set">The set to write.</param>
-    /// <param name="writer">The delegate used to write each element.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
-    public void WriteCppSet<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer)
+    /// <inheritdoc cref="WriteCollectionWithSize{T}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSet<T>(HashSet<T>? set, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
+        => WriteCollectionWithSize(set?.Count ?? 0, set ?? Enumerable.Empty<T>(), writer, countType);
+
+    /// <summary>
+    /// Writes a HashSet without prefixing its length.
+    /// </summary>
+    /// <param name="set">The set to write.</param>
+    /// <inheritdoc cref="WriteCollectionWithoutSize{T}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSetWithoutSize<T>(HashSet<T>? set, Action<PacketWriter, T> writer)
+        => WriteCollectionWithoutSize(set, writer);
+
+    /// <summary>
+    /// Writes an IL2Cpp HashSet prefixed by its length.
+    /// </summary>
+    /// <param name="set">The set to write.</param>
+    /// <inheritdoc cref="WriteCollectionWithSize{T}"/>
+    public void WriteCppSet<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
     {
         if (set == null)
         {
-            WriteUShort(0);
+            WriteCount(0, countType);
             return;
         }
 
-        WriteUShort((ushort)set.Count);
+        WriteCount(set.Count, countType);
 
         foreach (var item in set)
             writer(this, item);
     }
 
     /// <summary>
-    /// Writes a Dictionary prefixed by its length as a ushort.
+    /// Writes an IL2Cpp HashSet without prefixing its length.
+    /// </summary>
+    /// <param name="set">The set to write.</param>
+    /// <inheritdoc cref="WriteCollectionWithoutSize{T}"/>
+    public void WriteCppSetWithoutSize<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer)
+    {
+        if (set == null || set.Count == 0)
+            throw new InvalidDataException("Collection cannot be null or empty.");
+
+        foreach (var item in set)
+            writer(this, item);
+    }
+
+    /// <summary>
+    /// Writes a Dictionary prefixed by its length.
     /// </summary>
     /// <typeparam name="TKey">The type of the keys.</typeparam>
     /// <typeparam name="TValue">The type of the values.</typeparam>
     /// <param name="dict">The dictionary to write.</param>
     /// <param name="keyWriter">The delegate used to write keys.</param>
     /// <param name="valueWriter">The delegate used to write values.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
-    public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
+    /// <param name="countType">The header type used to store dictionary length.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
+    /// <inheritdoc cref="WriteCount"/>
+    public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter, CountType countType = CountType.UShort) where TKey : notnull
     {
-        WriteUShort((ushort)(dict?.Count ?? 0));
+        WriteCount(dict?.Count ?? 0, countType);
 
         if (dict == null)
             return;
@@ -387,10 +454,33 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
+    /// Writes a Dictionary without prefixing its length.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the keys.</typeparam>
+    /// <typeparam name="TValue">The type of the values.</typeparam>
+    /// <param name="dict">The dictionary to write.</param>
+    /// <param name="keyWriter">The delegate used to write keys.</param>
+    /// <param name="valueWriter">The delegate used to write values.</param>
+    /// <exception cref="InvalidDataException">Thrown if the provided dictionary is null or empty.</exception>
+    public void WriteDictionaryWithoutSize<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
+    {
+        if (dict == null || dict.Count == 0)
+            throw new InvalidDataException("Collection cannot be null or empty.");
+
+        foreach (var (key, value) in dict)
+        {
+            keyWriter(this, key);
+            valueWriter(this, value);
+        }
+    }
+
+    // ReSharper enable InvalidXmlDocComment
+
+    /// <summary>
     /// Packs a boolean value into the current working byte. Flushes to buffer when a byte is full.
     /// </summary>
     /// <param name="value">The boolean to pack.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     public void WritePackedBool(bool value)
     {
         if (value)
@@ -403,9 +493,9 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Forces any pending packed booleans to be flushed to the buffer, realigning the cursor to byte boundaries.
+    /// Forces any pending packed booleans to be flushed, realigning the cursor to byte boundaries.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override void EndPackingBools() => EnsureCapacity(0);
 
@@ -424,10 +514,10 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Writes a read-only span of bytes to the buffer.
+    /// Writes a read-only span of bytes.
     /// </summary>
     /// <param name="data">The byte span to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the writer is recycled or detached.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteSpan(ReadOnlySpan<byte> data)
     {
@@ -440,32 +530,35 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Writes a nullable struct, prefixing it with a boolean indicating if a value is present.
+    /// Writes a nullable value, prefixing it with a boolean indicating if a value is present.
     /// </summary>
-    /// <typeparam name="T">The struct type.</typeparam>
+    /// <typeparam name="T">The value's type.</typeparam>
     /// <param name="value">The nullable value to write.</param>
-    public void WriteNullable<T>(T? value) where T : struct
+    /// <inheritdoc cref="EnsureCapacity"/>
+    public void WriteNullable<T>(T? value)
     {
-        var hasValue = value.HasValue;
+        var hasValue = value != null;
         WriteBool(hasValue);
 
         if (hasValue)
-            WriteStruct(value!.Value);
+            WriteObject(value!);
     }
 
     /// <summary>
-    /// Writes a struct dynamically using cached delegates.
+    /// Writes an object dynamically using cached delegates.
     /// </summary>
-    /// <typeparam name="T">The struct type.</typeparam>
-    /// <param name="value">The struct to write.</param>
+    /// <typeparam name="T">The object type.</typeparam>
+    /// <param name="value">The value to write.</param>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteStruct<T>(T value) where T : struct => PacketWriterDels.Struct<T>.Writer(this, value);
+    public void WriteObject<T>(T value) => PacketWriterDels.Object<T>.Writer(this, value);
 
     /// <summary>
     /// Advances the write cursor forward by the specified amount, filling the skipped space with zeros.
     /// </summary>
     /// <param name="count">The number of bytes to move forward.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if the count is negative.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     public override void MoveForward(int count)
     {
         if (count < 0)
@@ -481,7 +574,7 @@ public sealed class PacketWriter : PacketBuffer
     /// </summary>
     /// <param name="count">The number of bytes to move backward.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if the count is negative.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if moving backward exceeds the current position.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if moving backward exceeds the current position, or if the writer is recycled or detached.</exception>
     public override void MoveBack(int count)
     {
         if (count < 0)
@@ -496,13 +589,14 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     /// <summary>
-    /// Writes an enum value optimized with varint packing for its underlying type.
+    /// Writes a packed enum value.
     /// </summary>
     /// <typeparam name="T">The type of the enum.</typeparam>
     /// <param name="value">The enum value to write.</param>
     /// <exception cref="ArgumentException">Thrown if the enum size is not supported.</exception>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WritePackedEnum<T>(T value) where T : struct, Enum => PacketWriterDels.PackedEnum<T>.Func(this, value);
+    public void WritePackedEnum<T>(T value) where T : struct, Enum => PacketWriterDels.PackedEnum<T>.Writer(this, value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Span<byte> WriteAlloc(int count)
@@ -517,6 +611,7 @@ public sealed class PacketWriter : PacketBuffer
     /// Returns a ReadOnlySpan representing the valid written data in the buffer.
     /// </summary>
     /// <returns>A span containing the serialized data.</returns>
+    /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> ToSpan()
     {
@@ -548,6 +643,7 @@ public sealed class PacketWriter : PacketBuffer
     /// </summary>
     /// <param name="length">Outputs the total bytes written to the detached buffer.</param>
     /// <returns>The byte array containing the serialized data.</returns>
+    /// <inheritdoc cref="EnsureCapacity"/>
     public byte[] DetachBuffer(out int length)
     {
         EnsureCapacity(0);
@@ -555,7 +651,7 @@ public sealed class PacketWriter : PacketBuffer
 
         var detachedBuffer = buffer;
 
-        buffer = null!;
+        buffer = null;
         Clear();
 
         return detachedBuffer!;
@@ -613,6 +709,53 @@ public sealed class PacketWriter : PacketBuffer
         if (position > size)
             size = position;
     }
+
+    /// <summary>
+    /// Writes a configurable count value.
+    /// </summary>
+    /// <param name="count">The count.</param>
+    /// <param name="countType">The method at which the count will be written.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the count is out of bounds of the configuration or if an unsupported configuration is passed.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteCount(int count, CountType countType)
+    {
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+
+        switch (countType)
+        {
+            case CountType.Byte:
+            {
+                if (count > byte.MaxValue)
+                    throw new ArgumentOutOfRangeException(nameof(count),
+                        $"Count {count} exceeds Byte max {byte.MaxValue}.");
+
+                WriteByte((byte)count);
+                return;
+            }
+            case CountType.UShort:
+            {
+                if (count > ushort.MaxValue)
+                    throw new ArgumentOutOfRangeException(nameof(count),
+                        $"Count {count} exceeds UShort max {ushort.MaxValue}.");
+
+                WriteUShort((ushort)count);
+                return;
+            }
+            case CountType.UInt:
+            {
+                WriteUInt((uint)count);
+                return;
+            }
+            case CountType.VarUInt:
+            {
+                WritePackedUInt((uint)count);
+                return;
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(countType), countType, "Unsupported count type.");
+        }
+    }
 }
 
 /// <summary>
@@ -660,7 +803,7 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write an INetObject.
         /// </summary>
-        public static readonly Action<PacketWriter, T> Func = (writer, value) => value.Serialise(writer);
+        public static readonly Action<PacketWriter, T> Writer = (writer, value) => value.Serialise(writer);
     }
 
     /// <summary>
@@ -673,14 +816,14 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write a Tuple.
         /// </summary>
-        public static readonly Action<PacketWriter, (T1, T2)> Func = CreateTupleWriter<(T1, T2)>(typeof(T1), typeof(T2));
+        public static readonly Action<PacketWriter, (T1, T2)> Writer = CreateTupleWriter<(T1, T2)>(typeof(T1), typeof(T2));
     }
 
     /// <summary>
     /// Caches a dynamically generated writing delegate for custom structs.
     /// </summary>
     /// <typeparam name="T">The struct type.</typeparam>
-    public static class Struct<T> where T : struct
+    public static class Object<T>
     {
         /// <summary>
         /// A delegate to write a struct.
@@ -697,7 +840,7 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write an enum based on its underlying size.
         /// </summary>
-        public static readonly Action<PacketWriter, T> Func = CreateWriter();
+        public static readonly Action<PacketWriter, T> Writer = CreateWriter();
 
         private static Action<PacketWriter, T> CreateWriter()
         {
@@ -722,7 +865,7 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write a packed enum.
         /// </summary>
-        public static readonly Action<PacketWriter, T> Func = CreateWriter();
+        public static readonly Action<PacketWriter, T> Writer = CreateWriter();
 
         private static Action<PacketWriter, T> CreateWriter()
         {

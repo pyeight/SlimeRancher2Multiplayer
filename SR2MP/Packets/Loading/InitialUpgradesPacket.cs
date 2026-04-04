@@ -11,5 +11,5 @@ internal sealed class InitialUpgradesPacket : IPacket
 
     public void Serialise(PacketWriter writer) => writer.WriteDictionary(Upgrades, PacketWriterDels.Byte, PacketWriterDels.SByte);
 
-    public void Deserialise(PacketReader reader) => Upgrades = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.SByte);
+    public void Deserialise(PacketReader reader) => Upgrades = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.SByte)!;
 }

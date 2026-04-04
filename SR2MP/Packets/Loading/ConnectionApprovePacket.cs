@@ -22,7 +22,7 @@ internal sealed class ConnectionApprovePacket : IPacket
         writer.WritePackedBool(AllowCheats);
 
         writer.WriteString(PlayerId);
-        writer.WriteArray(OtherPlayers, PacketWriterDels.Tuple<string, string>.Func);
+        writer.WriteArray(OtherPlayers, PacketWriterDels.Tuple<string, string>.Writer);
 
         writer.WritePackedInt(Money);
         writer.WritePackedInt(RainbowMoney);
@@ -34,7 +34,7 @@ internal sealed class ConnectionApprovePacket : IPacket
         AllowCheats = reader.ReadPackedBool();
 
         PlayerId = reader.ReadString()!;
-        OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Func);
+        OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Reader)!;
 
         Money = reader.ReadPackedInt();
         RainbowMoney = reader.ReadPackedInt();

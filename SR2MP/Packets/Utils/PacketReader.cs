@@ -13,7 +13,7 @@ using Unity.Mathematics;
 namespace SR2MP.Packets.Utils;
 
 /// <summary>
-/// A reusable reader for extracting primitive types, structs, and objects from a packet buffer.
+/// A reusable reader for extracting data from a packet buffer.
 /// </summary>
 [PublicAPI]
 public sealed class PacketReader : PacketBuffer
@@ -26,13 +26,14 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Gets the total size of the readable data represented by this buffer.
     /// </summary>
+    // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
     public override int DataSize => dataSize;
 
     private bool isRented;
     private int dataSize;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PacketReader"/> class.
+    /// Initialises a new instance of the <see cref="PacketReader"/> class.
     /// </summary>
     [Obsolete("Use PacketReader.Borrow instead!", true)]
     public PacketReader() : base(8) { }
@@ -55,7 +56,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a single byte from the buffer.
+    /// Reads a byte.
     /// </summary>
     /// <returns>The read byte.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -67,15 +68,15 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a boolean value from the buffer.
+    /// Reads a boolean.
     /// </summary>
-    /// <returns>True if the byte is non-zero, otherwise false.</returns>
+    /// <returns><c>true</c> if the byte is non-zero, otherwise <c>false</c>.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ReadBool() => ReadByte() != 0;
 
     /// <summary>
-    /// Reads a signed byte from the buffer.
+    /// Reads an sbyte.
     /// </summary>
     /// <returns>The read signed byte.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -83,7 +84,7 @@ public sealed class PacketReader : PacketBuffer
     public sbyte ReadSByte() => (sbyte)ReadByte();
 
     /// <summary>
-    /// Reads a 16-bit signed integer using little-endian encoding.
+    /// Reads a short.
     /// </summary>
     /// <returns>The read short.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -91,31 +92,31 @@ public sealed class PacketReader : PacketBuffer
     public short ReadShort() => BinaryPrimitives.ReadInt16LittleEndian(ReadRequest(2));
 
     /// <summary>
-    /// Reads a 16-bit unsigned integer using little-endian encoding.
+    /// Reads a ushort.
     /// </summary>
-    /// <returns>The read unsigned short.</returns>
+    /// <returns>The read ushort.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ushort ReadUShort() => BinaryPrimitives.ReadUInt16LittleEndian(ReadRequest(2));
 
     /// <summary>
-    /// Reads a 32-bit signed integer using little-endian encoding.
+    /// Reads an int.
     /// </summary>
-    /// <returns>The read integer.</returns>
+    /// <returns>The read iny.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadInt() => BinaryPrimitives.ReadInt32LittleEndian(ReadRequest(4));
 
     /// <summary>
-    /// Reads a 32-bit unsigned integer using little-endian encoding.
+    /// Reads a uint.
     /// </summary>
-    /// <returns>The read unsigned integer.</returns>
+    /// <returns>The read uint.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint ReadUInt() => BinaryPrimitives.ReadUInt32LittleEndian(ReadRequest(4));
 
     /// <summary>
-    /// Reads a 64-bit signed integer using little-endian encoding.
+    /// Reads a long.
     /// </summary>
     /// <returns>The read long.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -123,15 +124,15 @@ public sealed class PacketReader : PacketBuffer
     public long ReadLong() => BinaryPrimitives.ReadInt64LittleEndian(ReadRequest(8));
 
     /// <summary>
-    /// Reads a 64-bit unsigned integer using little-endian encoding.
+    /// Reads a ulong.
     /// </summary>
-    /// <returns>The read unsigned long.</returns>
+    /// <returns>The read ulong.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ulong ReadULong() => BinaryPrimitives.ReadUInt64LittleEndian(ReadRequest(8));
 
     /// <summary>
-    /// Reads a double-precision floating-point number using little-endian encoding.
+    /// Reads a double.
     /// </summary>
     /// <returns>The read double.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -139,7 +140,7 @@ public sealed class PacketReader : PacketBuffer
     public double ReadDouble() => BinaryPrimitives.ReadDoubleLittleEndian(ReadRequest(8));
 
     /// <summary>
-    /// Reads a single-precision floating-point number using little-endian encoding.
+    /// Reads a float.
     /// </summary>
     /// <returns>The read float.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -147,10 +148,11 @@ public sealed class PacketReader : PacketBuffer
     public float ReadFloat() => BinaryPrimitives.ReadSingleLittleEndian(ReadRequest(4));
 
     /// <summary>
-    /// Reads a variable-length 32-bit signed integer (ZigZag encoded).
+    /// Reads a packed int.
     /// </summary>
-    /// <returns>The unpacked integer.</returns>
+    /// <returns>The unpacked int.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
+    /// <inheritdoc cref="ReadVarInt"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadPackedInt()
     {
@@ -159,16 +161,16 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a variable-length 32-bit unsigned integer.
+    /// Reads a packed uint.
     /// </summary>
-    /// <returns>The unpacked unsigned integer.</returns>
+    /// <returns>The unpacked uint.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     /// <exception cref="InvalidDataException">Thrown if the varint exceeds the maximum shift size.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint ReadPackedUInt() => (uint)ReadVarInt(35);
 
     /// <summary>
-    /// Reads a variable-length 64-bit signed integer (ZigZag encoded).
+    /// Reads a packed long.
     /// </summary>
     /// <returns>The unpacked long.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -181,9 +183,9 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a variable-length 64-bit unsigned integer.
+    /// Reads a packed ulong.
     /// </summary>
-    /// <returns>The unpacked unsigned long.</returns>
+    /// <returns>The unpacked ulong.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     /// <exception cref="InvalidDataException">Thrown if the varint exceeds the maximum shift size.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -198,7 +200,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a Vector2 structure composed of 2 floats.
+    /// Reads a Vector2.
     /// </summary>
     /// <returns>The parsed Vector2.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -210,7 +212,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a Vector3 structure composed of 3 floats.
+    /// Reads a Vector3.
     /// </summary>
     /// <returns>The parsed Vector3.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -222,7 +224,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a Quaternion structure composed of 4 floats.
+    /// Reads a Quaternion.
     /// </summary>
     /// <returns>The parsed Quaternion.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -234,7 +236,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a float4 structure composed of 4 floats.
+    /// Reads a float4.
     /// </summary>
     /// <returns>The parsed float4.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -246,13 +248,35 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a UTF-8 encoded string prefixed with its length as a ushort.
+    /// Reads an enum value.
     /// </summary>
-    /// <param name="returnNullOnZero">Indicates whether the method should return a null if the length given is zero.</param>
-    /// <returns>The read string.</returns>
+    /// <typeparam name="T">The type of the enum.</typeparam>
+    /// <returns>The read enum value.</returns>
+    /// <exception cref="NotSupportedException">Thrown if the enum size is not supported.</exception>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string? ReadString(bool returnNullOnZero = false) => ReadStringWithSize(ReadUShort(), returnNullOnZero);
+    public T ReadEnum<T>() where T : struct, Enum => PacketReaderDels.Enum<T>.Reader(this);
+
+    /// <summary>
+    /// Reads an enum value by parsing a string representation.
+    /// </summary>
+    /// <typeparam name="T">The type of the enum.</typeparam>
+    /// <returns>The parsed enum value.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString()!);
+
+    // ReSharper disable InvalidXmlDocComment
+
+    /// <summary>
+    /// Reads a string prefixed by its length.
+    /// </summary>
+    /// <returns>The read string.</returns>
+    /// <inheritdoc cref="ReadStringWithSize"/>
+    /// <inheritdoc cref="ReadCount"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string? ReadString(CountType countType = CountType.UShort, bool returnNullOnZero = false)
+        => ReadStringWithSize(ReadCount(countType), returnNullOnZero);
 
     /// <summary>
     /// Reads a UTF-8 encoded string of the specified length.
@@ -278,27 +302,36 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads an enum value of the specified type.
+    /// Reads a collection from the buffer.
     /// </summary>
-    /// <typeparam name="T">The type of the enum.</typeparam>
-    /// <returns>The read enum value.</returns>
-    /// <exception cref="NotSupportedException">Thrown if the enum size is not supported.</exception>
+    /// <param name="countType">The type of the count value that was serialised.</param>
     /// <inheritdoc cref="EnsureReadable"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadEnum<T>() where T : struct, Enum => PacketReaderDels.Enum<T>.Func(this);
+    /// <inheritdoc cref="ReadCollectionWithSize"/>
+    private TCollection? ReadCollection<TCollection, T>(Func<int, TCollection> factory, Action<TCollection, T> add, Func<PacketReader, T> reader, CountType countType, bool returnNullOnZero)
+        => ReadCollectionWithSize(ReadCount(countType), factory, add, reader, returnNullOnZero);
 
     /// <summary>
-    /// Reads an enum by parsing a string representation.
+    /// Reads a collection using an externally provided count.
     /// </summary>
-    /// <typeparam name="T">The type of the enum.</typeparam>
-    /// <returns>The parsed enum value.</returns>
+    /// <param name="count">The number of items to read.</param>
+    /// <param name="factory">The creation delegate for the collection.</param>
+    /// <param name="add">The delegate that maps to the collection's Add method.</param>
+    /// <param name="reader">The delegate that reads the value.</param>
+    /// <param name="returnNullOnZero">Indicates whether the method should return a null if the length given is zero.</param>
+    /// <typeparam name="TCollection">The type of the collection.</typeparam>
+    /// <typeparam name="T">The type of the collection's elements.</typeparam>
+    /// <returns>A collection of data deserialised from the buffer.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString()!);
-
-    private TCollection ReadCollection<TCollection, T>(Func<int, TCollection> factory, Action<TCollection, T> add, Func<PacketReader, T> reader)
+    private TCollection? ReadCollectionWithSize<TCollection, T>(int count, Func<int, TCollection> factory, Action<TCollection, T> add, Func<PacketReader, T> reader, bool returnNullOnZero = false)
     {
-        var count = ReadUShort();
+        switch (count)
+        {
+            case < 0:
+                return default;
+            case 0:
+                return returnNullOnZero ? default : factory(0);
+        }
+
         var collection = factory(count);
 
         for (var i = 0; i < count; i++)
@@ -308,15 +341,37 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads an array of the specified type, prefixed with its length as a ushort.
+    /// Reads an array, prefixed by its length.
     /// </summary>
-    /// <typeparam name="T">The array element type.</typeparam>
+    /// <typeparam name="T">The element type.</typeparam>
     /// <param name="reader">The function to read individual elements.</param>
+    /// <param name="countType">The header type used to store array length.</param>
     /// <returns>The read array.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
-    public T[] ReadArray<T>(Func<PacketReader, T> reader)
+    public T[]? ReadArray<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
+        => ReadArrayWithSize(ReadCount(countType), reader, returnNullOnZero);
+
+    /// <summary>
+    /// Reads an array without prefixing its length.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="count">The number of elements to read.</param>
+    /// <param name="reader">The function to read individual elements.</param>
+    /// <returns>The read array.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if count is negative.</exception>
+    /// <exception cref="InvalidDataException">Thrown if count is zero.</exception>
+    /// <inheritdoc cref="EnsureReadable"/>
+    public T[]? ReadArrayWithSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
     {
-        var array = new T[ReadUShort()];
+        switch (count)
+        {
+            case < 0:
+                return null;
+            case 0:
+                return returnNullOnZero ? null : Array.Empty<T>();
+        }
+
+        var array = new T[count];
 
         for (var i = 0; i < array.Length; i++)
             array[i] = reader(this);
@@ -325,50 +380,111 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a List of the specified type, prefixed with its length as a ushort.
-    /// </summary>
-    /// <typeparam name="T">The list element type.</typeparam>
-    /// <param name="reader">The function to read individual elements.</param>
-    /// <returns>The read list.</returns>
-    /// <inheritdoc cref="EnsureReadable"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public List<T> ReadList<T>(Func<PacketReader, T> reader)
-        => ReadCollection(PacketReaderDels.ListFactory<T>.Func, PacketReaderDels.ListAdd<T>.Func, reader);
-
-    /// <summary>
-    /// Reads a HashSet of the specified type, prefixed with its length as a ushort.
-    /// </summary>
-    /// <typeparam name="T">The HashSet element type.</typeparam>
-    /// <param name="reader">The function to read individual elements.</param>
-    /// <returns>The read HashSet.</returns>
-    /// <inheritdoc cref="EnsureReadable"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public HashSet<T> ReadSet<T>(Func<PacketReader, T> reader)
-        => ReadCollection(PacketReaderDels.HashSetFactory<T>.Func, PacketReaderDels.HashSetAdd<T>.Func, reader);
-
-    /// <summary>
-    /// Reads a custom CppCollections HashSet of the specified type, prefixed with its length as a ushort.
+    /// Reads a List, prefixed by its length.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
     /// <param name="reader">The function to read individual elements.</param>
+    /// <param name="countType">The header type used to store list length.</param>
+    /// <returns>The read list.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<T>? ReadList<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
+        => ReadCollection(PacketReaderDels.ListDels<T>.Create, PacketReaderDels.ListDels<T>.Add, reader, countType, returnNullOnZero);
+
+    /// <summary>
+    /// Reads a List without prefixing its length.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="count">The number of elements to read.</param>
+    /// <param name="reader">The function to read individual elements.</param>
+    /// <returns>The read list.</returns>
+    /// <inheritdoc cref="ReadCollectionWithSize{TCollection,T}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<T>? ReadListWithoutSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+        => ReadCollectionWithSize(count, PacketReaderDels.ListDels<T>.Create, PacketReaderDels.ListDels<T>.Add, reader, returnNullOnZero);
+
+    /// <summary>
+    /// Reads a HashSet, prefixed by its length.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="reader">The function to read individual elements.</param>
+    /// <param name="countType">The header type used to store set length.</param>
     /// <returns>The read HashSet.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CppCollections.HashSet<T> ReadCppSet<T>(Func<PacketReader, T> reader)
-        => ReadCollection(PacketReaderDels.CppHashSetFactory<T>.Func, PacketReaderDels.CppHashSetAdd<T>.Func, reader);
+    public HashSet<T>? ReadSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
+        => ReadCollection(PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, countType, returnNullOnZero);
 
     /// <summary>
-    /// Reads a Dictionary, prefixed with its entry count as a ushort.
+    /// Reads a HashSet without prefixing its length.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="count">The number of elements to read.</param>
+    /// <param name="reader">The function to read individual elements.</param>
+    /// <returns>The read HashSet.</returns>
+    /// <inheritdoc cref="ReadCollectionWithSize{TCollection,T}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public HashSet<T>? ReadSetWithSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+        => ReadCollectionWithSize(count, PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, returnNullOnZero);
+
+    /// <summary>
+    /// Reads an Il2Cpp HashSet, prefixed by its length.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="reader">The function to read individual elements.</param>
+    /// <param name="countType">The header type used to store set length.</param>
+    /// <returns>The read HashSet.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public CppCollections.HashSet<T>? ReadCppSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
+        => ReadCollection(PacketReaderDels.CppHashSetDels<T>.Create, PacketReaderDels.CppHashSetDels<T>.Add, reader, countType, returnNullOnZero);
+
+    /// <summary>
+    /// Reads an Il2Cpp HashSet without prefixing its length.
+    /// </summary>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <param name="count">The number of elements to read.</param>
+    /// <param name="reader">The function to read individual elements.</param>
+    /// <returns>The read HashSet.</returns>
+    /// <inheritdoc cref="ReadCollectionWithSize{TCollection,T}"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public CppCollections.HashSet<T>? ReadCppSetWithSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+        => ReadCollectionWithSize(count, PacketReaderDels.CppHashSetDels<T>.Create, PacketReaderDels.CppHashSetDels<T>.Add, reader, returnNullOnZero);
+
+    /// <summary>
+    /// Reads a Dictionary, prefixed by its length.
     /// </summary>
     /// <typeparam name="TKey">The dictionary key type.</typeparam>
     /// <typeparam name="TValue">The dictionary value type.</typeparam>
     /// <param name="keyReader">The function to read individual keys.</param>
     /// <param name="valueReader">The function to read individual values.</param>
+    /// <param name="countType">The header type used to store dictionary length.</param>
     /// <returns>The read Dictionary.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
-    public Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader) where TKey : notnull
+    public Dictionary<TKey, TValue>? ReadDictionary<TKey, TValue>(Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader, CountType countType = CountType.UShort, bool returnNullOnZero = false) where TKey : notnull
+        => ReadDictionaryWithSize(ReadCount(countType),  keyReader, valueReader, returnNullOnZero);
+
+    /// <summary>
+    /// Reads a Dictionary without prefixing its length.
+    /// </summary>
+    /// <typeparam name="TKey">The dictionary key type.</typeparam>
+    /// <typeparam name="TValue">The dictionary value type.</typeparam>
+    /// <param name="count">The number of entries to read.</param>
+    /// <param name="keyReader">The function to read individual keys.</param>
+    /// <param name="valueReader">The function to read individual values.</param>
+    /// <param name="returnNullOnZero">Indicates whether the method should return a null if the length given is zero.</param>
+    /// <returns>The read Dictionary.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    public Dictionary<TKey, TValue>? ReadDictionaryWithSize<TKey, TValue>(int count, Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader, bool returnNullOnZero = false) where TKey : notnull
     {
-        var count = ReadUShort();
+        switch (count)
+        {
+            case < 0:
+                return null;
+            case 0:
+                return returnNullOnZero ? null : new();
+        }
+
         var dict = new Dictionary<TKey, TValue>(count);
 
         for (var i = 0; i < count; i++)
@@ -377,8 +493,10 @@ public sealed class PacketReader : PacketBuffer
         return dict;
     }
 
+    // ReSharper enable InvalidXmlDocComment
+
     /// <summary>
-    /// Reads an object that implements <see cref="INetObject"/> by invoking its Deserialise method.
+    /// Reads an object that implements <see cref="INetObject"/>.
     /// </summary>
     /// <typeparam name="T">The type of the net object.</typeparam>
     /// <returns>The deserialized object.</returns>
@@ -386,7 +504,7 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadNetObject<T>() where T : INetObject, new()
     {
-        var result = PacketReaderDels.NetObjectFactory<T>.Func();
+        var result = PacketReaderDels.NetObjectFactory<T>.Factory();
         result.Deserialise(this);
         return result;
     }
@@ -400,7 +518,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a custom implemented packet.
+    /// Reads a custom packet that implements <see cref="ICustomPacket"/>.
     /// </summary>
     /// <typeparam name="T">The type of the packet.</typeparam>
     /// <returns>A custom implementation of a packet.</returns>
@@ -432,38 +550,38 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Finalizes reading packed booleans and realigns the reader for byte-level operations.
+    /// Finalises reading packed booleans and realigns the reader for byte-level operations.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override void EndPackingBools() => currentBitIndex = 8;
 
     /// <summary>
-    /// Reads a struct value.
+    /// Reads a value.
     /// </summary>
-    /// <typeparam name="T">The struct type to read.</typeparam>
-    /// <returns>The read struct.</returns>
+    /// <typeparam name="T">The type to read.</typeparam>
+    /// <returns>The read value.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadStruct<T>() where T : struct => PacketReaderDels.Struct<T>.Reader(this);
+    public T ReadObject<T>() => PacketReaderDels.Object<T>.Reader(this);
 
     /// <summary>
-    /// Reads an optional struct value, returning null if the boolean flag is false.
+    /// Reads an optional value, returning null if the boolean flag is false.
     /// </summary>
-    /// <typeparam name="T">The struct type to read.</typeparam>
-    /// <returns>The read struct, or null.</returns>
+    /// <typeparam name="T">The value type to read.</typeparam>
+    /// <returns>The read value, or null.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? ReadNullable<T>() where T : struct => ReadBool() ? ReadStruct<T>() : null;
+    public T? ReadNullable<T>() => ReadBool() ? ReadObject<T>() : default;
 
     /// <summary>
-    /// Reads an enum value optimized with varint packing for its underlying type.
+    /// Reads a packed enum value.
     /// </summary>
     /// <typeparam name="T">The type of the enum.</typeparam>
     /// <returns>The read enum value.</returns>
     /// <exception cref="NotSupportedException">Thrown if the enum size is not supported.</exception>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Func(this);
+    public T ReadPackedEnum<T>() where T : struct, Enum => PacketReaderDels.PackedEnum<T>.Reader(this);
 
     /// <summary>
     /// Reads a block of data into the provided span.
@@ -521,7 +639,7 @@ public sealed class PacketReader : PacketBuffer
     public void SetBuffer(byte[] data, int size = -1, bool rented = false)
     {
         buffer = data;
-        dataSize = size >= 0 ? size : data.Length;
+        dataSize = size >= 0 && size <= data.Length ? size : data.Length;
         isRented = rented;
         Clear();
     }
@@ -533,7 +651,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Borrows a <see cref="PacketReader"/> instance from the recycle pool and initializes it with the specified data.
+    /// Borrows a <see cref="PacketReader"/> instance from the recycle pool and initialises it with the specified data.
     /// </summary>
     /// <param name="data">The byte array to read from.</param>
     /// <param name="size">The size of the data to read, or -1 to use the array length.</param>
@@ -553,13 +671,6 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Return(PacketReader reader) => RecyclePool<PacketReader>.Return(reader);
 
-    /// <summary>
-    /// Reads a variable-length numeric value.
-    /// </summary>
-    /// <param name="maxShift">The maximum number of shifts that the packing can encode.</param>
-    /// <returns>A variable-length number.</returns>
-    /// <exception cref="EndOfStreamException">Thrown if there are not enough bytes left.</exception>
-    /// <exception cref="InvalidDataException">Thrown if the varint exceeds the maximum shift size.</exception>
     private ulong ReadVarInt(int maxShift)
     {
         var result = 0ul;
@@ -584,6 +695,22 @@ public sealed class PacketReader : PacketBuffer
 
         return result;
     }
+
+    /// <summary>
+    /// Reads a count value from the buffer.
+    /// </summary>
+    /// <param name="countType">The type of the value to be read.</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if an unsupported configuration was passed.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int ReadCount(CountType countType) => countType switch
+    {
+        CountType.Byte => ReadByte(),
+        CountType.UShort => ReadUShort(),
+        CountType.UInt => (int)ReadUInt(),
+        CountType.VarUInt => (int)ReadPackedUInt(),
+        _ => throw new ArgumentOutOfRangeException(nameof(countType), countType, "Unsupported count type.")
+    };
 }
 
 /// <summary>
@@ -631,7 +758,7 @@ public static class PacketReaderDels
         /// <summary>
         /// A delegate to read an INetObject.
         /// </summary>
-        public static readonly Func<PacketReader, T> Func = reader => reader.ReadNetObject<T>();
+        public static readonly Func<PacketReader, T> Reader = reader => reader.ReadNetObject<T>();
     }
 
     /// <summary>
@@ -644,14 +771,14 @@ public static class PacketReaderDels
         /// <summary>
         /// A delegate to read a Tuple.
         /// </summary>
-        public static readonly Func<PacketReader, (T1, T2)> Func = CreateTupleReader<(T1, T2)>(typeof(T1), typeof(T2));
+        public static readonly Func<PacketReader, (T1, T2)> Reader = CreateTupleReader<(T1, T2)>(typeof(T1), typeof(T2));
     }
 
     /// <summary>
     /// Caches a dynamically generated reading delegate for custom structs.
     /// </summary>
     /// <typeparam name="T">The struct type.</typeparam>
-    public static class Struct<T> where T : struct
+    public static class Object<T>
     {
         /// <summary>
         /// A delegate to read a struct.
@@ -668,7 +795,7 @@ public static class PacketReaderDels
         /// <summary>
         /// A delegate to read an enum based on its underlying size.
         /// </summary>
-        public static readonly Func<PacketReader, T> Func = CreateReader();
+        public static readonly Func<PacketReader, T> Reader = CreateReader();
 
         private static Func<PacketReader, T> CreateReader()
         {
@@ -709,7 +836,7 @@ public static class PacketReaderDels
         /// <summary>
         /// A delegate to read a packed enum.
         /// </summary>
-        public static readonly Func<PacketReader, T> Func = CreateReader();
+        public static readonly Func<PacketReader, T> Reader = CreateReader();
 
         private static Func<PacketReader, T> CreateReader()
         {
@@ -828,7 +955,7 @@ public static class PacketReaderDels
         /// <summary>
         /// A delegate that returns a new instance of T.
         /// </summary>
-        public static readonly Func<T> Func = CreateFactory();
+        public static readonly Func<T> Factory = CreateFactory();
 
         private static Func<T> CreateFactory()
         {
@@ -839,74 +966,53 @@ public static class PacketReaderDels
     }
 
     /// <summary>
-    /// Factory delegate cache for constructing generic Lists.
+    /// Delegate cache for Lists.
     /// </summary>
     /// <typeparam name="T">The list element type.</typeparam>
-    public static class ListFactory<T>
+    public static class ListDels<T>
     {
         /// <summary>
         /// A delegate that instantiates a List of size count.
         /// </summary>
-        public static readonly Func<int, List<T>> Func = count => new List<T>(count);
-    }
+        public static readonly Func<int, List<T>> Create = count => new List<T>(count);
 
-    /// <summary>
-    /// Add method delegate cache for generic Lists.
-    /// </summary>
-    /// <typeparam name="T">The list element type.</typeparam>
-    public static class ListAdd<T>
-    {
         /// <summary>
         /// A delegate that adds an item to a list.
         /// </summary>
-        public static readonly Action<List<T>, T> Func = (list, item) => list.Add(item);
+        public static readonly Action<List<T>, T> Add = (list, item) => list.Add(item);
     }
 
     /// <summary>
-    /// Factory delegate cache for constructing HashSets.
+    /// Delegate cache for HashSets.
     /// </summary>
     /// <typeparam name="T">The set element type.</typeparam>
-    public static class HashSetFactory<T>
+    public static class HastSetDels<T>
     {
         /// <summary>
         /// A delegate that instantiates a HashSet with capacity.
         /// </summary>
-        public static readonly Func<int, HashSet<T>> Func = count => new HashSet<T>(count);
-    }
+        public static readonly Func<int, HashSet<T>> Create = count => new HashSet<T>(count);
 
-    /// <summary>
-    /// Add method delegate cache for HashSets.
-    /// </summary>
-    /// <typeparam name="T">The set element type.</typeparam>
-    public static class HashSetAdd<T>
-    {
         /// <summary>
         /// A delegate that adds an item to a HashSet.
         /// </summary>
-        public static readonly Action<HashSet<T>, T> Func = (set, item) => set.Add(item);
+        public static readonly Action<HashSet<T>, T> Add = (set, item) => set.Add(item);
     }
 
     /// <summary>
-    /// Factory delegate cache for constructing custom CppCollections HashSets.
+    /// Delegate cache for Il2Cpp HashSets.
     /// </summary>
     /// <typeparam name="T">The set element type.</typeparam>
-    public static class CppHashSetFactory<T>
+    public static class CppHashSetDels<T>
     {
         /// <summary>
-        /// A delegate that instantiates a CppCollections HashSet.
+        /// A delegate that instantiates an Il2Cpp HashSet.
         /// </summary>
-        public static readonly Func<int, CppCollections.HashSet<T>> Func = _ => new CppCollections.HashSet<T>();
-    }
+        public static readonly Func<int, CppCollections.HashSet<T>> Create = _ => new CppCollections.HashSet<T>();
 
-    /// <summary>
-    /// Add method delegate cache for custom CppCollections HashSets.
-    /// </summary>
-    /// <typeparam name="T">The set element type.</typeparam>
-    public static class CppHashSetAdd<T>
-    {
         /// <summary>
-        /// A delegate that adds an item to a CppCollections HashSet.
+        /// A delegate that adds an item to an Il2Cpp HashSet.
         /// </summary>
-        public static readonly Action<CppCollections.HashSet<T>, T> Func = (set, item) => set.Add(item);
+        public static readonly Action<CppCollections.HashSet<T>, T> Add = (set, item) => set.Add(item);
     }
 }
