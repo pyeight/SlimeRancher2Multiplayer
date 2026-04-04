@@ -375,7 +375,9 @@ public sealed class ReSyncManager
                 {
                     CollectorAmmo = new NetworkAmmo
                     {
-                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo]?.Slots
+                        AmmoSlots = (!plot.siloAmmo.ContainsKey(PlortCollectorAmmo)
+                                ? null
+                                : plot.siloAmmo[PlortCollectorAmmo])?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
@@ -390,7 +392,9 @@ public sealed class ReSyncManager
                 {
                     CollectorAmmo = new NetworkAmmo
                     {
-                        AmmoSlots = plot.siloAmmo[CoopAmmo]?.Slots
+                        AmmoSlots = (!plot.siloAmmo.ContainsKey(CoopAmmo)
+                                ? null
+                                : plot.siloAmmo[CoopAmmo])?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => plot.siloAmmo[CoopAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
@@ -424,7 +428,9 @@ public sealed class ReSyncManager
                     SelectedSlots = plot.siloStorageIndices.ToList().ConvertAll<byte>(val => (byte)val),
                     Ammo = new NetworkAmmo
                     {
-                        AmmoSlots = plot.siloAmmo[SiloAmmo].Slots
+                        AmmoSlots = (!plot.siloAmmo.ContainsKey(SiloAmmo)
+                                ? null
+                                : plot.siloAmmo[SiloAmmo])?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => plot.siloAmmo[SiloAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
@@ -432,7 +438,7 @@ public sealed class ReSyncManager
                                     Count = slot.Count,
                                     Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                                     SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })
+                                })!
                     }
                 },
                 LandPlot.Id.CORRAL => new InitialLandPlotsPacket.CorralData()
@@ -440,7 +446,9 @@ public sealed class ReSyncManager
                     AutoFeederSpeed = (byte)plot.feederCycleSpeed,
                     PlortCollectorAmmo = new NetworkAmmo()
                     {
-                        AmmoSlots = plot.siloAmmo[PlortCollectorAmmo].Slots
+                        AmmoSlots = (!plot.siloAmmo.ContainsKey(PlortCollectorAmmo)
+                                ? null
+                                : plot.siloAmmo[PlortCollectorAmmo])?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
@@ -448,11 +456,13 @@ public sealed class ReSyncManager
                                     Count = slot.Count,
                                     Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                                     SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })
+                                })!
                     },
                     AutoFeederAmmo = new NetworkAmmo()
                     {
-                        AmmoSlots = plot.siloAmmo[FeederAmmo].Slots
+                        AmmoSlots = (!plot.siloAmmo.ContainsKey(FeederAmmo)
+                                ? null
+                                : plot.siloAmmo[FeederAmmo])?.Slots
                             .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
                                 slot => plot.siloAmmo[FeederAmmo].Slots.IndexOf(slot),
                                 slot => new NetworkAmmoSlot()
@@ -460,7 +470,7 @@ public sealed class ReSyncManager
                                     Count = slot.Count,
                                     Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                                     SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })
+                                })!
                     }
                 },
                 _ => null
