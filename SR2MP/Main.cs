@@ -20,7 +20,7 @@ public sealed class Main : SR2EExpansionV3
     public static SR2MPClient Client { get; private set; }
     public static SR2MPServer Server { get; private set; }
 
-    public static readonly Assembly Core = typeof(Main).Assembly;
+    internal static readonly Assembly Core = typeof(Main).Assembly;
 
     private static MelonPreferences_Category preferences;
 
@@ -79,6 +79,24 @@ public sealed class Main : SR2EExpansionV3
         }
     }
 
+    /// <summary>
+    /// Sends a custom packet to either the host's machine, or to all clients' machines.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet.</typeparam>
+    /// <param name="packet">The packet to send.</param>
+    public static void SendDataToAllOrServer<T>(T packet) where T : ICustomPacket
+    {
+        if (Client.IsConnected)
+        {
+            Client.SendData(packet);
+        }
+
+        if (Server.IsRunning)
+        {
+            Server.SendDataToAll(packet);
+        }
+    }
+
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
         switch (sceneName)
@@ -123,10 +141,10 @@ public sealed class Main : SR2EExpansionV3
         NetworkAmmoManager.Initialize();
 
         // Automatically inserts just by running the constructor.
-        //new CustomPauseMenuButton(
-        //    SR2ELanguageManger.AddTranslation("Multiplayer", "b.multiplayer", "UI"),
-        //    5,
-        //    () => SrLogger.LogMessage("Multiplayer menu open"));
+        // new CustomPauseMenuButton(
+        //     SR2ELanguageManger.AddTranslation("Multiplayer", "b.multiplayer", "UI"),
+        //     5,
+        //     () => SrLogger.LogMessage("Multiplayer menu open"));
     }
 
     internal static void SetConfigValue<T>(string key, T value)
@@ -146,14 +164,21 @@ public sealed class Main : SR2EExpansionV3
 
     private static void InsertLicensesFile()
     {
+        var dirPath = Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP");
+        Directory.CreateDirectory(dirPath);
+
+        var filePath = Path.Combine(dirPath, "THIRD-PARTY-NOTICES.txt");
+
+        if (File.Exists(filePath))
+            return;
+
         var manifestResourceStream = Core.GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
         var array = new byte[manifestResourceStream.Length];
         _ = manifestResourceStream.Read(array, 0, array.Length);
-        Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));
-        File.WriteAllBytes(MelonEnvironment.UserDataDirectory + "/SR2MP/THIRD-PARTY-NOTICES.txt", array);
+        File.WriteAllBytes(filePath, array);
     }
 
-    public static void InitializePlayer(string objName, bool scale)
+    internal static void InitializePlayer(string objName, bool scale)
     {
         playerPrefab = new GameObject("PLAYER");
         playerPrefab.SetActive(false);

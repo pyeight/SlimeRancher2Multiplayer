@@ -5,8 +5,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// An attribute that denotes a packet handler.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class), MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
-[PublicAPI]
+[AttributeUsage(AttributeTargets.Class), MeansImplicitUse(ImplicitUseTargetFlags.WithMembers), PublicAPI]
 public sealed class PacketHandlerAttribute : Attribute
 {
     /// <summary>
@@ -34,6 +33,7 @@ public sealed class PacketHandlerAttribute : Attribute
 /// <summary>
 /// An enum that denotes the type of handler.
 /// </summary>
+[PublicAPI]
 public enum HandlerType : byte
 {
     /// <summary>

@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace SR2MP.Api;
 
 /// <summary>
 /// An enum that denotes the type of mod.
 /// </summary>
+[PublicAPI]
 public enum ModType : byte
 {
     /// <summary>

@@ -1,6 +1,9 @@
 // ReSharper disable UnusedMember.Global
+using JetBrains.Annotations;
+
 namespace SR2MP.Shared.Utils;
 
+[PublicAPI]
 public static class Timers
 {   // Time Sync is set to a lower value than 1 to prevent
     public static float WeatherTimer { get; private set; } = 4.5f;

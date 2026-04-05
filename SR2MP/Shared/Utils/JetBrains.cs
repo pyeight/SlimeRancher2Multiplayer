@@ -5,7 +5,7 @@ namespace JetBrains.Annotations;
 internal sealed class UsedImplicitlyAttribute : Attribute { }
 
 [Flags]
-public enum ImplicitUseTargetFlags : byte
+internal enum ImplicitUseTargetFlags : byte
 {
     // ReSharper disable once UnusedMember.Global
     Default = 0,

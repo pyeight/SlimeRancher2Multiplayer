@@ -20,7 +20,7 @@ public sealed class RemotePlayerManager
         return player;
     }
 
-    public RemotePlayer AddPlayer(string playerId)
+    internal RemotePlayer AddPlayer(string playerId)
     {
         var player = new RemotePlayer(playerId);
 
@@ -35,7 +35,7 @@ public sealed class RemotePlayerManager
         return players[playerId];
     }
 
-    public bool RemovePlayer(string playerId)
+    internal bool RemovePlayer(string playerId)
     {
         if (!players.TryRemove(playerId, out _))
             return false;
@@ -44,7 +44,7 @@ public sealed class RemotePlayerManager
         return true;
     }
 
-    public static void SendPlayerUpdate(
+    internal static void SendPlayerUpdate(
         Vector3 position,
         float rotation,
         float horizontalMovement = 0f,
@@ -76,7 +76,7 @@ public sealed class RemotePlayerManager
         Main.SendToAllOrServer(updatePacket);
     }
 
-    public void UpdatePlayer(
+    internal void UpdatePlayer(
         string playerId,
         Vector3 position,
         float rotation,
@@ -112,7 +112,7 @@ public sealed class RemotePlayerManager
         return players.Values.ToList();
     }
 
-    public void Clear()
+    internal void Clear()
     {
         var allPlayers = players.Keys.ToList();
         players.Clear();

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 
 namespace SR2MP.Shared.Utils;
 
@@ -7,6 +8,7 @@ namespace SR2MP.Shared.Utils;
 /// Provides a thread-safe object pool for reusable items that implement <see cref="IRecyclable"/>.
 /// </summary>
 /// <typeparam name="T">The type of the object to pool. Must be a reference type, implement <see cref="IRecyclable"/>, and have a parameterless constructor.</typeparam>
+[PublicAPI]
 public static class RecyclePool<T> where T : class, IRecyclable, new()
 {
     private static readonly ConcurrentQueue<T> Pool = new();
