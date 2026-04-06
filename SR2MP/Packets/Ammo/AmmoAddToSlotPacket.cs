@@ -25,6 +25,6 @@ internal sealed class AmmoAddToSlotPacket : IPacket
         Identifiable = reader.ReadPackedInt();
         SlotIndex = reader.ReadPackedInt();
         Count = reader.ReadPackedInt();
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString();
     }
 }

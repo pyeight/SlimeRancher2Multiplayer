@@ -20,6 +20,6 @@ internal sealed class ActorTransferPacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         ActorId = new ActorId(reader.ReadPackedLong());
-        OwnerId = reader.ReadStringWithSize(16)!;
+        OwnerId = reader.ReadPooledStringOfSize(16)!;
     }
 }

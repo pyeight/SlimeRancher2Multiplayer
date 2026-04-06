@@ -19,7 +19,7 @@ internal sealed class GeyserTriggerPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ObjectPath = reader.ReadString()!;
+        ObjectPath = reader.ReadPooledString()!;
         Duration = reader.ReadFloat();
     }
 }

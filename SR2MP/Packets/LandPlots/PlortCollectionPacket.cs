@@ -18,7 +18,7 @@ internal sealed class PlortCollectionPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString()!;
+        ID = reader.ReadPooledString()!;
         EndTime = reader.ReadDouble();
     }
 }

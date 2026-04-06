@@ -21,8 +21,16 @@ internal sealed class ConnectionApprovePacket : IPacket
         writer.WritePackedBool(InitialJoin);
         writer.WritePackedBool(AllowCheats);
 
-        writer.WriteString(PlayerId);
-        writer.WriteArray(OtherPlayers, PacketWriterDels.Tuple<string, string>.Writer);
+        writer.WriteStringWithoutSize(PlayerId);
+
+        writer.WritePackedUInt((uint)OtherPlayers.Length);
+
+        for (var i = 0; i < OtherPlayers.Length; i++)
+        {
+            var (id, username) = OtherPlayers[i];
+            writer.WriteStringWithoutSize(id);
+            writer.WriteString(username);
+        }
 
         writer.WritePackedInt(Money);
         writer.WritePackedInt(RainbowMoney);
@@ -33,8 +41,13 @@ internal sealed class ConnectionApprovePacket : IPacket
         InitialJoin = reader.ReadPackedBool();
         AllowCheats = reader.ReadPackedBool();
 
-        PlayerId = reader.ReadString()!;
-        OtherPlayers = reader.ReadArray(PacketReaderDels.Tuple<string, string>.Reader)!;
+        PlayerId = reader.ReadPooledStringOfSize(16)!;
+
+        var count = reader.ReadPackedUInt();
+        OtherPlayers = new (string ID, string Username)[count];
+
+        for (var i = 0; i < count; i++)
+            OtherPlayers[i] = (reader.ReadPooledStringOfSize(16), reader.ReadPooledString())!;
 
         Money = reader.ReadPackedInt();
         RainbowMoney = reader.ReadPackedInt();

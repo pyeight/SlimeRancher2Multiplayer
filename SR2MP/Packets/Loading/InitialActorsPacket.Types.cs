@@ -147,7 +147,7 @@ internal partial class InitialActorsPacket
             ProgressTime = reader.ReadDouble();
             ResourceState = reader.ReadPackedEnum<ResourceCycle.State>();
             JointIndex = reader.ReadPackedInt();
-            PlotID = reader.ReadString()!;
+            PlotID = reader.ReadPooledString()!;
             SpawnerPosition = reader.ReadVector3();
         }
     }

@@ -22,6 +22,6 @@ internal sealed class AmmoAddPacket : IPacket
     {
         Identifiable = reader.ReadPackedInt();
         Count = reader.ReadPackedInt();
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString();
     }
 }

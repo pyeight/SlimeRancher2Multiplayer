@@ -16,6 +16,6 @@ internal sealed class GardenOwnershipPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        GardenID = reader.ReadString()!;
+        GardenID = reader.ReadPooledString()!;
     }
 }

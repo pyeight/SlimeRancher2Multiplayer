@@ -42,7 +42,7 @@ internal sealed class PlayerUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadStringWithSize(16)!;
+        PlayerId = reader.ReadPooledStringOfSize(16)!;
 
         Position = reader.ReadVector3();
         Rotation = reader.ReadFloat();

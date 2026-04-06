@@ -12,13 +12,13 @@ internal sealed class InitialTreasurePodsPacket : IPacket
     public void Serialise(PacketWriter writer) =>
         writer.WriteDictionary(
             TreasurePods,
-            PacketWriterDels.PackedInt32,
+            PacketWriterDels.PackedInt,
             PacketWriterDels.PackedEnum<Il2Cpp.TreasurePod.State>.Writer
         );
 
     public void Deserialise(PacketReader reader) =>
         TreasurePods = reader.ReadDictionary(
-            PacketReaderDels.PackedInt32,
+            PacketReaderDels.PackedInt,
             PacketReaderDels.PackedEnum<Il2Cpp.TreasurePod.State>.Reader
         )!;
 }

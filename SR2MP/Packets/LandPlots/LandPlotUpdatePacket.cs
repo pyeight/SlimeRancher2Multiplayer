@@ -11,7 +11,7 @@ internal abstract class LandPlotUpdatePacket : IPacket
 
     public virtual void Serialise(PacketWriter writer) => writer.WriteString(PlotID);
 
-    public virtual void Deserialise(PacketReader reader) => PlotID = reader.ReadString()!;
+    public virtual void Deserialise(PacketReader reader) => PlotID = reader.ReadPooledString()!;
 }
 
 internal abstract class LandPlotUpdatePacket<T> : LandPlotUpdatePacket where T : struct, Enum

@@ -44,6 +44,6 @@ internal sealed class PlayerFXPacket : IPacket
         if (!IsPlayerSoundDictionary[FX])
             Position = reader.ReadVector3();
         else
-            Player = reader.ReadStringWithSize(16)!;
+            Player = reader.ReadPooledStringOfSize(16)!;
     }
 }

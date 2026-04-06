@@ -31,7 +31,7 @@ internal sealed class ResourceAttachPacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         ActorId = new ActorId(reader.ReadPackedLong());
-        PlotID = reader.ReadString()!;
+        PlotID = reader.ReadPooledString()!;
         Joint = reader.ReadInt();
         SpawnerID = reader.ReadVector3();
 

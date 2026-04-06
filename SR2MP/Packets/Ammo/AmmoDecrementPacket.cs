@@ -22,6 +22,6 @@ internal sealed class AmmoDecrementPacket : IPacket
     {
         SlotIndex = reader.ReadPackedInt();
         Count = reader.ReadPackedInt();
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString();
     }
 }

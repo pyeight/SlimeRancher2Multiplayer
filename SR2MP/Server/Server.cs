@@ -190,6 +190,7 @@ public sealed class SR2MPServer
             ClientManager.Clear();
             PlayerManager.Clear();
             NetworkManager.Stop();
+            NetworkStringPool.Clear();
 
             SrLogger.LogMessage("Server closed");
         }

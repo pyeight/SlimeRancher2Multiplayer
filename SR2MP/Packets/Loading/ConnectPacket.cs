@@ -22,8 +22,8 @@ internal sealed class ConnectPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadStringWithSize(16)!;
-        Username = reader.ReadString()!;
+        PlayerId = reader.ReadPooledStringOfSize(16)!;
+        Username = reader.ReadPooledString()!;
 
         ModHashes = reader.ReadList(PacketReaderDels.UShort)!;
     }

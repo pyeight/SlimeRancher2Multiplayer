@@ -22,6 +22,6 @@ internal sealed class SiloSlotSelectPacket : IPacket
     {
         Side = reader.ReadByte();
         Index = reader.ReadByte();
-        ID = reader.ReadString()!;
+        ID = reader.ReadPooledString()!;
     }
 }

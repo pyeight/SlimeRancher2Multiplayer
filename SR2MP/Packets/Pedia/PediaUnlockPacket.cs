@@ -18,7 +18,7 @@ internal sealed class PediaUnlockPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString()!;
+        ID = reader.ReadPooledString()!;
         Popup = reader.ReadBool();
     }
 }

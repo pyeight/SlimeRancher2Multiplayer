@@ -22,7 +22,7 @@ internal sealed class GardenUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        GardenID = reader.ReadString()!;
+        GardenID = reader.ReadPooledString()!;
         NextSpawnTime = reader.ReadDouble();
         StoredWater = reader.ReadFloat();
         NextSpawnRipens = reader.ReadBool();

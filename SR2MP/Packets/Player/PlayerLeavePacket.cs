@@ -11,5 +11,5 @@ internal sealed class PlayerLeavePacket : IPacket
 
     public void Serialise(PacketWriter writer) => writer.WriteStringWithoutSize(PlayerId);
 
-    public void Deserialise(PacketReader reader) => PlayerId = reader.ReadStringWithSize(16)!;
+    public void Deserialise(PacketReader reader) => PlayerId = reader.ReadPooledStringOfSize(16)!;
 }

@@ -29,14 +29,14 @@ internal sealed class InitialLandPlotsPacket : IPacket
         {
             writer.WriteString(ID);
             writer.WritePackedEnum(Type);
-            writer.WriteCppSet(Upgrades, PacketWriterDels.PackedEnum<LandPlot.Upgrade>.Writer);
+            writer.WriteCppHashSet(Upgrades, PacketWriterDels.PackedEnum<LandPlot.Upgrade>.Writer);
 
             Data?.Serialise(writer);
         }
 
         public void Deserialise(PacketReader reader)
         {
-            ID = reader.ReadString()!;
+            ID = reader.ReadPooledString()!;
             Type = reader.ReadPackedEnum<LandPlot.Id>();
             Upgrades = reader.ReadCppSet(PacketReaderDels.PackedEnum<LandPlot.Upgrade>.Reader)!;
 

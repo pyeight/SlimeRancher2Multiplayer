@@ -394,6 +394,7 @@ public sealed class SR2MPClient
             }
 
             PlayerManager.Clear();
+            NetworkStringPool.Clear();
 
             SrLogger.LogMessage("Disconnected from server");
             OnDisconnected?.Invoke();

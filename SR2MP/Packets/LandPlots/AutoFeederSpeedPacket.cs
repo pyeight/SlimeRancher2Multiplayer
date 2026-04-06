@@ -18,7 +18,7 @@ internal sealed class AutoFeederSpeedPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString()!;
+        ID = reader.ReadPooledString()!;
         Speed = reader.ReadPackedEnum<SlimeFeeder.FeedSpeed>();
     }
 }

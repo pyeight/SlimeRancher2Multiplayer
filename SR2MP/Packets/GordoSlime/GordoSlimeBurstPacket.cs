@@ -11,5 +11,5 @@ internal sealed class GordoSlimeBurstPacket : IPacket
 
     public void Serialise(PacketWriter writer) => writer.WriteString(ID);
 
-    public void Deserialise(PacketReader reader) => ID = reader.ReadString()!;
+    public void Deserialise(PacketReader reader) => ID = reader.ReadPooledString()!;
 }

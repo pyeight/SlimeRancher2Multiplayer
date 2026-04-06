@@ -13,7 +13,7 @@ using Unity.Mathematics;
 namespace SR2MP.Packets.Utils;
 
 /// <summary>
-/// A reusable reader for extracting data from a packet buffer.
+/// A reusable reader for extracting data from a network buffer.
 /// </summary>
 [PublicAPI]
 public sealed class PacketReader : PacketBuffer
@@ -42,7 +42,7 @@ public sealed class PacketReader : PacketBuffer
     /// Ensures that the reader can actually read data.
     /// </summary>
     /// <param name="bytesToRead">The number of bytes to read.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the buffer is recycled.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the buffer is recycled or null.</exception>
     /// <exception cref="EndOfStreamException">Thrown if there are not enough bytes left.</exception>
     private void EnsureReadable(int bytesToRead)
     {
@@ -51,6 +51,9 @@ public sealed class PacketReader : PacketBuffer
 
         if (position + bytesToRead > dataSize)
             throw new EndOfStreamException($"Attempted to read {bytesToRead} bytes, but only {BytesRemaining} remain.");
+
+        if (buffer == null)
+            throw new InvalidOperationException("The buffer is somehow not set!");
 
         EndPackingBools();
     }
@@ -78,7 +81,7 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Reads an sbyte.
     /// </summary>
-    /// <returns>The read signed byte.</returns>
+    /// <returns>The read sbyte.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public sbyte ReadSByte() => (sbyte)ReadByte();
@@ -102,7 +105,7 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Reads an int.
     /// </summary>
-    /// <returns>The read iny.</returns>
+    /// <returns>The read int.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadInt() => BinaryPrimitives.ReadInt32LittleEndian(ReadRequest(4));
@@ -202,7 +205,7 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Reads a Vector2.
     /// </summary>
-    /// <returns>The parsed Vector2.</returns>
+    /// <returns>The read Vector2.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     public Vector2 ReadVector2()
     {
@@ -214,7 +217,7 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Reads a Vector3.
     /// </summary>
-    /// <returns>The parsed Vector3.</returns>
+    /// <returns>The read Vector3.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     public Vector3 ReadVector3()
     {
@@ -226,7 +229,7 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Reads a Quaternion.
     /// </summary>
-    /// <returns>The parsed Quaternion.</returns>
+    /// <returns>The read Quaternion.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     public Quaternion ReadQuaternion()
     {
@@ -238,7 +241,7 @@ public sealed class PacketReader : PacketBuffer
     /// <summary>
     /// Reads a float4.
     /// </summary>
-    /// <returns>The parsed float4.</returns>
+    /// <returns>The read float4.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     public float4 ReadFloat4()
     {
@@ -272,20 +275,44 @@ public sealed class PacketReader : PacketBuffer
     /// Reads a string prefixed by its length.
     /// </summary>
     /// <returns>The read string.</returns>
-    /// <inheritdoc cref="ReadStringWithSize"/>
+    /// <inheritdoc cref="ReadStringOfSize"/>
     /// <inheritdoc cref="ReadCount"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public string? ReadString(CountType countType = CountType.UShort, bool returnNullOnZero = false)
-        => ReadStringWithSize(ReadCount(countType), returnNullOnZero);
+        => ReadStringOfSize(ReadCount(countType), returnNullOnZero);
 
     /// <summary>
-    /// Reads a UTF-8 encoded string of the specified length.
+    /// Reads a pooled string prefixed by its length.
+    /// </summary>
+    /// <returns>The read pooled string.</returns>
+    /// <inheritdoc cref="ReadStringOfSize"/>
+    /// <inheritdoc cref="ReadCount"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public string? ReadPooledString(CountType countType = CountType.UShort, bool returnNullOnZero = false)
+        => ReadPooledStringOfSize(ReadCount(countType), returnNullOnZero);
+
+    /// <summary>
+    /// Reads a string of the specified byte length.
+    /// </summary>
+    /// <inheritdoc cref="ReadStringInternal"/>
+    public string? ReadStringOfSize(int len, bool returnNullOnZero = false)
+        => ReadStringInternal(len, returnNullOnZero, false);
+
+    /// <summary>
+    /// Reads a pooled string of the specified byte length.
+    /// </summary>
+    /// <inheritdoc cref="ReadStringInternal"/>
+    public string? ReadPooledStringOfSize(int len, bool returnNullOnZero = false)
+        => ReadStringInternal(len, returnNullOnZero, true);
+
+    /// <summary>
+    /// Reads a string (pooled or not based on the flag) of the specified byte length.
     /// </summary>
     /// <param name="len">The length of the string in bytes.</param>
     /// <param name="returnNullOnZero">Indicates whether the method should return a null if the length given is zero.</param>
     /// <returns>The read string, or null if the length is negative.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
-    public string? ReadStringWithSize(int len, bool returnNullOnZero = false)
+    private string? ReadStringInternal(int len, bool returnNullOnZero, bool isPooled)
     {
         switch (len)
         {
@@ -296,7 +323,10 @@ public sealed class PacketReader : PacketBuffer
         }
 
         EnsureReadable(len);
-        var s = Encoding.UTF8.GetString(buffer.AsSpan(position, len));
+        var stringBytes = buffer.AsSpan(position, len);
+        var s = isPooled
+            ? NetworkStringPool.GetOrAdd(stringBytes)
+            : Encoding.UTF8.GetString(stringBytes);
         position += len;
         return s;
     }
@@ -305,10 +335,9 @@ public sealed class PacketReader : PacketBuffer
     /// Reads a collection from the buffer.
     /// </summary>
     /// <param name="countType">The type of the count value that was serialised.</param>
-    /// <inheritdoc cref="EnsureReadable"/>
-    /// <inheritdoc cref="ReadCollectionWithSize"/>
-    private TCollection? ReadCollection<TCollection, T>(Func<int, TCollection> factory, Action<TCollection, T> add, Func<PacketReader, T> reader, CountType countType, bool returnNullOnZero)
-        => ReadCollectionWithSize(ReadCount(countType), factory, add, reader, returnNullOnZero);
+    /// <inheritdoc cref="ReadCollectionOfSize"/>
+    private TCollection? ReadCollection<TCollection, TItem>(Func<int, TCollection> factory, Action<TCollection, TItem> add, Func<PacketReader, TItem> reader, CountType countType, bool returnNullOnZero)
+        => ReadCollectionOfSize(ReadCount(countType), factory, add, reader, returnNullOnZero);
 
     /// <summary>
     /// Reads a collection using an externally provided count.
@@ -319,10 +348,10 @@ public sealed class PacketReader : PacketBuffer
     /// <param name="reader">The delegate that reads the value.</param>
     /// <param name="returnNullOnZero">Indicates whether the method should return a null if the length given is zero.</param>
     /// <typeparam name="TCollection">The type of the collection.</typeparam>
-    /// <typeparam name="T">The type of the collection's elements.</typeparam>
+    /// <typeparam name="TItem">The type of the collection's elements.</typeparam>
     /// <returns>A collection of data deserialised from the buffer.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
-    private TCollection? ReadCollectionWithSize<TCollection, T>(int count, Func<int, TCollection> factory, Action<TCollection, T> add, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+    private TCollection? ReadCollectionOfSize<TCollection, TItem>(int count, Func<int, TCollection> factory, Action<TCollection, TItem> add, Func<PacketReader, TItem> reader, bool returnNullOnZero)
     {
         switch (count)
         {
@@ -332,6 +361,7 @@ public sealed class PacketReader : PacketBuffer
                 return returnNullOnZero ? default : factory(0);
         }
 
+        EnsureReadable(count); // A collection must take at least N bytes, once per item
         var collection = factory(count);
 
         for (var i = 0; i < count; i++)
@@ -341,27 +371,20 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads an array, prefixed by its length.
-    /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="reader">The function to read individual elements.</param>
-    /// <param name="countType">The header type used to store array length.</param>
-    /// <returns>The read array.</returns>
-    /// <inheritdoc cref="EnsureReadable"/>
+    /// Reads an array prefixed by its length.
+    /// </summary>=
+    /// <param name="countType">The header type used to store array length.</param>=
+    /// <inheritdoc cref="ReadArrayOfSize"/>
     public T[]? ReadArray<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
-        => ReadArrayWithSize(ReadCount(countType), reader, returnNullOnZero);
+        => ReadArrayOfSize(ReadCount(countType), reader, returnNullOnZero);
 
     /// <summary>
-    /// Reads an array without prefixing its length.
+    /// Reads an array of the specified length.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="count">The number of elements to read.</param>
-    /// <param name="reader">The function to read individual elements.</param>
     /// <returns>The read array.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if count is negative.</exception>
-    /// <exception cref="InvalidDataException">Thrown if count is zero.</exception>
-    /// <inheritdoc cref="EnsureReadable"/>
-    public T[]? ReadArrayWithSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+    /// <inheritdoc cref="ReadCollectionOfSize"/>
+    public T[]? ReadArrayOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
     {
         switch (count)
         {
@@ -371,6 +394,7 @@ public sealed class PacketReader : PacketBuffer
                 return returnNullOnZero ? null : Array.Empty<T>();
         }
 
+        EnsureReadable(count); // An array must take at least N bytes, once per item
         var array = new T[count];
 
         for (var i = 0; i < array.Length; i++)
@@ -380,92 +404,72 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a List, prefixed by its length.
+    /// Reads a list prefixed by its length.
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="reader">The function to read individual elements.</param>
     /// <param name="countType">The header type used to store list length.</param>
-    /// <returns>The read list.</returns>
-    /// <inheritdoc cref="EnsureReadable"/>
+    /// <inheritdoc cref="ReadListOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T>? ReadList<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
         => ReadCollection(PacketReaderDels.ListDels<T>.Create, PacketReaderDels.ListDels<T>.Add, reader, countType, returnNullOnZero);
 
     /// <summary>
-    /// Reads a List without prefixing its length.
+    /// Reads a list of the specified length.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="count">The number of elements to read.</param>
-    /// <param name="reader">The function to read individual elements.</param>
     /// <returns>The read list.</returns>
-    /// <inheritdoc cref="ReadCollectionWithSize{TCollection,T}"/>
+    /// <inheritdoc cref="ReadCollectionOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public List<T>? ReadListWithoutSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
-        => ReadCollectionWithSize(count, PacketReaderDels.ListDels<T>.Create, PacketReaderDels.ListDels<T>.Add, reader, returnNullOnZero);
+    public List<T>? ReadListOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+        => ReadCollectionOfSize(count, PacketReaderDels.ListDels<T>.Create, PacketReaderDels.ListDels<T>.Add, reader, returnNullOnZero);
 
     /// <summary>
-    /// Reads a HashSet, prefixed by its length.
+    /// Reads a hash set prefixed by its length.
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="reader">The function to read individual elements.</param>
     /// <param name="countType">The header type used to store set length.</param>
-    /// <returns>The read HashSet.</returns>
-    /// <inheritdoc cref="EnsureReadable"/>
+    /// <inheritdoc cref="ReadSetOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public HashSet<T>? ReadSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
         => ReadCollection(PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, countType, returnNullOnZero);
 
     /// <summary>
-    /// Reads a HashSet without prefixing its length.
+    /// Reads a hash set of the specified length.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="count">The number of elements to read.</param>
-    /// <param name="reader">The function to read individual elements.</param>
-    /// <returns>The read HashSet.</returns>
-    /// <inheritdoc cref="ReadCollectionWithSize{TCollection,T}"/>
+    /// <returns>The read hash set.</returns>
+    /// <inheritdoc cref="ReadCollectionOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public HashSet<T>? ReadSetWithSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
-        => ReadCollectionWithSize(count, PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, returnNullOnZero);
+    public HashSet<T>? ReadSetOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+        => ReadCollectionOfSize(count, PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, returnNullOnZero);
 
     /// <summary>
-    /// Reads an Il2Cpp HashSet, prefixed by its length.
+    /// Reads an il2cpp hash set prefixed by its length.
     /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="reader">The function to read individual elements.</param>
     /// <param name="countType">The header type used to store set length.</param>
-    /// <returns>The read HashSet.</returns>
-    /// <inheritdoc cref="EnsureReadable"/>
+    /// <inheritdoc cref="ReadCppSetOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CppCollections.HashSet<T>? ReadCppSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
         => ReadCollection(PacketReaderDels.CppHashSetDels<T>.Create, PacketReaderDels.CppHashSetDels<T>.Add, reader, countType, returnNullOnZero);
 
     /// <summary>
-    /// Reads an Il2Cpp HashSet without prefixing its length.
+    /// Reads an il2cpp hash set of the specified length.
     /// </summary>
     /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="count">The number of elements to read.</param>
-    /// <param name="reader">The function to read individual elements.</param>
-    /// <returns>The read HashSet.</returns>
-    /// <inheritdoc cref="ReadCollectionWithSize{TCollection,T}"/>
+    /// <returns>The read il2cpp hash set.</returns>
+    /// <inheritdoc cref="ReadCollectionOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public CppCollections.HashSet<T>? ReadCppSetWithSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
-        => ReadCollectionWithSize(count, PacketReaderDels.CppHashSetDels<T>.Create, PacketReaderDels.CppHashSetDels<T>.Add, reader, returnNullOnZero);
+    public CppCollections.HashSet<T>? ReadCppSetOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
+        => ReadCollectionOfSize(count, PacketReaderDels.CppHashSetDels<T>.Create, PacketReaderDels.CppHashSetDels<T>.Add, reader, returnNullOnZero);
 
     /// <summary>
-    /// Reads a Dictionary, prefixed by its length.
+    /// Reads a dictionary prefixed by its length.
     /// </summary>
-    /// <typeparam name="TKey">The dictionary key type.</typeparam>
-    /// <typeparam name="TValue">The dictionary value type.</typeparam>
-    /// <param name="keyReader">The function to read individual keys.</param>
-    /// <param name="valueReader">The function to read individual values.</param>
-    /// <param name="countType">The header type used to store dictionary length.</param>
-    /// <returns>The read Dictionary.</returns>
-    /// <inheritdoc cref="EnsureReadable"/>
+    /// <param name="countType">The header type used to store set length.</param>
+    /// <inheritdoc cref="ReadDictionaryWithSize"/>
     public Dictionary<TKey, TValue>? ReadDictionary<TKey, TValue>(Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader, CountType countType = CountType.UShort, bool returnNullOnZero = false) where TKey : notnull
         => ReadDictionaryWithSize(ReadCount(countType),  keyReader, valueReader, returnNullOnZero);
 
     /// <summary>
-    /// Reads a Dictionary without prefixing its length.
+    /// Reads dictionary of the specified length.
     /// </summary>
     /// <typeparam name="TKey">The dictionary key type.</typeparam>
     /// <typeparam name="TValue">The dictionary value type.</typeparam>
@@ -473,7 +477,7 @@ public sealed class PacketReader : PacketBuffer
     /// <param name="keyReader">The function to read individual keys.</param>
     /// <param name="valueReader">The function to read individual values.</param>
     /// <param name="returnNullOnZero">Indicates whether the method should return a null if the length given is zero.</param>
-    /// <returns>The read Dictionary.</returns>
+    /// <returns>The read dictionary.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     public Dictionary<TKey, TValue>? ReadDictionaryWithSize<TKey, TValue>(int count, Func<PacketReader, TKey> keyReader, Func<PacketReader, TValue> valueReader, bool returnNullOnZero = false) where TKey : notnull
     {
@@ -485,6 +489,7 @@ public sealed class PacketReader : PacketBuffer
                 return returnNullOnZero ? null : new();
         }
 
+        EnsureReadable(count * 2); // A dictionary must take at least 2N bytes, one for the key and the other for the value
         var dict = new Dictionary<TKey, TValue>(count);
 
         for (var i = 0; i < count; i++)
@@ -499,7 +504,7 @@ public sealed class PacketReader : PacketBuffer
     /// Reads an object that implements <see cref="INetObject"/>.
     /// </summary>
     /// <typeparam name="T">The type of the net object.</typeparam>
-    /// <returns>The deserialized object.</returns>
+    /// <returns>The deserialized net object.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadNetObject<T>() where T : INetObject, new()
@@ -521,7 +526,7 @@ public sealed class PacketReader : PacketBuffer
     /// Reads a custom packet that implements <see cref="ICustomPacket"/>.
     /// </summary>
     /// <typeparam name="T">The type of the packet.</typeparam>
-    /// <returns>A custom implementation of a packet.</returns>
+    /// <returns>The deserialised packet.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T ReadCustomPacket<T>() where T : ICustomPacket, new()
@@ -532,7 +537,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     /// <summary>
-    /// Reads a single boolean value from a packed bit state.
+    /// Reads a packed boolean value.
     /// </summary>
     /// <returns>The unpacked boolean.</returns>
     /// <inheritdoc cref="EnsureReadable"/>
@@ -549,14 +554,21 @@ public sealed class PacketReader : PacketBuffer
         return value;
     }
 
-    /// <summary>
-    /// Finalises reading packed booleans and realigns the reader for byte-level operations.
-    /// </summary>
+    /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override void EndPackingBools() => currentBitIndex = 8;
 
     /// <summary>
-    /// Reads a value.
+    /// Reads a tuple value.
+    /// </summary>
+    /// <typeparam name="T">The tuple to read.</typeparam>
+    /// <returns>The read tuple.</returns>
+    /// <inheritdoc cref="EnsureReadable"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T ReadTuple<T>() where T : struct, ITuple => PacketReaderDels.Tuple<T>.Reader(this);
+
+    /// <summary>
+    /// Reads a generic value.
     /// </summary>
     /// <typeparam name="T">The type to read.</typeparam>
     /// <returns>The read value.</returns>
@@ -565,7 +577,7 @@ public sealed class PacketReader : PacketBuffer
     public T ReadObject<T>() => PacketReaderDels.Object<T>.Reader(this);
 
     /// <summary>
-    /// Reads an optional value, returning null if the boolean flag is false.
+    /// Reads an optional value.
     /// </summary>
     /// <typeparam name="T">The value type to read.</typeparam>
     /// <returns>The read value, or null.</returns>
@@ -599,7 +611,7 @@ public sealed class PacketReader : PacketBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void EnsureBounds(int count) => EnsureReadable(count);
 
-    /// <inheritdoc cref="PacketBuffer.MoveForward"/>
+    /// <inheritdoc/>
     public override void MoveForward(int count)
     {
         if (count < 0)
@@ -609,7 +621,7 @@ public sealed class PacketReader : PacketBuffer
         position += count;
     }
 
-    /// <inheritdoc cref="PacketBuffer.MoveBack"/>
+    /// <inheritdoc/>
     public override void MoveBack(int count)
     {
         if (count < 0)
@@ -630,13 +642,7 @@ public sealed class PacketReader : PacketBuffer
         return span;
     }
 
-    /// <summary>
-    /// Sets the underlying byte buffer and size for this reader.
-    /// </summary>
-    /// <param name="data">The byte array to read from.</param>
-    /// <param name="size">The size of the data to read, or -1 to use the array length.</param>
-    /// <param name="rented">Indicates whether the buffer was rented from a pool.</param>
-    public void SetBuffer(byte[] data, int size = -1, bool rented = false)
+    private void SetBuffer(byte[] data, int size = -1, bool rented = false)
     {
         buffer = data;
         dataSize = size >= 0 && size <= data.Length ? size : data.Length;
@@ -644,32 +650,12 @@ public sealed class PacketReader : PacketBuffer
         Clear();
     }
 
+    /// <inheritdoc/>
     protected override void OnRecycle()
     {
         if (isRented && buffer != null)
             ArrayPool<byte>.Shared.Return(buffer);
     }
-
-    /// <summary>
-    /// Borrows a <see cref="PacketReader"/> instance from the recycle pool and initialises it with the specified data.
-    /// </summary>
-    /// <param name="data">The byte array to read from.</param>
-    /// <param name="size">The size of the data to read, or -1 to use the array length.</param>
-    /// <param name="rented">Indicates whether the buffer was rented from a pool.</param>
-    /// <returns>A configured <see cref="PacketReader"/>.</returns>
-    public static PacketReader Borrow(byte[] data, int size = -1, bool rented = false)
-    {
-        var reader = RecyclePool<PacketReader>.Borrow();
-        reader.SetBuffer(data, size, rented);
-        return reader;
-    }
-
-    /// <summary>
-    /// Returns a <see cref="PacketReader"/> instance to the recycle pool.
-    /// </summary>
-    /// <param name="reader">The reader to return.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Return(PacketReader reader) => RecyclePool<PacketReader>.Return(reader);
 
     private ulong ReadVarInt(int maxShift)
     {
@@ -710,6 +696,27 @@ public sealed class PacketReader : PacketBuffer
         CountType.VarUInt => (int)ReadPackedUInt(),
         _ => throw new ArgumentOutOfRangeException(nameof(countType), countType, "Unsupported count type.")
     };
+
+    /// <summary>
+    /// Borrows a <see cref="PacketReader"/> instance from the recycle pool and initialises it with the specified data.
+    /// </summary>
+    /// <param name="data">The byte array to read from.</param>
+    /// <param name="size">The size of the data to read, or -1 to use the array length.</param>
+    /// <param name="rented">Indicates whether the buffer was rented from a pool.</param>
+    /// <returns>A configured <see cref="PacketReader"/>.</returns>
+    public static PacketReader Borrow(byte[] data, int size = -1, bool rented = false)
+    {
+        var reader = RecyclePool<PacketReader>.Borrow();
+        reader.SetBuffer(data, size, rented);
+        return reader;
+    }
+
+    /// <summary>
+    /// Returns a <see cref="PacketReader"/> instance to the recycle pool.
+    /// </summary>
+    /// <param name="reader">The reader to return.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Return(PacketReader reader) => RecyclePool<PacketReader>.Return(reader);
 }
 
 /// <summary>
@@ -739,14 +746,89 @@ public static class PacketReaderDels
     public static readonly Func<PacketReader, ushort> UShort = reader => reader.ReadUShort();
 
     /// <summary>
-    /// A delegate to read an Int32.
+    /// A delegate to read an int.
     /// </summary>
-    public static readonly Func<PacketReader, int> Int32 = reader => reader.ReadInt();
+    public static readonly Func<PacketReader, int> Int = reader => reader.ReadInt();
 
     /// <summary>
-    /// A delegate to read a packed varint Int32.
+    /// A delegate to read a packed int.
     /// </summary>
-    public static readonly Func<PacketReader, int> PackedInt32 = reader => reader.ReadPackedInt();
+    public static readonly Func<PacketReader, int> PackedInt = reader => reader.ReadPackedInt();
+
+    /// <summary>
+    /// A delegate to read a boolean.
+    /// </summary>
+    public static readonly Func<PacketReader, bool> Bool = reader => reader.ReadBool();
+
+    /// <summary>
+    /// A delegate to read a short.
+    /// </summary>
+    public static readonly Func<PacketReader, short> Short = reader => reader.ReadShort();
+
+    /// <summary>
+    /// A delegate to read a uint.
+    /// </summary>
+    public static readonly Func<PacketReader, uint> UInt = reader => reader.ReadUInt();
+
+    /// <summary>
+    /// A delegate to read a long.
+    /// </summary>
+    public static readonly Func<PacketReader, long> Long = reader => reader.ReadLong();
+
+    /// <summary>
+    /// A delegate to read a ulong.
+    /// </summary>
+    public static readonly Func<PacketReader, ulong> ULong = reader => reader.ReadULong();
+
+    /// <summary>
+    /// A delegate to read a float.
+    /// </summary>
+    public static readonly Func<PacketReader, float> Float = reader => reader.ReadFloat();
+
+    /// <summary>
+    /// A delegate to read a double.
+    /// </summary>
+    public static readonly Func<PacketReader, double> Double = reader => reader.ReadDouble();
+
+    /// <summary>
+    /// A delegate to read a packed uint.
+    /// </summary>
+    public static readonly Func<PacketReader, uint> PackedUInt = reader => reader.ReadPackedUInt();
+
+    /// <summary>
+    /// A delegate to read a packed long.
+    /// </summary>
+    public static readonly Func<PacketReader, long> PackedLong = reader => reader.ReadPackedLong();
+
+    /// <summary>
+    /// A delegate to read a packed ulong.
+    /// </summary>
+    public static readonly Func<PacketReader, ulong> PackedULong = reader => reader.ReadPackedULong();
+
+    /// <summary>
+    /// A delegate to read a packed bool.
+    /// </summary>
+    public static readonly Func<PacketReader, bool> PackedBool = reader => reader.ReadPackedBool();
+
+    /// <summary>
+    /// A delegate to read a Vector2.
+    /// </summary>
+    public static readonly Func<PacketReader, Vector2> Vector2 = reader => reader.ReadVector2();
+
+    /// <summary>
+    /// A delegate to read a Vector3.
+    /// </summary>
+    public static readonly Func<PacketReader, Vector3> Vector3 = reader => reader.ReadVector3();
+
+    /// <summary>
+    /// A delegate to read a Quaternion.
+    /// </summary>
+    public static readonly Func<PacketReader, Quaternion> Quaternion = reader => reader.ReadQuaternion();
+
+    /// <summary>
+    /// A delegate to read a float4.
+    /// </summary>
+    public static readonly Func<PacketReader, float4> Float4 = reader => reader.ReadFloat4();
 
     /// <summary>
     /// Caches a reading delegate for types implementing INetObject.
@@ -761,38 +843,79 @@ public static class PacketReaderDels
     }
 
     /// <summary>
-    /// Caches a reading delegate for value Tuples.
+    /// Caches a reading delegate for optional values (nullables).
     /// </summary>
-    /// <typeparam name="T1">The first tuple element type.</typeparam>
-    /// <typeparam name="T2">The second tuple element type.</typeparam>
-    public static class Tuple<T1, T2>
+    /// <typeparam name="T">The object type.</typeparam>
+    public static class Nullable<T>
     {
         /// <summary>
-        /// A delegate to read a Tuple.
+        /// A delegate to read an optional value.
         /// </summary>
-        public static readonly Func<PacketReader, (T1, T2)> Reader = CreateTupleReader<(T1, T2)>(typeof(T1), typeof(T2));
+        public static readonly Func<PacketReader, T?> Reader = reader => reader.ReadNullable<T>();
     }
 
     /// <summary>
-    /// Caches a dynamically generated reading delegate for custom structs.
+    /// Caches a reading delegate for value <see cref="Tuple"/>s.
     /// </summary>
-    /// <typeparam name="T">The struct type.</typeparam>
+    /// <typeparam name="T">The tuple type.</typeparam>
+    public static class Tuple<T> where T : struct, ITuple
+    {
+        /// <summary>
+        /// A delegate to read a <see cref="Tuple"/>.
+        /// </summary>
+        public static readonly Func<PacketReader, T> Reader = CreateTupleReader();
+
+        private static Func<PacketReader, T> CreateTupleReader()
+        {
+            var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
+            var componentTypes = typeof(T).GetGenericArguments();
+            var readCalls = new Expression[componentTypes.Length];
+            var readObjectMethodDef = Method(nameof(PacketReader.ReadObject));
+
+            for (var i = 0; i < componentTypes.Length; i++)
+            {
+                var genericRead = readObjectMethodDef.MakeGenericMethod(componentTypes[i]);
+                readCalls[i] = Expression.Call(readerParam, genericRead);
+            }
+
+            var constructor = typeof(T).GetConstructor(componentTypes) ?? throw new InvalidOperationException($"Could not find constructor for tuple {typeof(T)}");
+            var newTuple = Expression.New(constructor, readCalls);
+            return Expression.Lambda<Func<PacketReader, T>>(newTuple, readerParam).Compile();
+        }
+    }
+
+    /// <summary>
+    /// Caches a reading delegate for custom objects that aren't natively supported.
+    /// </summary>
+    /// <typeparam name="T">The object type.</typeparam>
     public static class Object<T>
     {
         /// <summary>
-        /// A delegate to read a struct.
+        /// A delegate to read a value.
         /// </summary>
-        public static readonly Func<PacketReader, T> Reader = (Func<PacketReader, T>)Delegate.CreateDelegate(typeof(Func<PacketReader, T>), GetReadExpression(typeof(T)));
+        public static Func<PacketReader, T> Reader { get; internal set; } = CreateReader();
+
+        private static Func<PacketReader, T> CreateReader()
+        {
+            try
+            {
+                return (Func<PacketReader, T>)Delegate.CreateDelegate(typeof(Func<PacketReader, T>), GetReadExpression(typeof(T)));
+            }
+            catch
+            {
+                return _ => throw new NotImplementedException($"Type {typeof(T).Name} is not supported natively. Did you forget to register it?");
+            }
+        }
     }
 
     /// <summary>
-    /// Caches a reading delegate for Enum types.
+    /// Caches a reading delegate for <see cref="Enum"/> types.
     /// </summary>
     /// <typeparam name="T">The enum type.</typeparam>
     public static class Enum<T> where T : struct, Enum
     {
         /// <summary>
-        /// A delegate to read an enum based on its underlying size.
+        /// A delegate to read an enum value.
         /// </summary>
         public static readonly Func<PacketReader, T> Reader = CreateReader();
 
@@ -827,13 +950,13 @@ public static class PacketReaderDels
     }
 
     /// <summary>
-    /// Caches a reading delegate for Enums using packed varint formats.
+    /// Caches a reading delegate for <see cref="Enum"/> types using a packed format.
     /// </summary>
     /// <typeparam name="T">The enum type.</typeparam>
     public static class PackedEnum<T> where T : struct, Enum
     {
         /// <summary>
-        /// A delegate to read a packed enum.
+        /// A delegate to read a packed enum value.
         /// </summary>
         public static readonly Func<PacketReader, T> Reader = CreateReader();
 
@@ -880,7 +1003,7 @@ public static class PacketReaderDels
 
     private static readonly ConcurrentDictionary<Type, MethodInfo> TypeReadCache = new();
 
-    private static readonly ReadOnlyDictionary<Type, string> ReadMethodMap = new(new Dictionary<Type, string>()
+    private static readonly ReadOnlyDictionary<Type, string> ReadMethodMap = new(new ConcurrentDictionary<Type, string>()
     {
         [typeof(int)] = nameof(PacketReader.ReadInt),
         [typeof(byte)] = nameof(PacketReader.ReadByte),
@@ -899,15 +1022,8 @@ public static class PacketReaderDels
         [typeof(Quaternion)] = nameof(PacketReader.ReadQuaternion),
     });
 
-    /// <summary>
-    /// Caches a factory method for instantiating objects implementing <see cref="INetObject"/>.
-    /// </summary>
-    /// <typeparam name="T">The type to construct.</typeparam>
-    public static class NetObjectFactory<T> where T : INetObject, new()
+    internal static class NetObjectFactory<T> where T : INetObject, new()
     {
-        /// <summary>
-        /// A delegate that returns a new instance of <typeparamref name="T"/>.
-        /// </summary>
         public static readonly Func<T> Factory = CreateFactory();
 
         private static Func<T> CreateFactory()
@@ -918,74 +1034,22 @@ public static class PacketReaderDels
         }
     }
 
-    /// <summary>
-    /// Delegate cache for Lists.
-    /// </summary>
-    /// <typeparam name="T">The list element type.</typeparam>
-    public static class ListDels<T>
+    internal static class ListDels<T>
     {
-        /// <summary>
-        /// A delegate that instantiates a List of size count.
-        /// </summary>
         public static readonly Func<int, List<T>> Create = count => new List<T>(count);
-
-        /// <summary>
-        /// A delegate that adds an item to a list.
-        /// </summary>
         public static readonly Action<List<T>, T> Add = (list, item) => list.Add(item);
     }
 
-    /// <summary>
-    /// Delegate cache for HashSets.
-    /// </summary>
-    /// <typeparam name="T">The set element type.</typeparam>
-    public static class HastSetDels<T>
+    internal static class HastSetDels<T>
     {
-        /// <summary>
-        /// A delegate that instantiates a HashSet with capacity.
-        /// </summary>
         public static readonly Func<int, HashSet<T>> Create = count => new HashSet<T>(count);
-
-        /// <summary>
-        /// A delegate that adds an item to a HashSet.
-        /// </summary>
         public static readonly Action<HashSet<T>, T> Add = (set, item) => set.Add(item);
     }
 
-    /// <summary>
-    /// Delegate cache for Il2Cpp HashSets.
-    /// </summary>
-    /// <typeparam name="T">The set element type.</typeparam>
-    public static class CppHashSetDels<T>
+    internal static class CppHashSetDels<T>
     {
-        /// <summary>
-        /// A delegate that instantiates an Il2Cpp HashSet.
-        /// </summary>
         public static readonly Func<int, CppCollections.HashSet<T>> Create = _ => new CppCollections.HashSet<T>();
-
-        /// <summary>
-        /// A delegate that adds an item to an Il2Cpp HashSet.
-        /// </summary>
         public static readonly Action<CppCollections.HashSet<T>, T> Add = (set, item) => set.Add(item);
-    }
-
-    /// <summary>
-    /// Generates a reader function for custom tuples based on component types.
-    /// </summary>
-    /// <typeparam name="TTuple">The tuple type.</typeparam>
-    /// <param name="componentTypes">The types making up the tuple.</param>
-    /// <returns>A compiled function to read the tuple.</returns>
-    public static Func<PacketReader, TTuple> CreateTupleReader<TTuple>(params Type[] componentTypes)
-    {
-        var readerParam = Expression.Parameter(typeof(PacketReader), "reader");
-        var readCalls = new Expression[componentTypes.Length];
-
-        for (var i = 0; i < componentTypes.Length; i++)
-            readCalls[i] = Expression.Call(readerParam, GetReadExpression(componentTypes[i]));
-
-        var constructor = typeof(TTuple).GetConstructor(componentTypes) ?? throw new InvalidOperationException($"Could not find constructor for tuple {typeof(TTuple)}");
-        var newTuple = Expression.New(constructor, readCalls);
-        return Expression.Lambda<Func<PacketReader, TTuple>>(newTuple, readerParam).Compile();
     }
 
     private static MethodInfo GetReadExpression(Type type)
@@ -997,6 +1061,8 @@ public static class PacketReaderDels
             method = Method(methodName);
         else if (type.IsEnum)
             method = Method(nameof(PacketReader.ReadEnum)).MakeGenericMethod(type);
+        else if (typeof(ITuple).IsAssignableFrom(type) && type.IsValueType)
+            method = Method(nameof(PacketReader.ReadTuple)).MakeGenericMethod(type);
         else if (typeof(IPacket).IsAssignableFrom(type))
             method = Method(nameof(PacketReader.ReadPacket)).MakeGenericMethod(type);
         else if (typeof(ICustomPacket).IsAssignableFrom(type))

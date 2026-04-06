@@ -34,6 +34,8 @@ public static class ApiHandlers
     internal static readonly ConcurrentDictionary<Type, ushort> PacketTypeMap = new();
     internal static readonly ConcurrentDictionary<string, ushort> AssemblyIdMap = new(StringComparer.Ordinal);
 
+    private static readonly HashSet<Type> RegisteredTypes = new();
+
     /// <summary>
     /// Registers all custom packet handlers and types to the multiplayer API for the given assembly.
     /// </summary>
@@ -86,6 +88,21 @@ public static class ApiHandlers
         SrLogger.LogMessage($"[{name}] Client handlers registered: {holder.ClientHandlers.Count}");
         SrLogger.LogMessage($"[{name}] Server handlers registered: {holder.ServerHandlers.Count}");
         return modId;
+    }
+
+    /// <summary>
+    /// Registers custom serialization logic for a type, allowing third-party types to be used seamlessly.
+    /// </summary>
+    public static void RegisterCustomTypeSerialisation<T>(Func<PacketReader, T> reader, Action<PacketWriter, T> writer)
+    {
+        if (!RegisteredTypes.Add(typeof(T)))
+        {
+            SrLogger.LogWarning(typeof(T).Name + " is already registered!");
+            return;
+        }
+
+        PacketReaderDels.Object<T>.Reader = reader;
+        PacketWriterDels.Object<T>.Writer = writer;
     }
 
     /// <summary>
