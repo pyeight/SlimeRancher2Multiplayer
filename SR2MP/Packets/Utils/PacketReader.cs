@@ -699,6 +699,9 @@ public sealed class PacketReader : PacketBuffer
         return result;
     }
 
+    /// <inheritdoc/>
+    public override void Dispose() => Return(this);
+
     /// <summary>
     /// Reads a count value from the buffer.
     /// </summary>

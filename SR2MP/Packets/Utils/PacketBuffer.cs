@@ -107,6 +107,9 @@ public abstract class PacketBuffer : IRecyclable
         buffer = null!;
     }
 
+    /// <inheritdoc cref="IDisposable.Dispose"/>
+    public abstract void Dispose();
+
     /// <summary>
     /// Resets cursor and bit-packing state to their initial values.
     /// </summary>

@@ -55,6 +55,8 @@ internal static class PacketChunkManager
             Received = null!;
         }
 
+        public void Dispose() => Return(this);
+
         public static IncompletePacket Borrow(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
         {
             var packet = RecyclePool<IncompletePacket>.Borrow();
@@ -149,7 +151,7 @@ internal static class PacketChunkManager
         // Decompress if compressed
         if (totalSize > 0 && assemblyBuffer[0] == (byte)PacketType.ReservedCompression)
         {
-            var decompWriter = PacketWriter.Borrow(totalSize);
+            using var decompWriter = PacketWriter.Borrow(totalSize);
 
             try
             {
@@ -159,7 +161,6 @@ internal static class PacketChunkManager
             }
             finally
             {
-                PacketWriter.Return(decompWriter);
                 ArrayPool<byte>.Shared.Return(assemblyBuffer);
             }
         }

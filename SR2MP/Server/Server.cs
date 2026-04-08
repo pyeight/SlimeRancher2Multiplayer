@@ -233,7 +233,7 @@ public sealed class SR2MPServer
 
     private void PrepareAndSendToClient<T>(T state, PacketReliability reliability, IPEndPoint endPoint, PacketWriterDelegate<T> writeAction)
     {
-        var writer = PacketWriter.Borrow();
+        using var writer = PacketWriter.Borrow();
 
         try
         {
@@ -247,10 +247,6 @@ public sealed class SR2MPServer
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to send packet to client {endPoint}: {ex}");
-        }
-        finally
-        {
-            PacketWriter.Return(writer);
         }
     }
 
@@ -276,7 +272,7 @@ public sealed class SR2MPServer
 
     private void PrepareAndSendToAll<T>(T state, PacketReliability reliability, PacketWriterDelegate<T> writeAction)
     {
-        var writer = PacketWriter.Borrow();
+        using var writer = PacketWriter.Borrow();
 
         try
         {
@@ -291,10 +287,6 @@ public sealed class SR2MPServer
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to broadcast packet to all: {ex}");
-        }
-        finally
-        {
-            PacketWriter.Return(writer);
         }
     }
 
@@ -339,7 +331,7 @@ public sealed class SR2MPServer
 
     private void PrepareAndSendToAllExcept<T>(T state, PacketReliability reliability, PacketWriterDelegate<T> writeAction, string excludedClientInfo)
     {
-        var writer = PacketWriter.Borrow();
+        using var writer = PacketWriter.Borrow();
 
         try
         {
@@ -362,10 +354,6 @@ public sealed class SR2MPServer
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to broadcast packet: {ex}");
-        }
-        finally
-        {
-            PacketWriter.Return(writer);
         }
     }
 

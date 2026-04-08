@@ -270,7 +270,7 @@ public sealed class SR2MPClient
             return;
         }
 
-        var writer = PacketWriter.Borrow();
+        using var writer = PacketWriter.Borrow();
 
         try
         {
@@ -300,10 +300,6 @@ public sealed class SR2MPClient
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to send packet: {ex}");
-        }
-        finally
-        {
-            PacketWriter.Return(writer);
         }
     }
 

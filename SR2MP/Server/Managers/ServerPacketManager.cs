@@ -176,17 +176,16 @@ internal sealed class ServerPacketManager
             OriginalPacketType = packetType
         };
 
-        var writer = PacketWriter.Borrow();
+        using var writer = PacketWriter.Borrow();
+        writer.WritePacket(ackPacket);
+
         try
         {
-            writer.WritePacket(ackPacket);
-
-            // No need to acknowledge ACK packets
             networkManager.Send(writer.ToSpan(), clientEp, PacketReliability.Unreliable);
         }
-        finally
+        catch
         {
-            PacketWriter.Return(writer);
+            // ignored
         }
     }
 }

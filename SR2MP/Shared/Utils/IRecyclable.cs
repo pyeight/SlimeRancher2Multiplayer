@@ -3,7 +3,7 @@ namespace SR2MP.Shared.Utils;
 /// <summary>
 /// Defines a contract for objects that can be pooled and reused to minimize GC allocations.
 /// </summary>
-public interface IRecyclable
+public interface IRecyclable : IDisposable
 {
     /// <summary>
     /// Gets or sets a value indicating whether this instance is currently in the recycle pool.

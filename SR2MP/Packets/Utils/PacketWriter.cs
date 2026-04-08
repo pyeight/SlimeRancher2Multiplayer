@@ -299,47 +299,19 @@ public sealed class PacketWriter : PacketBuffer
             return;
         }
 
-        var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+        var charSpan = value.AsSpan();
+        var actualByteCount = Encoding.UTF8.GetByteCount(charSpan);
 
-        if (countType != CountType.VarUInt)
-        {
-            var headerSize = GetFixedCountHeaderSize(countType);
+        var headerSize = countType == CountType.VarUInt
+            ? GetVarUIntSize((uint)actualByteCount)
+            : GetFixedCountHeaderSize(countType);
 
-            EnsureCapacity(headerSize + maxByteCount);
+        EnsureCapacity(headerSize + actualByteCount);
 
-            var headerIndex = position;
-            Advance(headerSize);
+        WriteCountWithoutEnsuring(actualByteCount, countType);
 
-            var actualCount = Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(position));
-            BackfillCount(headerIndex, actualCount, countType);
-            Advance(actualCount);
-            return;
-        }
-
-        const int maxHeaderSize = 5;
-
-        EnsureCapacity(maxHeaderSize + maxByteCount);
-
-        var innerHeaderIndex = position;
-        var stringStartIndex = innerHeaderIndex + maxHeaderSize;
-        var actualStringBytes = Encoding.UTF8.GetBytes(value.AsSpan(), buffer.AsSpan(stringStartIndex));
-        var actualHeaderSize = GetVarUIntSize((uint)actualStringBytes);
-        var gap = maxHeaderSize - actualHeaderSize;
-
-        if (gap > 0)
-        {
-            var sourceSpan = buffer.AsSpan(stringStartIndex, actualStringBytes);
-            var destSpan = buffer.AsSpan(innerHeaderIndex + actualHeaderSize, actualStringBytes);
-
-            sourceSpan.CopyTo(destSpan);
-        }
-
-        WriteVarUIntToSpan((uint)actualStringBytes, buffer.AsSpan(innerHeaderIndex));
-
-        position = innerHeaderIndex + actualHeaderSize + actualStringBytes;
-
-        if (position > size)
-            size = position;
+        Encoding.UTF8.GetBytes(charSpan, buffer.AsSpan(position));
+        Advance(actualByteCount);
     }
 
     /// <summary>
@@ -723,7 +695,11 @@ public sealed class PacketWriter : PacketBuffer
     private void WriteVarInt(ulong value, int maxSize)
     {
         EnsureCapacity(maxSize);
+        WriteVarIntWithoutEnsuring(value);
+    }
 
+    private void WriteVarIntWithoutEnsuring(ulong value)
+    {
         while (value >= 0x80)
         {
             buffer![position++] = (byte)(value | 0x80);
@@ -775,21 +751,9 @@ public sealed class PacketWriter : PacketBuffer
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private int GetFixedCountHeaderSize(CountType countType) => countType switch
+    /// <inheritdoc cref="WriteCount"/>
+    private void WriteCountWithoutEnsuring(int count, CountType countType)
     {
-        CountType.Byte => 1,
-        CountType.UShort => 2,
-        _ => throw new ArgumentOutOfRangeException(nameof(countType), countType, "CountType is not a fixed size.")
-    };
-
-    private void BackfillCount(int index, int count, CountType countType)
-    {
-        if (count < 0)
-            throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
-
-        var span = buffer.AsSpan(index);
-
         switch (countType)
         {
             case CountType.Byte:
@@ -797,21 +761,38 @@ public sealed class PacketWriter : PacketBuffer
                 if (count > byte.MaxValue)
                     throw new ArgumentOutOfRangeException(nameof(count), $"Count {count} exceeds Byte max {byte.MaxValue}.");
 
-                span[0] = (byte)count;
-                break;
+                buffer![position++] = (byte)count;
+                return;
             }
             case CountType.UShort:
             {
                 if (count > ushort.MaxValue)
                     throw new ArgumentOutOfRangeException(nameof(count), $"Count {count} exceeds UShort max {ushort.MaxValue}.");
 
-                BinaryPrimitives.WriteUInt16LittleEndian(span, (ushort)count);
-                break;
+                buffer![position++] = (byte)count;
+                buffer![position++] = (byte)(count >> 8);
+                return;
+            }
+            case CountType.VarUInt:
+            {
+                WriteVarIntWithoutEnsuring((uint)count);
+                return;
             }
             default:
                 throw new ArgumentOutOfRangeException(nameof(countType), countType, "Unsupported count type.");
         }
     }
+
+    /// <inheritdoc/>
+    public override void Dispose() => Return(this);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetFixedCountHeaderSize(CountType countType) => countType switch
+    {
+        CountType.Byte => 1,
+        CountType.UShort => 2,
+        _ => throw new ArgumentOutOfRangeException(nameof(countType), countType, "CountType is not a fixed size.")
+    };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetVarUIntSize(uint value) => value switch
@@ -822,20 +803,6 @@ public sealed class PacketWriter : PacketBuffer
         < 0x10000000 => 4,
         _ => 5
     };
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteVarUIntToSpan(uint value, Span<byte> target)
-    {
-        var index = 0;
-
-        while (value >= 0x80)
-        {
-            target[index++] = (byte)(value | 0x80);
-            value >>= 7;
-        }
-
-        target[index] = (byte)value;
-    }
 
     /// <summary>
     /// Borrows a <see cref="PacketWriter"/> instance from the recycle pool.

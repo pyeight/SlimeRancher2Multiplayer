@@ -39,6 +39,8 @@ internal sealed class ReliabilityManager
             Destination = null!;
         }
 
+        public void Dispose() => Return(this);
+
         public static PendingPacket Borrow(SplitResult splitData, IPEndPoint destination, ushort packetId,
             byte packetType)
         {
