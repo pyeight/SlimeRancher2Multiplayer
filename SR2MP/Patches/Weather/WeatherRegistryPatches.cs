@@ -5,7 +5,6 @@ using SR2MP.Server.Managers;
 
 namespace SR2MP.Patches.Weather;
 
-// Weather Registry
 [HarmonyPatch(typeof(WeatherRegistry))]
 public static class WeatherRegistryPatches
 {

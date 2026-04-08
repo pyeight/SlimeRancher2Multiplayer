@@ -32,6 +32,7 @@ public sealed class Main : SR2EExpansionV3
     public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     public static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
+    public static bool StreamerMode => preferences.GetEntry<bool>("streamer_mode").Value;
 
     // Made this because of a bug in the server handler of ActorSpawnPacket where TrySpawnNetworkActor
     // was given `packet.Type` instead of `packet.ActorType` causing it to always be RockPlort (persistent id 25)
@@ -39,15 +40,17 @@ public sealed class Main : SR2EExpansionV3
 
     public override void OnLateInitializeMelon()
     {
-        InsertLicensesFile();
-
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
+        preferences.CreateEntry("streamer_mode", false, is_hidden: false);
 
         preferences.CreateEntry("recent_port", string.Empty, is_hidden: true);
         preferences.CreateEntry("recent_ip", string.Empty, is_hidden: true);
         preferences.CreateEntry("host_port", "1919", is_hidden: true);
+        preferences.CreateEntry("firewall_exceptions", string.Empty, is_hidden: true);
+        
+        Firewall.Initialize(preferences.GetEntry<string>("firewall_exceptions"));
 
         preferences.CreateEntry("packet_size_log", false, display_name: "Packet Size Logging");
         preferences.CreateEntry("packet_ack_log", true, display_name: "Packet Acknowledge Logging");
@@ -55,7 +58,9 @@ public sealed class Main : SR2EExpansionV3
         preferences.CreateEntry("internal_setup_ui", true, is_hidden: true);
 
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
-            display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode)");
+            display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode), BREAKS SAVES!");
+
+        InsertLicensesFile();
 
         Client = new SR2MPClient();
         Server = new SR2MPServer();
@@ -63,20 +68,16 @@ public sealed class Main : SR2EExpansionV3
 
     public override void OnInitializeMelon()
     {
-        LoadRPCAssembly();
+        LoadBundledAssemblies();
     }
 
     public static void SendToAllOrServer<T>(T packet) where T : IPacket
     {
         if (Client.IsConnected)
-        {
             Client.SendPacket(packet);
-        }
 
         if (Server.IsRunning())
-        {
             Server.SendToAll(packet);
-        }
     }
 
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
@@ -110,8 +111,7 @@ public sealed class Main : SR2EExpansionV3
                 break;
 
             case "MainMenuEnvironment":
-                InitializePlayer("BeatrixMainMenu", true);
-
+                InitializePlayer("BeatrixMainMenu", 0.85f);
                 break;
         }
     }
@@ -121,12 +121,6 @@ public sealed class Main : SR2EExpansionV3
         actorManager.Initialize(gameContext);
         NetworkSceneManager.Initialize(gameContext);
         NetworkAmmoManager.Initialize();
-        
-        // Automatically inserts just by running the constructor.
-        //new CustomPauseMenuButton(
-        //    SR2ELanguageManger.AddTranslation("Multiplayer", "b.multiplayer", "UI"),
-        //    5,
-        //    () => SrLogger.LogMessage("Multiplayer menu open"));
     }
 
     internal static void SetConfigValue<T>(string key, T value)
@@ -136,29 +130,46 @@ public sealed class Main : SR2EExpansionV3
         MelonPreferences.Save();
     }
 
-    private static void LoadRPCAssembly()
+    private static void LoadBundledAssemblies()
     {
-        var manifestResourceStream = Core.GetManifestResourceStream("SR2MP.DiscordRPC.dll")!;
-        var array = new byte[manifestResourceStream.Length];
-        _ = manifestResourceStream.Read(array, 0, array.Length);
-        Assembly.Load(array);
+        LoadBundledAssemblyResource("DiscordRPC.dll");
+        LoadBundledAssemblyResource("SharpOpenNat.dll");
+    }
+
+    private static void LoadBundledAssemblyResource(string resourceName)
+    {
+        using var stream = Core.GetManifestResourceStream($"SR2MP.Bundled.{resourceName}");
+        if (stream == null)
+        {
+            SrLogger.LogWarning($"Missing embedded dependency: {resourceName}", SrLogTarget.Both);
+            return;
+        }
+
+        var bytes = new byte[stream.Length];
+        _ = stream.Read(bytes, 0, bytes.Length);
+        Assembly.Load(bytes);
     }
 
     private static void InsertLicensesFile()
     {
-        var manifestResourceStream = Core.GetManifestResourceStream("SR2MP.THIRD-PARTY-NOTICES.txt")!;
-        var array = new byte[manifestResourceStream.Length];
-        _ = manifestResourceStream.Read(array, 0, array.Length);
+        using var stream = Core.GetManifestResourceStream("SR2MP.Bundled.THIRD-PARTY-NOTICES.txt");
+        if (stream == null)
+        {
+            SrLogger.LogWarning("Missing embedded resource: SR2MP.Bundled.THIRD-PARTY-NOTICES.txt", SrLogTarget.Both);
+            return;
+        }
+
+        var bytes = new byte[stream.Length];
+        _ = stream.Read(bytes, 0, bytes.Length);
         Directory.CreateDirectory(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP"));
-        File.WriteAllBytes(MelonEnvironment.UserDataDirectory + "/SR2MP/THIRD-PARTY-NOTICES.txt", array);
+        File.WriteAllBytes(Path.Combine(MelonEnvironment.UserDataDirectory, "SR2MP", "THIRD-PARTY-NOTICES.txt"), bytes);
     }
 
-    public static void InitializePlayer(string objName, bool scale)
+    private static void InitializePlayer(string objName, float scale)
     {
         playerPrefab = new GameObject("PLAYER");
         playerPrefab.SetActive(false);
-        if (scale)
-            playerPrefab.transform.localScale = Vector3.one * 0.85f;
+        playerPrefab.transform.localScale = Vector3.one * scale;
 
         var audio = playerPrefab.AddComponent<SECTR_PointSource>();
         audio.instance = new SECTR_AudioCueInstance();

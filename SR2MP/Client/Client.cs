@@ -98,7 +98,6 @@ public sealed class SR2MPClient
 
             PlayerId = PlayerIdGenerator.GeneratePersistentPlayerId();
 
-            // Initialize reliability manager
             reliabilityManager = new ReliabilityManager(SendRaw);
             reliabilityManager.Start();
 
@@ -216,7 +215,7 @@ public sealed class SR2MPClient
         }
 
         SrLogger.LogMessage("Client ReceiveLoop ended!", SrLogTarget.Both);
-        }
+    }
 
     internal static void StartHeartbeat()
     {
@@ -236,7 +235,7 @@ public sealed class SR2MPClient
 
     //     SendPacket(heartbeatPacket);
     // }
-
+    
     internal void SendPacket<T>(T packet) where T : IPacket
     {
         if (udpClient == null || serverEndPoint == null || !isConnected)
@@ -256,20 +255,19 @@ public sealed class SR2MPClient
 
             var reliability = packet.Reliability;
             ushort sequenceNumber = 0;
-
-            // Get sequence number for ordered packets (pass packet type)
-            if (reliability == PacketReliability.ReliableOrdered)
-                sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type) ?? 0;
+            
+            if (reliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber((byte)packet.Type, serverEndPoint) ?? 0;
 
             var splitResult = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
             
-            if (reliability != PacketReliability.Unreliable)
+            if (reliability is not PacketReliability.Unreliable and not PacketReliability.UnreliableOrdered)
                 reliabilityManager?.TrackPacket(splitResult, serverEndPoint, packetId, data[0], reliability, sequenceNumber);
 
             for (var i = 0; i < splitResult.Count; i++)
                 SendRaw(splitResult.Chunks[i], serverEndPoint);
 
-            if (reliability == PacketReliability.Unreliable)
+            if (reliability is PacketReliability.Unreliable or PacketReliability.UnreliableOrdered)
                 splitResult.Dispose();
 
             SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {splitResult.Count} chunk(s) (ID={packetId}).",
@@ -298,10 +296,10 @@ public sealed class SR2MPClient
         reliabilityManager?.HandleAck(sender, packetId, packetType);
     }
 
-    // Check if ordered packet should be processed
-    public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
+    public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType,
+        PacketReliability reliability, Action? processAction = null)
     {
-        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType) ?? true;
+        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, reliability, processAction) ?? true;
     }
 
     public void Disconnect()
@@ -314,7 +312,10 @@ public sealed class SR2MPClient
             MultiplayerUI.Instance.ClearChatMessages();
             if (!shownConnectionError)
             {
-                MultiplayerUI.Instance.RegisterSystemMessage("You disconnected from the world!", $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageDisconnect);
+                MultiplayerUI.Instance.RegisterSystemMessage(
+                    "You disconnected from the world!",
+                    $"SYSTEM_DISCONNECT_LOCAL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+                    MultiplayerUI.SystemMessageDisconnect);
             }
             try
             {

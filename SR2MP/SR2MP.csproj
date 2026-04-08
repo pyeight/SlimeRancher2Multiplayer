@@ -23,6 +23,13 @@
       <None Remove="libraries\**" />
       <EmbeddedResource Remove="libraries\**" />
       <Compile Remove="libraries\**" />
+      <Reference Include="DiscordRPC">
+        <HintPath>Bundled\DiscordRPC.dll</HintPath>
+      </Reference>
+	  <Reference Include="SharpOpenNat">
+        <HintPath>Bundled\SharpOpenNat.dll</HintPath>
+      </Reference>
+	  
       <Reference Include="libraries/*.dll">
           <Private>false</Private>
       </Reference>
@@ -34,13 +41,20 @@
       <EmbeddedResource Include="Resources\*" />
 
 
-      <EmbeddedResource Include="DiscordRPC.dll" />
-      <Reference Include="DiscordRPC.dll">
+      <EmbeddedResource Include="Bundled\DiscordRPC.dll" />
+      <Reference Include="Bundled\DiscordRPC.dll">
           <Private>false</Private>
       </Reference>
+	  
+	  <EmbeddedResource Include="Bundled\SharpOpenNat.dll" />
+      <Reference Include="Bundled\SharpOpenNat.dll">
+          <Private>false</Private>
+      </Reference>
+	  
+	  <EmbeddedResource Include="Bundled\THIRD-PARTY-NOTICES.txt" />
+    </ItemGroup>
 
-      <None Remove="THIRD-PARTY-NOTICES.txt" />
-
-      <EmbeddedResource Include="THIRD-PARTY-NOTICES.txt" />
+    <ItemGroup>
+      <Folder Include="Bundled\"/>
     </ItemGroup>
 </Project>

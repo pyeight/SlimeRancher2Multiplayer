@@ -3,6 +3,7 @@
 public enum PacketReliability : byte
 {
     Unreliable = 0,
-    Reliable = 1,
-    ReliableOrdered = 2
+    UnreliableOrdered = 1,
+    Reliable = 2,
+    ReliableOrdered = 3
 }

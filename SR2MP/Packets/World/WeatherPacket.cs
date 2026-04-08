@@ -32,6 +32,7 @@ public sealed class WeatherPacket : IPacket
 
         foreach (var zone in model._zoneDatas)
         {
+            yield return null;
             var zoneData = new WeatherZoneData
             {
                 WeatherForecasts = new List<WeatherForecast>(),
@@ -39,6 +40,7 @@ public sealed class WeatherPacket : IPacket
             };
             foreach (var forecast in zone.Value.Forecast)
             {
+                yield return null;
                 if (!forecast.Started)
                     continue;
 
@@ -53,7 +55,7 @@ public sealed class WeatherPacket : IPacket
 
             packet.Zones.Add(zoneId++, zoneData);
 
-            yield return new WaitFrames(6);
+            yield return new WaitFrames(3);
         }
 
         onComplete?.Invoke(packet);
@@ -102,5 +104,3 @@ public sealed class WeatherForecast : INetObject
         EndTime = reader.ReadDouble();
     }
 }
-
-// ZoomedOutUI -> zoneMarkers ->

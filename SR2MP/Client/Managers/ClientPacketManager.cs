@@ -51,7 +51,6 @@ public sealed class ClientPacketManager
 
     public void HandlePacket(byte[] data, int receivedBytes, IPEndPoint serverEp)
     {
-        // Header is now 12 bytes: 10 original + 2 CRC
         if (receivedBytes < HeaderSize)
         {
             SrLogger.LogMessage($"Received packet too small for chunk header: {receivedBytes} bytes", SrLogTarget.Both);
@@ -79,7 +78,6 @@ public sealed class ClientPacketManager
         }
 
         var packetType = (PacketType)packetTypeHeader;
-
         var packetReliability = reliability;
         var packetSequenceNumber = sequenceNumber;
 
@@ -113,7 +111,7 @@ public sealed class ClientPacketManager
             }
         }
 
-        // Handle reliability ACK packets
+        // Handle ACK packets
         if (packetTypeHeader == (byte)PacketType.ReservedAcknowledge)
         {
             try
@@ -125,33 +123,49 @@ public sealed class ClientPacketManager
             {
                 PacketBufferPool.Return(reader);
             }
-
             return;
         }
-
+        
         // Sends ACK for reliable packets
-        if (packetReliability != PacketReliability.Unreliable)
+        if (packetReliability is PacketReliability.Reliable or PacketReliability.ReliableOrdered)
         {
             if (!Main.Client.IsConnected) return;
             SendAck(packetId, packetTypeHeader);
         }
 
         var packetKey = new PacketKey(packetTypeHeader, packetId, serverEp);
-
         if (PacketDeduplication.IsDuplicate(packetKey))
         {
             PacketBufferPool.Return(reader);
             SrLogger.LogPacketSize($"Duplicate packet ignored: {packetType} (packetId={packetId})", SrLogTarget.Both);
             return;
         }
-
-        if (packetReliability == PacketReliability.ReliableOrdered &&
-            !client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetTypeHeader))
+        
+        if (packetReliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
         {
-            PacketBufferPool.Return(reader);
+            void DispatchAction()
+            {
+                if (handlers.TryGetValue(packetTypeHeader, out var h))
+                    MainThreadDispatcher.Enqueue(new ClientHandleCache(reader, h));
+                else
+                    PacketBufferPool.Return(reader);
+            }
+
+            if (!client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetTypeHeader, packetReliability, DispatchAction))
+            {
+                if (packetReliability == PacketReliability.UnreliableOrdered)
+                    PacketBufferPool.Return(reader);
+                return;
+            }
+            
+            if (handlers.TryGetValue(packetTypeHeader, out var orderedHandler))
+                MainThreadDispatcher.Enqueue(new ClientHandleCache(reader, orderedHandler));
+            else
+                SrLogger.LogError($"No client handler found for packet type: {packetType}", SrLogTarget.Both);
+
             return;
         }
-
+        
         if (handlers.TryGetValue(packetTypeHeader, out var handler))
         {
             MainThreadDispatcher.Enqueue(new ClientHandleCache(reader, handler));
@@ -166,7 +180,7 @@ public sealed class ClientPacketManager
     {
         if (!Main.Client.IsConnected) return;
 
-        var ackPacket = new AckPacket()
+        var ackPacket = new AckPacket
         {
             PacketId = packetId,
             OriginalPacketType = packetType

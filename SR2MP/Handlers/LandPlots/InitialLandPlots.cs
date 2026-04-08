@@ -6,6 +6,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.LandPlots;
 
+// todo: review
+// not sure about the whole coroutine and inactive stuff
+
 [PacketHandler((byte)PacketType.InitialLandPlots, HandlerType.Client)]
 public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlotsPacket>
 {
@@ -21,10 +24,10 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
             {
                 handlingPacket = true;
                 var location = model.gameObj.GetComponent<LandPlotLocation>();
-                var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
+                var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>(true);
                 location.Replace(landPlotComponent, GameContext.Instance.LookupDirector._plotPrefabDict[plot.Type]);
 
-                var landPlotComponent2 = model.gameObj.GetComponentInChildren<LandPlot>();
+                var landPlotComponent2 = model.gameObj.GetComponentInChildren<LandPlot>(true);
                 landPlotComponent2.ApplyUpgrades(plot.Upgrades.Cast<CppCollections.IEnumerable<LandPlot.Upgrade>>(), false);
                 handlingPacket = false;
             }
@@ -39,7 +42,7 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                     model.resourceGrowerDefinition = null;
                     if (!model.gameObj)
                         continue;
-                    var gardenPlot = model.gameObj.GetComponentInChildren<LandPlot>();
+                    var gardenPlot = model.gameObj.GetComponentInChildren<LandPlot>(true);
                     handlingPacket = true;
                     gardenPlot.DestroyAttached();
                     handlingPacket = false;
@@ -96,11 +99,11 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                     
                     if (!model.gameObj) break;
                     
-                    var storage = model.gameObj.GetComponentInChildren<SiloStorage>();  
+                    var storage = model.gameObj.GetComponentInChildren<SiloStorage>(true);  
                     storage.Ammo = ammo;
                     storage.SetModel(model);
                     
-                    foreach (var activator in model.gameObj.GetComponentsInChildren<SiloStorageActivator>())
+                    foreach (var activator in model.gameObj.GetComponentsInChildren<SiloStorageActivator>(true))
                         activator.OnActiveSlotChanged();
                     
                     break;
@@ -114,9 +117,13 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                     
                     if (!model.gameObj) break;
                     
-                    var pondStorage = model.gameObj.GetComponentInChildren<SiloStorage>();  
-                    pondStorage.Ammo = collectorAmmo;
-                    pondStorage.SetModel(model);
+                    var pondStorage = model.gameObj.GetComponentInChildren<SiloStorage>(true);
+                    if (pondStorage)
+                    {
+                        pondStorage.Ammo = collectorAmmo;
+                        pondStorage.SetModel(model);
+                    }
+                    
                     break;
                 
                 case InitialLandPlotsPacket.CorralData corral:
@@ -131,7 +138,7 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                        
                     if (!model.gameObj) break;
 
-                    foreach (var corralStorage in model.gameObj.GetComponentsInChildren<SiloStorage>())
+                    foreach (var corralStorage in model.gameObj.GetComponentsInChildren<SiloStorage>(true))
                     {
                         switch (corralStorage.AmmoSetReference.Guid)
                         {
@@ -146,7 +153,7 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                         corralStorage.SetModel(model);
                     }
 
-                    var feeder = model.gameObj.GetComponentInChildren<FeederUpgrader>()
+                    var feeder = model.gameObj.GetComponentInChildren<FeederUpgrader>(true)
                         .Feeder
                         .transform
                         .GetChild(0)
@@ -173,11 +180,17 @@ public sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlots
                     
                     if (!model.gameObj) break;
                     
-                    var incineratorStorage = model.gameObj.GetComponentInChildren<SiloStorage>();  
-                    incineratorStorage.Ammo = incineratorAmmo;
-                    incineratorStorage.SetModel(model);
+                    var incineratorStorage = model.gameObj.GetComponentInChildren<SiloStorage>(true);
+                    if (incineratorStorage)
+                    {
+                        incineratorStorage.Ammo = incineratorAmmo;
+                        incineratorStorage.SetModel(model);  
+                    }
                     
-                    model.gameObj.GetComponentInChildren<FillableAshSource>().SetModel(model);
+                    var ashSource = model.gameObj.GetComponentInChildren<FillableAshSource>(true);
+                    if (ashSource)
+                        ashSource.SetModel(model);
+                    
                     break;
             }
         }

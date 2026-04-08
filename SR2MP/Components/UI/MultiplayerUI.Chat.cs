@@ -18,8 +18,7 @@ public sealed partial class MultiplayerUI
     private bool shouldUnfocusChat;
     private bool internalChatToggle;
     private bool shouldFocusChat;
-
-    private bool disabledInput = false;
+    private bool disabledInput;
 
     private sealed class ChatMessage
     {
@@ -46,8 +45,7 @@ public sealed partial class MultiplayerUI
         {
             var trimmedMessage = message.Trim();
             var dateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var timeString = dateTime.ToString("HH:mm:ss");
-            var formattedMessage = $"[{timeString}] {displayName}: {trimmedMessage}";
+            var formattedMessage = $"[{DateTimeOffset.FromUnixTimeSeconds(dateTime).ToLocalTime():HH:mm:ss}] {displayName}: {trimmedMessage}";
             var (lines, _) = CalculateMessageHeight(formattedMessage);
 
             chatMessages.Add(new ChatMessage
@@ -63,31 +61,24 @@ public sealed partial class MultiplayerUI
 
             processedMessageIds.Add(messageId);
 
-            if (processedMessageIds.Count <= 1000)
-                return;
+            if (processedMessageIds.Count <= 1000) return;
 
             foreach (var id in processedMessageIds.Take(500))
-            {
                 processedMessageIds.Remove(id);
-            }
         });
     }
 
     private void ProcessPendingMessages()
     {
         while (pendingMessageRegistrations.TryDequeue(out var registration))
-        {
             registration?.Invoke();
-        }
     }
 
     private int CalculateTotalLinesInUse()
     {
         var total = 0;
         foreach (var message in chatMessages)
-        {
             total += message.lines;
-        }
         return total;
     }
 
@@ -97,13 +88,12 @@ public sealed partial class MultiplayerUI
 
         while (totalLines > MaxChatLines && chatMessages.Count > 0)
         {
-            var oldestMessage = chatMessages[0];
-            totalLines -= oldestMessage.lines;
+            totalLines -= chatMessages[0].lines;
             chatMessages.RemoveAt(0);
         }
     }
 
-    private static (int, float) CalculateMessageHeight(string text)
+    private static (int lines, float height) CalculateMessageHeight(string text)
     {
         var style = GUI.skin.label;
         const float maxWidth = ChatWidth - (HorizontalSpacing * 2);
@@ -115,8 +105,7 @@ public sealed partial class MultiplayerUI
     [HideFromIl2Cpp]
     private void RenderChatMessage(ChatMessage message)
     {
-        var dateTime = DateTimeOffset.FromUnixTimeSeconds(message.time).ToLocalTime();
-        var timeString = dateTime.ToString("HH:mm:ss");
+        var timeString = DateTimeOffset.FromUnixTimeSeconds(message.time).ToLocalTime().ToString("HH:mm:ss");
 
         string formattedMessage;
         if (message.isSystemMessage)
@@ -128,7 +117,6 @@ public sealed partial class MultiplayerUI
                 SystemMessageClose => ColorSystemClose,
                 _ => ColorSystemNormal
             };
-
             formattedMessage = $"<color={systemColor}>[{timeString}] SYSTEM: {message.message}</color>";
         }
         else
@@ -144,14 +132,14 @@ public sealed partial class MultiplayerUI
         const float maxWidth = ChatWidth - (HorizontalSpacing * 2);
         var (_, height) = CalculateMessageHeight(text);
 
-        const float x = 6 + HorizontalSpacing;
-        var y = previousLayoutChatRect.y + previousLayoutChatRect.height;
-        var w = maxWidth;
-        var h = height;
+        var rect = new Rect(
+            6 + HorizontalSpacing,
+            previousLayoutChatRect.y + previousLayoutChatRect.height,
+            maxWidth,
+            height
+        );
 
-        var rect = new Rect(x, y, w, h);
         previousLayoutChatRect = rect;
-
         return rect;
     }
 
@@ -170,14 +158,11 @@ public sealed partial class MultiplayerUI
             Message = message,
             Username = Main.Username,
             MessageID = messageId,
-            MessageType = 0 // Normal message
+            MessageType = 0
         });
     }
 
-    private void ClearChatInput()
-    {
-        chatInput = string.Empty;
-    }
+    private void ClearChatInput() => chatInput = string.Empty;
 
     public void ClearChatMessages()
     {
@@ -188,15 +173,18 @@ public sealed partial class MultiplayerUI
     public void ClearAndWelcome()
     {
         ClearChatMessages();
-
-        RegisterSystemMessage("Welcome to SR2MP!", $"SYSTEM_WELCOME_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", SystemMessageNormal);
+        RegisterSystemMessage(
+            "Welcome to Ranching Together!",
+            $"SYSTEM_WELCOME_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            SystemMessageNormal
+        );
     }
 
-    private void FocusChat() => FocusUnfocusChat(true);
+    private void FocusChat() => SetChatFocusPending(true);
 
-    private void UnfocusChat() => FocusUnfocusChat(false);
+    private void UnfocusChat() => SetChatFocusPending(false);
 
-    private void FocusUnfocusChat(bool focus)
+    private void SetChatFocusPending(bool focus)
     {
         shouldFocusChat = focus;
         shouldUnfocusChat = !focus;
@@ -205,35 +193,33 @@ public sealed partial class MultiplayerUI
     private void ProcessFocusRequests()
     {
         if (shouldFocusChat && Event.current.type == EventType.Repaint)
-            SetChatFocus(true);
-        else if (shouldUnfocusChat)
-            SetChatFocus(false);
-    }
-
-    private void SetChatFocus(bool focus)
-    {
-        GUI.FocusControl(focus ? ChatInputName : null);
-
-        if (focus) shouldFocusChat = false;
-        else shouldUnfocusChat = false;
-
-        if (focus && !disabledInput)
         {
-            DisableInput();
-            disabledInput = true;
+            GUI.FocusControl(ChatInputName);
+            shouldFocusChat = false;
+
+            if (!disabledInput)
+            {
+                DisableInput();
+                disabledInput = true;
+            }
         }
-        else if (!focus && disabledInput)
+        else if (shouldUnfocusChat)
         {
-            EnableInput();
-            disabledInput = false;
+            GUI.FocusControl(null);
+            shouldUnfocusChat = false;
+
+            if (disabledInput)
+            {
+                EnableInput();
+                disabledInput = false;
+            }
         }
     }
 
     private void UpdateChatFocusState()
     {
-        var currentChatFocus = GUI.GetNameOfFocusedControl();
         var wasPreviouslyFocused = isChatFocused;
-        isChatFocused = currentChatFocus == ChatInputName;
+        isChatFocused = GUI.GetNameOfFocusedControl() == ChatInputName;
 
         if (isChatFocused && !wasPreviouslyFocused)
         {
@@ -259,10 +245,9 @@ public sealed partial class MultiplayerUI
     {
         if (state == MenuState.DisconnectedMainMenu || chatHidden) return;
 
-        float chatY = Screen.height / 2;
+        var chatY = Screen.height / 2f;
 
-        GUI.Box(new Rect(6, chatY, ChatWidth, ChatHeight),
-                "Chat (F5 to toggle)");
+        GUI.Box(new Rect(6, chatY, ChatWidth, ChatHeight), "Chat (F5 to toggle)");
 
         ProcessPendingMessages();
         TrimOldMessages();
@@ -270,32 +255,22 @@ public sealed partial class MultiplayerUI
         previousLayoutChatRect = new Rect(6, chatY + ChatHeaderHeight, ChatWidth, 0);
 
         foreach (var message in chatMessages)
-        {
             RenderChatMessage(message);
-        }
 
         GUI.SetNextControlName(ChatInputName);
 
         if (string.IsNullOrEmpty(chatInput) && !isChatFocused)
         {
-            GUIStyle placeholderStyle = new(GUI.skin.textField);
-            placeholderStyle.normal.textColor = Color.gray;
-
+            var placeholderStyle = new GUIStyle(GUI.skin.textField) { normal = { textColor = Color.gray } };
             GUI.Label(
-                new Rect(6 + HorizontalSpacing,
-                         chatY + ChatHeight - InputHeight - 5,
-                         ChatWidth - (HorizontalSpacing * 2),
-                         InputHeight),
+                new Rect(6 + HorizontalSpacing, chatY + ChatHeight - InputHeight - 5, ChatWidth - (HorizontalSpacing * 2), InputHeight),
                 "Press Enter to chat...",
                 placeholderStyle
             );
         }
 
         chatInput = GUI.TextField(
-            new Rect(6 + HorizontalSpacing,
-                     chatY + ChatHeight - InputHeight - 5,
-                     ChatWidth - (HorizontalSpacing * 2),
-                     InputHeight),
+            new Rect(6 + HorizontalSpacing, chatY + ChatHeight - InputHeight - 5, ChatWidth - (HorizontalSpacing * 2), InputHeight),
             chatInput,
             MaxChatMessageLength
         );
