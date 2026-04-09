@@ -9,8 +9,6 @@ internal sealed partial class MultiplayerUI
     private string joinCodeError = string.Empty;
     private string joinManualError = string.Empty;
 
-    private JoinTab joinTab = JoinTab.Code;
-
     private void DrawJoinSection()
     {
         DrawText("Join a world:");

@@ -2,8 +2,6 @@
 
 internal sealed partial class MultiplayerUI
 {
-    private enum HostTab { Automatic, ManualCode, ManualSimple }
-
     private string hostPortInput = "1919";
     private string hostIpInput = string.Empty;
 
@@ -15,8 +13,6 @@ internal sealed partial class MultiplayerUI
     private string hostManualJoinCode = string.Empty;
     private string hostManualError = string.Empty;
     private string hostManualCopyStatus = string.Empty;
-
-    private HostTab hostTab = HostTab.Automatic;
 
     private void DrawHostSection()
     {
