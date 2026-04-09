@@ -146,7 +146,7 @@ public sealed class ClientPacketManager
             void DispatchAction()
             {
                 if (handlers.TryGetValue(packetTypeHeader, out var h))
-                    MainThreadDispatcher.Enqueue(new ClientHandleCache(reader, h));
+                    MainThreadDispatcher.Instance.Enqueue(new ClientHandleCache(reader, h));
                 else
                     PacketReader.Return(reader);
             }
@@ -160,7 +160,7 @@ public sealed class ClientPacketManager
             }
 
             if (handlers.TryGetValue(packetTypeHeader, out var orderedHandler))
-                MainThreadDispatcher.Enqueue(new ClientHandleCache(reader, orderedHandler));
+                MainThreadDispatcher.Instance.Enqueue(new ClientHandleCache(reader, orderedHandler));
             else
                 SrLogger.LogError($"No client handler found for packet type: {packetType}", SrLogTarget.Both);
 

@@ -149,7 +149,7 @@ internal sealed class ServerPacketManager
             void DispatchAction()
             {
                 if (handlers.TryGetValue(packetTypeHeader, out var h))
-                    MainThreadDispatcher.Enqueue(new ServerHandleCache(reader, h, clientEp));
+                    MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, h, clientEp));
                 else
                     PacketReader.Return(reader);
             }
@@ -163,7 +163,7 @@ internal sealed class ServerPacketManager
             }
 
             if (handlers.TryGetValue(packetTypeHeader, out var orderedHandler))
-                MainThreadDispatcher.Enqueue(new ServerHandleCache(reader, orderedHandler, clientEp));
+                MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, orderedHandler, clientEp));
             else
                 SrLogger.LogError($"No handler found for packet type: {packetType}");
 

@@ -1,6 +1,6 @@
 ﻿namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
     private string ipInput = string.Empty;
     private string portInput = string.Empty;
@@ -70,14 +70,14 @@ public sealed partial class MultiplayerUI
         DrawText("You are connected to the server.");
 
         if (GUI.Button(CalculateButtonLayout(6), "Request resync"))
-            Main.Server.reSyncManager.RequestResync();
+            Main.Server.ReSyncManager.RequestResync();
 
         if (GUI.Button(CalculateButtonLayout(6), "Disconnect"))
             Main.Client.Disconnect();
 
         DrawText("All players:");
 
-        foreach (var player in playerManager.GetAllPlayers())
+        foreach (var player in PlayerManager.GetAllPlayers())
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
     }
 }

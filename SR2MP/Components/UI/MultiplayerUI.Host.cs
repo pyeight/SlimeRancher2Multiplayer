@@ -1,6 +1,6 @@
 ﻿namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
     private enum HostTab { Automatic, ManualCode, ManualSimple }
 
@@ -76,7 +76,7 @@ public sealed partial class MultiplayerUI
             DrawText("Invalid port. Must be a number from 1 to 65535.");
         }
     }
-    
+
     private void DrawHostManualSimple()
     {
         DrawText("Local Port:", 2, 0);
@@ -105,13 +105,13 @@ public sealed partial class MultiplayerUI
         DrawHostingJoinCode();
 
         if (GUI.Button(CalculateButtonLayout(6), "Resync All"))
-            Main.Server.reSyncManager.SynchronizeAll();
+            Main.Server.ReSyncManager.SynchronizeAll();
 
         if (GUI.Button(CalculateButtonLayout(6), "Stop Server"))
             Main.Server.Close();
 
         DrawText("All players:");
-        foreach (var player in playerManager.GetAllPlayers())
+        foreach (var player in PlayerManager.GetAllPlayers())
             DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
     }
 
@@ -122,7 +122,7 @@ public sealed partial class MultiplayerUI
             DrawText("Join code unavailable, hosting manually");
             return;
         }
-        
+
         var joinCode = !string.IsNullOrWhiteSpace(hostAutoJoinCode) ? hostAutoJoinCode : hostManualJoinCode;
 
         if (string.IsNullOrWhiteSpace(joinCode))

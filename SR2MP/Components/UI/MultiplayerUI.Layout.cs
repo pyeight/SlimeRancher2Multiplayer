@@ -20,13 +20,14 @@ internal sealed partial class MultiplayerUI
         var x = originalX + HorizontalSpacing;
         var y = previousLayoutRect.y;
         var w = maxWidth / horizontalShare;
+        var h = height;
 
         x += horizontalIndex * w;
 
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
-        var result = new Rect(x, y, w, height);
+        var result = new Rect(x, y, w, h);
 
         previousLayoutHorizontalIndex = horizontalIndex;
         previousLayoutRect = result;
@@ -41,13 +42,14 @@ internal sealed partial class MultiplayerUI
         var x = originalX + HorizontalSpacing;
         var y = previousLayoutRect.y;
         var w = maxWidth / horizontalShare;
+        const float h = InputHeight;
 
         x += horizontalIndex * w;
 
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
-        var result = new Rect(x, y, w, InputHeight);
+        var result = new Rect(x, y, w, h);
 
         previousLayoutHorizontalIndex = horizontalIndex;
         previousLayoutRect = result;
@@ -62,13 +64,14 @@ internal sealed partial class MultiplayerUI
         var x = originalX + HorizontalSpacing;
         var y = previousLayoutRect.y;
         var w = maxWidth / horizontalShare;
+        const float h = ButtonHeight;
 
         x += horizontalIndex * w;
 
         if (horizontalIndex <= previousLayoutHorizontalIndex)
             y += previousLayoutRect.height + SpacerHeight;
 
-        var result = new Rect(x, y, w, ButtonHeight);
+        var result = new Rect(x, y, w, h);
 
         previousLayoutHorizontalIndex = horizontalIndex;
         previousLayoutRect = result;

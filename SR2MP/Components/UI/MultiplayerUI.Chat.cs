@@ -6,15 +6,13 @@ namespace SR2MP.Components.UI;
 internal sealed partial class MultiplayerUI
 {
     private bool chatHidden = true;
-
     private readonly List<ChatMessage> chatMessages = new();
-    private readonly Queue<Action?> pendingMessageRegistrations = new();
+    private readonly Queue<Action> pendingMessageRegistrations = new();
     private readonly HashSet<string> processedMessageIds = new();
 
     private string chatInput = string.Empty;
     private bool isChatFocused;
-    // private bool wasChatFocused;
-
+    private bool wasChatFocused;
     private const string ChatInputName = "ChatInput";
 
     private bool shouldUnfocusChat;
@@ -24,13 +22,13 @@ internal sealed partial class MultiplayerUI
 
     private sealed class ChatMessage
     {
-        public string Message;
-        public string PlayerName;
-        public long Time;
-        public int Lines;
-        // public string MessageId;
-        public bool IsSystemMessage;
-        public byte SystemMessageType;
+        public string message;
+        public string playerName;
+        public long time;
+        public int lines;
+        public string messageId;
+        public bool isSystemMessage;
+        public byte systemMessageType;
     }
 
     public void RegisterChatMessage(string message, string playerName, string messageId)
@@ -52,13 +50,13 @@ internal sealed partial class MultiplayerUI
 
             chatMessages.Add(new ChatMessage
             {
-                Message = trimmedMessage,
-                PlayerName = displayName,
-                Lines = lines,
-                Time = dateTime,
-                // MessageId = messageId,
-                IsSystemMessage = isSystem,
-                SystemMessageType = systemType
+                message = trimmedMessage,
+                playerName = displayName,
+                lines = lines,
+                time = dateTime,
+                messageId = messageId,
+                isSystemMessage = isSystem,
+                systemMessageType = systemType
             });
 
             processedMessageIds.Add(messageId);
@@ -79,10 +77,8 @@ internal sealed partial class MultiplayerUI
     private int CalculateTotalLinesInUse()
     {
         var total = 0;
-
         foreach (var message in chatMessages)
-            total += message.Lines;
-
+            total += message.lines;
         return total;
     }
 
@@ -92,7 +88,7 @@ internal sealed partial class MultiplayerUI
 
         while (totalLines > MaxChatLines && chatMessages.Count > 0)
         {
-            totalLines -= chatMessages[0].Lines;
+            totalLines -= chatMessages[0].lines;
             chatMessages.RemoveAt(0);
         }
     }
@@ -109,24 +105,23 @@ internal sealed partial class MultiplayerUI
     [HideFromIl2Cpp]
     private void RenderChatMessage(ChatMessage message)
     {
-        var timeString = DateTimeOffset.FromUnixTimeSeconds(message.Time).ToLocalTime().ToString("HH:mm:ss");
+        var timeString = DateTimeOffset.FromUnixTimeSeconds(message.time).ToLocalTime().ToString("HH:mm:ss");
 
         string formattedMessage;
-
-        if (message.IsSystemMessage)
+        if (message.isSystemMessage)
         {
-            var systemColor = message.SystemMessageType switch
+            var systemColor = message.systemMessageType switch
             {
                 SystemMessageConnect => ColorSystemConnect,
                 SystemMessageDisconnect => ColorSystemDisconnect,
                 SystemMessageClose => ColorSystemClose,
                 _ => ColorSystemNormal
             };
-            formattedMessage = $"<color={systemColor}>[{timeString}] SYSTEM: {message.Message}</color>";
+            formattedMessage = $"<color={systemColor}>[{timeString}] SYSTEM: {message.message}</color>";
         }
         else
         {
-            formattedMessage = $"[{timeString}] {message.PlayerName}: {message.Message}";
+            formattedMessage = $"[{timeString}] {message.playerName}: {message.message}";
         }
 
         GUI.Label(CalculateChatMessageRect(formattedMessage), formattedMessage);
@@ -226,36 +221,29 @@ internal sealed partial class MultiplayerUI
         var wasPreviouslyFocused = isChatFocused;
         isChatFocused = GUI.GetNameOfFocusedControl() == ChatInputName;
 
-        switch (isChatFocused)
+        if (isChatFocused && !wasPreviouslyFocused)
         {
-            case true when !wasPreviouslyFocused:
+            if (!disabledInput)
             {
-                if (!disabledInput)
-                {
-                    DisableInput();
-                    disabledInput = true;
-                }
-
-                break;
+                DisableInput();
+                disabledInput = true;
             }
-            case false when wasPreviouslyFocused:
+        }
+        else if (!isChatFocused && wasPreviouslyFocused)
+        {
+            if (disabledInput)
             {
-                if (disabledInput)
-                {
-                    EnableInput();
-                    disabledInput = false;
-                }
-
-                break;
+                EnableInput();
+                disabledInput = false;
             }
         }
 
-        // wasChatFocused = isChatFocused;
+        wasChatFocused = isChatFocused;
     }
 
     private void DrawChat()
     {
-        if (State == MenuState.DisconnectedMainMenu || chatHidden) return;
+        if (state == MenuState.DisconnectedMainMenu || chatHidden) return;
 
         var chatY = Screen.height / 2f;
 

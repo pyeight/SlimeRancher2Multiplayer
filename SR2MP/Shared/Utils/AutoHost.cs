@@ -45,12 +45,12 @@ internal static class AutoHost
 
     internal static void BeginAutoHost(Action<AutoHostResult> onCompleted)
     {
-        ArgumentNullException.ThrowIfNull(onCompleted);
+        ArgumentNullException.ThrowIfNull(onCompleted, nameof(onCompleted));
         Task.Run(() =>
         {
             StopRefresh();
             var result = RunAutoHost();
-            MainThreadDispatcher.Enqueue(() => onCompleted(result));
+            MainThreadDispatcher.Instance.Enqueue(() => onCompleted(result));
         });
     }
 
@@ -79,7 +79,7 @@ internal static class AutoHost
                 SrLogger.LogWarning("UPnP: Could not determine external IP from API.", SrLogTarget.Both);
                 return AutoHostResult.Failure("Could not determine your external IP address.");
             }
-            
+
             SrLogger.LogMessage("UPnP: External IP determined", $"UPnP: External IP determined: {externalIp}");
 
             var device = DiscoverDevice();
@@ -177,7 +177,7 @@ internal static class AutoHost
     {
         try
         {
-            if (!Main.Server.IsRunning() || Main.Server.Port != refreshPort)
+            if (!Main.Server.IsRunning || Main.Server.Port != refreshPort)
             {
                 StopRefresh();
                 return;

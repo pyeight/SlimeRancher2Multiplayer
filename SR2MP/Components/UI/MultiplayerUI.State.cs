@@ -72,28 +72,28 @@ internal sealed partial class MultiplayerUI
 
     private void UpdateChatVisibility()
     {
-        var isInGame = State is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
-        var isMainMenu = State == MenuState.DisconnectedMainMenu;
+        var isInGame = state is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
+        var isMainMenu = state == MenuState.DisconnectedMainMenu;
 
         if (isMainMenu)
         {
             chatHidden = true;
-            ChatShown = false;
+            chatShown = false;
             internalChatToggle = false;
             return;
         }
 
         if (internalChatToggle) return;
 
-        if (isInGame && !ChatShown)
+        if (isInGame && !chatShown)
         {
             chatHidden = false;
-            ChatShown = true;
+            chatShown = true;
 
-            if (PreviousState is MenuState.DisconnectedMainMenu or MenuState.Hidden)
+            if (previousState is MenuState.DisconnectedMainMenu or MenuState.Hidden)
                 ClearAndWelcome();
         }
 
-        PreviousState = State;
+        previousState = state;
     }
 }

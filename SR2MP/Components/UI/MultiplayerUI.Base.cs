@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using MelonLoader;
 using SR2E.Utils;
 
@@ -12,8 +11,7 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
 
     private bool didUnfocus;
 
-    [UsedImplicitly]
-    public void Awake()
+    private void Awake()
     {
         firstTime = Main.SetupUI;
         usernameInput = Main.Username;
@@ -24,7 +22,7 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
 
         if (Instance)
         {
-            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!");
+            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!", SrLogTarget.Both);
             Destroy(this);
             return;
         }
@@ -32,17 +30,16 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
         Instance = this;
     }
 
-    [UsedImplicitly]
-#pragma warning disable CA1822
-    public void OnDestroy() => Instance = null!;
-#pragma warning restore CA1822
+    private void OnDestroy()
+    {
+        Instance = null!;
+    }
 
-    [UsedImplicitly]
-    public void OnGUI()
+    private void OnGUI()
     {
         if (Event.current.type == EventType.Layout)
         {
-            State = GetState();
+            state = GetState();
             UpdateChatVisibility();
         }
 
@@ -64,11 +61,11 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
 
     private void DrawWindow()
     {
-        if (State == MenuState.Hidden) return;
+        if (state == MenuState.Hidden) return;
 
         GUI.Box(new Rect(6, 6, WindowWidth, WindowHeight), "SR2MP (F4 to toggle)");
 
-        switch (State)
+        switch (state)
         {
             case MenuState.SettingsInitial:
                 FirstTimeScreen();
@@ -88,9 +85,6 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
             case MenuState.ConnectedHost:
                 HostingScreen();
                 break;
-            case MenuState.Hidden:
-            case MenuState.SettingsHelp:
-            case MenuState.Kicked:
             default:
                 UnimplementedScreen();
                 break;
