@@ -1,6 +1,6 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Loading;
+namespace SR2MP.Packets.Internal;
 
 internal sealed class ConnectionDenyPacket : IPacket
 {
@@ -8,6 +8,7 @@ internal sealed class ConnectionDenyPacket : IPacket
 
     public PacketType Type => PacketType.ConnectionDeny;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer) => writer.WriteString(Reason);
 

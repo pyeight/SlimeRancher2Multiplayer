@@ -26,6 +26,7 @@ internal struct ActorUpdatePacket : IPacket
 
     public readonly PacketType Type => PacketType.ActorUpdate;
     public readonly PacketReliability Reliability => PacketReliability.UnreliableOrdered;
+    public readonly NetworkChannel Channel => NetworkChannel.ActorUpdate;
 
     public readonly void Serialise(PacketWriter writer)
     {

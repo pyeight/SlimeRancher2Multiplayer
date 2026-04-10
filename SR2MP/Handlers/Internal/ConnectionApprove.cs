@@ -2,7 +2,7 @@ using System.Net;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Api;
 using SR2MP.Components.Player;
-using SR2MP.Packets.Loading;
+using SR2MP.Packets.Internal;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 

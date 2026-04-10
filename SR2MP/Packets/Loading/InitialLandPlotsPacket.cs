@@ -133,6 +133,7 @@ internal sealed class InitialLandPlotsPacket : IPacket
 
     public PacketType Type => PacketType.InitialLandPlots;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(LandPlots, PacketWriterDels.NetObject<BasePlot>.Writer);
 

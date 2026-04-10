@@ -25,6 +25,7 @@ internal struct WorldFXPacket : IPacket
 
     public readonly PacketType Type => PacketType.WorldFX;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly NetworkChannel Channel => NetworkChannel.FX;
 
     public readonly void Serialise(PacketWriter writer)
     {

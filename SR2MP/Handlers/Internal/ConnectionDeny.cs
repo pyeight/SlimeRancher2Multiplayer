@@ -1,6 +1,6 @@
 using System.Net;
 using SR2MP.Components.UI;
-using SR2MP.Packets.Loading;
+using SR2MP.Packets.Internal;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.Internal;

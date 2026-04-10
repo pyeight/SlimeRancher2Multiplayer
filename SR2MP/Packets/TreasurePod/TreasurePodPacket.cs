@@ -8,6 +8,7 @@ internal sealed class TreasurePodPacket : IPacket
 
     public PacketType Type => PacketType.TreasurePod;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer)
     {

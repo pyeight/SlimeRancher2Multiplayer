@@ -8,6 +8,7 @@ internal sealed class PlayerLeavePacket : IPacket
 
     public PacketType Type { get; init; }
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer) => writer.WriteStringWithoutSize(PlayerId);
 

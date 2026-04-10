@@ -8,6 +8,7 @@ internal abstract class LandPlotUpdatePacket : IPacket
 
     public abstract PacketType Type { get; }
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public virtual void Serialise(PacketWriter writer) => writer.WriteString(PlotID);
 

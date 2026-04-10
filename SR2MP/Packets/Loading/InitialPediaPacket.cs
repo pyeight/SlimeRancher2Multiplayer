@@ -8,6 +8,7 @@ internal sealed class InitialPediaPacket : IPacket
 
     public PacketType Type => PacketType.InitialPediaEntries;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(Entries, PacketWriterDels.String);
 

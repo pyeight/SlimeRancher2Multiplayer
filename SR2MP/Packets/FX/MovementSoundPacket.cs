@@ -12,6 +12,7 @@ internal sealed class MovementSoundPacket : IPacket
 
     public PacketType Type => PacketType.MovementSound;
     public PacketReliability Reliability => PacketReliability.Unreliable;
+    public NetworkChannel Channel => NetworkChannel.FX;
 
     public void Serialise(PacketWriter writer)
     {

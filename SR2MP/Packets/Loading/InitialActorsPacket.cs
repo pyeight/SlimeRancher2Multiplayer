@@ -12,7 +12,7 @@ internal partial class InitialActorsPacket : IPacket
 
         actor.Deserialise(reader);
 
-        SrLogger.LogPacketSize($"{actorTypeEnum} Actor: {actor.ActorId}");
+        SrLogger.LogDebug($"{actorTypeEnum} Actor: {actor.ActorId}");
 
         return actor;
     };
@@ -23,6 +23,7 @@ internal partial class InitialActorsPacket : IPacket
 
     public PacketType Type => PacketType.InitialActors;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.ActorCritical;
 
     public void Serialise(PacketWriter writer)
     {

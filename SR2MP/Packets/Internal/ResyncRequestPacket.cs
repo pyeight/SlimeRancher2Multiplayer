@@ -6,6 +6,7 @@ internal readonly struct ResyncRequestPacket : IPacket
 {
     public PacketType Type => PacketType.ResyncRequest;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer) { }
 

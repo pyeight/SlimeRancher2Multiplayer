@@ -11,6 +11,7 @@ internal sealed class GardenUpdatePacket : IPacket
 
     public PacketType Type => PacketType.GardenUpdate;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {

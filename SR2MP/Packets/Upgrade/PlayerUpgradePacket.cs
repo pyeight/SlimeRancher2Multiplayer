@@ -8,6 +8,7 @@ internal struct PlayerUpgradePacket : IPacket
 
     public readonly PacketType Type => PacketType.PlayerUpgrade;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.WorldState;
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteByte(UpgradeID);
 
