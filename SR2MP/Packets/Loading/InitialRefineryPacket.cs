@@ -8,6 +8,7 @@ internal sealed class InitialRefineryPacket : IPacket
 
     public PacketType Type => PacketType.InitialRefinery;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Ammo;
 
     public void Serialise(PacketWriter writer) => writer.WriteDictionary(Items, PacketWriterDels.UShort, PacketWriterDels.UShort);
 

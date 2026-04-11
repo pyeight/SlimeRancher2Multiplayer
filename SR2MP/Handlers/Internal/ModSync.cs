@@ -18,12 +18,16 @@ internal sealed class ModSyncHandler : BasePacketHandler<EmptyPacket>
             var info = ApiHandlers.Holders[id].Mod.Info;
             dict[id] = new ModData
             {
-                Name = info.Name,
-                Version = info.Version
+                Name = string.IsNullOrEmpty(info.Name) ? $"Unknown Mod ({id})" : info.Name,
+                Version = string.IsNullOrEmpty(info.Version) ? "Unknown Version" : info.Version
             };
         }
 
-        var modSyncPacket = new ModSyncPacket { Mods = dict };
+        var modSyncPacket = new ModSyncPacket
+        {
+            PlayerId = LocalID,
+            Mods = dict
+        };
         Main.Client.SendPacket(modSyncPacket);
 
         return false;

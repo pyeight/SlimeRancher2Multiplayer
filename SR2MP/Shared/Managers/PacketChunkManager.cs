@@ -19,14 +19,16 @@ internal static class PacketChunkManager
         public int ReceivedCount;
         public DateTime LastChunkTime;
         public PacketReliability Reliability;
+        public NetworkChannel Channel;
         public ushort SequenceNumber;
 
         public bool IsRecycled { get; set; }
 
-        private void Initialize(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
+        private void Initialize(ushort totalChunks, PacketReliability reliability, NetworkChannel channel, ushort sequenceNumber)
         {
             TotalChunks = totalChunks;
             Reliability = reliability;
+            Channel = channel;
             SequenceNumber = sequenceNumber;
 
             ReceivedCount = 0;
@@ -57,10 +59,10 @@ internal static class PacketChunkManager
 
         public void Dispose() => Return(this);
 
-        public static IncompletePacket Borrow(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
+        public static IncompletePacket Borrow(ushort totalChunks, PacketReliability reliability, NetworkChannel channel, ushort sequenceNumber)
         {
             var packet = RecyclePool<IncompletePacket>.Borrow();
-            packet.Initialize(totalChunks, reliability, sequenceNumber);
+            packet.Initialize(totalChunks, reliability, channel, sequenceNumber);
             return packet;
         }
 
@@ -71,7 +73,7 @@ internal static class PacketChunkManager
 
     private static int nextPacketId = 1;
 
-    private const int MaxChunkBytes = 500;
+    private const int MaxChunkBytes = 512 - HeaderSize;
     private const int CompressionThreshold = 64;
     private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(30);
 
@@ -82,11 +84,12 @@ internal static class PacketChunkManager
 
     internal static bool TryMergePacket(PacketType packetType, byte[] data,
         int chunkLength, ushort chunkIndex, ushort totalChunks, ushort packetId,
-        IPEndPoint senderEp, PacketReliability reliability, ushort sequenceNumber,
-        out PacketReader reader, out PacketReliability outReliability, out ushort outSequenceNumber)
+        IPEndPoint senderEp, PacketReliability reliability, NetworkChannel channel, ushort sequenceNumber,
+        out PacketReader reader, out PacketReliability outReliability, out NetworkChannel outChannel, out ushort outSequenceNumber)
     {
         reader = null!;
         outReliability = reliability;
+        outChannel = channel;
         outSequenceNumber = sequenceNumber;
 
         if (chunkIndex >= totalChunks)
@@ -105,7 +108,7 @@ internal static class PacketChunkManager
         var key = new PacketKey((byte)packetType, packetId, senderEp);
 
         var packet = IncompletePackets.GetOrAdd(key, _ =>
-            IncompletePacket.Borrow(totalChunks, reliability, sequenceNumber));
+            IncompletePacket.Borrow(totalChunks, reliability, channel, sequenceNumber));
 
         if (packet.TotalChunks != totalChunks)
         {
@@ -144,6 +147,7 @@ internal static class PacketChunkManager
         }
 
         outReliability = packet.Reliability;
+        outChannel = packet.Channel;
         outSequenceNumber = packet.SequenceNumber;
 
         IncompletePackets.TryRemove(key, out _);
@@ -174,7 +178,7 @@ internal static class PacketChunkManager
     }
 
     internal static SplitResult SplitPacket(ReadOnlySpan<byte> data, PacketReliability reliability,
-        ushort sequenceNumber, out ushort packetId)
+        NetworkChannel channel, ushort sequenceNumber, out ushort packetId)
     {
         var packetType = data[0];
 
@@ -213,7 +217,7 @@ internal static class PacketChunkManager
                 var chunkSize = Math.Min(MaxChunkBytes, sourceToSplit.Length - chunkOffset);
                 var totalChunkLength = HeaderSize + chunkSize;
 
-                // 12 byte header:
+                // 13 byte header:
                 var buffer = ArrayPool<byte>.Shared.Rent(totalChunkLength);
 
                 // [0] Packet type
@@ -231,21 +235,24 @@ internal static class PacketChunkManager
                 buffer[5] = (byte)(packetId & All8Bits);
                 buffer[6] = (byte)((packetId >> 8) & All8Bits);
 
-                // [7] Reliability
-                buffer[7] = (byte)reliability;
+                // [7] Channel
+                buffer[7] = (byte)channel;
 
-                // [8-9] Sequence number
-                buffer[8] = (byte)(sequenceNumber & All8Bits);
-                buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
+                // [8] Reliability
+                buffer[8] = (byte)reliability;
 
-                // Copy data into buffer at offset 12, then compute CRC over it
+                // [9-10] Sequence number
+                buffer[9] = (byte)(sequenceNumber & All8Bits);
+                buffer[10] = (byte)((sequenceNumber >> 8) & All8Bits);
+
+                // Copy data into buffer at offset HeaderSize, then compute CRC over it
                 sourceToSplit.Slice(chunkOffset, chunkSize).CopyTo(buffer.AsSpan(HeaderSize));
 
                 var crc = PacketCRC.Compute(buffer, HeaderSize, chunkSize);
 
-                // [10-11] CRC16 of data
-                buffer[10] = (byte)(crc & All8Bits);
-                buffer[11] = (byte)((crc >> 8) & All8Bits);
+                // [11-12] CRC16 of data
+                buffer[11] = (byte)(crc & All8Bits);
+                buffer[12] = (byte)((crc >> 8) & All8Bits);
 
                 resultChunks[index] = new ArraySegment<byte>(buffer, 0, totalChunkLength);
             }

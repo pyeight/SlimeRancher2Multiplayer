@@ -10,6 +10,7 @@ internal sealed class ActorTransferPacket : IPacket
 
     public PacketType Type => PacketType.ActorTransfer;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.ActorCritical;
 
     public void Serialise(PacketWriter writer)
     {

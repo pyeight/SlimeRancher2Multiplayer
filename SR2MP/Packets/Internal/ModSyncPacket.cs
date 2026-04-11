@@ -9,6 +9,7 @@ internal sealed class ModSyncPacket : IPacket
 
     public PacketType Type => PacketType.ModSyncAck;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer)
     {

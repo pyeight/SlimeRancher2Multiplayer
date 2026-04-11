@@ -1,7 +1,7 @@
 ﻿using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Actor;
+namespace SR2MP.Packets.LandPlots;
 
 internal sealed class ResourceAttachPacket : IPacket
 {
@@ -14,6 +14,7 @@ internal sealed class ResourceAttachPacket : IPacket
 
     public PacketType Type => PacketType.ResourceAttach;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {

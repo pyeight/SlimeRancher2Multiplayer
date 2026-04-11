@@ -1,6 +1,6 @@
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Loading;
+namespace SR2MP.Packets.Internal;
 
 internal sealed class ConnectPacket : IPacket
 {
@@ -9,6 +9,7 @@ internal sealed class ConnectPacket : IPacket
 
     public PacketType Type => PacketType.Connect;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer)
     {

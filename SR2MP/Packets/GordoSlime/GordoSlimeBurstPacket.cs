@@ -8,6 +8,7 @@ internal sealed class GordoSlimeBurstPacket : IPacket
 
     public PacketType Type => PacketType.GordoBurst;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer) => writer.WriteString(ID);
 

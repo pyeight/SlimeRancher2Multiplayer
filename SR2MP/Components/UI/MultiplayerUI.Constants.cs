@@ -20,8 +20,8 @@ internal sealed partial class MultiplayerUI
     internal const byte SystemMessageDisconnect = 2;
     internal const byte SystemMessageClose = 3;
 
-    internal const string ColorSystemNormal = "#4D95CB";
-    internal const string ColorSystemConnect = "#00FF00";
-    internal const string ColorSystemDisconnect = "#FFA500";
-    internal const string ColorSystemClose = "#FF0000";
+    private const string ColorSystemNormal = "#4D95CB";
+    private const string ColorSystemConnect = "#00FF00";
+    private const string ColorSystemDisconnect = "#FFA500";
+    private const string ColorSystemClose = "#FF0000";
 }

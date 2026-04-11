@@ -4,8 +4,9 @@ namespace SR2MP.Packets;
 
 internal readonly struct EmptyPacket : IPacket
 {
-    public PacketType Type { get; init; }
-    public PacketReliability Reliability { get; init; }
+    public readonly PacketType Type { get; init; }
+    public readonly PacketReliability Reliability { get; init; }
+    public readonly NetworkChannel Channel { get; init; }
 
     public void Serialise(PacketWriter writer) { }
 

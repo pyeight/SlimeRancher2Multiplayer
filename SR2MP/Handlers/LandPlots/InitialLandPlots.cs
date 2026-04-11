@@ -112,9 +112,13 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
 
                     if (!model.gameObj) break;
 
-                    var pondStorage = model.gameObj.GetComponentInChildren<SiloStorage>();
-                    pondStorage.Ammo = collectorAmmo;
-                    pondStorage.SetModel(model);
+                    var pondStorage = model.gameObj.GetComponentInChildren<SiloStorage>(true);
+
+                    if (pondStorage)
+                    {
+                        pondStorage.Ammo = collectorAmmo;
+                        pondStorage.SetModel(model);
+                    }
                     break;
 
                 case InitialLandPlotsPacket.CorralData corral:
@@ -171,9 +175,13 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
 
                     if (!model.gameObj) break;
 
-                    var incineratorStorage = model.gameObj.GetComponentInChildren<SiloStorage>();
-                    incineratorStorage.Ammo = incineratorAmmo;
-                    incineratorStorage.SetModel(model);
+                    var incineratorStorage = model.gameObj.GetComponentInChildren<SiloStorage>(true);
+
+                    if (incineratorStorage)
+                    {
+                        incineratorStorage.Ammo = incineratorAmmo;
+                        incineratorStorage.SetModel(model);
+                    }
 
                     model.gameObj.GetComponentInChildren<FillableAshSource>().SetModel(model);
                     break;

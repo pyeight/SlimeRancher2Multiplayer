@@ -6,12 +6,14 @@ internal struct ApiPacket : IPacket
 {
     public readonly PacketType Type => PacketType.ApiCall;
     public PacketReliability Reliability { get; }
+    public NetworkChannel Channel { get; }
 
     public byte NetId;
 
-    public ApiPacket(PacketReliability reliability, byte netId)
+    public ApiPacket(PacketReliability reliability, NetworkChannel channel, byte netId)
     {
         Reliability = reliability;
+        Channel = channel;
         NetId = netId;
     }
 

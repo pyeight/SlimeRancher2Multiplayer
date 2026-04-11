@@ -11,6 +11,7 @@ internal sealed class ChatMessagePacket : IPacket
 
     public PacketType Type => PacketType.ChatMessage;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public  NetworkChannel Channel => NetworkChannel.Chat;
 
     public void Serialise(PacketWriter writer)
     {

@@ -3,7 +3,6 @@ namespace SR2MP.Components.UI;
 internal sealed partial class MultiplayerUI
 {
     private bool multiplayerUIHidden;
-    private MainTab mainTab = MainTab.Host;
 
     private string usernameInput = "Player";
     private bool allowCheatsInput;

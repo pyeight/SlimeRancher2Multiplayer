@@ -104,7 +104,8 @@ public sealed class NetworkManager
         }
     }
 
-    public void Send(ReadOnlySpan<byte> data, IPEndPoint endPoint, PacketReliability? reliability = null)
+    public void Send(ReadOnlySpan<byte> data, IPEndPoint endPoint, PacketReliability? reliability = null,
+        NetworkChannel channel = NetworkChannel.Default)
     {
         if (udpClient == null || !isRunning)
         {
@@ -118,9 +119,9 @@ public sealed class NetworkManager
             ushort sequenceNumber = 0;
 
             if (packetReliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
-                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0], endPoint) ?? 0;
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(channel, data[0], endPoint) ?? 0;
 
-            var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out var packetId);
+            var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, channel, sequenceNumber, out var packetId);
 
             if (packetReliability is not PacketReliability.Unreliable and not PacketReliability.UnreliableOrdered)
                 reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability);
@@ -137,7 +138,8 @@ public sealed class NetworkManager
         }
     }
 
-    public void Broadcast(ReadOnlySpan<byte> data, IEnumerable<IPEndPoint> endPoints, PacketReliability? reliability = null)
+    public void Broadcast(ReadOnlySpan<byte> data, IEnumerable<IPEndPoint> endPoints,
+        PacketReliability? reliability = null, NetworkChannel channel = NetworkChannel.Important)
     {
         if (udpClient == null || !isRunning)
         {
@@ -152,12 +154,12 @@ public sealed class NetworkManager
             if (packetReliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
             {
                 foreach (var endPoint in endPoints)
-                    Send(data, endPoint, reliability);
+                    Send(data, endPoint, reliability, channel);
 
                 return;
             }
 
-            var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, 0, out var packetId);
+            var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, channel, 0, out var packetId);
 
             foreach (var endPoint in endPoints)
             {
@@ -190,9 +192,9 @@ public sealed class NetworkManager
     }
 
     public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType,
-        PacketReliability reliability, Action? processAction = null)
+        NetworkChannel channel, PacketReliability reliability, Action? processAction = null)
     {
-        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, reliability, processAction) ?? true;
+        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, channel, reliability, processAction) ?? true;
     }
 
     public void Stop()

@@ -53,12 +53,12 @@ internal sealed class ReliabilityManager
     }
 
     private readonly ConcurrentDictionary<PacketKey, PendingPacket> pendingPackets = new();
-    private readonly ConcurrentDictionary<SequenceKey, ushort> lastProcessedSequence = new();
+    private readonly ConcurrentDictionary<ChannelKey, ushort> lastProcessedSequence = new();
 
-    private readonly ConcurrentDictionary<SequenceKey, int> sequenceNumbersByType = new();
+    private readonly ConcurrentDictionary<ChannelKey, int> sequenceNumbersByChannel = new();
 
-    private readonly ConcurrentDictionary<SequenceKey, SortedDictionary<ushort, Action>> reorderBuffers = new();
-    private readonly ConcurrentDictionary<SequenceKey, object> reorderLocks = new();
+    private readonly ConcurrentDictionary<ChannelKey, SortedDictionary<ushort, Action>> reorderBuffers = new();
+    private readonly ConcurrentDictionary<ChannelKey, object> reorderLocks = new();
 
     private readonly Action<ArraySegment<byte>, IPEndPoint> sendRawCallback;
 
@@ -103,7 +103,7 @@ internal sealed class ReliabilityManager
 
         pendingPackets.Clear();
         lastProcessedSequence.Clear();
-        sequenceNumbersByType.Clear();
+        sequenceNumbersByChannel.Clear();
         reorderBuffers.Clear();
         reorderLocks.Clear();
 
@@ -132,26 +132,27 @@ internal sealed class ReliabilityManager
             $"ACK received for packet {packetId} (type={packetType}) after {packet.SendCount} sends, latency={latency.TotalMilliseconds:F1}ms");
     }
 
-    // Checks if an ordered packet should be processed based on sequence number
-    public ushort GetNextSequenceNumber(byte packetType, IPEndPoint destination)
+    // Returns the next sequence number for a given packet type on a given channel and destination
+    // Sequence numbers wrap from ushort.MaxValue back to 1
+    public ushort GetNextSequenceNumber(NetworkChannel channel, byte packetType, IPEndPoint destination)
     {
-        var key = new SequenceKey(destination, packetType);
-        var seq = sequenceNumbersByType.AddOrUpdate(key, 1, (_, current) => (current >= ushort.MaxValue) ? 1 : current + 1);
+        var key = new ChannelKey(destination, channel, packetType);
+        var seq = sequenceNumbersByChannel.AddOrUpdate(key, 1, (_, current) => (current >= ushort.MaxValue) ? 1 : current + 1);
 
         return (ushort)seq;
     }
 
     public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType,
-        PacketReliability reliability, Action? processAction = null)
+        NetworkChannel channel, PacketReliability reliability, Action? processAction = null)
     {
-        var key = new SequenceKey(sender, packetType);
+        var key = new ChannelKey(sender, channel, packetType);
         var lockObj = reorderLocks.GetOrAdd(key, _ => new object());
 
         lock (lockObj)
         {
             if (!lastProcessedSequence.TryGetValue(key, out var lastSequence))
             {
-                // First packet from this sender for this type
+                // First packet from this sender for this type on this channel
                 lastProcessedSequence[key] = sequenceNumber;
                 return true;
             }
@@ -181,18 +182,18 @@ internal sealed class ReliabilityManager
                     {
                         buffer[sequenceNumber] = processAction;
                         SrLogger.LogPacketSize(
-                            $"Buffered out-of-order packet: expected seq={expectedSequence}, got seq={sequenceNumber}, type={packetType}, buffer size={buffer.Count}");
+                            $"Buffered out-of-order packet: expected seq={expectedSequence}, got seq={sequenceNumber}, type={packetType}, channel={channel}, buffer size={buffer.Count}");
                     }
                     else
                     {
                         SrLogger.LogPacketSize(
-                            $"Reorder buffer full, dropping packet: seq={sequenceNumber}, type={packetType}");
+                            $"Reorder buffer full, dropping packet: seq={sequenceNumber}, type={packetType}, channel={channel}");
                     }
                 }
                 else
                 {
                     SrLogger.LogPacketAcknowledge(
-                        $"Out-of-order packet dropped: expected seq={expectedSequence}, got seq={sequenceNumber}, type={packetType}");
+                        $"Out-of-order packet dropped: expected seq={expectedSequence}, got seq={sequenceNumber}, type={packetType}, channel={channel}");
                 }
             }
 
@@ -202,7 +203,7 @@ internal sealed class ReliabilityManager
 
     // todo: review
 
-    private void DrainReorderBuffer(SequenceKey key, object lockObj)
+    private void DrainReorderBuffer(ChannelKey key, object lockObj)
     {
         if (!reorderBuffers.TryGetValue(key, out var buffer) || buffer.Count == 0)
             return;

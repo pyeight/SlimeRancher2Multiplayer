@@ -9,6 +9,7 @@ internal sealed class AutoFeederSpeedPacket : IPacket
 
     public PacketType Type => PacketType.AutoFeederSpeed;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {

@@ -9,6 +9,7 @@ internal struct ActorDestroyPacket : IPacket
 
     public readonly PacketType Type => PacketType.ActorDestroy;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.ActorCritical;
 
     public readonly void Serialise(PacketWriter writer) => writer.WritePackedLong(ActorId.Value);
 

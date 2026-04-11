@@ -9,6 +9,7 @@ internal sealed class GardenPlantPacket : IPacket
 
     public PacketType Type => PacketType.GardenPlant;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {

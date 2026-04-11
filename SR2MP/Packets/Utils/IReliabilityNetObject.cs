@@ -12,4 +12,9 @@ public interface IReliabilityNetObject : INetObject
     /// Gets the reliability of the network object.
     /// </summary>
     PacketReliability Reliability { get; }
+
+    /// <summary>
+    /// Gets the channel the network object is sent on.
+    /// </summary>
+    NetworkChannel Channel { get; }
 }

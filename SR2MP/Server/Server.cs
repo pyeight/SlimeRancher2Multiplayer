@@ -202,7 +202,7 @@ public sealed class SR2MPServer
     }
 
     internal void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
-        => PrepareAndSendToClient(packet, packet.Reliability, endPoint, SerialiseInternalPacket<T>.Serialiser);
+        => PrepareAndSendToClient(packet, packet.Reliability, packet.Channel, endPoint, SerialiseInternalPacket<T>.Serialiser);
 
     /// <summary>
     /// Sends a custom packet to a specific client endpoint.
@@ -218,8 +218,8 @@ public sealed class SR2MPServer
             return;
         }
 
-        var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSendToClient((apiHeader, data), apiHeader.Reliability, endPoint, SerialiseApiPacket<T>.Serialiser);
+        var apiHeader = new ApiPacket(data.Reliability, data.Channel, modId);
+        PrepareAndSendToClient((apiHeader, data), apiHeader.Reliability, apiHeader.Channel, endPoint, SerialiseApiPacket<T>.Serialiser);
     }
 
     /// <summary>
@@ -231,7 +231,8 @@ public sealed class SR2MPServer
     public void SendDataToClient<T>(T data, ClientInfo client) where T : ICustomPacket
         => SendDataToClient(data, client.EndPoint);
 
-    private void PrepareAndSendToClient<T>(T state, PacketReliability reliability, IPEndPoint endPoint, PacketWriterDelegate<T> writeAction)
+    private void PrepareAndSendToClient<T>(T state, PacketReliability reliability, NetworkChannel channel,
+        IPEndPoint endPoint, PacketWriterDelegate<T> writeAction)
     {
         using var writer = PacketWriter.Borrow();
 
@@ -240,7 +241,7 @@ public sealed class SR2MPServer
             writeAction(writer, state);
             var data = writer.ToSpan();
 
-            NetworkManager.Send(data, endPoint, reliability);
+            NetworkManager.Send(data, endPoint, reliability, channel);
 
             SrLogger.LogPacketSize($"Sent {data.Length} bytes to client at {endPoint}.");
         }
@@ -251,7 +252,7 @@ public sealed class SR2MPServer
     }
 
     internal void SendToAll<T>(T packet) where T : IPacket
-        => PrepareAndSendToAll(packet, packet.Reliability, SerialiseInternalPacket<T>.Serialiser);
+        => PrepareAndSendToAll(packet, packet.Reliability, packet.Channel, SerialiseInternalPacket<T>.Serialiser);
 
     /// <summary>
     /// Broadcasts a custom packet to all connected clients.
@@ -266,11 +267,12 @@ public sealed class SR2MPServer
             return;
         }
 
-        var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSendToAll((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Serialiser);
+        var apiHeader = new ApiPacket(data.Reliability, data.Channel, modId);
+        PrepareAndSendToAll((apiHeader, data), apiHeader.Reliability, apiHeader.Channel, SerialiseApiPacket<T>.Serialiser);
     }
 
-    private void PrepareAndSendToAll<T>(T state, PacketReliability reliability, PacketWriterDelegate<T> writeAction)
+    private void PrepareAndSendToAll<T>(T state, PacketReliability reliability, NetworkChannel channel,
+        PacketWriterDelegate<T> writeAction)
     {
         using var writer = PacketWriter.Borrow();
 
@@ -280,7 +282,7 @@ public sealed class SR2MPServer
             var data = writer.ToSpan();
 
             var endpoints = ClientManager.GetAllClients().Select(c => c.EndPoint);
-            NetworkManager.Broadcast(data, endpoints, reliability);
+            NetworkManager.Broadcast(data, endpoints, reliability, channel);
 
             SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to all clients.");
         }
@@ -304,8 +306,8 @@ public sealed class SR2MPServer
             return;
         }
 
-        var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, SerialiseApiPacket<T>.Serialiser, excludedClientInfo);
+        var apiHeader = new ApiPacket(data.Reliability, data.Channel, modId);
+        PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, apiHeader.Channel, SerialiseApiPacket<T>.Serialiser, excludedClientInfo);
     }
 
     /// <summary>
@@ -321,7 +323,7 @@ public sealed class SR2MPServer
     }
 
     internal void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
-        => PrepareAndSendToAllExcept(packet, packet.Reliability, SerialiseInternalPacket<T>.Serialiser, excludedClientInfo);
+        => PrepareAndSendToAllExcept(packet, packet.Reliability, packet.Channel, SerialiseInternalPacket<T>.Serialiser, excludedClientInfo);
 
     internal void SendToAllExcept<T>(T packet, IPEndPoint? excludeEndPoint) where T : IPacket
     {
@@ -329,7 +331,8 @@ public sealed class SR2MPServer
         SendToAllExcept(packet, clientInfo);
     }
 
-    private void PrepareAndSendToAllExcept<T>(T state, PacketReliability reliability, PacketWriterDelegate<T> writeAction, string excludedClientInfo)
+    private void PrepareAndSendToAllExcept<T>(T state, PacketReliability reliability, NetworkChannel channel,
+        PacketWriterDelegate<T> writeAction, string excludedClientInfo)
     {
         using var writer = PacketWriter.Borrow();
 
@@ -345,7 +348,7 @@ public sealed class SR2MPServer
                 if (client.GetClientInfo() == excludedClientInfo)
                     continue;
 
-                NetworkManager.Send(data, client.EndPoint, reliability);
+                NetworkManager.Send(data, client.EndPoint, reliability, channel);
                 sentCount++;
             }
 

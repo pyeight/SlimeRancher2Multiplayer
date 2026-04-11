@@ -9,6 +9,7 @@ internal sealed class AutoFeederDispensePacket : IPacket
 
     public PacketType Type => PacketType.AutoFeederDispense;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {

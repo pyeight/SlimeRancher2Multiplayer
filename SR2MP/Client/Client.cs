@@ -7,6 +7,7 @@ using SR2MP.Client.Managers;
 using SR2MP.Client.Models;
 using SR2MP.Components.UI;
 using SR2MP.Packets.Api;
+using SR2MP.Packets.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
@@ -241,7 +242,7 @@ public sealed class SR2MPClient
     // }
 
     internal void SendPacket<T>(T packet) where T : IPacket
-        => PrepareAndSend(packet, packet.Reliability, (byte)packet.Type, SerialiseInternalPacket<T>.Serialiser);
+        => PrepareAndSend(packet, packet.Reliability, (byte)packet.Type, packet.Channel, SerialiseInternalPacket<T>.Serialiser);
 
     /// <summary>
     /// Sends a packet over the network.
@@ -257,11 +258,12 @@ public sealed class SR2MPClient
             return;
         }
 
-        var apiHeader = new ApiPacket(data.Reliability, modId);
-        PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, SerialiseApiPacket<T>.Serialiser);
+        var apiHeader = new ApiPacket(data.Reliability, data.Channel, modId);
+        PrepareAndSend((apiHeader, data), apiHeader.Reliability, (byte)apiHeader.Type, apiHeader.Channel, SerialiseApiPacket<T>.Serialiser);
     }
 
-    private void PrepareAndSend<T>(T state, PacketReliability reliability, byte packetType, PacketWriterDelegate<T> writeAction)
+    private void PrepareAndSend<T>(T state, PacketReliability reliability, byte packetType,
+        NetworkChannel channel, PacketWriterDelegate<T> writeAction)
     {
         if (udpClient == null || serverEndPoint == null || !isConnected)
         {
@@ -280,9 +282,9 @@ public sealed class SR2MPClient
             ushort sequenceNumber = 0;
 
             if (reliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
-                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(packetType, serverEndPoint) ?? 0;
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(channel, packetType, serverEndPoint) ?? 0;
 
-            var splitResult = PacketChunkManager.SplitPacket(data, reliability, sequenceNumber, out var packetId);
+            var splitResult = PacketChunkManager.SplitPacket(data, reliability, channel, sequenceNumber, out var packetId);
 
             if (reliability is not PacketReliability.Unreliable and not PacketReliability.UnreliableOrdered)
                 reliabilityManager?.TrackPacket(splitResult, serverEndPoint, packetId, data[0], reliability);
@@ -315,9 +317,9 @@ public sealed class SR2MPClient
     }
 
     internal bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType,
-        PacketReliability reliability, Action? processAction = null)
+        NetworkChannel channel, PacketReliability reliability, Action? processAction = null)
     {
-        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, reliability, processAction) ?? true;
+        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, channel, reliability, processAction) ?? true;
     }
 
     internal void Disconnect()

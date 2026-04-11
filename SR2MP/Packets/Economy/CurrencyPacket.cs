@@ -10,6 +10,7 @@ internal struct CurrencyPacket : IPacket
 
     public readonly PacketType Type => PacketType.CurrencyAdjust;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.Economy;
 
     public readonly void Serialise(PacketWriter writer)
     {

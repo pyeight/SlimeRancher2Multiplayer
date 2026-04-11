@@ -8,6 +8,7 @@ internal sealed class InitialMapPacket : IPacket
 
     public PacketType Type => PacketType.InitialMapEntries;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     // todo: Add navigation marker data later.
 

@@ -4,8 +4,9 @@ namespace SR2MP.Packets;
 
 internal readonly struct ClosePacket : IPacket
 {
-    public PacketType Type => PacketType.Close;
-    public PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly PacketType Type => PacketType.Close;
+    public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer) { }
 

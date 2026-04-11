@@ -9,6 +9,7 @@ internal sealed class RefineryUpdatePacket : IPacket
 
     public PacketType Type => PacketType.RefineryUpdate;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Ammo;
 
     public void Serialise(PacketWriter writer)
     {

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Il2CppInterop.Runtime.Attributes;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 
@@ -83,10 +84,13 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
         }
     }
 
+    [HideFromIl2Cpp]
     public void Enqueue(Action action) => actionQueue.Enqueue(action);
 
+    [HideFromIl2Cpp]
     public void Enqueue(in ClientHandleCache cache) => clientPacketQueue.Enqueue(cache);
 
+    [HideFromIl2Cpp]
     public void Enqueue(in ServerHandleCache cache) => serverPacketQueue.Enqueue(cache);
 
 #pragma warning disable CA1822 // Mark members as static

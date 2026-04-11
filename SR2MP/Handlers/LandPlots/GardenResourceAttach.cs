@@ -1,7 +1,7 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Handlers.Internal;
-using SR2MP.Packets.Actor;
+using SR2MP.Packets.LandPlots;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.LandPlots;

@@ -8,6 +8,7 @@ internal sealed class InitialUpgradesPacket : IPacket
 
     public PacketType Type => PacketType.InitialPlayerUpgrades;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer) => writer.WriteDictionary(Upgrades, PacketWriterDels.Byte, PacketWriterDels.SByte);
 

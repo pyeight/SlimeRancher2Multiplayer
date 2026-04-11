@@ -47,7 +47,8 @@ public static class ApiHandlers
     private static readonly HashSet<Type> RegisteredTypes = new()
     {
         // C# Primitives & Basic Types
-        typeof(bool), typeof(byte), typeof(sbyte),
+        typeof(bool),
+        typeof(byte), typeof(sbyte),
         typeof(short), typeof(ushort),
         typeof(int), typeof(uint),
         typeof(long), typeof(ulong),
@@ -136,7 +137,7 @@ public static class ApiHandlers
 
         if (!RegisteredTypes.Add(type))
         {
-            SrLogger.LogWarning(type.Name + " is already supported! If you need custom serialisation for an existing type (be it already registered or natively supported), wrap it in a custom struct or INetObject instead.");
+            SrLogger.LogWarning(type.Name + " is already registered/supported! If you need custom serialisation for an existing type (be it already registered or natively supported), wrap it in a custom struct or INetObject instead.");
             return;
         }
 

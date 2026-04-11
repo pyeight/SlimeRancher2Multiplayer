@@ -57,13 +57,15 @@ public sealed class ClientPacketManager
             return;
         }
 
+        // 13 byte header:
         var packetTypeHeader = data[0];
         var chunkIndex       = (ushort)(data[1] | (data[2] << 8));
         var totalChunks      = (ushort)(data[3] | (data[4] << 8));
         var packetId         = (ushort)(data[5] | (data[6] << 8));
-        var reliability      = (PacketReliability)data[7];
-        var sequenceNumber   = (ushort)(data[8] | (data[9] << 8));
-        var receivedCrc      = (ushort)(data[10] | (data[11] << 8));
+        var channel          = (NetworkChannel)data[7];
+        var reliability      = (PacketReliability)data[8];
+        var sequenceNumber   = (ushort)(data[9] | (data[10] << 8));
+        var receivedCrc      = (ushort)(data[11] | (data[12] << 8));
 
         var trueChunkLength = receivedBytes - HeaderSize;
 
@@ -78,6 +80,7 @@ public sealed class ClientPacketManager
 
         var packetType = (PacketType)packetTypeHeader;
         var packetReliability = reliability;
+        var packetChannel = channel;
         var packetSequenceNumber = sequenceNumber;
 
         PacketReader reader;
@@ -102,8 +105,8 @@ public sealed class ClientPacketManager
 
             if (!PacketChunkManager.TryMergePacket(packetType,
                 chunkData, trueChunkLength, chunkIndex, totalChunks,
-                packetId, serverEp, reliability, sequenceNumber,
-                out reader, out packetReliability, out packetSequenceNumber))
+                packetId, serverEp, reliability, channel, sequenceNumber,
+                out reader, out packetReliability, out packetChannel, out packetSequenceNumber))
             {
                 PacketReader.Return(reader);
                 return;
@@ -150,7 +153,7 @@ public sealed class ClientPacketManager
                     PacketReader.Return(reader);
             }
 
-            if (!client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetTypeHeader, packetReliability, DispatchAction))
+            if (!client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetTypeHeader, packetChannel, packetReliability, DispatchAction))
             {
                 if (packetReliability == PacketReliability.UnreliableOrdered)
                     PacketReader.Return(reader);

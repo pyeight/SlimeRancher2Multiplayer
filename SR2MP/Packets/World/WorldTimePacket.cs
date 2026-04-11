@@ -8,6 +8,7 @@ internal struct WorldTimePacket : IPacket
 
     public PacketType Type { get; init; }
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly NetworkChannel Channel => NetworkChannel.Weather;
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteDouble(Time);
 

@@ -215,8 +215,8 @@ public sealed class PacketReader : PacketBuffer
     {
         var span = ReadRequest(values.Length * 4);
 
-        for (var i = 0; i < span.Length; i += 4)
-            values[i] = BinaryPrimitives.ReadSingleLittleEndian(span[i..]);
+        for (var i = 0; i < values.Length; i++)
+            values[i] = BinaryPrimitives.ReadSingleLittleEndian(span[(i * 4)..]);
     }
 
     /// <summary>
