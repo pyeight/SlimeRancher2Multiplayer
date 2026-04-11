@@ -5,9 +5,11 @@ namespace SR2MP.Components.UI;
 internal sealed partial class MultiplayerUI
 {
     private enum MainTab { Join, Host }
-    private MainTab mainTab = MainTab.Host;
+    private MainTab mainTab = MainTab.Join;
+    
     private enum HostTab { Automatic, ManualCode, ManualSimple }
     private HostTab hostTab = HostTab.Automatic;
+    
     private enum JoinTab { Code, Manual }
     private JoinTab joinTab = JoinTab.Code;
 
