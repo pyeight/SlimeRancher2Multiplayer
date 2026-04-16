@@ -113,7 +113,7 @@ internal sealed class ReliabilityManager
     public void TrackPacket(SplitResult splitData, IPEndPoint destination, ushort packetId,
         byte packetType, PacketReliability reliability)
     {
-        if (reliability is PacketReliability.Unreliable or PacketReliability.UnreliableOrdered)
+        if (!reliability.HasFlag(PacketReliability.Reliable))
             return;
 
         var key = new PacketKey(packetType, packetId, destination);
@@ -159,7 +159,7 @@ internal sealed class ReliabilityManager
 
             if (IsSequenceNewer(sequenceNumber, lastSequence) || sequenceNumber == (ushort)(lastSequence + 1))
             {
-                if (reliability == PacketReliability.UnreliableOrdered)
+                if (reliability == PacketReliability.Ordered)
                 {
                     lastProcessedSequence[key] = sequenceNumber;
                     return true;

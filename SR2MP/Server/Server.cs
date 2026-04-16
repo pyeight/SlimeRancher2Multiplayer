@@ -13,7 +13,9 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
-[PublicApi]
+/// <summary>
+/// Provides the host's interface.
+/// </summary>
 public sealed class SR2MPServer
 {
     internal readonly NetworkManager NetworkManager;
@@ -83,9 +85,7 @@ public sealed class SR2MPServer
             packetManager.RegisterHandlers(Main.Core);
             Application.quitting += new Action(Close);
             NetworkManager.Start(port, enableIPv6);
-            this.Port = port;
-            // Commented because we don't need this yet
-            // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            Port = port;
             OnServerStarted?.Invoke();
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
@@ -126,18 +126,6 @@ public sealed class SR2MPServer
 
         SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}");
     }
-
-    // private void CheckTimeouts(object? state)
-    // {
-    //     try
-    //     {
-    //         clientManager.RemoveTimedOutClients();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         SrLogger.LogError($"Error checking timeouts: {ex}");
-    //     }
-    // }
 
     internal void Close()
     {
@@ -210,6 +198,7 @@ public sealed class SR2MPServer
     /// <typeparam name="T">The type of the custom packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
     /// <param name="endPoint">The endpoint of the client to receive the packet.</param>
+    [PublicApi]
     public void SendDataToClient<T>(T data, IPEndPoint endPoint) where T : ICustomPacket
     {
         if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
@@ -228,6 +217,7 @@ public sealed class SR2MPServer
     /// <typeparam name="T">The type of the custom packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
     /// <param name="client">The client info of the recipient.</param>
+    [PublicApi]
     public void SendDataToClient<T>(T data, ClientInfo client) where T : ICustomPacket
         => SendDataToClient(data, client.EndPoint);
 
@@ -259,6 +249,7 @@ public sealed class SR2MPServer
     /// </summary>
     /// <typeparam name="T">The type of the custom packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
+    [PublicApi]
     public void SendDataToAll<T>(T data) where T : ICustomPacket
     {
         if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
@@ -281,8 +272,7 @@ public sealed class SR2MPServer
             writeAction(writer, state);
             var data = writer.ToSpan();
 
-            var endpoints = ClientManager.GetAllClients().Select(c => c.EndPoint);
-            NetworkManager.Broadcast(data, endpoints, reliability, channel);
+            NetworkManager.Broadcast(data, ClientManager.GetAllClients(), reliability, channel);
 
             SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to all clients.");
         }
@@ -298,7 +288,8 @@ public sealed class SR2MPServer
     /// <typeparam name="T">The type of the custom packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
     /// <param name="excludedClientInfo">The client info string to exclude from the broadcast.</param>
-    public void SendDataToAllExcept<T>(T data, string excludedClientInfo) where T : ICustomPacket
+    [PublicApi]
+    public void SendDataToAllExcept<T>(T data, IPEndPoint? excludedClientInfo) where T : ICustomPacket
     {
         if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
         {
@@ -310,29 +301,11 @@ public sealed class SR2MPServer
         PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, apiHeader.Channel, SerialiseApiPacket<T>.Serialiser, excludedClientInfo);
     }
 
-    /// <summary>
-    /// Broadcasts a custom packet to all clients except the specified endpoint.
-    /// </summary>
-    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
-    /// <param name="data">The packet data to send.</param>
-    /// <param name="excludeEndPoint">The endpoint to exclude from the broadcast.</param>
-    public void SendDataToAllExcept<T>(T data, IPEndPoint? excludeEndPoint) where T : ICustomPacket
-    {
-        var clientInfo = $"{excludeEndPoint?.Address}:{excludeEndPoint?.Port}";
-        SendDataToAllExcept(data, clientInfo);
-    }
-
-    internal void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
+    internal void SendToAllExcept<T>(T packet, IPEndPoint? excludedClientInfo) where T : IPacket
         => PrepareAndSendToAllExcept(packet, packet.Reliability, packet.Channel, SerialiseInternalPacket<T>.Serialiser, excludedClientInfo);
 
-    internal void SendToAllExcept<T>(T packet, IPEndPoint? excludeEndPoint) where T : IPacket
-    {
-        var clientInfo = $"{excludeEndPoint?.Address}:{excludeEndPoint?.Port}";
-        SendToAllExcept(packet, clientInfo);
-    }
-
     private void PrepareAndSendToAllExcept<T>(T state, PacketReliability reliability, NetworkChannel channel,
-        PacketWriterDelegate<T> writeAction, string excludedClientInfo)
+        PacketWriterDelegate<T> writeAction, IPEndPoint? excludedClientInfo)
     {
         using var writer = PacketWriter.Borrow();
 
@@ -345,7 +318,7 @@ public sealed class SR2MPServer
 
             foreach (var client in ClientManager.GetAllClients())
             {
-                if (client.GetClientInfo() == excludedClientInfo)
+                if (client.EndPoint == excludedClientInfo)
                     continue;
 
                 NetworkManager.Send(data, client.EndPoint, reliability, channel);

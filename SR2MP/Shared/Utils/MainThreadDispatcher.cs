@@ -30,12 +30,8 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
         SrLogger.LogMessage("Main thread dispatcher initialized");
     }
 
-#pragma warning disable CA1822 // Mark members as static
     public void Update()
-#pragma warning restore CA1822 // Mark members as static
     {
-        // todo: review
-
         // Process general actions
         while (actionQueue.TryDequeue(out var action))
         {
@@ -93,7 +89,14 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
     [HideFromIl2Cpp]
     public void Enqueue(in ServerHandleCache cache) => serverPacketQueue.Enqueue(cache);
 
-#pragma warning disable CA1822 // Mark members as static
-    public void OnDestroy() => Instance = null!;
-#pragma warning restore CA1822 // Mark members as static
+    public void OnDestroy()
+    {
+        Instance = null!;
+
+        while (clientPacketQueue.TryDequeue(out var c))
+            PacketReader.Return(c.Reader);
+
+        while (serverPacketQueue.TryDequeue(out var s))
+            PacketReader.Return(s.Reader);
+    }
 }

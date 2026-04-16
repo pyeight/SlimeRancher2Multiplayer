@@ -25,7 +25,7 @@ internal abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPack
 [PacketHandler((byte)PacketType.BroadcastPlayerJoin, HandlerType.Client)]
 internal sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
 {
-    protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? _)
+    protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? clientEp)
     {
         if (PlayerManager.GetPlayer(packet.PlayerId) != null)
         {
@@ -78,7 +78,7 @@ internal sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
         };
 
         Main.Server.SendToAll(joinPacket);
-        Main.Server.SendToAllExcept(joinChatPacket, packet.PlayerId);
+        Main.Server.SendToAllExcept(joinChatPacket, clientEp);
         MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{packet.PlayerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageConnect);
 
         return false;

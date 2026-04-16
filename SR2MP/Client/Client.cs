@@ -16,7 +16,7 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Client;
 
 /// <summary>
-/// Provides the main client interface for multiplayer interactions, handling connection events and remote player management.
+/// Provides the main client interface.
 /// </summary>
 public sealed class SR2MPClient
 {
@@ -181,10 +181,7 @@ public sealed class SR2MPClient
         Disconnect();
     }
 
-    internal void UpdateConnectionStatus(bool state)
-    {
-        isConnected = state;
-    }
+    internal void UpdateConnectionStatus(bool state) => isConnected = state;
 
     private void ReceiveLoop()
     {
@@ -293,18 +290,18 @@ public sealed class SR2MPClient
 
             ushort sequenceNumber = 0;
 
-            if (reliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
+            if (reliability.HasFlag(PacketReliability.Ordered))
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(channel, packetType, serverEndPoint) ?? 0;
 
             var splitResult = PacketChunkManager.SplitPacket(data, reliability, channel, sequenceNumber, out var packetId);
 
-            if (reliability is not PacketReliability.Unreliable and not PacketReliability.UnreliableOrdered)
+            if (reliability.HasFlag(PacketReliability.Reliable))
                 reliabilityManager?.TrackPacket(splitResult, serverEndPoint, packetId, data[0], reliability);
 
             for (var i = 0; i < splitResult.Count; i++)
                 SendRaw(splitResult.Chunks[i], serverEndPoint);
 
-            if (reliability is PacketReliability.Unreliable or PacketReliability.UnreliableOrdered)
+            if (!reliability.HasFlag(PacketReliability.Reliable))
                 splitResult.Dispose();
 
             SrLogger.LogPacketSize($"Sent {data.Length} bytes to Server in {splitResult.Count} chunk(s) (ID={packetId}).");
@@ -324,15 +321,11 @@ public sealed class SR2MPClient
 
     // Handle acknowledgement from server, used in client packet manager
     internal void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
-    {
-        reliabilityManager?.HandleAck(sender, packetId, packetType);
-    }
+        => reliabilityManager?.HandleAck(sender, packetId, packetType);
 
-    internal bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType,
-        NetworkChannel channel, PacketReliability reliability, Action? processAction = null)
-    {
-        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, channel, reliability, processAction) ?? true;
-    }
+    internal bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType, NetworkChannel channel, PacketReliability reliability,
+        Action? processAction = null)
+            => reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, channel, reliability, processAction) ?? true;
 
     internal void Disconnect()
     {
@@ -378,9 +371,7 @@ public sealed class SR2MPClient
             udpClient = null;
 
             if (receiveThread is { IsAlive: true })
-            {
                 SrLogger.LogWarning("Receive thread did not stop gracefully");
-            }
 
             receiveThread = null;
 

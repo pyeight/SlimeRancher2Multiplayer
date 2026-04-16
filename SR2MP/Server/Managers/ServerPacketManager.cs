@@ -12,14 +12,14 @@ namespace SR2MP.Server.Managers;
 
 internal sealed class ServerPacketManager
 {
-    private readonly Dictionary<byte, IServerPacketHandler> handlers = new();
-    private readonly NetworkManager networkManager;
-    private readonly ClientManager clientManager;
+    private readonly Dictionary<byte, IServerPacketHandler> Handlers = new();
+    private readonly NetworkManager NetworkManager;
+    private readonly ClientManager ClientManager;
 
     public ServerPacketManager(NetworkManager networkManager, ClientManager clientManager)
     {
-        this.networkManager = networkManager;
-        this.clientManager = clientManager;
+        NetworkManager = networkManager;
+        ClientManager = clientManager;
     }
 
     public void RegisterHandlers(Assembly assembly)
@@ -37,7 +37,7 @@ internal sealed class ServerPacketManager
             {
                 if (Activator.CreateInstance(type) is IServerPacketHandler handler)
                 {
-                    handlers[attribute.PacketType] = handler;
+                    Handlers[attribute.PacketType] = handler;
                     handler.IsServerSide = true;
                     SrLogger.LogMessage($"Registered server handler: {type.Name} for packet type {attribute.PacketType}");
                 }
@@ -48,7 +48,7 @@ internal sealed class ServerPacketManager
             }
         }
 
-        SrLogger.LogMessage($"Total handlers registered: {handlers.Count}");
+        SrLogger.LogMessage($"Total handlers registered: {Handlers.Count}");
     }
 
     public void HandlePacket(byte[] data, int receivedBytes, IPEndPoint clientEp)
@@ -72,6 +72,7 @@ internal sealed class ServerPacketManager
         var trueChunkLength = receivedBytes - HeaderSize;
 
         var expectedCrc = PacketCRC.Compute(data, HeaderSize, trueChunkLength);
+
         if (receivedCrc != expectedCrc)
         {
             SrLogger.LogPacketAcknowledge(
@@ -121,22 +122,22 @@ internal sealed class ServerPacketManager
             try
             {
                 var ackPacket = reader.ReadPacket<AckPacket>();
-                networkManager.HandleAck(clientEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
+                NetworkManager.HandleAck(clientEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
             }
             finally
             {
                 PacketReader.Return(reader);
             }
+
             return;
         }
 
-        if (packetReliability is PacketReliability.Reliable or PacketReliability.ReliableOrdered)
-        {
+        if (packetReliability.HasFlag(PacketReliability.Reliable))
             SendAck(clientEp, packetId, packetTypeHeader);
-        }
 
         // Packet deduplication (per client)
         var packetKey = new PacketKey(packetTypeHeader, packetId, clientEp);
+
         if (PacketDeduplication.IsDuplicate(packetKey))
         {
             PacketReader.Return(reader);
@@ -144,47 +145,38 @@ internal sealed class ServerPacketManager
             return;
         }
 
-        // todo: review
-
-        if (packetReliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
+        if (!packetReliability.HasFlag(PacketReliability.Ordered))
         {
-            void DispatchAction()
-            {
-                if (handlers.TryGetValue(packetTypeHeader, out var h))
-                    MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, h, clientEp));
-                else
-                    PacketReader.Return(reader);
-            }
-
-            if (!networkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetTypeHeader, packetChannel, packetReliability, DispatchAction))
-            {
-                if (packetReliability == PacketReliability.UnreliableOrdered)
-                    PacketReader.Return(reader);
-
-                return;
-            }
-
-            if (handlers.TryGetValue(packetTypeHeader, out var orderedHandler))
-                MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, orderedHandler, clientEp));
-            else
-                SrLogger.LogError($"No handler found for packet type: {packetType}");
-
+            DispatchAction();
             return;
         }
 
-        if (handlers.TryGetValue(packetTypeHeader, out var handler))
+        if (NetworkManager.ShouldProcessOrderedPacket(clientEp, packetSequenceNumber, packetTypeHeader, packetChannel, packetReliability, DispatchAction))
         {
-            MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, handler, clientEp));
+            DispatchAction();
+            return;
         }
-        else
+
+        if (packetReliability == PacketReliability.Ordered)
+            PacketReader.Return(reader);
+
+        void DispatchAction()
         {
-            SrLogger.LogError($"No handler found for packet type: {packetType}");
+            if (Handlers.TryGetValue(packetTypeHeader, out var handler))
+            {
+                MainThreadDispatcher.Instance.Enqueue(new ServerHandleCache(reader, handler, clientEp));
+            }
+            else
+            {
+                SrLogger.LogError($"No handler found for packet type: {packetType}");
+                PacketReader.Return(reader);
+            }
         }
     }
 
     private void SendAck(IPEndPoint clientEp, ushort packetId, byte packetType)
     {
-        if (!clientManager.TryGetClient(clientEp, out _))
+        if (!ClientManager.TryGetClient(clientEp, out _))
             return;
 
         var ackPacket = new AckPacket
@@ -198,7 +190,7 @@ internal sealed class ServerPacketManager
 
         try
         {
-            networkManager.Send(writer.ToSpan(), clientEp, PacketReliability.Unreliable, NetworkChannel.Acknowledge);
+            NetworkManager.Send(writer.ToSpan(), clientEp, PacketReliability.Unreliable, NetworkChannel.Acknowledge);
         }
         catch
         {

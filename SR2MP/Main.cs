@@ -101,20 +101,6 @@ public sealed class Main : SR2EExpansionV3
             Server.SendToAll(packet);
     }
 
-    /// <summary>
-    /// Sends a custom packet to either the host's machine, or to all clients' machines.
-    /// </summary>
-    /// <typeparam name="T">The type of the custom packet.</typeparam>
-    /// <param name="packet">The packet to send.</param>
-    public static void SendDataToAllOrServer<T>(T packet) where T : ICustomPacket
-    {
-        if (Client.IsConnected)
-            Client.SendData(packet);
-
-        if (Server.IsRunning)
-            Server.SendDataToAll(packet);
-    }
-
     /// <inheritdoc/>
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {

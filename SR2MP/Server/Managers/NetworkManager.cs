@@ -2,11 +2,12 @@ using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Models;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Managers;
 
-public sealed class NetworkManager
+internal sealed class NetworkManager
 {
     private UdpClient? udpClient;
     private volatile bool isRunning;
@@ -118,18 +119,18 @@ public sealed class NetworkManager
             var packetReliability = reliability ?? PacketReliability.Unreliable;
             ushort sequenceNumber = 0;
 
-            if (packetReliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
+            if (packetReliability.HasFlag(PacketReliability.Ordered))
                 sequenceNumber = reliabilityManager?.GetNextSequenceNumber(channel, data[0], endPoint) ?? 0;
 
             var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, channel, sequenceNumber, out var packetId);
 
-            if (packetReliability is not PacketReliability.Unreliable and not PacketReliability.UnreliableOrdered)
+            if (packetReliability.HasFlag(PacketReliability.Reliable))
                 reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability);
 
             for (var i = 0; i < splitResult.Count; i++)
                 SendRaw(splitResult.Chunks[i], endPoint);
 
-            if (packetReliability is PacketReliability.Unreliable or PacketReliability.UnreliableOrdered)
+            if (!packetReliability.HasFlag(PacketReliability.Reliable))
                 splitResult.Dispose();
         }
         catch (Exception ex)
@@ -138,7 +139,7 @@ public sealed class NetworkManager
         }
     }
 
-    public void Broadcast(ReadOnlySpan<byte> data, IEnumerable<IPEndPoint> endPoints,
+    public void Broadcast(ReadOnlySpan<byte> data, ICollection<ClientInfo> endPoints,
         PacketReliability? reliability = null, NetworkChannel channel = NetworkChannel.Important)
     {
         if (udpClient == null || !isRunning)
@@ -151,10 +152,10 @@ public sealed class NetworkManager
         {
             var packetReliability = reliability ?? PacketReliability.Unreliable;
 
-            if (packetReliability is PacketReliability.ReliableOrdered or PacketReliability.UnreliableOrdered)
+            if (packetReliability.HasFlag(PacketReliability.Ordered))
             {
                 foreach (var endPoint in endPoints)
-                    Send(data, endPoint, reliability, channel);
+                    Send(data, endPoint.EndPoint, reliability, channel);
 
                 return;
             }
@@ -163,11 +164,11 @@ public sealed class NetworkManager
 
             foreach (var endPoint in endPoints)
             {
-                if (packetReliability != PacketReliability.Unreliable)
-                    reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability);
+                if (packetReliability.HasFlag(PacketReliability.Reliable))
+                    reliabilityManager?.TrackPacket(splitResult, endPoint.EndPoint, packetId, data[0], packetReliability);
 
                 for (var i = 0; i < splitResult.Count; i++)
-                    SendRaw(splitResult.Chunks[i], endPoint);
+                    SendRaw(splitResult.Chunks[i], endPoint.EndPoint);
             }
 
             if (packetReliability == PacketReliability.Unreliable)
@@ -182,20 +183,16 @@ public sealed class NetworkManager
     // Sends raw data without reliability tracking (used for resends or internally)
     private void SendRaw(ArraySegment<byte> data, IPEndPoint endPoint)
     {
-        if (data.Array == null) return;
-        udpClient?.Client.SendTo(data.Array, data.Offset, data.Count, SocketFlags.None, endPoint);
+        if (data.Array != null)
+            udpClient?.Client.SendTo(data.Array, data.Offset, data.Count, SocketFlags.None, endPoint);
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
-    {
-        reliabilityManager?.HandleAck(sender, packetId, packetType);
-    }
+        => reliabilityManager?.HandleAck(sender, packetId, packetType);
 
     public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType,
         NetworkChannel channel, PacketReliability reliability, Action? processAction = null)
-    {
-        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, channel, reliability, processAction) ?? true;
-    }
+            => reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, channel, reliability, processAction) ?? true;
 
     public void Stop()
     {

@@ -13,7 +13,7 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
     public bool ValidPlacement;
 
     public PacketType Type => PacketType.PlayerGadgetUpdate;
-    public PacketReliability Reliability => PacketReliability.UnreliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Ordered;
     public NetworkChannel Channel => NetworkChannel.PlayerUpdate;
 
     public void Serialise(PacketWriter writer)

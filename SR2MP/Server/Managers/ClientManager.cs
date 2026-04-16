@@ -74,9 +74,9 @@ public sealed class ClientManager
         }
     }
 
-    public List<ClientInfo> GetAllClients()
+    public ICollection<ClientInfo> GetAllClients()
     {
-        return clients.Values.ToList();
+        return clients.Values;
     }
 
     public List<ClientInfo> GetTimedOutClients()

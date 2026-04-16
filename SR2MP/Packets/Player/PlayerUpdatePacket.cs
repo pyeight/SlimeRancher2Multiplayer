@@ -18,7 +18,7 @@ internal sealed class PlayerUpdatePacket : IPacket
     public float LookY;
 
     public PacketType Type => PacketType.PlayerUpdate;
-    public PacketReliability Reliability => PacketReliability.UnreliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Ordered;
     public  NetworkChannel Channel => NetworkChannel.PlayerUpdate;
 
     public void Serialise(PacketWriter writer)
