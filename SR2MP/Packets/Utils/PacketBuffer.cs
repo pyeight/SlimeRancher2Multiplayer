@@ -7,7 +7,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// Base class implementations for packet buffers.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public abstract class PacketBuffer : IRecyclable
 {
     /// <summary>

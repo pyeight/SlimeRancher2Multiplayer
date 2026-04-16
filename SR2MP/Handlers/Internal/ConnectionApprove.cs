@@ -29,7 +29,7 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
 
             SrLogger.LogMessage($"Connection acknowledged by server! (PlayerId: {packet.PlayerId})");
 
-            cheatsEnabled = packet.AllowCheats;
+            CheatsEnabled = packet.AllowCheats;
 
             // todo: resync players too
             foreach (var (id, username) in packet.OtherPlayers)
@@ -51,7 +51,7 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
 
     private static void SpawnPlayer(string id, string name)
     {
-        var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
+        var playerObject = Object.Instantiate(PlayerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);
         playerObject.ID = id;
         playerObject.gameObject.name = id;

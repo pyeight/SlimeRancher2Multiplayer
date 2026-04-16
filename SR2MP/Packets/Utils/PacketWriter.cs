@@ -16,7 +16,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// A reusable writer for packing data into a byte buffer for network transmission.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public sealed class PacketWriter : PacketBuffer
 {
     private int size;
@@ -156,7 +156,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="value">The decimal to write.</param>
     /// <inheritdoc cref="EnsureCapacity"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteDecimal(decimal value) => MemoryMarshal.Write(WriteAlloc(16), ref value);
+    public void WriteDecimal(decimal value) => MemoryMarshal.Write(WriteAlloc(16), in value);
 
     /// <summary>
     /// Writes a Half.
@@ -337,6 +337,7 @@ public sealed class PacketWriter : PacketBuffer
     public void WritePackedULong(ulong value) => WriteVarInt(value, 10);
 
     // ReSharper disable InvalidXmlDocComment
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 
     /// <summary>
     /// Writes a string prefixed by its length. Null or empty strings write a length of 0.
@@ -553,6 +554,7 @@ public sealed class PacketWriter : PacketBuffer
     }
 
     // ReSharper enable InvalidXmlDocComment
+#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 
     /// <summary>
     /// Writes a packed boolean value.
@@ -613,7 +615,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <inheritdoc cref="EnsureCapacity"/>
     public void WriteNullable<T>(T? value)
     {
-        var hasValue = value != null;
+        var hasValue = value != null!;
         WriteBool(hasValue);
 
         if (hasValue)
@@ -701,6 +703,7 @@ public sealed class PacketWriter : PacketBuffer
             ArrayPool<byte>.Shared.Return(buffer);
     }
 
+    /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void EnsureBounds(int count) => EnsureCapacity(count);
 
@@ -881,7 +884,7 @@ public sealed class PacketWriter : PacketBuffer
 /// <summary>
 /// Reusable cached delegates to improve performance, add more for data types as needed to avoid excess GC overhead.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public static class PacketWriterDels
 {
     /// <summary>

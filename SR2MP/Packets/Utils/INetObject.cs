@@ -6,7 +6,7 @@ namespace SR2MP.Packets.Utils;
 /// An interface that represents a network object.
 /// </summary>
 /// <remarks>All net object types MUST have a parameter-less constructor! Either make the type a struct (which always has a parameter-less constructor), or at least declare a parameter-less constructor for classes!</remarks>
-[PublicAPI]
+[PublicApi]
 public interface INetObject
 {
     /// <summary>

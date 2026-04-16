@@ -51,7 +51,7 @@ internal sealed partial class MultiplayerUI
         if (!string.IsNullOrWhiteSpace(hostManualError))
             DrawText(hostManualError);
 
-        if (hostIpInput == "127.0.0.1" && !devMode)
+        if (hostIpInput == "127.0.0.1" && !DevMode)
         {
             DrawText("Invalid IP. Must not be 127.0.0.1");
             DrawText("If you are using PlayIt, You have to use the IP and port from the left side of the app.");

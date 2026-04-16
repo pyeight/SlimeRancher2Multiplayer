@@ -8,7 +8,6 @@ using SR2MP.Client.Models;
 using SR2MP.Components.UI;
 using SR2MP.Packets.Api;
 using SR2MP.Packets.Internal;
-using SR2MP.Packets.Loading;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
@@ -16,12 +15,14 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Client;
 
+/// <summary>
+/// Provides the main client interface for multiplayer interactions, handling connection events and remote player management.
+/// </summary>
 public sealed class SR2MPClient
 {
     private UdpClient? udpClient;
     private IPEndPoint? serverEndPoint;
     private Thread? receiveThread;
-    // private Timer? heartbeatTimer;
     private ReliabilityManager? reliabilityManager;
 
     private volatile bool isConnected;
@@ -33,13 +34,43 @@ public sealed class SR2MPClient
 
     private readonly ClientPacketManager packetManager;
 
+    /// <summary>
+    /// Gets a value indicating the connection status of the client.
+    /// </summary>
     public bool IsConnected => isConnected;
+
+    /// <summary>
+    /// Gets a value indicating the client's identifier.
+    /// </summary>
     public string PlayerId { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Occurs when the client successfully connects to the server.
+    /// </summary>
+    /// <remarks>The parameter typically provides the connection details or the assigned client ID.</remarks>
     public event Action<string>? OnConnected;
+
+    /// <summary>
+    /// Occurs when the client is disconnected from the server.
+    /// </summary>
     public event Action? OnDisconnected;
+
+    /// <summary>
+    /// Occurs when a new remote player joins the multiplayer session.
+    /// </summary>
+    /// <remarks>The parameter provides the unique identifier of the player who joined.</remarks>
     public event Action<string>? OnPlayerJoined;
+
+    /// <summary>
+    /// Occurs when a remote player leaves the multiplayer session.
+    /// </summary>
+    /// <remarks>The parameter provides the unique identifier of the player who left.</remarks>
     public event Action<string>? OnPlayerLeft;
+
+    /// <summary>
+    /// Occurs when a remote player's state (such as position, rotation, or animation) is updated.
+    /// </summary>
+    /// <remarks>The first parameter is the player's unique ID, and the second is their updated <see cref="RemotePlayer"/> data.</remarks>
     public event Action<string, RemotePlayer>? OnPlayerUpdate;
 
     internal SR2MPClient()
@@ -65,7 +96,7 @@ public sealed class SR2MPClient
             return;
         }
 
-        if (serverIp == "127.0.0.1" && !devMode)
+        if (serverIp == "127.0.0.1" && !DevMode)
         {
             SrLogger.LogWarning("You can not connect to this IP!");
             SrLogger.LogWarning("If you want to connect to someone on your local network, use their local IP!");
@@ -222,25 +253,6 @@ public sealed class SR2MPClient
         SrLogger.LogMessage("Client ReceiveLoop ended!");
     }
 
-    // internal static void StartHeartbeat()
-    // {
-    //     // Removed this temporarily because there are no Handlers
-    //     heartbeatTimer = new Timer(SendHeartbeat, null, TimeSpan.FromSeconds(215), TimeSpan.FromSeconds(215));
-    // }
-
-    // private void SendHeartbeat(object? state)
-    // {
-    //     if (!isConnected)
-    //         return;
-
-    //     var heartbeatPacket = new EmptyPacket
-    //     {
-    //         Type = PacketType.Heartbeat
-    //     };
-
-    //     SendPacket(heartbeatPacket);
-    // }
-
     internal void SendPacket<T>(T packet) where T : IPacket
         => PrepareAndSend(packet, packet.Reliability, (byte)packet.Type, packet.Channel, SerialiseInternalPacket<T>.Serialiser);
 
@@ -249,7 +261,7 @@ public sealed class SR2MPClient
     /// </summary>
     /// <typeparam name="T">The type of the packet to send.</typeparam>
     /// <param name="data">The packet data to send.</param>
-    [PublicAPI]
+    [PublicApi]
     public void SendData<T>(T data) where T : ICustomPacket
     {
         if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
@@ -357,9 +369,6 @@ public sealed class SR2MPClient
 
             isConnected = false;
 
-            // heartbeatTimer?.Dispose();
-            // heartbeatTimer = null;
-
             connectionTimeoutTimer?.Dispose();
             connectionTimeoutTimer = null;
 
@@ -375,7 +384,7 @@ public sealed class SR2MPClient
 
             receiveThread = null;
 
-            foreach (var player in PlayerManager.GetAllPlayers())
+            foreach (var player in GetAllRemotePlayers())
             {
                 var playerId = player.PlayerId;
 
@@ -414,15 +423,16 @@ public sealed class SR2MPClient
         OnConnected?.Invoke(PlayerId);
     }
 
-    // public static RemotePlayer? GetRemotePlayer(string playerId)
-    // {
-    //     return playerManager.GetPlayer(playerId);
-    // }
+    /// <summary>
+    /// Retrieves a specific remote player by their unique identifier.
+    /// </summary>
+    /// <param name="playerId">The unique identifier of the player to retrieve.</param>
+    /// <returns>The <see cref="RemotePlayer"/> instance if found; otherwise, <c>null</c>.</returns>
+    public static RemotePlayer? GetRemotePlayer(string playerId) => PlayerManager.GetPlayer(playerId);
 
-    // public static List<RemotePlayer> GetAllRemotePlayers()
-    // {
-    //     return playerManager.GetAllPlayers();
-    // }
-
-    // public int GetPendingReliablePackets() => reliabilityManager?.GetPendingPacketCount() ?? 0;
+    /// <summary>
+    /// Retrieves a list of all currently connected remote players.
+    /// </summary>
+    /// <returns>A <see cref="List{RemotePlayer}"/> containing all active remote players in the session.</returns>
+    public static List<RemotePlayer> GetAllRemotePlayers() => PlayerManager.GetAllPlayers();
 }

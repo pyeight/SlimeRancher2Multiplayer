@@ -33,7 +33,7 @@ internal static class StartupCheck
 
     public static void Initialize()
     {
-        if (devMode)
+        if (DevMode)
         {
             for (var i = 0; i <= 100; i++)
             {
@@ -44,7 +44,7 @@ internal static class StartupCheck
 
         var installedGameVersion = MelonLoader.InternalUtils.UnityInformationHandler.GameVersion;
 
-        var versionParts = installedGameVersion.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var versionParts = installedGameVersion.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (versionParts.Length > 0)
         {
             installedGameVersion = versionParts[0];

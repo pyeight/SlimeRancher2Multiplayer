@@ -15,29 +15,52 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP;
 
+/// <summary>
+/// The main expansion class serving as the core entry point and configuration hub for the multiplayer environment.
+/// </summary>
 public sealed class Main : SR2EExpansionV3
 {
+    /// <summary>
+    /// Gets the active multiplayer client instance.
+    /// </summary>
     public static SR2MPClient Client { get; private set; }
+
+    /// <summary>
+    /// Gets the active multiplayer server instance.
+    /// </summary>
     public static SR2MPServer Server { get; private set; }
 
     internal static readonly Assembly Core = typeof(Main).Assembly;
 
     private static MelonPreferences_Category preferences;
 
+    /// <summary>
+    /// Gets the configured username of the local player from the preferences.
+    /// </summary>
     public static string Username => preferences.GetEntry<string>("username").Value;
-    public static string SavedConnectPort => preferences.GetEntry<string>("recent_port").Value;
-    public static string SavedConnectIP => preferences.GetEntry<string>("recent_ip").Value;
-    public static string SavedHostPort => preferences.GetEntry<string>("host_port").Value;
-    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
-    public static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
-    public static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
+
+    /// <summary>
+    /// Gets a value indicating whether cheats are allowed based on the user's local configuration.
+    /// </summary>
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
+
+    /// <summary>
+    /// Gets a value indicating whether streamer mode is enabled, which typically hides sensitive information like IP addresses.
+    /// </summary>
     public static bool StreamerMode => preferences.GetEntry<bool>("streamer_mode").Value;
+
+    internal static string SavedConnectPort => preferences.GetEntry<string>("recent_port").Value;
+    internal static string SavedConnectIP => preferences.GetEntry<string>("recent_ip").Value;
+    internal static string SavedHostPort => preferences.GetEntry<string>("host_port").Value;
+    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
+    internal static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
+    internal static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
 
     // Made this because of a bug in the server handler of ActorSpawnPacket where TrySpawnNetworkActor
     // was given `packet.Type` instead of `packet.ActorType` causing it to always be RockPlort (persistent id 25)
-    public static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
+    internal static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
 
+    /// <inheritdoc/>
     public override void OnLateInitializeMelon()
     {
         preferences = MelonPreferences.CreateCategory("SR2MP");
@@ -66,6 +89,7 @@ public sealed class Main : SR2EExpansionV3
         Server = new SR2MPServer();
     }
 
+    /// <inheritdoc/>
     public override void OnInitializeMelon() => LoadBundledAssemblies();
 
     internal static void SendToAllOrServer<T>(T packet) where T : IPacket
@@ -91,6 +115,7 @@ public sealed class Main : SR2EExpansionV3
             Server.SendDataToAll(packet);
     }
 
+    /// <inheritdoc/>
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
         switch (sceneName)
@@ -106,7 +131,7 @@ public sealed class Main : SR2EExpansionV3
                 var ui = new GameObject("SR2MP_UI").AddComponent<MultiplayerUI>();
                 Object.DontDestroyOnLoad(ui.gameObject);
 
-                Server.OnServerStarted += () => cheatsEnabled = AllowCheats;
+                Server.OnServerStarted += () => CheatsEnabled = AllowCheats;
 
                 Application.quitting += new Action(() =>
                 {
@@ -127,6 +152,7 @@ public sealed class Main : SR2EExpansionV3
         }
     }
 
+    /// <inheritdoc/>
     public override void AfterGameContext(GameContext gameContext)
     {
         ActorManager.Initialize(gameContext);
@@ -214,35 +240,35 @@ public sealed class Main : SR2EExpansionV3
         }
     }
 
-    public static void InitializePlayer(string objName, float scale)
+    private static void InitializePlayer(string objName, float scale)
     {
-        playerPrefab = new GameObject("PLAYER");
-        playerPrefab.SetActive(false);
-        playerPrefab.transform.localScale = Vector3.one * scale;
+        PlayerPrefab = new GameObject("PLAYER");
+        PlayerPrefab.SetActive(false);
+        PlayerPrefab.transform.localScale = Vector3.one * scale;
 
-        var audio = playerPrefab.AddComponent<SECTR_PointSource>();
+        var audio = PlayerPrefab.AddComponent<SECTR_PointSource>();
         audio.instance = new SECTR_AudioCueInstance();
 
-        var networkComponent = playerPrefab.AddComponent<NetworkPlayer>();
+        var networkComponent = PlayerPrefab.AddComponent<NetworkPlayer>();
 
         var playerModel = Object.Instantiate(GameObject.Find(objName)).transform;
-        playerModel.parent = playerPrefab.transform;
+        playerModel.parent = PlayerPrefab.transform;
         playerModel.localPosition = Vector3.zero;
         playerModel.localRotation = Quaternion.identity;
         playerModel.localScale = Vector3.one;
 
         var name = new GameObject("Username")
         {
-            transform = { parent = playerPrefab.transform, localPosition = Vector3.up * 3 }
+            transform = { parent = PlayerPrefab.transform, localPosition = Vector3.up * 3 }
         };
 
         var textComponent = name.AddComponent<TextMeshPro>();
 
         networkComponent.UsernamePanel = textComponent;
 
-        var footstepFX = new GameObject("Footstep") { transform = { parent = playerPrefab.transform } };
-        playerPrefab.AddComponent<NetworkPlayerFootstep>().SpawnAtTransform = footstepFX.transform;
+        var footstepFX = new GameObject("Footstep") { transform = { parent = PlayerPrefab.transform } };
+        PlayerPrefab.AddComponent<NetworkPlayerFootstep>().SpawnAtTransform = footstepFX.transform;
 
-        Object.DontDestroyOnLoad(playerPrefab);
+        Object.DontDestroyOnLoad(PlayerPrefab);
     }
 }

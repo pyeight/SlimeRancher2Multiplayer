@@ -19,10 +19,14 @@ internal sealed class ApiHandler : BasePacketHandler<ApiPacket>
         if (!TryResolve(reader, false, out var apiPacket, out var packetSubType, out var holder))
             return;
 
+        HandlingPacket = true;
+
         if (!holder.ClientHandlers.TryGetValue(packetSubType, out var handler))
             SrLogger.LogWarning($"No client API handler found for ModId {apiPacket.NetId}, packet subtype {packetSubType}.");
         else
             handler.Handle(reader);
+
+        HandlingPacket = false;
     }
 
     public override void Handle(PacketReader reader, IPEndPoint? clientEp)
@@ -33,10 +37,14 @@ internal sealed class ApiHandler : BasePacketHandler<ApiPacket>
         if (!TryResolve(reader, true, out var apiPacket, out var packetSubType, out var holder))
             return;
 
+        HandlingPacket = true;
+
         if (!holder.ServerHandlers.TryGetValue(packetSubType, out var handler))
             SrLogger.LogWarning($"No server API handler found for ModId {apiPacket.NetId}, packet subtype {packetSubType}.");
         else
             handler.Handle(reader, clientEp);
+
+        HandlingPacket = false;
     }
 
     private static bool TryResolve(PacketReader reader, bool isServerSide, out ApiPacket apiPacket, out byte packetSubType, out ApiHolder holder)

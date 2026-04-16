@@ -11,7 +11,7 @@ namespace SR2MP;
 /// <summary>
 /// A utility class for handling formatted logging across file outputs, MelonLoader consoles, and SR2E management.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public static class Logger
 {
     private enum LogLevel : byte

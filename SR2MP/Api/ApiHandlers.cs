@@ -31,7 +31,7 @@ internal sealed class ApiHolder
 /// <summary>
 /// A registry class to handle API usage by other projects.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public static class ApiHandlers
 {
     internal static readonly ConcurrentDictionary<uint, ApiHolder> Holders = new();
@@ -124,7 +124,7 @@ public static class ApiHandlers
     /// <typeparam name="T">The type whose logic is being registered.</typeparam>
     /// <param name="reader">The reader delegate.</param>
     /// <param name="writer">The writer delegate.</param>
-    /// <remarks>If you have a special way to serialise a value that's already registered or supported natively, it's recommended that you create a simple wrapper struct and serialise that instead!</remark>
+    /// <remarks>If you have a special way to serialise a value that's already registered or supported natively, it's recommended that you create a simple wrapper struct or INetObject and serialise that instead!</remarks>
     public static void RegisterCustomTypeSerialisation<T>(Func<PacketReader, T> reader, Action<PacketWriter, T> writer)
     {
         var type = typeof(T);

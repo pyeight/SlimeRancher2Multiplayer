@@ -13,7 +13,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
-[PublicAPI]
+[PublicApi]
 public sealed class SR2MPServer
 {
     internal readonly NetworkManager NetworkManager;
@@ -78,7 +78,7 @@ public sealed class SR2MPServer
 
         try
         {
-            PlayerId = devMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
+            PlayerId = DevMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
 
             packetManager.RegisterHandlers(Main.Core);
             Application.quitting += new Action(Close);

@@ -9,7 +9,7 @@ namespace SR2MP.Api;
 /// Represents a base handler for processing custom network packets on either the client or server.
 /// </summary>
 /// <typeparam name="T">The type of the custom packet to handle. Must implement <see cref="ICustomPacket"/> and have a parameterless constructor.</typeparam>
-[PublicAPI]
+[PublicApi]
 public abstract class BaseCustomPacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : ICustomPacket, new()
 {
     /// <summary>
@@ -59,7 +59,7 @@ public abstract class BaseCustomPacketHandler<T> : IClientPacketHandler, IServer
 /// <summary>
 /// Provides utility methods for sending custom network packets.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public static class PacketSender
 {
     /// <summary>

@@ -10,7 +10,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Client.Managers;
 
-public sealed class ClientPacketManager
+internal sealed class ClientPacketManager
 {
     private readonly Dictionary<byte, IClientPacketHandler> handlers = new();
     private readonly SR2MPClient client;

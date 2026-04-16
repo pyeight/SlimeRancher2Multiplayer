@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// An enum that denotes the reliability of a packet.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public enum PacketReliability : byte
 {
     /// <summary>

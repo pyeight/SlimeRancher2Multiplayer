@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// An interface that represents a packet handler.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public interface IPacketHandler
 {
     /// <summary>

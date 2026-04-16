@@ -12,7 +12,7 @@ internal abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPack
 {
     protected static void InstantiatePlayer(PlayerJoinPacket packet)
     {
-        var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
+        var playerObject = Object.Instantiate(PlayerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);
         playerObject.ID = packet.PlayerId;
         playerObject.gameObject.name = packet.PlayerId;

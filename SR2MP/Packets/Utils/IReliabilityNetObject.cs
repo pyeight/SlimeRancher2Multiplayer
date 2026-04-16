@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// An interface that represents a network object with reliability.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public interface IReliabilityNetObject : INetObject
 {
     /// <summary>

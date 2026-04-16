@@ -11,7 +11,7 @@ internal static class ConsoleCheatPatch
         if (!(Main.Server.IsRunning || Main.Client.IsConnected))
             return true;
 
-        if (cheatsEnabled)
+        if (CheatsEnabled)
             return true;
 
         var containsCheat = false;

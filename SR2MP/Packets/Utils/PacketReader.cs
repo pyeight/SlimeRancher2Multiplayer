@@ -16,7 +16,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// A reusable reader for extracting data from a network buffer.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public sealed class PacketReader : PacketBuffer
 {
     /// <summary>
@@ -339,6 +339,7 @@ public sealed class PacketReader : PacketBuffer
     public T ReadEnumFromString<T>() where T : struct, Enum => Enum.Parse<T>(ReadString()!);
 
     // ReSharper disable InvalidXmlDocComment
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 
     /// <summary>
     /// Reads a string prefixed by its length.
@@ -498,7 +499,7 @@ public sealed class PacketReader : PacketBuffer
     /// <inheritdoc cref="ReadHashSetOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public HashSet<T>? ReadHashSet<T>(Func<PacketReader, T> reader, CountType countType = CountType.UShort, bool returnNullOnZero = false)
-        => ReadCollection(PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, countType, returnNullOnZero);
+        => ReadCollection(PacketReaderDels.HashSetDels<T>.Create, PacketReaderDels.HashSetDels<T>.Add, reader, countType, returnNullOnZero);
 
     /// <summary>
     /// Reads a hash set of the specified length.
@@ -508,7 +509,7 @@ public sealed class PacketReader : PacketBuffer
     /// <inheritdoc cref="ReadCollectionOfSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public HashSet<T>? ReadHashSetOfSize<T>(int count, Func<PacketReader, T> reader, bool returnNullOnZero = false)
-        => ReadCollectionOfSize(count, PacketReaderDels.HastSetDels<T>.Create, PacketReaderDels.HastSetDels<T>.Add, reader, returnNullOnZero);
+        => ReadCollectionOfSize(count, PacketReaderDels.HashSetDels<T>.Create, PacketReaderDels.HashSetDels<T>.Add, reader, returnNullOnZero);
 
     /// <summary>
     /// Reads an il2cpp hash set prefixed by its length.
@@ -568,6 +569,7 @@ public sealed class PacketReader : PacketBuffer
     }
 
     // ReSharper enable InvalidXmlDocComment
+#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 
     /// <summary>
     /// Reads an object that implements <see cref="INetObject"/>.
@@ -677,6 +679,7 @@ public sealed class PacketReader : PacketBuffer
         position += destination.Length;
     }
 
+    /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override void EnsureBounds(int count) => EnsureReadable(count);
 
@@ -794,7 +797,7 @@ public sealed class PacketReader : PacketBuffer
 /// <summary>
 /// Reusable cached delegates to improve performance, add more for data types as needed to avoid excess GC overhead.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public static class PacketReaderDels
 {
     /// <summary>
@@ -1161,7 +1164,7 @@ public static class PacketReaderDels
         public static readonly Action<List<T>, T> Add = (list, item) => list.Add(item);
     }
 
-    internal static class HastSetDels<T>
+    internal static class HashSetDels<T>
     {
         public static readonly Func<int, HashSet<T>> Create = count => new HashSet<T>(count);
         public static readonly Action<HashSet<T>, T> Add = (set, item) => set.Add(item);

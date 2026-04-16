@@ -5,7 +5,7 @@ namespace SR2MP.Packets.Utils;
 /// <summary>
 /// An enum that denotes the type of number to serialise a count as.
 /// </summary>
-[PublicAPI]
+[PublicApi]
 public enum CountType : byte
 {
     /// <summary>
