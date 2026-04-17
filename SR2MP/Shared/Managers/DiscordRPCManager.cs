@@ -47,7 +47,7 @@ internal static class DiscordRPCManager
             {Zone.LabyrinthHub, "Staring at the Impossible Sky"},
             {Zone.LabyrinthCore, "Inspecting the Core"},
             {Zone.MainMenu, "Getting ready for adventures!"},
-            {Zone.FinalBoss, "||Fighting the Final Boss||..."},
+            {Zone.FinalBoss, "||Fighting the *Final Boss*||..."}, // i guess we using markdown now
             {Zone.Ending, "Relaxing after the end"}
         });
 
