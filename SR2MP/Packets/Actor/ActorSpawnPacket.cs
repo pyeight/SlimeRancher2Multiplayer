@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Actor;
 
-public struct ActorSpawnPacket : IPacket
+internal struct ActorSpawnPacket : IPacket
 {
     public ActorId ActorId;
     public Quaternion Rotation;
@@ -17,10 +17,11 @@ public struct ActorSpawnPacket : IPacket
 
     public readonly PacketType Type => PacketType.ActorSpawn;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.ActorCritical;
 
     public readonly void Serialise(PacketWriter writer)
     {
-        writer.WriteLong(ActorId.Value);
+        writer.WritePackedLong(ActorId.Value);
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
         writer.WriteFloat4(Emotions);
@@ -30,7 +31,7 @@ public struct ActorSpawnPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ActorId = new ActorId(reader.ReadLong());
+        ActorId = new ActorId(reader.ReadPackedLong());
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();
         Emotions = reader.ReadFloat4();

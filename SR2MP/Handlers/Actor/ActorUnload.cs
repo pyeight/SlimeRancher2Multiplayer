@@ -6,20 +6,20 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorUnload)]
-public sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
+internal sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
 {
     protected override bool Handle(ActorUnloadPacket packet, IPEndPoint? _)
     {
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
+        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var actor))
             return false;
 
         if (!actor.TryGetNetworkComponent(out var component))
             return false;
 
-        if (!component.regionMember)
+        if (!component.RegionMember)
             return false;
 
-        if (!component.regionMember!._hibernating)
+        if (!component.RegionMember!._hibernating)
         {
             component.LocallyOwned = true;
 

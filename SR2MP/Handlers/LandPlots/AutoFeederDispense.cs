@@ -6,13 +6,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.AutoFeederDispense)]
-public sealed class AutoFeederDispenseHandler : BasePacketHandler<AutoFeederDispensePacket>
+internal sealed class AutoFeederDispenseHandler : BasePacketHandler<AutoFeederDispensePacket>
 {
     protected override bool Handle(AutoFeederDispensePacket packet, IPEndPoint? _)
     {
         var model = GameState.landPlots[packet.ID];
         var feeder = model.gameObj.GetComponentInChildren<SlimeFeeder>();
-        
+
         feeder._nextEject = packet.NextTime;
         return true;
     }

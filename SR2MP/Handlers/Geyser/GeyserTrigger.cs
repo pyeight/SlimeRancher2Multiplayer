@@ -6,13 +6,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Geyser;
 
 [PacketHandler((byte)PacketType.GeyserTrigger)]
-public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket>
+internal sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket>
 {
     protected override bool Handle(GeyserTriggerPacket packet, IPEndPoint? _)
     {
         var geyserObject = GameObject.Find(packet.ObjectPath);
 
-        handlingPacket = true;
+        HandlingPacket = true;
 
         if (geyserObject)
         {
@@ -20,7 +20,7 @@ public sealed class GeyserTriggerHandler : BasePacketHandler<GeyserTriggerPacket
             geyser.StartCoroutine(geyser.RunGeyser(packet.Duration));
         }
 
-        handlingPacket = false;
+        HandlingPacket = false;
         return true;
     }
 }

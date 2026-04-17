@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace SR2MP.Shared.Utils;
 
-public static class PacketDeduplication
+internal static class PacketDeduplication
 {
     // Key format: "PacketType_UniqueId"
     private static readonly ConcurrentDictionary<PacketKey, DateTime> ProcessedPackets = new();
@@ -24,13 +24,13 @@ public static class PacketDeduplication
         return !ProcessedPackets.TryAdd(key, DateTime.UtcNow);
     }
 
-    public static void MarkProcessed(PacketKey key)
-        => ProcessedPackets[key] = DateTime.UtcNow;
+    // public static void MarkProcessed(PacketKey key)
+    //     => ProcessedPackets[key] = DateTime.UtcNow;
 
     public static void Clear()
     {
         ProcessedPackets.Clear();
-        SrLogger.LogPacketSize("Packet deduplication cache cleared", SrLogTarget.Both);
+        SrLogger.LogPacketSize("Packet deduplication cache cleared");
         Cleanup();
     }
 
@@ -58,11 +58,11 @@ public static class PacketDeduplication
 
         if (removeCount > 0)
         {
-            SrLogger.LogPacketSize($"Cleaned up {removeCount} old packet records", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Cleaned up {removeCount} old packet records");
         }
 
         ArrayPool<PacketKey>.Shared.Return(keysToRemove);
     }
 
-    public static int GetTrackedPacketCount() => ProcessedPackets.Count;
+    // public static int GetTrackedPacketCount() => ProcessedPackets.Count;
 }

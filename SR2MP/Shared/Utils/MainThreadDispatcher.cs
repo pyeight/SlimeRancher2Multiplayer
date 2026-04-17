@@ -1,35 +1,50 @@
 using System.Collections.Concurrent;
+using Il2CppInterop.Runtime.Attributes;
 using MelonLoader;
 using SR2MP.Packets.Utils;
 
 namespace SR2MP.Shared.Utils;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class MainThreadDispatcher : MonoBehaviour
+internal sealed class MainThreadDispatcher : MonoBehaviour
 {
     public static MainThreadDispatcher Instance { get; private set; }
 
     // ReSharper disable once InconsistentNaming
-    private static readonly ConcurrentQueue<ClientHandleCache> clientPacketQueue = new();
-    
+    private readonly ConcurrentQueue<Action> actionQueue = new();
+
     // ReSharper disable once InconsistentNaming
-    private static readonly ConcurrentQueue<ServerHandleCache> serverPacketQueue = new();
+    private readonly ConcurrentQueue<ClientHandleCache> clientPacketQueue = new();
+
+    // ReSharper disable once InconsistentNaming
+    private readonly ConcurrentQueue<ServerHandleCache> serverPacketQueue = new();
 
     public static void Initialize()
     {
-        if (Instance != null) return;
+        if (Instance) return;
 
         var obj = new GameObject("SR2MP_MainThreadDispatcher");
         Instance = obj.AddComponent<MainThreadDispatcher>();
         DontDestroyOnLoad(obj);
 
-        SrLogger.LogMessage("Main thread dispatcher initialized", SrLogTarget.Both);
+        SrLogger.LogMessage("Main thread dispatcher initialized");
     }
 
-#pragma warning disable CA1822 // Mark members as static
     public void Update()
-#pragma warning restore CA1822 // Mark members as static
     {
+        // Process general actions
+        while (actionQueue.TryDequeue(out var action))
+        {
+            try
+            {
+                action.Invoke();
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogError($"Error executing main thread action: {ex}");
+            }
+        }
+
         // Process client packets
         while (clientPacketQueue.TryDequeue(out var clientCache))
         {
@@ -39,11 +54,11 @@ public sealed class MainThreadDispatcher : MonoBehaviour
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Error executing client packet handler: {ex}", SrLogTarget.Both);
+                SrLogger.LogError($"Error executing client packet handler: {ex}");
             }
             finally
             {
-                PacketBufferPool.Return(clientCache.Reader);
+                PacketReader.Return(clientCache.Reader);
             }
         }
 
@@ -56,20 +71,32 @@ public sealed class MainThreadDispatcher : MonoBehaviour
             }
             catch (Exception ex)
             {
-                SrLogger.LogError($"Error executing server packet handler: {ex}", SrLogTarget.Both);
+                SrLogger.LogError($"Error executing server packet handler: {ex}");
             }
             finally
             {
-                PacketBufferPool.Return(serverCache.Reader);
+                PacketReader.Return(serverCache.Reader);
             }
         }
     }
 
-    public static void Enqueue(in ClientHandleCache cache) => clientPacketQueue.Enqueue(cache);
+    [HideFromIl2Cpp]
+    public void Enqueue(Action action) => actionQueue.Enqueue(action);
 
-    public static void Enqueue(in ServerHandleCache cache) => serverPacketQueue.Enqueue(cache);
+    [HideFromIl2Cpp]
+    public void Enqueue(in ClientHandleCache cache) => clientPacketQueue.Enqueue(cache);
 
-#pragma warning disable CA1822 // Mark members as static
-    public void OnDestroy() => Instance = null!;
-#pragma warning restore CA1822 // Mark members as static
+    [HideFromIl2Cpp]
+    public void Enqueue(in ServerHandleCache cache) => serverPacketQueue.Enqueue(cache);
+
+    public void OnDestroy()
+    {
+        Instance = null!;
+
+        while (clientPacketQueue.TryDequeue(out var c))
+            PacketReader.Return(c.Reader);
+
+        while (serverPacketQueue.TryDequeue(out var s))
+            PacketReader.Return(s.Reader);
+    }
 }

@@ -1,62 +1,69 @@
-using SR2MP.Packets.Utils;
-using System.Collections.Concurrent;
-using LZ4ps;
 using System.Buffers;
-using SR2MP.Shared.Utils;
+using System.Collections.Concurrent;
 using System.Net;
+using LZ4ps;
+using SR2MP.Packets.Utils;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public static class PacketChunkManager
+internal static class PacketChunkManager
 {
     private sealed class IncompletePacket : IRecyclable
     {
-        public byte[][] chunks = null!;
-        public int[] chunkLengths = null!;
-        public bool[] received = null!;
+        public byte[]? AssemblyBuffer;
+        public int TotalSize;
+        public bool[]? Received;
 
-        public ushort totalChunks;
-        public int receivedCount;
-        public DateTime lastChunkTime;
-        public PacketReliability reliability;
-        public ushort sequenceNumber;
+        public ushort TotalChunks;
+        public int ReceivedCount;
+        public DateTime LastChunkTime;
+        public PacketReliability Reliability;
+        public NetworkChannel Channel;
+        public ushort SequenceNumber;
 
         public bool IsRecycled { get; set; }
 
-        private void Initialize(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
+        private void Initialize(ushort totalChunks, PacketReliability reliability, NetworkChannel channel, ushort sequenceNumber)
         {
-            this.totalChunks = totalChunks;
-            this.reliability = reliability;
-            this.sequenceNumber = sequenceNumber;
+            TotalChunks = totalChunks;
+            Reliability = reliability;
+            Channel = channel;
+            SequenceNumber = sequenceNumber;
 
-            receivedCount = 0;
-            lastChunkTime = DateTime.UtcNow;
+            ReceivedCount = 0;
+            LastChunkTime = DateTime.UtcNow;
 
-            chunks = ArrayPool<byte[]>.Shared.Rent(totalChunks);
-            chunkLengths = ArrayPool<int>.Shared.Rent(totalChunks);
-            received = ArrayPool<bool>.Shared.Rent(totalChunks);
+            AssemblyBuffer = ArrayPool<byte>.Shared.Rent(totalChunks * MaxChunkBytes);
+            Received = ArrayPool<bool>.Shared.Rent(totalChunks);
 
-            Array.Clear(received, 0, totalChunks);
+            TotalSize = 0;
+
+            Array.Clear(Received, 0, totalChunks);
         }
 
         public void Recycle()
         {
-            if (chunks != null) ArrayPool<byte[]>.Shared.Return(chunks, true);
-            if (chunkLengths != null) ArrayPool<int>.Shared.Return(chunkLengths);
-            if (received != null) ArrayPool<bool>.Shared.Return(received);
+            if (AssemblyBuffer != null)
+                ArrayPool<byte>.Shared.Return(AssemblyBuffer);
 
-            chunks = null!;
-            chunkLengths = null!;
-            received = null!;
+            if (Received != null)
+                ArrayPool<bool>.Shared.Return(Received);
+
+            AssemblyBuffer = null!;
+            Received = null!;
+            TotalSize = 0;
         }
 
-        public static IncompletePacket Borrow(ushort totalChunks, PacketReliability reliability, ushort sequenceNumber)
+        public void Dispose() => Return(this);
+
+        public static IncompletePacket Borrow(ushort totalChunks, PacketReliability reliability, NetworkChannel channel, ushort sequenceNumber)
         {
             var packet = RecyclePool<IncompletePacket>.Borrow();
-            packet.Initialize(totalChunks, reliability, sequenceNumber);
+            packet.Initialize(totalChunks, reliability, channel, sequenceNumber);
             return packet;
         }
-        
+
         public static void Return(IncompletePacket packet) => RecyclePool<IncompletePacket>.Return(packet);
     }
 
@@ -64,7 +71,7 @@ public static class PacketChunkManager
 
     private static int nextPacketId = 1;
 
-    private const int MaxChunkBytes = 500;
+    private const int MaxChunkBytes = 512 - HeaderSize;
     private const int CompressionThreshold = 64;
     private static readonly TimeSpan PacketTimeout = TimeSpan.FromSeconds(30);
 
@@ -73,18 +80,19 @@ public static class PacketChunkManager
 
     private const byte All8Bits = byte.MaxValue;
 
-    internal static bool TryMergePacket(PacketType packetType, byte[] data, int chunkLength, ushort chunkIndex,
-        ushort totalChunks, ushort packetId, IPEndPoint senderEp, PacketReliability reliability,
-        ushort sequenceNumber, out PacketReader reader, out PacketReliability outReliability,
-        out ushort outSequenceNumber)
+    internal static bool TryMergePacket(PacketType packetType, byte[] data,
+        int chunkLength, ushort chunkIndex, ushort totalChunks, ushort packetId,
+        IPEndPoint senderEp, PacketReliability reliability, NetworkChannel channel, ushort sequenceNumber,
+        out PacketReader reader, out PacketReliability outReliability, out NetworkChannel outChannel, out ushort outSequenceNumber)
     {
         reader = null!;
         outReliability = reliability;
+        outChannel = channel;
         outSequenceNumber = sequenceNumber;
 
         if (chunkIndex >= totalChunks)
         {
-            SrLogger.LogWarning($"Invalid chunk: index={chunkIndex} >= total={totalChunks}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Invalid chunk: index={chunkIndex} >= total={totalChunks}");
             return false;
         }
 
@@ -98,69 +106,58 @@ public static class PacketChunkManager
         var key = new PacketKey((byte)packetType, packetId, senderEp);
 
         var packet = IncompletePackets.GetOrAdd(key, _ =>
-            IncompletePacket.Borrow(totalChunks, reliability, sequenceNumber));
+            IncompletePacket.Borrow(totalChunks, reliability, channel, sequenceNumber));
 
-        if (packet.totalChunks != totalChunks)
+        if (packet.TotalChunks != totalChunks)
         {
-            SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.totalChunks} got={totalChunks}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Chunk count mismatch for {key}: expected={packet.TotalChunks} got={totalChunks}");
             IncompletePackets.TryRemove(key, out _);
             return false;
         }
 
         // Store chunks
-        if (!packet.received[chunkIndex])
+        if (!packet.Received![chunkIndex])
         {
-            packet.chunks[chunkIndex] = data;
-            packet.chunkLengths[chunkIndex] = chunkLength;
-            packet.received[chunkIndex] = true;
-            packet.receivedCount++;
-            packet.lastChunkTime = DateTime.UtcNow;
+            var offset = chunkIndex * MaxChunkBytes;
+            data.AsSpan(0, chunkLength).CopyTo(packet.AssemblyBuffer.AsSpan(offset));
+            packet.TotalSize += chunkLength;
+            packet.Received[chunkIndex] = true;
+            packet.ReceivedCount++;
+            packet.LastChunkTime = DateTime.UtcNow;
         }
 
         // Wait for all chunks
-        if (packet.receivedCount != totalChunks)
+        if (packet.ReceivedCount != totalChunks)
             return false;
 
-        // Merge chunks
-        var totalSize = 0;
-        for (var i = 0; i < totalChunks; i++)
-            totalSize += packet.chunkLengths[i];
+        var assemblyBuffer = packet.AssemblyBuffer!;
+        var totalSize = packet.TotalSize;
 
-        var assemblyBuffer = ArrayPool<byte>.Shared.Rent(totalSize);
-        var offset = 0;
-
-        for (var i = 0; i < totalChunks; i++)
-        {
-            packet.chunks[i].AsSpan(0, packet.chunkLengths[i]).CopyTo(assemblyBuffer.AsSpan(offset));
-            offset += packet.chunkLengths[i];
-            ArrayPool<byte>.Shared.Return(packet.chunks[i]);
-        }
-
-        outReliability = packet.reliability;
-        outSequenceNumber = packet.sequenceNumber;
+        outReliability = packet.Reliability;
+        outChannel = packet.Channel;
+        outSequenceNumber = packet.SequenceNumber;
 
         IncompletePackets.TryRemove(key, out _);
 
         // Decompress if compressed
         if (totalSize > 0 && assemblyBuffer[0] == (byte)PacketType.ReservedCompression)
         {
-            var decompWriter = PacketBufferPool.GetWriter(totalSize);
+            using var decompWriter = PacketWriter.Borrow(totalSize);
 
             try
             {
                 Decompress(assemblyBuffer, totalSize, decompWriter);
                 var finalBuffer = decompWriter.DetachBuffer(out var finalSize);
-                reader = PacketBufferPool.GetReader(finalBuffer, finalSize, true);
+                reader = PacketReader.Borrow(finalBuffer, finalSize, true);
             }
             finally
             {
-                PacketBufferPool.Return(decompWriter);
                 ArrayPool<byte>.Shared.Return(assemblyBuffer);
             }
         }
         else
         {
-            reader = PacketBufferPool.GetReader(assemblyBuffer, totalSize, true);
+            reader = PacketReader.Borrow(assemblyBuffer, totalSize, true);
         }
 
         IncompletePacket.Return(packet);
@@ -168,7 +165,7 @@ public static class PacketChunkManager
     }
 
     internal static SplitResult SplitPacket(ReadOnlySpan<byte> data, PacketReliability reliability,
-        ushort sequenceNumber, out ushort packetId)
+        NetworkChannel channel, ushort sequenceNumber, out ushort packetId)
     {
         var packetType = data[0];
 
@@ -191,7 +188,7 @@ public static class PacketChunkManager
             // Compress if threshold is reached
             if (data.Length > CompressionThreshold)
             {
-                compressionWriter = PacketBufferPool.GetWriter(data.Length);
+                compressionWriter = PacketWriter.Borrow(data.Length);
                 Compress(data, compressionWriter);
 
                 if (compressionWriter.Position < data.Length * 0.9f)
@@ -199,57 +196,59 @@ public static class PacketChunkManager
             }
 
             var chunkCount = (sourceToSplit.Length + MaxChunkBytes - 1) / MaxChunkBytes;
-            var resultChunks = ArrayPool<ArraySegment<byte>>.Shared.Rent(chunkCount);
+            var totalMasterSize = (chunkCount * HeaderSize) + sourceToSplit.Length;
+            var masterBuffer = ArrayPool<byte>.Shared.Rent(totalMasterSize);
 
             for (ushort index = 0; index < chunkCount; index++)
             {
                 var chunkOffset = index * MaxChunkBytes;
                 var chunkSize = Math.Min(MaxChunkBytes, sourceToSplit.Length - chunkOffset);
-                var totalChunkLength = HeaderSize + chunkSize;
 
-                // 12 byte header:
-                var buffer = ArrayPool<byte>.Shared.Rent(totalChunkLength);
+                var masterChunkStart = index * (HeaderSize + MaxChunkBytes);
+                var masterPayloadStart = masterChunkStart + HeaderSize;
+
+                // 13 byte header
 
                 // [0] Packet type
-                buffer[0] = packetType;
+                masterBuffer[0] = packetType;
 
                 // [1-2] Chunk index
-                buffer[1] = (byte)(index & All8Bits);
-                buffer[2] = (byte)((index >> 8) & All8Bits);
+                masterBuffer[1] = (byte)(index & All8Bits);
+                masterBuffer[2] = (byte)((index >> 8) & All8Bits);
 
                 // [3-4] Total chunks
-                buffer[3] = (byte)(chunkCount & All8Bits);
-                buffer[4] = (byte)((chunkCount >> 8) & All8Bits);
+                masterBuffer[3] = (byte)(chunkCount & All8Bits);
+                masterBuffer[4] = (byte)((chunkCount >> 8) & All8Bits);
 
                 // [5-6] Packet ID
-                buffer[5] = (byte)(packetId & All8Bits);
-                buffer[6] = (byte)((packetId >> 8) & All8Bits);
+                masterBuffer[5] = (byte)(packetId & All8Bits);
+                masterBuffer[6] = (byte)((packetId >> 8) & All8Bits);
 
-                // [7] Reliability
-                buffer[7] = (byte)reliability;
+                // [7] Channel
+                masterBuffer[7] = (byte)channel;
 
-                // [8-9] Sequence number
-                buffer[8] = (byte)(sequenceNumber & All8Bits);
-                buffer[9] = (byte)((sequenceNumber >> 8) & All8Bits);
+                // [8] Reliability
+                masterBuffer[8] = (byte)reliability;
 
-                // Copy data into buffer at offset 12, then compute CRC over it
-                sourceToSplit.Slice(chunkOffset, chunkSize).CopyTo(buffer.AsSpan(HeaderSize));
+                // [9-10] Sequence number
+                masterBuffer[9] = (byte)(sequenceNumber & All8Bits);
+                masterBuffer[10] = (byte)((sequenceNumber >> 8) & All8Bits);
 
-                var crc = PacketCRC.Compute(buffer, HeaderSize, chunkSize);
+                // Copy data into buffer at offset HeaderSize, then compute CRC over it
+                sourceToSplit.Slice(chunkOffset, chunkSize).CopyTo(masterBuffer.AsSpan(masterPayloadStart));
 
-                // [10-11] CRC16 of data
-                buffer[10] = (byte)(crc & All8Bits);
-                buffer[11] = (byte)((crc >> 8) & All8Bits);
-
-                resultChunks[index] = new ArraySegment<byte>(buffer, 0, totalChunkLength);
+                // Compute CRC and write it
+                var crc = PacketCRC.Compute(masterBuffer, masterPayloadStart, chunkSize);
+                masterBuffer[masterChunkStart + 11] = (byte)(crc & All8Bits);
+                masterBuffer[masterChunkStart + 12] = (byte)((crc >> 8) & All8Bits);
             }
 
-            return new SplitResult(resultChunks, chunkCount);
+            return new SplitResult(masterBuffer, chunkCount, sourceToSplit.Length, MaxChunkBytes, HeaderSize);
         }
         finally
         {
             if (compressionWriter != null)
-                PacketBufferPool.Return(compressionWriter);
+                PacketWriter.Return(compressionWriter);
         }
     }
 
@@ -264,7 +263,7 @@ public static class PacketChunkManager
 
         foreach (var kvp in IncompletePackets)
         {
-            if (now - kvp.Value.lastChunkTime > PacketTimeout)
+            if (now - kvp.Value.LastChunkTime > PacketTimeout)
                 keysToRemove[removeCount++] = kvp.Key;
         }
 
@@ -275,17 +274,7 @@ public static class PacketChunkManager
             if (!IncompletePackets.TryRemove(key, out var packet))
                 continue;
 
-            SrLogger.LogWarning($"Timeout: {key.PacketType} from {key.EndPoint} ({packet.receivedCount}/{packet.totalChunks} chunks)", SrLogTarget.Both);
-
-            for (var c = 0; c < packet.totalChunks; c++)
-            {
-                if (!packet.received[c] || packet.chunks[c] == null)
-                    continue;
-
-                ArrayPool<byte>.Shared.Return(packet.chunks[c]);
-                packet.chunks[c] = null!;
-            }
-
+            SrLogger.LogWarning($"Timeout: {key.PacketType} from {key.EndPoint} ({packet.ReceivedCount}/{packet.TotalChunks} chunks)");
             IncompletePacket.Return(packet);
         }
 
@@ -319,7 +308,7 @@ public static class PacketChunkManager
             if (compressedBytes > 0)
                 targetWriter.WriteSpan(outputBuffer.AsSpan(0, compressedBytes));
             else
-                throw new Exception("LZ4 Compression failed");
+                throw new InvalidOperationException("LZ4 Compression failed");
         }
         finally
         {
@@ -330,7 +319,7 @@ public static class PacketChunkManager
 
     private static void Decompress(byte[] data, int dataSize, PacketWriter targetWriter)
     {
-        var reader = PacketBufferPool.GetReader(data, dataSize);
+        var reader = PacketReader.Borrow(data, dataSize);
         reader.MoveForward(1); // Skip the ReservedCompression flag
 
         try
@@ -364,13 +353,13 @@ public static class PacketChunkManager
         }
         finally
         {
-            PacketBufferPool.Return(reader);
+            PacketReader.Return(reader);
         }
     }
 
     internal static PacketReader DecompressSingleChunk(byte[] data, int offset, int length)
     {
-        var tempReader = PacketBufferPool.GetReader(data, offset + length);
+        var tempReader = PacketReader.Borrow(data, offset + length);
         tempReader.MoveForward(offset + 1); // Skip to right after the ReservedCompression flag
 
         try
@@ -395,7 +384,7 @@ public static class PacketChunkManager
 
                 outputPoolBuffer[0] = originalType;
 
-                return PacketBufferPool.GetReader(outputPoolBuffer, actualDecompressed + 1, true);
+                return PacketReader.Borrow(outputPoolBuffer, actualDecompressed + 1, true);
             }
             finally
             {
@@ -404,7 +393,7 @@ public static class PacketChunkManager
         }
         finally
         {
-            PacketBufferPool.Return(tempReader);
+            PacketReader.Return(tempReader);
         }
     }
 }

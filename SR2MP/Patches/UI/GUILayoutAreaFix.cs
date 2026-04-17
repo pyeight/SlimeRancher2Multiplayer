@@ -3,7 +3,7 @@ using HarmonyLib;
 namespace SR2MP.Patches.UI;
 
 [HarmonyPatch(typeof(GUILayout), nameof(GUILayout.BeginArea), typeof(Rect), typeof(GUIContent), typeof(GUIStyle))]
-public static class GUILayoutAreaFix
+internal static class GUILayoutAreaFix
 {
     // This is directly copied from https://github.com/Unity-Technologies/UnityCsReference/blob/master/Modules/IMGUI/GUILayout.cs
     // because interop failed to recover the function.

@@ -2,20 +2,59 @@ using SR2E;
 
 namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
-    private bool viewingSettings = false;
-    private bool firstTime = true;
-    private bool viewingHelp = false;
+    private enum MainTab { Join, Host }
+    private MainTab mainTab = MainTab.Join;
+    
+    private enum HostTab { Automatic, ManualCode, ManualSimple }
+    private HostTab hostTab = HostTab.Automatic;
+    
+    private enum JoinTab { Code, Manual }
+    private JoinTab joinTab = JoinTab.Code;
+
+    public enum MenuState : byte
+    {
+        Hidden,
+        DisconnectedMainMenu,
+        DisconnectedInGame,
+        ConnectedClient,
+        ConnectedHost,
+        SettingsInitial,
+        SettingsMain,
+        SettingsHelp,
+        Kicked,
+        Error,
+    }
+
+    public enum ErrorType : byte
+    {
+        None,
+        UnknownError,
+        InvalidIP,
+        IPNotFound,
+    }
+
+    public enum HelpTopic : byte
+    {
+        Root,
+        PlayIt,
+        SyncState,
+        DiscordSupport,
+    }
 
     public MenuState state = MenuState.Hidden;
-    public ErrorType errorState = ErrorType.None;
-    private bool chatShown = false;
+
+    private bool viewingSettings;
+    private bool firstTime = true;
+    private bool viewingHelp;
+    private bool chatShown;
     private MenuState previousState = MenuState.Hidden;
 
-    private static bool GetIsLoading()
+    private bool GetIsLoading()
     {
-        return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is "StandaloneStart" or "CompanyLogo" or "LoadScene";
+        return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is
+            "StandaloneStart" or "CompanyLogo" or "LoadScene";
     }
 
     private MenuState GetState()
@@ -25,16 +64,8 @@ public sealed partial class MultiplayerUI
         var inGame = ContextShortcuts.inGame;
         var loading = GetIsLoading();
         var connected = Main.Client.IsConnected;
-        var hosting = Main.Server.IsRunning();
+        var hosting = Main.Server.IsRunning;
 
-        if (!string.IsNullOrWhiteSpace(connectionFailedReason))
-        {
-            errorState = ErrorType.ConnectionDeny;
-            return MenuState.Error;
-        }
-        
-        errorState = ErrorType.None;
-        
         if (loading) return MenuState.Hidden;
         if (firstTime) return MenuState.SettingsInitial;
         if (viewingSettings) return MenuState.SettingsMain;
@@ -48,7 +79,6 @@ public sealed partial class MultiplayerUI
     private void UpdateChatVisibility()
     {
         var isInGame = state is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
-
         var isMainMenu = state == MenuState.DisconnectedMainMenu;
 
         if (isMainMenu)
@@ -66,10 +96,8 @@ public sealed partial class MultiplayerUI
             chatHidden = false;
             chatShown = true;
 
-            if (previousState == MenuState.DisconnectedMainMenu || previousState == MenuState.Hidden)
-            {
+            if (previousState is MenuState.DisconnectedMainMenu or MenuState.Hidden)
                 ClearAndWelcome();
-            }
         }
 
         previousState = state;

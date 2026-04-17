@@ -1,6 +1,6 @@
 namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
     private Rect previousLayoutRect;
     private Rect previousLayoutChatRect;
@@ -77,5 +77,34 @@ public sealed partial class MultiplayerUI
         previousLayoutRect = result;
 
         return result;
+    }
+
+    private MainTab DrawMainTabRow(string leftLabel, string rightLabel, MainTab tab)
+    {
+        if (GUI.Toggle(CalculateButtonLayout(6, 2), tab == MainTab.Join, leftLabel, GUI.skin.button))
+            tab = MainTab.Join;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 1), tab == MainTab.Host, rightLabel, GUI.skin.button))
+            tab = MainTab.Host;
+        return tab;
+    }
+
+    private JoinTab DrawJoinTabRow(string leftLabel, string rightLabel, JoinTab tab)
+    {
+        if (GUI.Toggle(CalculateButtonLayout(6, 2), tab == JoinTab.Code, leftLabel, GUI.skin.button))
+            tab = JoinTab.Code;
+        if (GUI.Toggle(CalculateButtonLayout(6, 2, 1), tab == JoinTab.Manual, rightLabel, GUI.skin.button))
+            tab = JoinTab.Manual;
+        return tab;
+    }
+
+    private HostTab DrawHostTabRow(string leftLabel, string middleLabel, string rightLabel, HostTab tab)
+    {
+        if (GUI.Toggle(CalculateButtonLayout(6, 3), tab == HostTab.Automatic, leftLabel, GUI.skin.button))
+            tab = HostTab.Automatic;
+        if (GUI.Toggle(CalculateButtonLayout(6, 3, 1), tab == HostTab.ManualCode, middleLabel, GUI.skin.button))
+            tab = HostTab.ManualCode;
+        if (GUI.Toggle(CalculateButtonLayout(6, 3, 2), tab == HostTab.ManualSimple, rightLabel, GUI.skin.button))
+            tab = HostTab.ManualSimple;
+        return tab;
     }
 }

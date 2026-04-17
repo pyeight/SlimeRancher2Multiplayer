@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Internal;
 
 [PacketHandler((byte)PacketType.ChatMessage)]
-public sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
+internal sealed class ChatMessageHandler : BasePacketHandler<ChatMessagePacket>
 {
     protected override bool Handle(ChatMessagePacket packet, IPEndPoint? clientEp)
     {

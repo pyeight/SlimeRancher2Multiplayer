@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerUpdatePacket : IPacket
+internal sealed class PlayerUpdatePacket : IPacket
 {
     public string PlayerId;
     public Vector3 Position;
@@ -18,7 +18,8 @@ public sealed class PlayerUpdatePacket : IPacket
     public float LookY;
 
     public PacketType Type => PacketType.PlayerUpdate;
-    public PacketReliability Reliability => PacketReliability.Unreliable;
+    public PacketReliability Reliability => PacketReliability.Ordered;
+    public  NetworkChannel Channel => NetworkChannel.PlayerUpdate;
 
     public void Serialise(PacketWriter writer)
     {
@@ -42,7 +43,7 @@ public sealed class PlayerUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadStringWithSize(16)!;
+        PlayerId = reader.ReadPooledStringOfSize(16)!;
 
         Position = reader.ReadVector3();
         Rotation = reader.ReadFloat();

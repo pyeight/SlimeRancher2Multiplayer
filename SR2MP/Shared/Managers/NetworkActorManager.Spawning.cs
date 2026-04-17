@@ -7,7 +7,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed partial class NetworkActorManager
+internal sealed partial class NetworkActorManager
 {
     private bool TrySpawnNetworkGadget(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? identModel)
     {
@@ -22,17 +22,17 @@ public sealed partial class NetworkActorManager
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position);
         model.eulerRotation = rotation.eulerAngles;
-        
-        handlingPacket = true;
+
+        HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
-        handlingPacket = false;
-        
+        HandlingPacket = false;
+
         gadget.transform.SetPositionAndRotation(position, rotation);
-        
-        identModel = model.Cast<IdentifiableModel>();
+
+        identModel = model.TryCast<IdentifiableModel>();
         return true;
     }
-    
+
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model)
     {
         model = null;
@@ -62,7 +62,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation).Cast<IdentifiableModel>();
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -79,21 +79,21 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
+        networkComponent.PreviousPosition = position;
+        networkComponent.NextPosition = position;
+        networkComponent.PreviousRotation = rotation;
+        networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         actor.GetComponent<ResourceCycle>()?.AttachToNearest();
 
@@ -112,7 +112,7 @@ public sealed partial class NetworkActorManager
                 return TrySpawnInitialDroneStation(stationData, out identifiableModel);
         }
         identifiableModel = null;
-        
+
         var sceneId = actorData.Scene;
         var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
@@ -129,17 +129,17 @@ public sealed partial class NetworkActorManager
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position);
         model.eulerRotation = rotation.eulerAngles;
 
-        identifiableModel = model.Cast<IdentifiableModel>();
-        
-        handlingPacket = true;
+        identifiableModel = model.TryCast<IdentifiableModel>();
+
+        HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
-        handlingPacket = false;
-        
+        HandlingPacket = false;
+
         gadget.transform.SetPositionAndRotation(position, rotation);
-        
+
         return true;
     }
-    // place holder ig
+// place holder ig
     private bool TrySpawnInitialLinkedGadget(InitialActorsPacket.LinkedGadget actorData, out IdentifiableModel? identifiableModel)
     {
         identifiableModel = null;
@@ -162,9 +162,9 @@ public sealed partial class NetworkActorManager
 
         identifiableModel = model.Cast<IdentifiableModel>();
         
-        handlingPacket = true;
+        HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
-        handlingPacket = false;
+        HandlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         
@@ -204,9 +204,9 @@ public sealed partial class NetworkActorManager
         
         identifiableModel = model.Cast<IdentifiableModel>();
         
-        handlingPacket = true;
+        HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(model.Cast<GadgetModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         
@@ -238,9 +238,9 @@ public sealed partial class NetworkActorManager
         
         identifiableModel = gadgetModel.Cast<IdentifiableModel>();
         
-        handlingPacket = true;
+        HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(gadgetModel);
-        handlingPacket = false;
+        HandlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         
@@ -252,7 +252,7 @@ public sealed partial class NetworkActorManager
         model = null;
 
         var typeId = actorData.ActorTypeId;
-        
+
         if (Main.RockPlortBug)
             typeId = 25;
 
@@ -261,10 +261,10 @@ public sealed partial class NetworkActorManager
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
             return false;
         }
-        
+
         if (type.isGadget())
             return TrySpawnInitialGadget(actorData, out model);
-        
+
         switch (actorData)
         {
             case InitialActorsPacket.Slime slimeData:
@@ -303,7 +303,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -320,21 +320,21 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
+        networkComponent.PreviousPosition = position;
+        networkComponent.NextPosition = position;
+        networkComponent.PreviousRotation = rotation;
+        networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         return true;
     }
@@ -372,7 +372,7 @@ public sealed partial class NetworkActorManager
             type.Cast<SlimeDefinition>(),
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -391,21 +391,21 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
         
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
+        networkComponent.PreviousPosition = position;
+        networkComponent.NextPosition = position;
+        networkComponent.PreviousRotation = rotation;
+        networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         return true;
     }
@@ -461,21 +461,21 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
         
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
+        networkComponent.PreviousPosition = position;
+        networkComponent.NextPosition = position;
+        networkComponent.PreviousRotation = rotation;
+        networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         return true;
     }
@@ -533,21 +533,21 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
+        networkComponent.PreviousPosition = position;
+        networkComponent.NextPosition = position;
+        networkComponent.PreviousRotation = rotation;
+        networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         return true;
     }
@@ -587,7 +587,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
             return false;
@@ -614,21 +614,21 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
+        networkComponent.PreviousPosition = position;
+        networkComponent.NextPosition = position;
+        networkComponent.PreviousRotation = rotation;
+        networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         var plortInvulnerability = actor.GetComponent<PlortInvulnerability>();
         if (plortInvulnerability)
@@ -675,7 +675,7 @@ public sealed partial class NetworkActorManager
             type,
             scene,
             position,
-            rotation);
+            rotation).TryCast<IdentifiableModel>();
 
         if (model == null)
         {
@@ -691,7 +691,7 @@ public sealed partial class NetworkActorManager
                 $"Resource Actor failed to initialize: Did not create a ProduceModel successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
             return false;
         }
-        
+
         produceModel.destroyTime = destroyTime;
         produceModel.state = state;
         produceModel.progressTime = progress;
@@ -708,24 +708,24 @@ public sealed partial class NetworkActorManager
             GameState.identifiablesByIdent.Add(type, actors);
         }
 
-        handlingPacket = true;
+        HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        handlingPacket = false;
+        HandlingPacket = false;
 
         if (!actor)
             return true;
-        
+
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
+        networkComponent.PreviousPosition = position;
+        networkComponent.NextPosition = position;
+        networkComponent.PreviousRotation = rotation;
+        networkComponent.NextRotation = rotation;
         actor.transform.position = position;
-        actorManager.Actors[actorId.Value] = model;
+        ActorManager.Actors[actorId.Value] = model;
 
         var cycle = actor.GetComponent<ResourceCycle>();
-        
+
         if (actorData.JointIndex >= 0 && cycle != null)
         {
             Joint? targetJoint = null;
@@ -756,15 +756,15 @@ public sealed partial class NetworkActorManager
 
             if (targetJoint != null)
             {
-                handlingPacket = true;
+                HandlingPacket = true;
                 cycle.Attach(targetJoint);
-                handlingPacket = false;
-                
+                HandlingPacket = false;
+
                 produceModel.state = state;
                 produceModel.progressTime = progress;
             }
         }
-        
+
         if (cycle != null)
         {
             if (state == ResourceCycle.State.UNRIPE)

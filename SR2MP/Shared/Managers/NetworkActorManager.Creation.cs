@@ -7,7 +7,7 @@ using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed partial class NetworkActorManager
+internal sealed partial class NetworkActorManager
 {
     public static InitialActorsPacket.ActorBase CreateInitialActor(IdentifiableModel actor)
     {
@@ -46,6 +46,7 @@ public sealed partial class NetworkActorManager
         Rotation = model.TryCast<ActorModel>()?.lastRotation ?? Quaternion.identity,
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
     };
+    
     private static InitialActorsPacket.ActorBase CreateInitialGadgetBase(GadgetModel model) => new()
     {
         ActorId = model.actorId.Value,
@@ -84,6 +85,7 @@ public sealed partial class NetworkActorManager
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
         Emotions = model.Emotions
     };
+    
     private static InitialActorsPacket.LinkedGadget CreateInitialLinkedGadget(GadgetModel model) => new()
     {
         ActorId = model.actorId.Value,
@@ -93,6 +95,7 @@ public sealed partial class NetworkActorManager
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
         LinkedActorId = GetLinkedGadget(model).actorId.Value
     };
+    
     private static InitialActorsPacket.LinkedAmmoGadget CreateInitialAmmoGadget(GadgetModel model) => new()
     {
         ActorId = model.actorId.Value,
@@ -143,19 +146,19 @@ public sealed partial class NetworkActorManager
             PlotID = string.Empty,
             SpawnerPosition = Vector3.zero
         };
-        
+
         var obj = model.GetGameObject();
         if (!obj) return packet;
 
         var cycle = obj.GetComponent<ResourceCycle>();
         if (!cycle || cycle._joint == null) return packet;
-        
+
         var joint = cycle._joint.Joint;
         if (!joint) return packet;
 
         var spawner = joint.gameObject.GetComponentInParent<SpawnResource>();
         if (!spawner) return packet;
-        
+
         packet.JointIndex = spawner.SpawnJoints.IndexOf(joint);
         packet.SpawnerPosition = spawner.transform.position;
         packet.PlotID = joint.gameObject.GetComponentInParent<LandPlotLocation>()?._id ?? string.Empty;
@@ -163,17 +166,17 @@ public sealed partial class NetworkActorManager
         return packet;
     }
 
-    public static ActorUpdateType DetermineUpdateTypeFromModel(ActorModel model)
-    {
-        if (model.TryCast<SlimeModel>() != null)
-            return ActorUpdateType.Slime;
-        if (model.TryCast<ProduceModel>() != null)
-            return ActorUpdateType.Resource;
-        if (model.TryCast<PlortModel>() != null)
-            return ActorUpdateType.Plort;
-        
-        return ActorUpdateType.Actor;
-    }
+    // public static ActorUpdateType DetermineUpdateTypeFromModel(ActorModel model)
+    // {
+    //     if (model.TryCast<SlimeModel>() != null)
+    //         return ActorUpdateType.Slime;
+    //     if (model.TryCast<ProduceModel>() != null)
+    //         return ActorUpdateType.Resource;
+    //     if (model.TryCast<PlortModel>() != null)
+    //         return ActorUpdateType.Plort;
+
+    //     return ActorUpdateType.Actor;
+    // }
     // not sure if there are more...
     private static AmmoModel? GetAmmoFromGadget(GadgetModel model)
     {

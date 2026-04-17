@@ -2,12 +2,13 @@
 
 namespace SR2MP.Packets.World;
 
-public struct LightningStrikePacket : IPacket
+internal struct LightningStrikePacket : IPacket
 {
     public Vector3 Position;
 
     public readonly PacketType Type => PacketType.LightningStrike;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly NetworkChannel Channel => NetworkChannel.Weather;
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteVector3(Position);
 

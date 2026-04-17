@@ -6,17 +6,17 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.AutoFeederSpeed)]
-public sealed class AutoFeederSpeedHandler : BasePacketHandler<AutoFeederSpeedPacket>
+internal sealed class AutoFeederSpeedHandler : BasePacketHandler<AutoFeederSpeedPacket>
 {
     protected override bool Handle(AutoFeederSpeedPacket packet, IPEndPoint? _)
     {
         var model = GameState.landPlots[packet.ID];
         var feeder = model.gameObj.GetComponentInChildren<SlimeFeeder>();
-        
-        handlingPacket = true;
+
+        HandlingPacket = true;
         feeder.SetFeederSpeed(packet.Speed);
-        handlingPacket = false;
-        
+        HandlingPacket = false;
+
         return true;
     }
 }

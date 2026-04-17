@@ -5,11 +5,11 @@ using SR2MP.Packets.Pedia;
 namespace SR2MP.Patches.Pedia;
 
 [HarmonyPatch(typeof(PediaDirector), nameof(PediaDirector.Unlock), typeof(PediaEntry), typeof(bool))]
-public static class OnEntryUnlocked
+internal static class OnEntryUnlocked
 {
     public static void Postfix(PediaEntry entry, bool showPopup)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var packet = new PediaUnlockPacket
         {

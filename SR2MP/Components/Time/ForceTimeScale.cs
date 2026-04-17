@@ -3,14 +3,14 @@ using MelonLoader;
 namespace SR2MP.Components.Time;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class ForceTimeScale : MonoBehaviour
+internal sealed class ForceTimeScale : MonoBehaviour
 {
-    public float timeScale = 1f;
-    public float loadingTimeScale;
+    public float TimeScale = 1f;
+    public float LoadingTimeScale;
 
     public void Update()
     {
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
             return;
 
         if (GameContext.Instance.InputDirector._paused.Map.enabled)
@@ -26,6 +26,6 @@ public sealed class ForceTimeScale : MonoBehaviour
 
         var loading = SystemContext.Instance.SceneLoader.IsSceneLoadInProgress;
 
-        UnityEngine.Time.timeScale = loading ? loadingTimeScale : timeScale;
+        UnityEngine.Time.timeScale = loading ? LoadingTimeScale : TimeScale;
     }
 }

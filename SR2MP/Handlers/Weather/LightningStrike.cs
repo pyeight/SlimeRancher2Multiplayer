@@ -7,7 +7,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Handlers.Weather;
 
 [PacketHandler((byte)PacketType.LightningStrike)]
-public sealed class LightningStrikeHandler : BasePacketHandler<LightningStrikePacket>
+internal sealed class LightningStrikeHandler : BasePacketHandler<LightningStrikePacket>
 {
     protected override bool Handle(LightningStrikePacket packet, IPEndPoint? _)
     {

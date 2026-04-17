@@ -2,13 +2,14 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.LandPlots;
 
-public class AutoFeederDispensePacket : IPacket
+internal sealed class AutoFeederDispensePacket : IPacket
 {
     public string ID;
     public double NextTime;
-    
+
     public PacketType Type => PacketType.AutoFeederDispense;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {
@@ -18,7 +19,7 @@ public class AutoFeederDispensePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString()!;
         NextTime = reader.ReadDouble();
     }
 }

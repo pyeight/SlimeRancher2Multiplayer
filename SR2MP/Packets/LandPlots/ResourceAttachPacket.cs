@@ -1,9 +1,9 @@
 ﻿using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Packets.Utils;
 
-namespace SR2MP.Packets.Actor;
+namespace SR2MP.Packets.LandPlots;
 
-public sealed class ResourceAttachPacket : IPacket
+internal sealed class ResourceAttachPacket : IPacket
 {
     public ActorId ActorId;
     public string PlotID;
@@ -14,33 +14,34 @@ public sealed class ResourceAttachPacket : IPacket
 
     public PacketType Type => PacketType.ResourceAttach;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteLong(ActorId.Value);
+        writer.WritePackedLong(ActorId.Value);
         writer.WriteString(PlotID);
         writer.WriteInt(Joint);
         writer.WriteVector3(SpawnerID);
 
-        writer.WriteBool(Model.nextSpawnRipens);
         writer.WriteDouble(Model.nextSpawnTime);
         writer.WriteFloat(Model.storedWater);
-        writer.WriteBool(Model.wasPreviouslyPlanted);
+        writer.WritePackedBool(Model.nextSpawnRipens);
+        writer.WritePackedBool(Model.wasPreviouslyPlanted);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        ActorId = new ActorId(reader.ReadLong());
-        PlotID = reader.ReadString();
+        ActorId = new ActorId(reader.ReadPackedLong());
+        PlotID = reader.ReadPooledString()!;
         Joint = reader.ReadInt();
         SpawnerID = reader.ReadVector3();
 
         Model = new SpawnResourceModel
         {
-            nextSpawnRipens = reader.ReadBool(),
             nextSpawnTime = reader.ReadDouble(),
             storedWater = reader.ReadFloat(),
-            wasPreviouslyPlanted = reader.ReadBool()
+            nextSpawnRipens = reader.ReadPackedBool(),
+            wasPreviouslyPlanted = reader.ReadPackedBool()
         };
     }
 }

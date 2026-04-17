@@ -2,12 +2,13 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class GardenOwnershipPacket : IPacket
+internal sealed class GardenOwnershipPacket : IPacket
 {
     public string GardenID;
 
     public PacketType Type => PacketType.GardenOwnership;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {
@@ -16,6 +17,6 @@ public sealed class GardenOwnershipPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        GardenID = reader.ReadString();
+        GardenID = reader.ReadPooledString()!;
     }
 }

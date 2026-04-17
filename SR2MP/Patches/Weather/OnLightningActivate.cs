@@ -5,7 +5,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Patches.Weather;
 
 [HarmonyPatch(typeof(LightningStrike), nameof(LightningStrike.Start))]
-public static class OnLightningActivate
+internal static class OnLightningActivate
 {
     public static void Postfix(LightningStrike __instance)
     {

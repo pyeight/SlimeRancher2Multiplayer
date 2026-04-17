@@ -4,10 +4,11 @@ using Il2CppMonomiPark.SlimeRancher.World;
 
 namespace SR2MP.Shared.Managers;
 
-public static class DiscordRPCManager
+internal static class DiscordRPCManager
 {
     private enum Zone : byte
     {
+        Unknown,
         Conservatory,
         RainbowFields,
         StarlightStand,
@@ -33,6 +34,7 @@ public static class DiscordRPCManager
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
         new(new Dictionary<Zone, string>
         {
+            {Zone.Unknown, "Exploring unknown areas"},
             {Zone.Conservatory, "Ranching in the Conservatory"},
             {Zone.RainbowFields, "Exploring the Rainbow Fields"},
             {Zone.StarlightStand, "Amazed by the Starlight Strands"},
@@ -45,7 +47,7 @@ public static class DiscordRPCManager
             {Zone.LabyrinthHub, "Staring at the Impossible Sky"},
             {Zone.LabyrinthCore, "Inspecting the Core"},
             {Zone.MainMenu, "Getting ready for adventures!"},
-            {Zone.FinalBoss, "Fighting it."},
+            {Zone.FinalBoss, "Fighting it"},
             {Zone.Ending, "Relaxing after the end"}
         });
 
@@ -74,6 +76,7 @@ public static class DiscordRPCManager
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
         new(new Dictionary<Zone, string>
         {
+            {Zone.Unknown, "unknown"},
             {Zone.Conservatory, "conservatory"},
             {Zone.RainbowFields, "rainbowfields"},
             {Zone.StarlightStand, "starlightstand"},
@@ -109,19 +112,20 @@ public static class DiscordRPCManager
     }
 
     public static ZoneDefinition? currentZone;
-    public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
+
+    // public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
 
     internal static void UpdatePresence()
     {
-        var online = Main.Server.IsRunning() || Main.Client.IsConnected;
-        var solo = playerManager.PlayerCount < 2;
+        var online = Main.Server.IsRunning || Main.Client.IsConnected;
+        var solo = PlayerManager.PlayerCount < 2;
 
         var details = online
             ? solo
                 ? DetailsStringOnlineSolo
-                : string.Format(DetailsStringOnline, playerManager.PlayerCount)
+                : string.Format(DetailsStringOnline, PlayerManager.PlayerCount)
             : DetailsStringOffline;
-        var currentLocation = currentZone ? DefinitionToZone[currentZone!.name] : Zone.MainMenu;
+        var currentLocation = currentZone ? (DefinitionToZone.TryGetValue(currentZone!.name, out var zone) ? zone : Zone.Unknown) : Zone.MainMenu;
 
         // if (IsInEndingCutscene)
         //    currentLocation = Zone.Ending;

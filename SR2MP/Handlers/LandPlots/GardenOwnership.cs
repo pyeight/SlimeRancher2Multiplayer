@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.GardenOwnership)]
-public sealed class GardenOwnershipHandler : BasePacketHandler<GardenOwnershipPacket>
+internal sealed class GardenOwnershipHandler : BasePacketHandler<GardenOwnershipPacket>
 {
     protected override bool Handle(GardenOwnershipPacket packet, IPEndPoint? _)
     {

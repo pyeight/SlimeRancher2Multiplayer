@@ -5,11 +5,11 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Components.World;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class NetworkWeather : MonoBehaviour
+internal sealed class NetworkWeather : MonoBehaviour
 {
     private float updateTimer;
 
-    private void Update()
+    public void Update()
     {
         updateTimer += UnityEngine.Time.deltaTime;
 

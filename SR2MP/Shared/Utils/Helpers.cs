@@ -4,8 +4,14 @@ using Il2CppInterop.Runtime.InteropTypes;
 
 namespace SR2MP.Shared.Utils;
 
-public static class Helpers
+internal static class Helpers
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryCast<T>(this Il2CppObjectBase baseObj, [NotNullWhen(true)] out T? castedObj) where T : Il2CppObjectBase => (castedObj = baseObj.TryCast<T>()) != null;
+    public static bool TryCast<T>(this Il2CppObjectBase baseObj, [NotNullWhen(true)] out T? castedObj) where T : Il2CppObjectBase
+    {
+        castedObj = baseObj.TryCast<T>();
+        return castedObj != null;
+    }
+
+    public static bool IsNullOrEmpty<T>(this IEnumerable<T>? source) => source == null || (source.TryGetNonEnumeratedCount(out var count) ? count == 0 : source.Any());
 }

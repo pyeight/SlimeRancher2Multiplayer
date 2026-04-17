@@ -4,12 +4,13 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Packets.Actor;
 
 // Not sure what to call it, 'unload' as in when the actor leaves render distance.
-public struct ActorUnloadPacket : IPacket
+internal struct ActorUnloadPacket : IPacket
 {
     public ActorId ActorId;
 
     public readonly PacketType Type => PacketType.ActorUnload;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.ActorCritical;
 
     public readonly void Serialise(PacketWriter writer) => writer.WritePackedLong(ActorId.Value);
 

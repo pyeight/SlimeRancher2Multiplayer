@@ -4,11 +4,11 @@ using SR2MP.Packets.FX;
 namespace SR2MP.Patches.FX;
 
 [HarmonyPatch(typeof(SECTR_PointSource), nameof(SECTR_PointSource.Play))]
-public static class OnPointSourcePlay
+internal static class OnPointSourcePlay
 {
     public static void Postfix(SECTR_PointSource __instance)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         SendPacketWorld(__instance.Cue, __instance.transform.position);
 
@@ -17,7 +17,7 @@ public static class OnPointSourcePlay
 
     private static void SendPacketWorld(SECTR_AudioCue cue, Vector3 position)
     {
-        if (!fxManager.TryGetFXType(cue, out WorldFXType fxType))
+        if (!FXManager.TryGetFXType(cue, out WorldFXType fxType))
         {
             return;
         }

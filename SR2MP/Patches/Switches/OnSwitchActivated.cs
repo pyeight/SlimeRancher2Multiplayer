@@ -5,7 +5,7 @@ using SR2MP.Packets.Switch;
 namespace SR2MP.Patches.Switches;
 
 [HarmonyPatch]
-public static class OnSwitchActivated
+internal static class OnSwitchActivated
 {
     [HarmonyPostfix, HarmonyPatch(typeof(WorldStatePrimarySwitch), nameof(WorldStatePrimarySwitch.SetStateForAll))]
     public static void SetPrimary(WorldStatePrimarySwitch __instance, SwitchHandler.State state, bool immediate)
@@ -27,7 +27,7 @@ public static class OnSwitchActivated
 
     private static void SendPacket(SwitchHandler.State state, string id, bool immediate)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         Main.SendToAllOrServer(new WorldSwitchPacket
         {

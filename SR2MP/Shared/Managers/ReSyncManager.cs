@@ -13,16 +13,19 @@ using SR2MP.Packets.Economy;
 using SR2MP.Packets.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.TreasurePod;
-using SR2MP.Packets.World;
 using SR2MP.Packets.Utils;
+using SR2MP.Packets.World;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed class ReSyncManager
+internal sealed class ReSyncManager
 {
     private readonly Dictionary<string, DateTime> cooldowns = new();
     private static readonly TimeSpan CooldownDuration = TimeSpan.FromMinutes(2);
+
+    private DateTime lastSynchronizeAll = DateTime.MinValue;
+    private static readonly TimeSpan SynchronizeAllCooldown = TimeSpan.FromSeconds(5);
 
     public bool CanResync(IPEndPoint endPoint)
     {
@@ -35,7 +38,7 @@ public sealed class ReSyncManager
         cooldowns[endPoint.ToString()] = DateTime.UtcNow;
     }
 
-    public void SynchronizeClient(string playerId, IPEndPoint endPoint)
+    public static void SynchronizeClient(string playerId, IPEndPoint endPoint)
     {
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -46,7 +49,7 @@ public sealed class ReSyncManager
         {
             InitialJoin = false,
             PlayerId = playerId,
-            OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
+            OtherPlayers = Array.ConvertAll(PlayerManager.GetAllPlayers().ToArray(),
                 p => (p.PlayerId, p.Username)),
             Money = money,
             RainbowMoney = rainbowMoney,
@@ -54,18 +57,18 @@ public sealed class ReSyncManager
         };
         Main.Server.SendToClient(approvePacket, endPoint);
 
+        SendPlotsPacket(endPoint);
         SendGordoSlimesPacket(endPoint);
         SendSwitchesPacket(endPoint);
-        SendPlotsPacket(endPoint);
-        SendWeatherPacket(endPoint);
-        SendUpgradesPacket(endPoint);
         SendRefineryPacket(endPoint);
         SendPediaPacket(endPoint);
         SendMapPacket(endPoint);
         SendAccessDoorsPacket(endPoint);
         SendTreasurePodsPacket(endPoint);
+        SendUpgradesPacket(endPoint);
         SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
         SendPricesPacket(endPoint);
+        SendWeatherPacket(endPoint);
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
@@ -89,33 +92,41 @@ public sealed class ReSyncManager
 
     public void SynchronizeAll()
     {
-        var clients = Main.Server.clientManager.GetAllClients().ToList();
-        
-        var gordosPacket          = CreateGordoSlimesPacket();
-        var switchesPacket        = CreateSwitchesPacket();
-        var plotsPacket           = CreatePlotsPacket();
-        var upgradesPacket        = CreateUpgradesPacket();
-        var refineryPacket        = CreateRefineryPacket();
-        var pediaPacket           = CreatePediaPacket();
-        var mapPacket             = CreateMapPacket();
-        var accessDoorsPacket     = CreateAccessDoorsPacket();
-        var treasurePodsPacket    = CreateTreasurePodsPacket();
-        var pricesPacket          = CreatePricesPacket();
+        var now = DateTime.UtcNow;
+        if ((now - lastSynchronizeAll) < SynchronizeAllCooldown)
+        {
+            SynchronizeAllCooldownMessage();
+            return;
+        }
+        lastSynchronizeAll = now;
+
+        var clients = Main.Server.ClientManager.GetAllClients().ToList();
+
+        var gordosPacket       = CreateGordoSlimesPacket();
+        var switchesPacket     = CreateSwitchesPacket();
+        var plotsPacket        = CreatePlotsPacket();
+        var upgradesPacket     = CreateUpgradesPacket();
+        var refineryPacket     = CreateRefineryPacket();
+        var pediaPacket        = CreatePediaPacket();
+        var mapPacket          = CreateMapPacket();
+        var accessDoorsPacket  = CreateAccessDoorsPacket();
+        var treasurePodsPacket = CreateTreasurePodsPacket();
+        var pricesPacket       = CreatePricesPacket();
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
         var rainbowMoney = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>());
-        
+
         SrLogger.LogMessage("Resyncing all players...");
-        
+
         foreach (var client in clients)
         {
             var approvePacket = new ConnectionApprovePacket
             {
                 InitialJoin = false,
                 PlayerId = client.PlayerId,
-                OtherPlayers = Array.ConvertAll(playerManager.GetAllPlayers().ToArray(),
+                OtherPlayers = Array.ConvertAll(PlayerManager.GetAllPlayers().ToArray(),
                     p => (p.PlayerId, p.Username)),
                 Money = money,
                 RainbowMoney = rainbowMoney,
@@ -133,10 +144,12 @@ public sealed class ReSyncManager
             Main.Server.SendToClient(accessDoorsPacket,     client.EndPoint);
             Main.Server.SendToClient(treasurePodsPacket,    client.EndPoint);
             Main.Server.SendToClient(pricesPacket,          client.EndPoint);
-            
+
             SendWeatherPacket(client.EndPoint);
-            
+
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
+
+            SendWeatherPacket(client.EndPoint);
 
             SrLogger.LogPacketSize($"Player {client.PlayerId} resynced!");
         }
@@ -146,8 +159,8 @@ public sealed class ReSyncManager
         var chatPacket = new ChatMessagePacket
         {
             Username = "SYSTEM",
-            Message = "You have been resynced by the server.",
-            MessageID = $"SYSTEM_RESYNCALL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            Message = "The server issued a resync for all players.",
+            MessageID = $"SYSTEM_RESYNC_ALL_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
             MessageType = MultiplayerUI.SystemMessageConnect
         };
         Main.Server.SendToAll(chatPacket);
@@ -175,6 +188,18 @@ public sealed class ReSyncManager
             MessageType = MultiplayerUI.SystemMessageConnect
         };
         Main.Server.SendToClient(chatPacket, endPoint);
+    }
+
+    private static void SynchronizeAllCooldownMessage()
+    {
+        var chatPacket = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = "Resync all is on cooldown. Please wait before resyncing all players.",
+            MessageID = $"SYSTEM_RESYNCALL_COOLDOWN_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageDisconnect
+        };
+        MultiplayerUI.Instance.RegisterSystemMessage(chatPacket.Message, chatPacket.MessageID, chatPacket.MessageType);
     }
 
     private static void SendUpgradesPacket(IPEndPoint client)
@@ -215,7 +240,7 @@ public sealed class ReSyncManager
         var weatherRegistry = Resources.FindObjectsOfTypeAll<WeatherRegistry>().FirstOrDefault();
         if (weatherRegistry == null || weatherRegistry._model == null)
         {
-            SrLogger.LogError("WeatherRegistry or model not found!", SrLogTarget.Both);
+            SrLogger.LogError("WeatherRegistry or model not found!");
             return;
         }
 
@@ -238,7 +263,7 @@ public sealed class ReSyncManager
         var unlockedArray = Il2CppSystem.Linq.Enumerable
             .ToArray(unlocked.Cast<CppCollections.IEnumerable<PediaEntry>>());
 
-        var unlockedIDs = unlockedArray.Select(entry => entry.Cast<PediaEntry>().PersistenceId).ToList();
+        var unlockedIDs = unlockedArray.Select(entry => entry.TryCast<PediaEntry>()?.PersistenceId).ToList();
 
         return new InitialPediaPacket { Entries = unlockedIDs };
     }
@@ -254,7 +279,7 @@ public sealed class ReSyncManager
             SceneContext.Instance.eventDirector._model.table[MapEventKey] = maps;
         }
 
-        var mapsList = new List<string>();
+        var mapsList = new List<string?>();
 
         foreach (var map in maps)
             mapsList.Add(map.Key);
@@ -271,7 +296,11 @@ public sealed class ReSyncManager
 
         foreach (var door in GameState.doors)
         {
-            accessDoorsList.Add(new InitialAccessDoorsPacket.Door { ID = door.Key, State = door.Value.state });
+            accessDoorsList.Add(new InitialAccessDoorsPacket.Door
+            {
+                ID = door.Key,
+                State = door.Value.state
+            });
         }
 
         return new InitialAccessDoorsPacket { Doors = accessDoorsList };
@@ -281,7 +310,7 @@ public sealed class ReSyncManager
     {
         var actorsList = new List<InitialActorsPacket.ActorBase>();
 
-        foreach (var (_, model) in actorManager.Actors)
+        foreach (var (_, model) in ActorManager.Actors)
         {
             if (model.TryCast<GadgetModel>(out _))
                 continue;
@@ -320,7 +349,8 @@ public sealed class ReSyncManager
         {
             switchesList.Add(new InitialSwitchesPacket.Switch
             {
-                ID = switchKeyValuePair.key, State = switchKeyValuePair.value.state
+                ID = switchKeyValuePair.key,
+                State = switchKeyValuePair.value.state
             });
         }
 
@@ -359,7 +389,7 @@ public sealed class ReSyncManager
 
     private static InitialLandPlotsPacket CreatePlotsPacket()
     {
-        var landplotsList = new List<InitialLandPlotsPacket.BasePlot>();
+        var landPlotsList = new List<InitialLandPlotsPacket.BasePlot>();
 
         foreach (var (id, plot) in GameState.landPlots)
         {
@@ -371,7 +401,7 @@ public sealed class ReSyncManager
                         ? 9
                         : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
                 },
-                LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData()
+                LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData
                 {
                     CollectorAmmo = new NetworkAmmo
                     {
@@ -388,7 +418,7 @@ public sealed class ReSyncManager
                                 })!
                     }
                 },
-                LandPlot.Id.COOP => new InitialLandPlotsPacket.CoopPondData()
+                LandPlot.Id.COOP => new InitialLandPlotsPacket.CoopPondData
                 {
                     CollectorAmmo = new NetworkAmmo
                     {
@@ -405,7 +435,7 @@ public sealed class ReSyncManager
                                 })!
                     }
                 },
-                LandPlot.Id.INCINERATOR => new InitialLandPlotsPacket.IncineratorData()
+                LandPlot.Id.INCINERATOR => new InitialLandPlotsPacket.IncineratorData
                 {
                     AshLevel = plot.ashUnits,
                     PlortCollectorAmmo = new NetworkAmmo
@@ -425,7 +455,7 @@ public sealed class ReSyncManager
                 },
                 LandPlot.Id.SILO => new InitialLandPlotsPacket.SiloData
                 {
-                    SelectedSlots = plot.siloStorageIndices.ToList().ConvertAll<byte>(val => (byte)val),
+                    SelectedSlots = plot.siloStorageIndices.ToList().ConvertAll(val => (byte)val),
                     Ammo = new NetworkAmmo
                     {
                         AmmoSlots = (!plot.siloAmmo.ContainsKey(SiloAmmo)
@@ -441,7 +471,7 @@ public sealed class ReSyncManager
                                 })!
                     }
                 },
-                LandPlot.Id.CORRAL => new InitialLandPlotsPacket.CorralData()
+                LandPlot.Id.CORRAL => new InitialLandPlotsPacket.CorralData
                 {
                     AutoFeederSpeed = (byte)plot.feederCycleSpeed,
                     PlortCollectorAmmo = new NetworkAmmo()
@@ -476,13 +506,16 @@ public sealed class ReSyncManager
                 _ => null
             };
 
-            landplotsList.Add(new InitialLandPlotsPacket.BasePlot
+            landPlotsList.Add(new InitialLandPlotsPacket.BasePlot
             {
-                ID = id, Type = plot.typeId, Upgrades = plot.upgrades, Data = data
+                ID = id,
+                Type = plot.typeId,
+                Upgrades = plot.upgrades,
+                Data = data
             });
         }
 
-        return new InitialLandPlotsPacket { LandPlots = landplotsList };
+        return new InitialLandPlotsPacket { LandPlots = landPlotsList };
     }
 
     private static void SendPricesPacket(IPEndPoint client)
@@ -500,7 +533,7 @@ public sealed class ReSyncManager
 
         foreach (var treasurePod in GameState.pods)
         {
-            if (int.TryParse(treasurePod.key.Replace("pod", ""), out var podId))
+            if (int.TryParse(treasurePod.key.Replace("pod", string.Empty), out var podId))
                 treasurePods.Add(podId, treasurePod.value.state);
         }
 

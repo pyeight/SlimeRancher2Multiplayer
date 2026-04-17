@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Player;
 
 [PacketHandler((byte)PacketType.PlayerUpgrade)]
-public sealed class PlayerUpgradeHandler : BasePacketHandler<PlayerUpgradePacket>
+internal sealed class PlayerUpgradeHandler : BasePacketHandler<PlayerUpgradePacket>
 {
     protected override bool Handle(PlayerUpgradePacket packet, IPEndPoint? _)
     {
@@ -15,9 +15,9 @@ public sealed class PlayerUpgradeHandler : BasePacketHandler<PlayerUpgradePacket
         var upgrade = model.upgradeDefinitions.items._items.FirstOrDefault(
             x => x._uniqueId == packet.UpgradeID);
 
-        handlingPacket = true;
+        HandlingPacket = true;
         model.IncrementUpgradeLevel(upgrade);
-        handlingPacket = false;
+        HandlingPacket = false;
 
         return true;
     }

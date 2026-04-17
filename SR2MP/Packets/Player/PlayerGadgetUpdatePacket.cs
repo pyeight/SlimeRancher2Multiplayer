@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerGadgetUpdatePacket : IPacket
+internal sealed class PlayerGadgetUpdatePacket : IPacket
 {
     public bool Enabled;
     public string PlayerId;
@@ -13,7 +13,8 @@ public sealed class PlayerGadgetUpdatePacket : IPacket
     public bool ValidPlacement;
 
     public PacketType Type => PacketType.PlayerGadgetUpdate;
-    public PacketReliability Reliability => PacketReliability.Unreliable;
+    public PacketReliability Reliability => PacketReliability.Ordered;
+    public NetworkChannel Channel => NetworkChannel.PlayerUpdate;
 
     public void Serialise(PacketWriter writer)
     {
@@ -32,7 +33,7 @@ public sealed class PlayerGadgetUpdatePacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         Enabled = reader.ReadBool();
-        PlayerId = reader.ReadStringWithSize(16)!;
+        PlayerId = reader.ReadPooledStringOfSize(16)!;
 
         if (!Enabled) return;
 

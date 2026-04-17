@@ -2,7 +2,7 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public sealed class GardenUpdatePacket : IPacket
+internal sealed class GardenUpdatePacket : IPacket
 {
     public string GardenID;
     public double NextSpawnTime;
@@ -11,6 +11,7 @@ public sealed class GardenUpdatePacket : IPacket
 
     public PacketType Type => PacketType.GardenUpdate;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {
@@ -22,7 +23,7 @@ public sealed class GardenUpdatePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        GardenID = reader.ReadString();
+        GardenID = reader.ReadPooledString()!;
         NextSpawnTime = reader.ReadDouble();
         StoredWater = reader.ReadFloat();
         NextSpawnRipens = reader.ReadBool();

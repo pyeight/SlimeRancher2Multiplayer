@@ -1,10 +1,10 @@
-using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.Regions;
-using Il2CppMonomiPark.SlimeRancher.Slime;
 using System.Collections;
 using Il2CppInterop.Runtime.Attributes;
+using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
-using Il2CppMonomiPark.SlimeRancher.World;
+using Il2CppMonomiPark.SlimeRancher.Regions;
+using Il2CppMonomiPark.SlimeRancher.Slime;
+using JetBrains.Annotations;
 using MelonLoader;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Utils;
@@ -15,33 +15,36 @@ using Type = Il2CppSystem.Type;
 namespace SR2MP.Components.Actor;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class NetworkActor : MonoBehaviour
+internal sealed class NetworkActor : MonoBehaviour
 {
-    internal RegionMember? regionMember;
+    public RegionMember? RegionMember;
+
     private Identifiable identifiable;
     private ResourceCycle? cycle;
     private Rigidbody rigidbody;
     private SlimeEmotions emotions;
-    private PlortModel plortModel;
-    
-    public float syncTimer = Timers.ActorTimer;
+    private PlortModel? plortModel;
+
+    public float SyncTimer = Timers.ActorTimer;
+    public bool ShouldUpdateResourceState;
+    public bool IsValid = true;
+    public bool IsDestroyed;
+    public byte AttemptedGetIdentifiable;
+    public bool CachedLocallyOwned;
+
     private bool? CycleReleasing => cycle?._preparingToRelease;
     private bool? cachedCycleReleasing;
-    public bool shouldUpdateResourceState;
     private ResourceCycle.State? prevResourceState;
-    public bool isValid = true;
-    public bool isDestroyed;
-    public byte attemptedGetIdentifiable;
-    public bool cachedLocallyOwned;
-    
-    private Vector3 SavedVelocity { get; set; }
-    public Vector3 previousPosition;
-    public Vector3 nextPosition;
-    public Quaternion previousRotation;
-    public Quaternion nextRotation;
-    public float interpolationStart;
-    public float interpolationEnd;
-    
+
+    private Vector3 savedVelocity;
+
+    public Vector3 PreviousPosition;
+    public Vector3 NextPosition;
+    public Quaternion PreviousRotation;
+    public Quaternion NextRotation;
+    public float InterpolationStart;
+    public float InterpolationEnd;
+
     private bool isSlime;
     private bool isResource;
     private bool isPlort;
@@ -50,32 +53,32 @@ public sealed class NetworkActor : MonoBehaviour
     {
         get
         {
-            if (isDestroyed)
+            if (IsDestroyed)
             {
-                isValid = false;
+                IsValid = false;
                 return new ActorId(0);
             }
 
             if (identifiable != null)
                 return GetActorIdSafe();
 
-            if (attemptedGetIdentifiable >= 10)
+            if (AttemptedGetIdentifiable >= 10)
             {
-                SrLogger.LogWarning("Failed to get Identifiable after 10 attempts", SrLogTarget.Both);
-                isValid = false;
+                SrLogger.LogWarning("Failed to get Identifiable after 10 attempts");
+                IsValid = false;
                 return new ActorId(0);
             }
 
             try
             {
                 identifiable = GetComponent<Identifiable>();
-                attemptedGetIdentifiable++;
+                AttemptedGetIdentifiable++;
             }
             catch (Exception ex)
             {
-                SrLogger.LogWarning($"Failed to get Identifiable component: {ex.Message}", SrLogTarget.Both);
-                attemptedGetIdentifiable++;
-                isValid = false;
+                SrLogger.LogWarning($"Failed to get Identifiable component: {ex.Message}");
+                AttemptedGetIdentifiable++;
+                IsValid = false;
                 return new ActorId(0);
             }
 
@@ -91,15 +94,15 @@ public sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"Failed to get ActorId: {ex.Message}", SrLogTarget.Both);
-            isValid = false;
+            SrLogger.LogWarning($"Failed to get ActorId: {ex.Message}");
+            IsValid = false;
             return new ActorId(0);
         }
     }
 
     public bool LocallyOwned { get; set; }
 
-    private void Start()
+    public void Start()
     {
         try
         {
@@ -108,23 +111,23 @@ public sealed class NetworkActor : MonoBehaviour
                 Destroy(this);
                 return;
             }
-            
+
             emotions = GetComponent<SlimeEmotions>();
             rigidbody = GetComponent<Rigidbody>();
             identifiable = GetComponent<Identifiable>();
             cycle = GetComponent<ResourceCycle>();
-            regionMember = GetComponent<RegionMember>();
-            cachedLocallyOwned = LocallyOwned;
-            
+            RegionMember = GetComponent<RegionMember>();
+            CachedLocallyOwned = LocallyOwned;
+
             GetActorType();
-            
-            if (regionMember != null)
+
+            if (RegionMember != null)
                 SetupHibernationEvent();
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"NetworkActor.Start error: {ex}", SrLogTarget.Both);
-            isValid = false;
+            SrLogger.LogError($"NetworkActor.Start error: {ex}");
+            IsValid = false;
         }
     }
 
@@ -155,11 +158,11 @@ public sealed class NetworkActor : MonoBehaviour
                 nameof(HibernationChanged),
                 true);
 
-            regionMember?.add_BeforeHibernationChanged(hibernationDelegate.Cast<RegionMember.OnHibernationChange>());
+            RegionMember?.add_BeforeHibernationChanged(hibernationDelegate.Cast<RegionMember.OnHibernationChange>());
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}");
         }
     }
 
@@ -168,85 +171,82 @@ public sealed class NetworkActor : MonoBehaviour
     {
         yield return null;
 
-        if (!isValid || isDestroyed)
+        if (!IsValid || IsDestroyed)
             yield break;
 
         try
         {
             var actorId = ActorId;
+
             if (actorId.Value == 0)
                 yield break;
 
+            LocallyOwned = !hibernating;
+
             if (hibernating)
-            {
-                LocallyOwned = false;
                 Main.SendToAllOrServer(new ActorUnloadPacket { ActorId = actorId });
-            }
             else
-            {
-                LocallyOwned = true;
                 Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
-            }
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"WaitOneFrameOnHibernationChange error: {ex}", SrLogTarget.Both);
-            isValid = false;
+            SrLogger.LogError($"WaitOneFrameOnHibernationChange error: {ex}");
+            IsValid = false;
         }
     }
 
     public void HibernationChanged(bool value)
     {
-        if (isValid && !isDestroyed)
+        if (!IsValid || IsDestroyed)
+            return;
+
+        try
         {
-            try
-            {
-                MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogError($"HibernationChanged error: {ex}", SrLogTarget.Both);
-            }
+            MelonCoroutines.Start(WaitOneFrameOnHibernationChange(value));
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"HibernationChanged error: {ex}");
         }
     }
 
     public void OnNetworkUpdate(ActorUpdatePacket packet)
     {
-        if (LocallyOwned || isDestroyed)
+        if (LocallyOwned || IsDestroyed)
             return;
 
-        previousPosition = transform.position;
-        previousRotation = transform.rotation;
-        nextPosition = packet.Position;
-        nextRotation = packet.Rotation;
-        SavedVelocity = packet.Velocity;
-        interpolationStart = UnityEngine.Time.unscaledTime;
-        interpolationEnd = interpolationStart + Timers.ActorTimer;
+        PreviousPosition = transform.position;
+        PreviousRotation = transform.rotation;
+        NextPosition = packet.Position;
+        NextRotation = packet.Rotation;
+        savedVelocity = packet.Velocity;
+        InterpolationStart = UnityEngine.Time.unscaledTime;
+        InterpolationEnd = InterpolationStart + Timers.ActorTimer;
     }
 
     private void UpdateInterpolation()
     {
-        if (LocallyOwned || isDestroyed || interpolationEnd <= interpolationStart)
+        if (LocallyOwned || IsDestroyed || InterpolationEnd <= InterpolationStart)
             return;
 
-        var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
+        var timer = Mathf.InverseLerp(InterpolationStart, InterpolationEnd, UnityEngine.Time.unscaledTime);
         timer = Mathf.Clamp01(timer);
 
-        transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
-        transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
+        transform.position = Vector3.Lerp(PreviousPosition, NextPosition, timer);
+        transform.rotation = Quaternion.Lerp(PreviousRotation, NextRotation, timer);
 
         if (rigidbody)
-            rigidbody.velocity = SavedVelocity;
+            rigidbody.velocity = savedVelocity;
     }
 
-    private void Update()
+    public void Update()
     {
-        if (isDestroyed)
+        if (IsDestroyed)
             return;
 
-        if (!isValid)
+        if (!IsValid)
         {
-            isDestroyed = true;
+            IsDestroyed = true;
             Destroy(this);
             return;
         }
@@ -257,10 +257,10 @@ public sealed class NetworkActor : MonoBehaviour
             HandleOwnershipChange();
             HandleCycleReleasing();
 
-            syncTimer -= UnityEngine.Time.unscaledDeltaTime;
+            SyncTimer -= UnityEngine.Time.unscaledDeltaTime;
             UpdateInterpolation();
 
-            if (syncTimer >= 0)
+            if (SyncTimer >= 0)
                 return;
 
             if (LocallyOwned)
@@ -268,30 +268,31 @@ public sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"NetworkActor.Update error: {ex}", SrLogTarget.Both);
-            isValid = false;
+            SrLogger.LogError($"NetworkActor.Update error: {ex}");
+            IsValid = false;
         }
     }
 
     private void UpdateResourceState()
     {
-        if (!isResource || LocallyOwned || cycle == null || cycle._model == null || shouldUpdateResourceState)
+        if (!isResource || LocallyOwned || cycle == null || cycle._model == null || ShouldUpdateResourceState)
             return;
 
         cycle._model.progressTime = double.MaxValue;
-        shouldUpdateResourceState = false;
+        ShouldUpdateResourceState = false;
     }
 
     private void HandleOwnershipChange()
     {
-        if (cachedLocallyOwned == LocallyOwned)
+        if (CachedLocallyOwned == LocallyOwned)
             return;
 
         SetRigidbodyState(LocallyOwned);
-        if (LocallyOwned && rigidbody)
-            rigidbody.velocity = SavedVelocity;
 
-        cachedLocallyOwned = LocallyOwned;
+        if (LocallyOwned && rigidbody)
+            rigidbody.velocity = savedVelocity;
+
+        CachedLocallyOwned = LocallyOwned;
     }
 
     private void HandleCycleReleasing()
@@ -300,23 +301,26 @@ public sealed class NetworkActor : MonoBehaviour
             return;
 
         cachedCycleReleasing = CycleReleasing;
+
         if (CycleReleasing != true)
             return;
 
         var actorId = ActorId;
+
         if (actorId.Value != 0)
             Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
     }
 
     private void SendNetworkUpdate()
     {
-        syncTimer = Timers.ActorTimer;
-        previousPosition = transform.position;
-        previousRotation = transform.rotation;
-        nextPosition = transform.position;
-        nextRotation = transform.rotation;
+        SyncTimer = Timers.ActorTimer;
+        PreviousPosition = transform.position;
+        PreviousRotation = transform.rotation;
+        NextPosition = transform.position;
+        NextRotation = transform.rotation;
 
         var actorId = ActorId;
+
         if (actorId.Value == 0)
             return;
 
@@ -329,8 +333,8 @@ public sealed class NetworkActor : MonoBehaviour
         var packet = new ActorUpdatePacket
         {
             ActorId = actorId,
-            Position = transform.position,
-            Rotation = transform.rotation,
+            Position = NextPosition,
+            Rotation = NextRotation,
             Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
         };
 
@@ -342,16 +346,17 @@ public sealed class NetworkActor : MonoBehaviour
         else if (isResource)
         {
             packet.UpdateType = ActorUpdateType.Resource;
-            if (cycle?._model != null)
-            {
-                packet.ResourceProgress = cycle._model.progressTime;
-                packet.ResourceState = cycle._model.state;
-            }
+
+            if (cycle?._model == null)
+                return packet;
+
+            packet.ResourceProgress = cycle._model.progressTime;
+            packet.ResourceState = cycle._model.state;
         }
         else if (isPlort)
         {
             packet.UpdateType = ActorUpdateType.Plort;
-            
+
             plortModel ??= GetComponent<PlortModel>();
 
             packet.Invulnerable = plortModel?._invulnerability?.IsInvulnerable ?? false;
@@ -367,7 +372,7 @@ public sealed class NetworkActor : MonoBehaviour
 
     private void SetRigidbodyState(bool enableConstraints)
     {
-        if (rigidbody == null || isDestroyed)
+        if (rigidbody == null || IsDestroyed)
             return;
 
         try
@@ -376,14 +381,15 @@ public sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"SetRigidbodyState error: {ex.Message}", SrLogTarget.Both);
+            SrLogger.LogWarning($"SetRigidbodyState error: {ex.Message}");
         }
     }
 
-    private void OnDestroy()
+    [UsedImplicitly]
+    public void OnDestroy()
     {
-        isDestroyed = true;
-        isValid = false;
+        IsDestroyed = true;
+        IsValid = false;
     }
 
     public void SetResourceState(ResourceCycle.State state, double progress, bool force = false)
@@ -391,7 +397,7 @@ public sealed class NetworkActor : MonoBehaviour
         if (cycle == null)
             return;
 
-        shouldUpdateResourceState = true;
+        ShouldUpdateResourceState = true;
 
         if (cycle._model != null)
             cycle._model.progressTime = progress;
@@ -410,7 +416,7 @@ public sealed class NetworkActor : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"SetResourceState error: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"SetResourceState error: {ex}");
         }
     }
 
@@ -430,6 +436,8 @@ public sealed class NetworkActor : MonoBehaviour
             case ResourceCycle.State.ROTTEN:
                 cycle!.SetRotten(false);
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(state), state, null);
         }
     }
 
@@ -453,15 +461,16 @@ public sealed class NetworkActor : MonoBehaviour
         if (gameObject.transform.localScale.x < cycle._defaultScale.x)
             gameObject.transform.localScale = cycle._defaultScale;
 
-        if (cycle._joint != null)
+        if (cycle._joint == null)
+            return;
+
+        if (rigidbody)
         {
-            if (rigidbody)
-            {
-                rigidbody.isKinematic = false;
-                rigidbody.WakeUp();
-            }
-            cycle.DetachFromJoint();
+            rigidbody.isKinematic = false;
+            rigidbody.WakeUp();
         }
+
+        cycle.DetachFromJoint();
     }
 
     private void HandleEdibleState()

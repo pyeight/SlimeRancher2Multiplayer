@@ -74,9 +74,9 @@ public sealed class ClientManager
         }
     }
 
-    public List<ClientInfo> GetAllClients()
+    public ICollection<ClientInfo> GetAllClients()
     {
-        return clients.Values.ToList();
+        return clients.Values;
     }
 
     public List<ClientInfo> GetTimedOutClients()
@@ -88,8 +88,7 @@ public sealed class ClientManager
 
     public void RemoveTimedOutClients()
     {
-        var timedOut = GetTimedOutClients();
-        foreach (var client in timedOut)
+        foreach (var client in GetTimedOutClients())
         {
             RemoveClient(client.GetClientInfo());
         }
@@ -105,6 +104,6 @@ public sealed class ClientManager
             OnClientRemoved?.Invoke(client);
         }
 
-        SrLogger.LogMessage("All clients cleared", SrLogTarget.Both);
+        SrLogger.LogMessage("All clients cleared");
     }
 }

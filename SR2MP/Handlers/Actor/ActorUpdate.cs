@@ -8,11 +8,11 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorUpdate)]
-public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
+internal sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 {
     protected override bool Handle(ActorUpdatePacket packet, IPEndPoint? _)
     {
-        if (!actorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
+        if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
             return false;
 
         var actor = model.Cast<ActorModel>();
@@ -22,30 +22,31 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
 
         SlimeModel? slime = null;
         ProduceModel? resource = null;
-        PlortModel? plort = null;
-        
+        // PlortModel? plort = null;
+
         var actorId = packet.ActorId;
         if (actorId.Value != 0 && GameState.identifiables.TryGetValue(actorId, out var identModel))
         {
             if (identModel == null)
                 SrLogger.LogWarning("IdentifiableModel is null in update handler!");
-            
+
             slime = identModel!.TryCast<SlimeModel>();
-            resource = identModel!.TryCast<ProduceModel>();
-            plort = identModel!.TryCast<PlortModel>();
+            resource = identModel.TryCast<ProduceModel>();
+            // plort = identModel.TryCast<PlortModel>();
         }
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
             return false;
-        
+
         networkComponent.OnNetworkUpdate(packet);
 
-        if (networkComponent.regionMember?._hibernating == true)
+        if (networkComponent.RegionMember?._hibernating == true)
         {
             networkComponent.transform.position = packet.Position;
             networkComponent.transform.rotation = packet.Rotation;
         }
 
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (packet.UpdateType)
         {
             case ActorUpdateType.Slime when slime != null:
@@ -55,12 +56,12 @@ public sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
                     slimeEmotions.SetAll(packet.Emotions);
                 break;
             }
-            
+
             case ActorUpdateType.Resource when resource != null:
             {
                 resource.state = packet.ResourceState;
                 resource.progressTime = packet.ResourceProgress;
-                
+
                 networkComponent.SetResourceState(packet.ResourceState, packet.ResourceProgress);
                 break;
             }

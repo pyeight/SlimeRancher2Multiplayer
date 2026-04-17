@@ -20,29 +20,31 @@ public sealed class RemotePlayerManager
         return player;
     }
 
-    public RemotePlayer AddPlayer(string playerId)
+    internal RemotePlayer AddPlayer(string playerId)
     {
         var player = new RemotePlayer(playerId);
 
         if (players.TryAdd(playerId, player))
         {
-            SrLogger.LogMessage($"Remote player added: {playerId}", SrLogTarget.Both);
+            SrLogger.LogMessage($"Remote player added: {playerId}");
             OnPlayerAdded?.Invoke(playerId);
             return player;
         }
-        SrLogger.LogWarning($"Remote player already exists: {playerId}", SrLogTarget.Both);
+
+        SrLogger.LogWarning($"Remote player already exists: {playerId}");
         return players[playerId];
     }
 
-    public bool RemovePlayer(string playerId)
+    internal bool RemovePlayer(string playerId)
     {
         if (!players.TryRemove(playerId, out _))
             return false;
-        SrLogger.LogMessage($"Remote player removed: {playerId}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Remote player removed: {playerId}");
         OnPlayerRemoved?.Invoke(playerId);
         return true;
     }
-    public static void SendPlayerUpdate(
+
+    internal static void SendPlayerUpdate(
         Vector3 position,
         float rotation,
         float horizontalMovement = 0f,
@@ -55,7 +57,7 @@ public sealed class RemotePlayerManager
         bool sprinting = false,
         float lookY = 0f)
     {
-        var playerId = Main.Client.IsConnected ? Main.Client.PlayerId : Main.Server.IsRunning() ? Main.Server.PlayerId : string.Empty;
+        var playerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning ? Main.Server.PlayerId : string.Empty);
         var updatePacket = new PlayerUpdatePacket
         {
             PlayerId = playerId,
@@ -74,7 +76,7 @@ public sealed class RemotePlayerManager
         Main.SendToAllOrServer(updatePacket);
     }
 
-    public void UpdatePlayer(
+    internal void UpdatePlayer(
         string playerId,
         Vector3 position,
         float rotation,
@@ -110,7 +112,7 @@ public sealed class RemotePlayerManager
         return players.Values.ToList();
     }
 
-    public void Clear()
+    internal void Clear()
     {
         var allPlayers = players.Keys.ToList();
         players.Clear();
@@ -120,6 +122,6 @@ public sealed class RemotePlayerManager
             OnPlayerRemoved?.Invoke(playerId);
         }
 
-        SrLogger.LogMessage("All remote players cleared!", SrLogTarget.Both);
+        SrLogger.LogMessage("All remote players cleared!");
     }
 }

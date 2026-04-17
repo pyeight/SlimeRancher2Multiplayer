@@ -6,17 +6,17 @@ namespace SR2MP.Patches.Weather;
 
 [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.StopState))]
 [HarmonyPatch(typeof(WeatherDirector), nameof(WeatherDirector.RunState))]
-public static class WeatherDirectorStatePatches
+internal static class WeatherDirectorStatePatches
 {
     public static bool Prefix()
     {
         WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
+        return !Main.Client.IsConnected || HandlingPacket;
     }
 
     public static void Postfix()
     {
-        if (Main.Server.IsRunning() && !handlingPacket)
+        if (Main.Server.IsRunning && !HandlingPacket)
         {
             WeatherUpdateHelper.SendWeatherUpdate();
         }

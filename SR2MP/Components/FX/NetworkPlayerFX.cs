@@ -1,22 +1,23 @@
+using JetBrains.Annotations;
 using MelonLoader;
 using SR2MP.Packets.FX;
 
 namespace SR2MP.Components.FX;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class NetworkPlayerFX : MonoBehaviour
+internal sealed class NetworkPlayerFX : MonoBehaviour
 {
-    public PlayerFXType fxType;
+    public PlayerFXType FXType;
 
-    public void OnEnable() => SendPacket();
-
-    private void SendPacket()
+    [UsedImplicitly]
+    public void OnEnable()
     {
-        if (handlingPacket) return;
+        if (HandlingPacket)
+            return;
 
         var packet = new PlayerFXPacket
         {
-            FX = fxType,
+            FX = FXType,
             Position = transform.position
         };
 

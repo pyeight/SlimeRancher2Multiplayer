@@ -2,12 +2,13 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Upgrade;
 
-public struct PlayerUpgradePacket : IPacket
+internal struct PlayerUpgradePacket : IPacket
 {
     public byte UpgradeID;
 
     public readonly PacketType Type => PacketType.PlayerUpgrade;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.WorldState;
 
     public readonly void Serialise(PacketWriter writer) => writer.WriteByte(UpgradeID);
 

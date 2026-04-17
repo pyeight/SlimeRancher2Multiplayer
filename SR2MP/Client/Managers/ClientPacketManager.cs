@@ -1,29 +1,26 @@
-using System.Reflection;
+using System.Buffers;
 using System.Net;
-using SR2MP.Packets.Utils;
+using System.Reflection;
+using HarmonyLib;
 using SR2MP.Packets.Internal;
+using SR2MP.Packets.Utils;
+using SR2MP.Shared;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
-using System.Buffers;
-using SR2MP.Shared;
 
 namespace SR2MP.Client.Managers;
 
-public sealed class ClientPacketManager
+internal sealed class ClientPacketManager
 {
-    private readonly Dictionary<byte, IClientPacketHandler> handlers = new();
-    private readonly SR2MPClient client;
+    private readonly Dictionary<byte, IClientPacketHandler> Handlers = new();
+    private readonly SR2MPClient Client;
 
-    public ClientPacketManager(SR2MPClient client)
-    {
-        this.client = client;
-    }
+    internal ClientPacketManager(SR2MPClient client) => Client = client;
 
-    public void RegisterHandlers()
+    public void RegisterHandlers(Assembly assembly)
     {
-        var handlerTypes = Main.Core.GetTypes()
+        var handlerTypes = AccessTools.GetTypesFromAssembly(assembly)
             .Where(type => type.GetCustomAttribute<PacketHandlerAttribute>() != null
-                        && typeof(IClientPacketHandler).IsAssignableFrom(type)
                         && !type.IsAbstract);
 
         foreach (var type in handlerTypes)
@@ -35,52 +32,53 @@ public sealed class ClientPacketManager
             {
                 if (Activator.CreateInstance(type) is IClientPacketHandler handler)
                 {
-                    handlers[attribute.PacketType] = handler;
+                    Handlers[attribute.PacketType] = handler;
                     handler.IsServerSide = false;
-                    SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}", SrLogTarget.Both);
+                    SrLogger.LogMessage($"Registered client handler: {type.Name} for packet type {attribute.PacketType}");
                 }
             }
             catch (Exception ex)
             {
-                SrLogger.LogWarning($"Failed to register client handler {type.Name}: {ex}", SrLogTarget.Both);
+                SrLogger.LogWarning($"Failed to register client handler {type.Name}: {ex}");
             }
         }
 
-        SrLogger.LogMessage($"Total client packet handlers registered: {handlers.Count}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Total client packet handlers registered: {Handlers.Count}");
     }
 
-    public void HandlePacket(byte[] data, int receivedBytes, IPEndPoint serverEp)
+    internal void HandlePacket(byte[] data, int receivedBytes, IPEndPoint serverEp)
     {
-        // Header is now 12 bytes: 10 original + 2 CRC
         if (receivedBytes < HeaderSize)
         {
-            SrLogger.LogMessage($"Received packet too small for chunk header: {receivedBytes} bytes", SrLogTarget.Both);
+            SrLogger.LogMessage($"Received packet too small for chunk header: {receivedBytes} bytes");
             return;
         }
 
+        // 13 byte header:
         var packetTypeHeader = data[0];
         var chunkIndex       = (ushort)(data[1] | (data[2] << 8));
         var totalChunks      = (ushort)(data[3] | (data[4] << 8));
         var packetId         = (ushort)(data[5] | (data[6] << 8));
-        var reliability      = (PacketReliability)data[7];
-        var sequenceNumber   = (ushort)(data[8] | (data[9] << 8));
-        var receivedCrc      = (ushort)(data[10] | (data[11] << 8));
+        var channel          = (NetworkChannel)data[7];
+        var reliability      = (PacketReliability)data[8];
+        var sequenceNumber   = (ushort)(data[9] | (data[10] << 8));
+        var receivedCrc      = (ushort)(data[11] | (data[12] << 8));
 
         var trueChunkLength = receivedBytes - HeaderSize;
-        
+
         var expectedCrc = PacketCRC.Compute(data, HeaderSize, trueChunkLength);
+
         if (receivedCrc != expectedCrc)
         {
             SrLogger.LogPacketAcknowledge(
                 $"Corrupted packet dropped: type={packetTypeHeader}" +
-                $"expected=0x{expectedCrc:X4} received=0x{receivedCrc:X4}",
-                SrLogTarget.Both);
+                $"expected=0x{expectedCrc:X4} received=0x{receivedCrc:X4}");
             return;
         }
 
         var packetType = (PacketType)packetTypeHeader;
-
         var packetReliability = reliability;
+        var packetChannel = channel;
         var packetSequenceNumber = sequenceNumber;
 
         PacketReader reader;
@@ -95,7 +93,7 @@ public sealed class ClientPacketManager
             {
                 var singleChunkData = ArrayPool<byte>.Shared.Rent(trueChunkLength);
                 data.AsSpan(HeaderSize, trueChunkLength).CopyTo(singleChunkData);
-                reader = PacketBufferPool.GetReader(singleChunkData, trueChunkLength, true);
+                reader = PacketReader.Borrow(singleChunkData, trueChunkLength, true);
             }
         }
         else
@@ -105,32 +103,32 @@ public sealed class ClientPacketManager
 
             if (!PacketChunkManager.TryMergePacket(packetType,
                 chunkData, trueChunkLength, chunkIndex, totalChunks,
-                packetId, serverEp, reliability, sequenceNumber,
-                out reader, out packetReliability, out packetSequenceNumber))
+                packetId, serverEp, reliability, channel, sequenceNumber,
+                out reader, out packetReliability, out packetChannel, out packetSequenceNumber))
             {
-                PacketBufferPool.Return(reader);
+                PacketReader.Return(reader);
                 return;
             }
         }
 
-        // Handle reliability ACK packets
+        // Handle ACK packets
         if (packetTypeHeader == (byte)PacketType.ReservedAcknowledge)
         {
             try
             {
                 var ackPacket = reader.ReadPacket<AckPacket>();
-                client.HandleAck(serverEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
+                Client.HandleAck(serverEp, ackPacket.PacketId, ackPacket.OriginalPacketType);
             }
             finally
             {
-                PacketBufferPool.Return(reader);
+                PacketReader.Return(reader);
             }
 
             return;
         }
 
         // Sends ACK for reliable packets
-        if (packetReliability != PacketReliability.Unreliable)
+        if (packetReliability.HasFlag(PacketReliability.Reliable))
         {
             if (!Main.Client.IsConnected) return;
             SendAck(packetId, packetTypeHeader);
@@ -140,38 +138,51 @@ public sealed class ClientPacketManager
 
         if (PacketDeduplication.IsDuplicate(packetKey))
         {
-            PacketBufferPool.Return(reader);
-            SrLogger.LogPacketSize($"Duplicate packet ignored: {packetType} (packetId={packetId})", SrLogTarget.Both);
+            PacketReader.Return(reader);
+            SrLogger.LogPacketSize($"Duplicate packet ignored: {packetType} (packetId={packetId})");
             return;
         }
 
-        if (packetReliability == PacketReliability.ReliableOrdered &&
-            !client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetTypeHeader))
+        if (!packetReliability.HasFlag(PacketReliability.Ordered))
         {
-            PacketBufferPool.Return(reader);
+            DispatchAction();
             return;
         }
 
-        if (handlers.TryGetValue(packetTypeHeader, out var handler))
+        if (Client.ShouldProcessOrderedPacket(serverEp, packetSequenceNumber, packetTypeHeader, packetChannel, packetReliability, DispatchAction))
         {
-            MainThreadDispatcher.Enqueue(new ClientHandleCache(reader, handler));
+            DispatchAction();
+            return;
         }
-        else
+
+        if (packetReliability == PacketReliability.Ordered)
+            PacketReader.Return(reader);
+
+        void DispatchAction()
         {
-            SrLogger.LogError($"No client handler found for packet type: {packetType}", SrLogTarget.Both);
+            if (Handlers.TryGetValue(packetTypeHeader, out var h))
+            {
+                MainThreadDispatcher.Instance.Enqueue(new ClientHandleCache(reader, h));
+            }
+            else
+            {
+                SrLogger.LogError($"No client handler found for packet type: {packetType}");
+                PacketReader.Return(reader);
+            }
         }
     }
 
     private void SendAck(ushort packetId, byte packetType)
     {
-        if (!Main.Client.IsConnected) return;
+        if (!Main.Client.IsConnected)
+            return;
 
-        var ackPacket = new AckPacket()
+        var ackPacket = new AckPacket
         {
             PacketId = packetId,
             OriginalPacketType = packetType
         };
 
-        client.SendPacket(ackPacket);
+        Client.SendPacket(ackPacket);
     }
 }

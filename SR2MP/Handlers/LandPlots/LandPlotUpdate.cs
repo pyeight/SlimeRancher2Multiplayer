@@ -5,25 +5,25 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.LandPlots;
 
-public abstract class LandPlotUpdateHandler<T> : BasePacketHandler<T> where T : LandPlotUpdatePacket, new()
+internal abstract class LandPlotUpdateHandler<T> : BasePacketHandler<T> where T : LandPlotUpdatePacket, new()
 {
 }
 
 [PacketHandler((byte)PacketType.LandPlotUpgrade)]
-public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgradePacket>
+internal sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgradePacket>
 {
     protected override bool Handle(LandPlotUpgradePacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
+        var model = GameState.landPlots[packet.PlotID];
 
-        model.upgrades.Add(packet.PlotUpgrade);
+        model.upgrades.Add(packet.ID);
 
         if (model.gameObj)
         {
             var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
-            handlingPacket = true;
-            landPlotComponent.AddUpgrade(packet.PlotUpgrade);
-            handlingPacket = false;
+            HandlingPacket = true;
+            landPlotComponent.AddUpgrade(packet.ID);
+            HandlingPacket = false;
         }
 
         return true;
@@ -31,23 +31,23 @@ public sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpgra
 }
 
 [PacketHandler((byte)PacketType.NewLandPlot)]
-public sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
+internal sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
 {
     protected override bool Handle(NewLandPlotPacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
+        var model = GameState.landPlots[packet.PlotID];
 
-        model.typeId = packet.PlotType;
+        model.typeId = packet.ID;
 
         if (model.gameObj)
         {
             var location = model.gameObj.GetComponent<LandPlotLocation>();
             var landPlotComponent = model.gameObj.GetComponentInChildren<LandPlot>();
 
-            handlingPacket = true;
+            HandlingPacket = true;
             location.Replace(landPlotComponent,
-                GameContext.Instance.LookupDirector._plotPrefabDict[packet.PlotType]);
-            handlingPacket = false;
+                GameContext.Instance.LookupDirector._plotPrefabDict[packet.ID]);
+            HandlingPacket = false;
         }
 
         return true;

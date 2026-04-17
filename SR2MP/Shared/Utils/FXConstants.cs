@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace SR2MP.Shared.Utils;
 
-public static class FXConstants
+internal static class FXConstants
 {
     #region Player FX
     public static readonly ReadOnlyDictionary<PlayerFXType, bool> IsPlayerSoundDictionary = new(new Dictionary<PlayerFXType, bool>

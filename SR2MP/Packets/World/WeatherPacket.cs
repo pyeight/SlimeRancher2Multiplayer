@@ -6,16 +6,17 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public sealed class WeatherPacket : IPacket
+internal sealed class WeatherPacket : IPacket
 {
     public Dictionary<byte, WeatherZoneData> Zones;
 
     public PacketType Type { get; private init; }
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Weather;
 
-    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Zones, PacketWriterDels.Byte, PacketWriterDels.NetObject<WeatherZoneData>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Zones, PacketWriterDels.Byte, PacketWriterDels.NetObject<WeatherZoneData>.Writer);
 
-    public void Deserialise(PacketReader reader) => Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Func);
+    public void Deserialise(PacketReader reader) => Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Reader)!;
 
     public static IEnumerator CreateFromModel(
         WeatherModel model,
@@ -32,6 +33,7 @@ public sealed class WeatherPacket : IPacket
 
         foreach (var zone in model._zoneDatas)
         {
+            yield return null;
             var zoneData = new WeatherZoneData
             {
                 WeatherForecasts = new List<WeatherForecast>(),
@@ -39,6 +41,7 @@ public sealed class WeatherPacket : IPacket
             };
             foreach (var forecast in zone.Value.Forecast)
             {
+                yield return null;
                 if (!forecast.Started)
                     continue;
 
@@ -53,32 +56,32 @@ public sealed class WeatherPacket : IPacket
 
             packet.Zones.Add(zoneId++, zoneData);
 
-            yield return new WaitFrames(6);
+            yield return new WaitFrames(3);
         }
 
         onComplete?.Invoke(packet);
     }
 }
 
-public sealed class WeatherZoneData : INetObject
+internal sealed class WeatherZoneData : INetObject
 {
     public List<WeatherForecast> WeatherForecasts;
     public Vector3 WindSpeed;
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteList(WeatherForecasts, PacketWriterDels.NetObject<WeatherForecast>.Func);
+        writer.WriteList(WeatherForecasts, PacketWriterDels.NetObject<WeatherForecast>.Writer);
         writer.WriteVector3(WindSpeed);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        WeatherForecasts = reader.ReadList(PacketReaderDels.NetObject<WeatherForecast>.Func);
+        WeatherForecasts = reader.ReadList(PacketReaderDels.NetObject<WeatherForecast>.Reader)!;
         WindSpeed = reader.ReadVector3();
     }
 }
 
-public sealed class WeatherForecast : INetObject
+internal sealed class WeatherForecast : INetObject
 {
     public WeatherStateDefinition State;
     public bool WeatherStarted;
@@ -87,7 +90,7 @@ public sealed class WeatherForecast : INetObject
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteInt(NetworkWeatherManager.GetPersistentID(State));
+        writer.WritePackedInt(NetworkWeatherManager.GetPersistentID(State));
         writer.WriteBool(WeatherStarted);
         writer.WriteDouble(StartTime);
         writer.WriteDouble(EndTime);
@@ -96,11 +99,9 @@ public sealed class WeatherForecast : INetObject
     public void Deserialise(PacketReader reader)
     {
         NetworkWeatherManager.CheckInitialized();
-        State = NetworkWeatherManager.weatherStates[reader.ReadInt()];
+        State = NetworkWeatherManager.WeatherStates[reader.ReadPackedInt()];
         WeatherStarted = reader.ReadBool();
         StartTime = reader.ReadDouble();
         EndTime = reader.ReadDouble();
     }
 }
-
-// ZoomedOutUI -> zoneMarkers ->

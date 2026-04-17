@@ -2,18 +2,17 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.FX;
 
-public sealed class PlayerFXPacket : IPacket
+internal sealed class PlayerFXPacket : IPacket
 {
-    public enum PlayerFXType : byte
+    internal enum PlayerFXType : byte
     {
         None,
         VacReject,
         VacHold,
         VacAccept,
-        WalkTrail,
         VacShoot,
         VacShootEmpty,
-        WaterSplash,
+        // WaterSplash,
         VacSlotChange,
         VacRunning,
         VacRunningStart,
@@ -27,6 +26,7 @@ public sealed class PlayerFXPacket : IPacket
 
     public PacketType Type => PacketType.PlayerFX;
     public PacketReliability Reliability => PacketReliability.Unreliable;
+    public NetworkChannel Channel => NetworkChannel.FX;
 
     public void Serialise(PacketWriter writer)
     {
@@ -45,6 +45,6 @@ public sealed class PlayerFXPacket : IPacket
         if (!IsPlayerSoundDictionary[FX])
             Position = reader.ReadVector3();
         else
-            Player = reader.ReadStringWithSize(16)!;
+            Player = reader.ReadPooledStringOfSize(16)!;
     }
 }

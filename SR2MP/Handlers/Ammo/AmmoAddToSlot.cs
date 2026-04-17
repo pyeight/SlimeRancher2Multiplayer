@@ -7,7 +7,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.Ammo;
 
 [PacketHandler((byte)PacketType.AmmoAddToSlot)]
-public sealed class AmmoAddToSlotHandler : BasePacketHandler<AmmoAddToSlotPacket>
+internal sealed class AmmoAddToSlotHandler : BasePacketHandler<AmmoAddToSlotPacket>
 {
     protected override bool Handle(AmmoAddToSlotPacket packet, IPEndPoint? _)
     {
@@ -15,9 +15,9 @@ public sealed class AmmoAddToSlotHandler : BasePacketHandler<AmmoAddToSlotPacket
 
         if (ammo == null) return false;
 
-        handlingPacket = true;
-        ammo.MaybeAddToSpecificSlot(actorManager.ActorTypes[packet.Identifiable], null, packet.SlotIndex, packet.Count);
-        handlingPacket = false;
+        HandlingPacket = true;
+        ammo.MaybeAddToSpecificSlot(ActorManager.ActorTypes[packet.Identifiable], null, packet.SlotIndex, packet.Count);
+        HandlingPacket = false;
 
         return true;
     }

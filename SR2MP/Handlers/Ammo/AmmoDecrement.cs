@@ -7,18 +7,18 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.Ammo;
 
 [PacketHandler((byte)PacketType.AmmoDecrement)]
-public sealed class AmmoDecrementHandler : BasePacketHandler<AmmoDecrementPacket>
+internal sealed class AmmoDecrementHandler : BasePacketHandler<AmmoDecrementPacket>
 {
     protected override bool Handle(AmmoDecrementPacket packet, IPEndPoint? _)
     {
         var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
-        
+
         if (ammo == null) return false;
-        
-        handlingPacket = true;
+
+        HandlingPacket = true;
         ammo.Decrement(packet.SlotIndex, packet.Count);
-        handlingPacket = false;
-        
+        HandlingPacket = false;
+
         return true;
     }
 }

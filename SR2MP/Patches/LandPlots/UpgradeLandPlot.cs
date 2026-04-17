@@ -4,21 +4,21 @@ using SR2MP.Packets.LandPlots;
 namespace SR2MP.Patches.LandPlots;
 
 [HarmonyPatch(typeof(LandPlot), nameof(LandPlot.AddUpgrade))]
-public static class UpgradeLandPlot
+internal static class UpgradeLandPlot
 {
     public static void Postfix(LandPlot __instance, LandPlot.Upgrade upgrade)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected) return;
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
 
         if (!__instance)
             return;
 
         var packet = new LandPlotUpgradePacket
         {
-            ID = __instance.GetComponentInParent<LandPlotLocation>()._id,
-            PlotUpgrade = upgrade
+            PlotID = __instance.GetComponentInParent<LandPlotLocation>()._id,
+            ID = upgrade
         };
 
         Main.SendToAllOrServer(packet);

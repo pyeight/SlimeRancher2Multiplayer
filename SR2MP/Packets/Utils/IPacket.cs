@@ -1,7 +1,6 @@
 namespace SR2MP.Packets.Utils;
 
-public interface IPacket : INetObject
+internal interface IPacket : IReliabilityNetObject
 {
     PacketType Type { get; }
-    PacketReliability Reliability { get; }
 }

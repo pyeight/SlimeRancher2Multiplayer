@@ -8,51 +8,51 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.Player;
 
-public abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
+internal abstract class BasePlayerJoinHandler : BasePacketHandler<PlayerJoinPacket>
 {
     protected static void InstantiatePlayer(PlayerJoinPacket packet)
     {
-        var playerObject = Object.Instantiate(playerPrefab).GetComponent<NetworkPlayer>();
+        var playerObject = Object.Instantiate(PlayerPrefab).GetComponent<NetworkPlayer>();
         playerObject.gameObject.SetActive(true);
         playerObject.ID = packet.PlayerId;
         playerObject.gameObject.name = packet.PlayerId;
-        playerObjects.Add(packet.PlayerId, playerObject.gameObject);
-        playerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName!;
+        PlayerObjects.Add(packet.PlayerId, playerObject.gameObject);
+        PlayerManager.AddPlayer(packet.PlayerId).Username = packet.PlayerName!;
         Object.DontDestroyOnLoad(playerObject);
     }
 }
 
 [PacketHandler((byte)PacketType.BroadcastPlayerJoin, HandlerType.Client)]
-public sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
+internal sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
 {
-    protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? _)
+    protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? clientEp)
     {
-        if (playerManager.GetPlayer(packet.PlayerId) != null)
+        if (PlayerManager.GetPlayer(packet.PlayerId) != null)
         {
-            SrLogger.LogPacketSize($"Player {packet.PlayerId} already exists", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Player {packet.PlayerId} already exists");
             return false;
         }
 
         if (packet.PlayerId.Equals(Main.Client.PlayerId))
         {
-            SrLogger.LogMessage("Player join request accepted!", SrLogTarget.Both);
+            SrLogger.LogMessage("Player join request accepted!");
             return false;
         }
 
-        SrLogger.LogMessage($"New Player joined! (PlayerId: {packet.PlayerId})", SrLogTarget.Both);
+        SrLogger.LogMessage($"New Player joined! (PlayerId: {packet.PlayerId})");
         InstantiatePlayer(packet);
         return true;
     }
 }
 
 [PacketHandler((byte)PacketType.PlayerJoin, HandlerType.Server)]
-public sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
+internal sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
 {
     protected override bool Handle(PlayerJoinPacket packet, IPEndPoint? clientEp)
     {
-        if (playerManager.GetPlayer(packet.PlayerId) != null)
+        if (PlayerManager.GetPlayer(packet.PlayerId) != null)
         {
-            SrLogger.LogWarning($"Player {packet.PlayerId} already exists", SrLogTarget.Both);
+            SrLogger.LogWarning($"Player {packet.PlayerId} already exists");
             return false;
         }
 
@@ -78,7 +78,7 @@ public sealed class ServerPlayerJoinHandler : BasePlayerJoinHandler
         };
 
         Main.Server.SendToAll(joinPacket);
-        Main.Server.SendToAllExcept(joinChatPacket, packet.PlayerId);
+        Main.Server.SendToAllExcept(joinChatPacket, clientEp);
         MultiplayerUI.Instance.RegisterSystemMessage($"{packet.PlayerName} joined the world!", $"SYSTEM_JOIN_HOST_{packet.PlayerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}", MultiplayerUI.SystemMessageConnect);
 
         return false;

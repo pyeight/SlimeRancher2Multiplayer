@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Map;
 
 [PacketHandler((byte)PacketType.InitialMapEntries, HandlerType.Client)]
-public sealed class InitialMapLoadHandler : BasePacketHandler<InitialMapPacket>
+internal sealed class InitialMapLoadHandler : BasePacketHandler<InitialMapPacket>
 {
     protected override bool Handle(InitialMapPacket packet, IPEndPoint? _)
     {

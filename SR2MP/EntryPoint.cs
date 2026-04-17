@@ -1,10 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Il2CppTMPro;
 using MelonLoader;
 using SR2E;
 using SR2E.Expansion;
+using SR2MP.Api;
 using UnityEngine.UI;
 
 // Don't modify beyond this point - Finn
@@ -15,8 +15,10 @@ using UnityEngine.UI;
 // Don't modify beyond this point
 // This was made for SR2EExpansionV3
 // This is MLEntrypoint V2
-[SuppressMessage("ReSharper", "InconsistentNaming")]
+#pragma warning disable RCS1110 // Declare type inside namespace
+// ReSharper disable once CheckNamespace
 internal sealed class EntryPoint : MelonMod
+#pragma warning restore RCS1110 // Declare type inside namespace
 {
     private SR2EExpansionV3 expansion;
     private bool isCorrectSR2EInstalled;
@@ -71,7 +73,7 @@ internal sealed class EntryPoint : MelonMod
         titleRT.sizeDelta = new Vector2(0, Screen.currentResolution.height * 0.1f);
         titleRT.anchoredPosition = new Vector2(0, 0);
         var titleTMP = titleObj.AddComponent<TextMeshProUGUI>();
-        titleTMP.text = "Mod Error occured!";
+        titleTMP.text = "Mod Error occurred!";
         titleTMP.enableAutoSizing = true;
         titleTMP.fontSizeMin = 0;
         titleTMP.color = Color.white;
@@ -101,19 +103,24 @@ internal sealed class EntryPoint : MelonMod
         quitRT.offsetMin = Vector2.zero;
         quitRT.offsetMax = Vector2.zero;
         Sprite pill = null!;
+
         try
         {
             var pillTex = Resources.FindObjectsOfTypeAll<AssetBundle>().FirstOrDefault((x) => x.name == "cc50fee78e6b7bdd6142627acdaf89fa.bundle")!.LoadAsset("Assets/UI/Textures/MenuDemo/whitePillBg.png").Cast<Texture2D>();
             pill = Sprite.Create(pillTex, new Rect(0f, 0f, pillTex.width, pillTex.height), new Vector2(0.5f, 0.5f), 1f);
         }
-        catch { }
+        catch
+        {
+            // ignored
+        }
+
         var img = buttonObj.AddComponent<Image>();
         img.color = new Color(0.2f, 0.2f, 0.2f, 1f);
         img.sprite = pill;
         var btn = buttonObj.AddComponent<Button>();
 
         var textObj = new GameObject("Text");
-        btn.colors = buttonColorBlock;
+        btn.colors = ButtonColorBlock;
         textObj.transform.SetParent(buttonObj.transform, false);
         var tmp = textObj.AddComponent<TextMeshProUGUI>();
         tmp.alignment = TextAlignmentOptions.Center;
@@ -130,18 +137,18 @@ internal sealed class EntryPoint : MelonMod
             AddButton(pill, pr, new Vector2(0.005f, 0.105f), new Vector2(0.3333f, 0.2f),
                 "https://github.com/ThatFinnDev/SR2E/releases", "GitHub");
             AddButton(pill, pr, new Vector2(0.34f, 0.105f), new Vector2(0.6596f, 0.2f),
-                "https://www.nexusmods.com/slimerancher2/mods/60", "Nexusmods");
+                "https://www.nexusmods.com/slimerancher2/mods/60", "NexusMods");
             AddButton(pill, pr, new Vector2(0.6666f, 0.105f), new Vector2(0.995f, 0.2f),
                 "https://sr2e.sr2.dev/downloads", "SR2E Website");
         }
 
-        msgTMP.text = "An error occured with the mod <b>'" + BuildInfo.Name + "'</b>!\n\n";
+        msgTMP.text = "An error occurred with the mod <b>'" + BuildInfo.Name + "'</b>!\n\n";
         switch (message)
         {
             case 0:
             {
                 msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                    "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via Nexusmods, GitHub or the SR2E website.";
+                    "', you need to have SR2E installed! Currently, you don't have it installed. You can download it either via NexusMods, GitHub or the SR2E website.";
                 btn.onClick.AddListener((Action)Application.Quit);
                 tmp.text = "Quit";
                 break;
@@ -149,7 +156,7 @@ internal sealed class EntryPoint : MelonMod
             case 1:
             {
                 msgTMP.text += "In order to run the mod '" + BuildInfo.Name +
-                    $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via Nexusmods, GitHub or the SR2E website.";
+                    $"', you need a newer version of SR2E installed! A minimum of <b>SR2E {BuildInfo.MinSr2EVersion}</b> is required. You have <b>SR2E {installedSR2Ver}</b>.You can enable auto updating for SR2E in the Mod Menu. Alternatively, you can download it either via NexusMods, GitHub or the SR2E website.";
                 btn.onClick.AddListener((Action)(() =>
                 {
                     var fixTime = true;
@@ -188,7 +195,7 @@ internal sealed class EntryPoint : MelonMod
         }
     }
 
-    private static ColorBlock buttonColorBlock => new()
+    private static ColorBlock ButtonColorBlock => new()
     {
         normalColor = new Color(0.149f, 0.7176f, 0.7961f, 1f),
         highlightedColor = new Color(0.1098f, 0.2314f, 0.4157f, 1f),
@@ -216,7 +223,7 @@ internal sealed class EntryPoint : MelonMod
         var btn = buttonObj.AddComponent<Button>();
 
         var textObj = new GameObject("Text");
-        btn.colors = buttonColorBlock;
+        btn.colors = ButtonColorBlock;
         textObj.transform.SetParent(buttonObj.transform, false);
 
         var tmp = textObj.AddComponent<TextMeshProUGUI>();
@@ -282,19 +289,22 @@ internal sealed class EntryPoint : MelonMod
         {
             RegisterBrokenInSR2E("Requires SR2E " + BuildInfo.MinSr2EVersion + " or newer!");
         }
-        catch { }
+        catch
+        {
+            // ignored
+        }
 
         Unregister();
     }
 
     private void RegisterBrokenInSR2E(string errorMessage)
     {
-        var SR2EEntryPoint = Type.GetType("SR2E.SR2EEntryPoint, SR2E");
-        if (SR2EEntryPoint == null) return;
-        var AddBrokenExpansion = SR2EEntryPoint.GetMethod("AddBrokenExpansion",
+        var sr2EEntryPoint = Type.GetType("SR2E.SR2EEntryPoint, SR2E");
+        if (sr2EEntryPoint == null) return;
+        var addBrokenExpansion = sr2EEntryPoint.GetMethod("AddBrokenExpansion",
             BindingFlags.Static | BindingFlags.NonPublic);
-        if (AddBrokenExpansion == null) return;
-        AddBrokenExpansion.Invoke(null,
+        if (addBrokenExpansion == null) return;
+        addBrokenExpansion.Invoke(null,
             new object[]
                 { Info.Name, Info.Author, Info.Version, Info.DownloadLink, MelonAssembly.Assembly, errorMessage });
     }
@@ -339,7 +349,15 @@ internal sealed class EntryPoint : MelonMod
         else
         {
             MelonLogger.Error("Main class is not a " + nameof(SR2EExpansionV3) + "!");
-            try { RegisterBrokenInSR2E("Main class is not a " + nameof(SR2EExpansionV3) + "!"); } catch { }
+
+            try
+            {
+                RegisterBrokenInSR2E("Main class is not a " + nameof(SR2EExpansionV3) + "!");
+            }
+            catch
+            {
+                // ignored
+            }
 
             Unregister();
             return;
@@ -358,7 +376,10 @@ internal sealed class EntryPoint : MelonMod
 
     public override void OnLateInitializeMelon()
     {
-        Mods = Array.ConvertAll(RegisteredMelons.ToArray(),
-            input => $"{input.Info.Name} ({input.Info.Version})");
+        foreach (var melon in RegisteredMelons)
+        {
+            if (melon != this)
+                ApiHandlers.RegisterMod(melon, ModSide.None);
+        }
     }
 }

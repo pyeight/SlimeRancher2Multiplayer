@@ -7,19 +7,20 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Player;
 
 [PacketHandler((byte)PacketType.PlayerGadgetUpdate)]
-public sealed class PlayerGadgetUpdate : BasePacketHandler<PlayerGadgetUpdatePacket>
+internal sealed class PlayerGadgetUpdate : BasePacketHandler<PlayerGadgetUpdatePacket>
 {
     protected override bool Handle(PlayerGadgetUpdatePacket packet, IPEndPoint? _)
     {
-        if (!playerObjects.TryGetValue(packet.PlayerId, out var obj)) return true;
+        if (!PlayerObjects.TryGetValue(packet.PlayerId, out var obj)) return true;
 
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         var player = obj?.GetComponent<NetworkPlayer>();
 
         if (player == null) return true;
 
-        player.onlineGadgetMode = packet.Enabled;
-        player.onlineGadgetID = packet.CurrentGadget;
-        player.onlinePlacementValid = packet.ValidPlacement;
+        player.OnlineGadgetMode = packet.Enabled;
+        player.OnlineGadgetID = packet.CurrentGadget;
+        player.OnlinePlacementValid = packet.ValidPlacement;
 
         if (packet.Enabled)
             player.OnGadgetPositionReceived(packet.Position, packet.Rotation, packet.GadgetLocalRotation);

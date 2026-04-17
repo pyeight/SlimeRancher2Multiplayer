@@ -9,7 +9,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Actor;
 
 [HarmonyPatch(typeof(InstantiationHelpers), nameof(InstantiationHelpers.InstantiateActor))]
-public static class OnActorSpawn
+internal static class OnActorSpawn
 {
     private static IEnumerator SpawnOverNetwork(int actorType, byte sceneGroup, GameObject actor)
     {
@@ -37,15 +37,15 @@ public static class OnActorSpawn
         GameObject original,
         SceneGroup sceneGroup)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var networkActor = __result.AddComponent<NetworkActor>();
         networkActor.LocallyOwned = true;
 
         var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
         var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
-        
-        actorManager.Actors[__result.GetComponent<IdentifiableActor>()._model.actorId.Value] =
+
+        ActorManager.Actors[__result.GetComponent<IdentifiableActor>()._model.actorId.Value] =
             __result.GetComponent<IdentifiableActor>()._model;
 
         MelonCoroutines.Start(SpawnOverNetwork(actorType, (byte)sceneGroupId, __result));

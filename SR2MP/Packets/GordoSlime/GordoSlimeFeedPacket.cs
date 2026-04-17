@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.GordoSlime;
 
-public sealed class GordoSlimeFeedPacket : IPacket
+internal sealed class GordoSlimeFeedPacket : IPacket
 {
     public string ID;
     public int NewFoodCount;
@@ -13,6 +13,7 @@ public sealed class GordoSlimeFeedPacket : IPacket
 
     public PacketType Type => PacketType.GordoFeed;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer)
     {
@@ -24,7 +25,7 @@ public sealed class GordoSlimeFeedPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString()!;
         NewFoodCount = reader.ReadPackedInt();
         RequiredFoodCount = reader.ReadPackedInt();
         GordoType = reader.ReadPackedInt();

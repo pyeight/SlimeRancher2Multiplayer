@@ -1,14 +1,11 @@
 namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
     private bool multiplayerUIHidden;
+
     private string usernameInput = "Player";
-    private string ipInput = string.Empty;
-    private string portInput = string.Empty;
-    private string hostPortInput = "1919";
     private bool allowCheatsInput;
-    public string connectionFailedReason = null!;
 
     private void FirstTimeScreen()
     {
@@ -35,48 +32,24 @@ public sealed partial class MultiplayerUI
 
     private void SettingsScreen()
     {
-        var validUsername = true;
-
         DrawText("Username:", 2);
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
         DrawText("Allow Cheats:", 2);
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
-        {
             allowCheatsInput = !allowCheatsInput;
-        }
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
             DrawText("You must set an Username.");
-            validUsername = false;
+            return;
         }
 
-        if (!validUsername) return;
         if (!GUI.Button(CalculateButtonLayout(6), "Save")) return;
 
         Main.SetConfigValue("username", usernameInput);
         Main.SetConfigValue("allow_cheats", allowCheatsInput);
         viewingSettings = false;
-    }
-
-    private void DrawError()
-    {
-        switch (errorState)
-        {
-            case ErrorType.ConnectionDeny:
-                ConnectionFailedScreen();
-                break;
-        }
-    }
-
-    private void ConnectionFailedScreen()
-    {
-        DrawText("Failed to connect to server!");
-        DrawText(connectionFailedReason!);
-    
-        if (GUI.Button(CalculateButtonLayout(6), "Close"))
-            viewingSettings = true;
     }
 
     private void MainMenuScreen()
@@ -88,88 +61,21 @@ public sealed partial class MultiplayerUI
         DrawText("Make sure you join an EMPTY save before connecting, this save file WILL BE RESET.");
     }
 
-
     private void InGameScreen()
     {
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
 
-        DrawText("Join a world:");
+        mainTab = DrawMainTabRow("Join", "Host", mainTab);
 
-        DrawText("IP", 2);
-        ipInput = GUI.TextField(CalculateInputLayout(6, 2, 1), ipInput);
-
-        DrawText("Port", 2);
-        portInput = GUI.TextField(CalculateInputLayout(6, 2, 1), portInput);
-
-        var validPort = ushort.TryParse(portInput, out var port);
-        if (validPort)
-        {
-            if (GUI.Button(CalculateButtonLayout(6), "Connect"))
-                Connect(ipInput, port);
-        }
+        if (mainTab == MainTab.Join)
+            DrawJoinSection();
         else
-        {
-            DrawText("Invalid port: Must be a number from 1 to 65535.");
-        }
-
-        DrawText("Host a world:");
-
-        DrawText("Port", 2);
-        hostPortInput = GUI.TextField(CalculateInputLayout(6, 2, 1), hostPortInput);
-
-        var validHostPort = ushort.TryParse(hostPortInput, out var hostPort);
-        if (validHostPort)
-        {
-            if (GUI.Button(CalculateButtonLayout(6), "Host"))
-                Host(hostPort);
-        }
-        else
-        {
-            DrawText("Invalid port. Must be a number from 1 to 65535.");
-            DrawText("Make sure your pc doesn't use the port anywhere else.");
-        }
+            DrawHostSection();
     }
 
     private void UnimplementedScreen()
     {
         DrawText("This screen hasn't been implemented yet.");
-    }
-
-    private void HostingScreen()
-    {
-        DrawText($"You are the hosting on port: {Main.Server.Port}");
-        DrawText("All players:");
-
-        var players = playerManager.GetAllPlayers();
-
-        foreach (var player in players)
-        {
-            DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
-        }
-
-        if (GUI.Button(CalculateButtonLayout(6), "Resync All Players"))
-            Main.Server.reSyncManager.SynchronizeAll();
-        
-        if (GUI.Button(CalculateButtonLayout(8), "Stop the Server"))
-             Main.Server.Close();
-    }
-
-    private void ConnectedScreen()
-    {
-        DrawText("You are connected to the server.");
-        DrawText("All players:");
-
-        var players = playerManager.GetAllPlayers();
-        foreach (var player in players)
-        {
-            DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
-        }
-
-        if (GUI.Button(CalculateButtonLayout(6), "Request Resync"))
-            Main.Server.reSyncManager.RequestResync();
-        
-        if (GUI.Button(CalculateButtonLayout(8), "Disconnect from world"))
-            Main.Client.Disconnect();
     }
 }

@@ -1,47 +1,70 @@
 using System.Net;
+using JetBrains.Annotations;
+using SR2MP.Api;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
+using SR2MP.Packets.Api;
 using SR2MP.Packets.Player;
-using SR2MP.Server.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Managers;
 using SR2MP.Server.Models;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP.Server;
 
+/// <summary>
+/// Provides the host's interface.
+/// </summary>
 public sealed class SR2MPServer
 {
-    public readonly NetworkManager networkManager;
-    public readonly ClientManager clientManager;
-    public readonly ReSyncManager reSyncManager;
+    internal readonly NetworkManager NetworkManager;
+    internal readonly ClientManager ClientManager;
+    internal readonly ReSyncManager ReSyncManager;
 
     private readonly ServerPacketManager packetManager;
 
     private Timer? timeoutTimer;
 
     // Just here so that the port is viewable.
+
+    /// <summary>
+    /// Gets or sets a value that denotes the server's port.
+    /// </summary>
     public int Port { get; private set; }
+
+    /// <summary>
+    /// Gets or sets a value that denotes the host player's player ID.
+    /// </summary>
     public string PlayerId { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// An event that is invoked when the server connects.
+    /// </summary>
     public event Action? OnServerStarted;
 
-    public SR2MPServer()
-    {
-        networkManager = new NetworkManager();
-        clientManager = new ClientManager();
-        reSyncManager = new ReSyncManager();
-        packetManager = new ServerPacketManager(networkManager, clientManager);
+    /// <summary>
+    /// Gets the number of clients currently connected.
+    /// </summary>
+    public int GetClientCount => ClientManager.ClientCount;
 
-        networkManager.OnDataReceived += OnDataReceived;
-        clientManager.OnClientRemoved += OnClientRemoved;
+    /// <summary>
+    /// Gets a value indicating the running status of the server.
+    /// </summary>
+    public bool IsRunning => NetworkManager.IsRunning;
+
+    internal SR2MPServer()
+    {
+        NetworkManager = new NetworkManager();
+        ClientManager = new ClientManager();
+        ReSyncManager = new ReSyncManager();
+        packetManager = new ServerPacketManager(NetworkManager, ClientManager);
+
+        NetworkManager.OnDataReceived += OnDataReceived;
+        ClientManager.OnClientRemoved += OnClientRemoved;
     }
 
-    public int GetClientCount() => clientManager.ClientCount;
-
-    public bool IsRunning() => networkManager.IsRunning;
-
-    public void Start(int port, bool enableIPv6)
+    internal void Start(int port, bool enableIPv6)
     {
         if (Main.Client.IsConnected)
         {
@@ -49,22 +72,20 @@ public sealed class SR2MPServer
             return;
         }
 
-        if (networkManager.IsRunning)
+        if (NetworkManager.IsRunning)
         {
-            SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
+            SrLogger.LogMessage("Server is already running!");
             return;
         }
 
         try
         {
-            PlayerId = devMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
-            
-            packetManager.RegisterHandlers();
+            PlayerId = DevMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
+
+            packetManager.RegisterHandlers(Main.Core);
             Application.quitting += new Action(Close);
-            networkManager.Start(port, enableIPv6);
-            this.Port = port;
-            // Commented because we don't need this yet
-            // timeoutTimer = new Timer(CheckTimeouts, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+            NetworkManager.Start(port, enableIPv6);
+            Port = port;
             OnServerStarted?.Invoke();
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
@@ -74,7 +95,7 @@ public sealed class SR2MPServer
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to start server: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to start server: {ex}");
         }
     }
 
@@ -89,7 +110,7 @@ public sealed class SR2MPServer
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error handling packet from {clientEp}: {ex}");
         }
     }
 
@@ -103,24 +124,12 @@ public sealed class SR2MPServer
 
         SendToAll(leavePacket);
 
-        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}", SrLogTarget.Both);
+        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}");
     }
 
-    // private void CheckTimeouts(object? state)
-    // {
-    //     try
-    //     {
-    //         clientManager.RemoveTimedOutClients();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         SrLogger.LogError($"Error checking timeouts: {ex}");
-    //     }
-    // }
-
-    public void Close()
+    internal void Close()
     {
-        if (!networkManager.IsRunning)
+        if (!NetworkManager.IsRunning)
             return;
 
         var closeChatMessage = new ChatMessagePacket
@@ -151,95 +160,178 @@ public sealed class SR2MPServer
                 SrLogger.LogWarning($"Failed to broadcast server close: {ex}");
             }
 
-            foreach (var player in playerManager.GetAllPlayers())
+            foreach (var player in PlayerManager.GetAllPlayers())
             {
                 var playerId = player.PlayerId;
-                if (!playerObjects.TryGetValue(playerId, out var playerObject))
+                if (!PlayerObjects.TryGetValue(playerId, out var playerObject))
                     continue;
 
                 if (playerObject != null)
                 {
                     Object.Destroy(playerObject);
-                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}", SrLogTarget.Both);
+                    SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
                 }
-                playerObjects.Remove(playerId);
+                PlayerObjects.Remove(playerId);
             }
 
             PacketDeduplication.Clear();
-            clientManager.Clear();
-            playerManager.Clear();
-            networkManager.Stop();
+            ClientManager.Clear();
+            PlayerManager.Clear();
+            NetworkManager.Stop();
+            NetworkStringPool.Clear();
+            ApiHandlers.ClearNetIds();
 
-            SrLogger.LogMessage("Server closed", SrLogTarget.Both);
+            SrLogger.LogMessage("Server closed");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error during server shutdown: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error during server shutdown: {ex}");
         }
     }
 
-    public void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
+    internal void SendToClient<T>(T packet, IPEndPoint endPoint) where T : IPacket
+        => PrepareAndSendToClient(packet, packet.Reliability, packet.Channel, endPoint, SerialiseInternalPacket<T>.Serialiser);
+
+    /// <summary>
+    /// Sends a custom packet to a specific client endpoint.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    /// <param name="endPoint">The endpoint of the client to receive the packet.</param>
+    [PublicApi]
+    public void SendDataToClient<T>(T data, IPEndPoint endPoint) where T : ICustomPacket
     {
-        var writer = PacketBufferPool.GetWriter();
+        if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
+        {
+            SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
+            return;
+        }
+
+        var apiHeader = new ApiPacket(data.Reliability, data.Channel, modId);
+        PrepareAndSendToClient((apiHeader, data), apiHeader.Reliability, apiHeader.Channel, endPoint, SerialiseApiPacket<T>.Serialiser);
+    }
+
+    /// <summary>
+    /// Sends a custom packet to a specific client.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    /// <param name="client">The client info of the recipient.</param>
+    [PublicApi]
+    public void SendDataToClient<T>(T data, ClientInfo client) where T : ICustomPacket
+        => SendDataToClient(data, client.EndPoint);
+
+    private void PrepareAndSendToClient<T>(T state, PacketReliability reliability, NetworkChannel channel,
+        IPEndPoint endPoint, PacketWriterDelegate<T> writeAction)
+    {
+        using var writer = PacketWriter.Borrow();
 
         try
         {
-            writer.WritePacket(packet);
-            networkManager.Send(writer.ToSpan(), endPoint, packet.Reliability);
-        }
-        finally
-        {
-            PacketBufferPool.Return(writer);
-        }
-    }
-
-    public void SendToClient<T>(T packet, ClientInfo client) where T : IPacket
-    {
-        SendToClient(packet, client.EndPoint);
-    }
-
-    public void SendToAll<T>(T packet) where T : IPacket
-    {
-        var writer = PacketBufferPool.GetWriter();
-
-        try
-        {
-            writer.WritePacket(packet);
-            var endpoints = clientManager.GetAllClients().Select(c => c.EndPoint);
-            networkManager.Broadcast(writer.ToSpan(), endpoints, packet.Reliability);
-        }
-        finally
-        {
-            PacketBufferPool.Return(writer);
-        }
-    }
-
-    public void SendToAllExcept<T>(T packet, string excludedClientInfo) where T : IPacket
-    {
-        var writer = PacketBufferPool.GetWriter();
-
-        try
-        {
-            writer.WritePacket(packet);
+            writeAction(writer, state);
             var data = writer.ToSpan();
 
-            foreach (var client in clientManager.GetAllClients())
-            {
-                if (client.GetClientInfo() != excludedClientInfo)
-                    networkManager.Send(data, client.EndPoint, packet.Reliability);
-            }
+            NetworkManager.Send(data, endPoint, reliability, channel);
+
+            SrLogger.LogPacketSize($"Sent {data.Length} bytes to client at {endPoint}.");
         }
-        finally
+        catch (Exception ex)
         {
-            PacketBufferPool.Return(writer);
+            SrLogger.LogError($"Failed to send packet to client {endPoint}: {ex}");
         }
     }
 
-    public void SendToAllExcept<T>(T packet, IPEndPoint? excludeEndPoint) where T : IPacket
+    internal void SendToAll<T>(T packet) where T : IPacket
+        => PrepareAndSendToAll(packet, packet.Reliability, packet.Channel, SerialiseInternalPacket<T>.Serialiser);
+
+    /// <summary>
+    /// Broadcasts a custom packet to all connected clients.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    [PublicApi]
+    public void SendDataToAll<T>(T data) where T : ICustomPacket
     {
-        var clientInfo = $"{excludeEndPoint?.Address}:{excludeEndPoint?.Port}";
-        SendToAllExcept(packet, clientInfo);
+        if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
+        {
+            SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
+            return;
+        }
+
+        var apiHeader = new ApiPacket(data.Reliability, data.Channel, modId);
+        PrepareAndSendToAll((apiHeader, data), apiHeader.Reliability, apiHeader.Channel, SerialiseApiPacket<T>.Serialiser);
     }
 
-    public int GetPendingReliablePackets() => networkManager.GetPendingReliablePackets();
+    private void PrepareAndSendToAll<T>(T state, PacketReliability reliability, NetworkChannel channel,
+        PacketWriterDelegate<T> writeAction)
+    {
+        using var writer = PacketWriter.Borrow();
+
+        try
+        {
+            writeAction(writer, state);
+            var data = writer.ToSpan();
+
+            NetworkManager.Broadcast(data, ClientManager.GetAllClients(), reliability, channel);
+
+            SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to all clients.");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Failed to broadcast packet to all: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// Broadcasts a custom packet to all clients except the specified one.
+    /// </summary>
+    /// <typeparam name="T">The type of the custom packet to send.</typeparam>
+    /// <param name="data">The packet data to send.</param>
+    /// <param name="excludedClientInfo">The client info string to exclude from the broadcast.</param>
+    [PublicApi]
+    public void SendDataToAllExcept<T>(T data, IPEndPoint? excludedClientInfo) where T : ICustomPacket
+    {
+        if (!ApiHandlers.CurrentNetIdMapping2.TryGetValue(data.GetType(), out var modId))
+        {
+            SrLogger.LogWarning($"Cannot send API packet: No ModId registered for custom packet type {data.GetType().FullName}.");
+            return;
+        }
+
+        var apiHeader = new ApiPacket(data.Reliability, data.Channel, modId);
+        PrepareAndSendToAllExcept((apiHeader, data), apiHeader.Reliability, apiHeader.Channel, SerialiseApiPacket<T>.Serialiser, excludedClientInfo);
+    }
+
+    internal void SendToAllExcept<T>(T packet, IPEndPoint? excludedClientInfo) where T : IPacket
+        => PrepareAndSendToAllExcept(packet, packet.Reliability, packet.Channel, SerialiseInternalPacket<T>.Serialiser, excludedClientInfo);
+
+    private void PrepareAndSendToAllExcept<T>(T state, PacketReliability reliability, NetworkChannel channel,
+        PacketWriterDelegate<T> writeAction, IPEndPoint? excludedClientInfo)
+    {
+        using var writer = PacketWriter.Borrow();
+
+        try
+        {
+            writeAction(writer, state);
+            var data = writer.ToSpan();
+
+            var sentCount = 0;
+
+            foreach (var client in ClientManager.GetAllClients())
+            {
+                if (client.EndPoint == excludedClientInfo)
+                    continue;
+
+                NetworkManager.Send(data, client.EndPoint, reliability, channel);
+                sentCount++;
+            }
+
+            SrLogger.LogPacketSize($"Broadcasted {data.Length} bytes to {sentCount} client(s).");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogError($"Failed to broadcast packet: {ex}");
+        }
+    }
+
+    // internal int GetPendingReliablePackets() => NetworkManager.GetPendingReliablePackets();
 }

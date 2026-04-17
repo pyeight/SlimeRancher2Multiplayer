@@ -2,13 +2,14 @@
 
 namespace SR2MP.Packets.Internal;
 
-public struct AckPacket : IPacket
+internal struct AckPacket : IPacket
 {
     public ushort PacketId;
     public byte OriginalPacketType;
 
     public readonly PacketType Type => PacketType.ReservedAcknowledge;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly NetworkChannel Channel => NetworkChannel.Acknowledge;
 
     public readonly void Serialise(PacketWriter writer)
     {

@@ -4,31 +4,30 @@ using MelonLoader;
 namespace SR2MP.Components.Utils;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class TransformLookAtCamera : MonoBehaviour
+internal sealed class TransformLookAtCamera : MonoBehaviour
 {
-    public Transform targetTransform;
+    public Transform TargetTransform;
 
     private bool isText;
 
     private Camera playerCamera;
 
-    private void Start() => isText = targetTransform.GetComponent<TextMeshPro>();
+    public void Start() => isText = TargetTransform.GetComponent<TextMeshPro>();
 
-    private void Update()
+    public void Update()
     {
         if (!playerCamera)
         {
             playerCamera = SceneContext.Instance?.Camera.GetComponent<Camera>()!;
             return;
         }
-        if (!targetTransform)
+
+        if (!TargetTransform)
             return;
 
-        targetTransform.LookAt(playerCamera.transform);
+        TargetTransform.LookAt(playerCamera.transform);
 
         if (isText)
-        {
-            targetTransform.Rotate(0, 180, 0);
-        }
+            TargetTransform.Rotate(0, 180, 0);
     }
 }

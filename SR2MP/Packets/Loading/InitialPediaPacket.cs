@@ -2,14 +2,15 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialPediaPacket : IPacket
+internal sealed class InitialPediaPacket : IPacket
 {
-    public List<string> Entries;
+    public List<string?> Entries;
 
     public PacketType Type => PacketType.InitialPediaEntries;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer) => writer.WriteList(Entries, PacketWriterDels.String);
 
-    public void Deserialise(PacketReader reader) => Entries = reader.ReadList(PacketReaderDels.String);
+    public void Deserialise(PacketReader reader) => Entries = reader.ReadList(PacketReaderDels.String)!;
 }

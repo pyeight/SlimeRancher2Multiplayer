@@ -2,52 +2,42 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.LandPlots;
 
-public abstract class LandPlotUpdatePacket : IPacket
+internal abstract class LandPlotUpdatePacket : IPacket
 {
-    public string ID;
+    public string PlotID;
 
     public abstract PacketType Type { get; }
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
-    public virtual void Serialise(PacketWriter writer) => writer.WriteString(ID);
+    public virtual void Serialise(PacketWriter writer) => writer.WriteString(PlotID);
 
-    public virtual void Deserialise(PacketReader reader) => ID = reader.ReadString();
+    public virtual void Deserialise(PacketReader reader) => PlotID = reader.ReadPooledString()!;
 }
 
-public sealed class LandPlotUpgradePacket : LandPlotUpdatePacket
+internal abstract class LandPlotUpdatePacket<T> : LandPlotUpdatePacket where T : struct, Enum
 {
-    public LandPlot.Upgrade PlotUpgrade;
+    public T ID;
 
+    public sealed override void Serialise(PacketWriter writer)
+    {
+        base.Serialise(writer);
+        writer.WritePackedEnum(ID);
+    }
+
+    public sealed override void Deserialise(PacketReader reader)
+    {
+        base.Deserialise(reader);
+        ID = reader.ReadPackedEnum<T>();
+    }
+}
+
+internal sealed class LandPlotUpgradePacket : LandPlotUpdatePacket<LandPlot.Upgrade>
+{
     public override PacketType Type => PacketType.LandPlotUpgrade;
-
-    public override void Serialise(PacketWriter writer)
-    {
-        base.Serialise(writer);
-        writer.WritePackedEnum(PlotUpgrade);
-    }
-
-    public override void Deserialise(PacketReader reader)
-    {
-        base.Deserialise(reader);
-        PlotUpgrade = reader.ReadPackedEnum<LandPlot.Upgrade>();
-    }
 }
 
-public sealed class NewLandPlotPacket : LandPlotUpdatePacket
+internal sealed class NewLandPlotPacket : LandPlotUpdatePacket<LandPlot.Id>
 {
-    public LandPlot.Id PlotType;
-
     public override PacketType Type => PacketType.NewLandPlot;
-
-    public override void Serialise(PacketWriter writer)
-    {
-        base.Serialise(writer);
-        writer.WritePackedEnum(PlotType);
-    }
-
-    public override void Deserialise(PacketReader reader)
-    {
-        base.Deserialise(reader);
-        PlotType = reader.ReadPackedEnum<LandPlot.Id>();
-    }
 }

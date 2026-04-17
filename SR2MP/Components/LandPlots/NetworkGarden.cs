@@ -1,16 +1,17 @@
 ﻿using Il2CppMonomiPark.SlimeRancher.Regions;
+using JetBrains.Annotations;
 using MelonLoader;
 using SR2MP.Packets.LandPlots;
 
 namespace SR2MP.Components.LandPlots;
 
 [RegisterTypeInIl2Cpp(false)]
-public class NetworkGarden : MonoBehaviour
+internal sealed class NetworkGarden : MonoBehaviour
 {
-    private SpawnResource garden;
+    private SpawnResource? garden;
     private RegionMember regionMember;
 
-    public static Dictionary<string, NetworkGarden> Gardens = new();
+    public static readonly Dictionary<string, NetworkGarden> Gardens = new();
 
     public bool LocallyOwned { get; set; }
     private double cachedNextSpawnTime;
@@ -18,39 +19,41 @@ public class NetworkGarden : MonoBehaviour
     private float syncTimer;
     private const float SyncInterval = 5f;
 
-    private void Awake()
+    [UsedImplicitly]
+    public void Awake()
     {
         garden = GetComponent<SpawnResource>();
         regionMember = GetComponent<RegionMember>();
 
         if (garden != null && !string.IsNullOrEmpty(garden._id))
             Gardens[garden._id] = this;
-        
+
         LocallyOwned = true;
 
-        if (Main.Client.IsConnected) LocallyOwned = false;
+        if (Main.Client.IsConnected)
+            LocallyOwned = false;
     }
 
-    private void Start()
+    public void Start()
     {
-        if (regionMember != null)
+        if (regionMember == null)
+            return;
+
+        try
         {
-            try
-            {
-                regionMember.add_BeforeHibernationChanged(
-                    Il2CppSystem.Delegate.CreateDelegate(
-                        Il2CppSystem.Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
-                            .GetEvent("BeforeHibernationChanged").EventHandlerType,
-                        Cast<Il2CppSystem.Object>(),
-                        nameof(OnHibernationChanged),
-                        true
-                    ).Cast<RegionMember.OnHibernationChange>()
-                );
-            }
-            catch (Exception ex)
-            {
-                SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}", SrLogTarget.Both);
-            }
+            regionMember.add_BeforeHibernationChanged(
+                Il2CppSystem.Delegate.CreateDelegate(
+                    Il2CppSystem.Type.GetType("MonomiPark.SlimeRancher.Regions.RegionMember")
+                        .GetEvent("BeforeHibernationChanged").EventHandlerType,
+                    Cast<Il2CppSystem.Object>(),
+                    nameof(OnHibernationChanged),
+                    true
+                ).Cast<RegionMember.OnHibernationChange>()
+            );
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}");
         }
     }
 
@@ -70,16 +73,15 @@ public class NetworkGarden : MonoBehaviour
 
             LocallyOwned = true;
 
-            if (garden != null && !string.IsNullOrEmpty(garden._id))
-            {
-                var packet = new GardenOwnershipPacket { GardenID = garden._id };
+            if (garden == null || string.IsNullOrEmpty(garden._id))
+                return;
 
-                Main.SendToAllOrServer(packet);
-            }
+            var packet = new GardenOwnershipPacket { GardenID = garden._id };
+            Main.SendToAllOrServer(packet);
         }
     }
 
-    private void Update()
+    public void Update()
     {
         if (!LocallyOwned || garden?._model == null)
             return;
@@ -90,20 +92,21 @@ public class NetworkGarden : MonoBehaviour
 
         syncTimer = 0;
 
-        if (Main.Server.IsRunning() || Main.Client.IsConnected)
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
+            return;
+
+        var packet = new GardenUpdatePacket
         {
-            var packet = new GardenUpdatePacket
-            {
-                GardenID = garden._id,
-                NextSpawnTime = garden._model.nextSpawnTime,
-                StoredWater = garden._model.storedWater,
-                NextSpawnRipens = garden._model.nextSpawnRipens
-            };
-            Main.SendToAllOrServer(packet);
-        }
+            GardenID = garden._id,
+            NextSpawnTime = garden._model.nextSpawnTime,
+            StoredWater = garden._model.storedWater,
+            NextSpawnRipens = garden._model.nextSpawnRipens
+        };
+        Main.SendToAllOrServer(packet);
     }
 
-    private void OnDestroy()
+    [UsedImplicitly]
+    public void OnDestroy()
     {
         if (garden != null && !string.IsNullOrEmpty(garden._id))
             Gardens.Remove(garden._id);

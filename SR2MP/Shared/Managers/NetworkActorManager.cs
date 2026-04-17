@@ -6,7 +6,7 @@ using SR2MP.Packets.Actor;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed partial class NetworkActorManager
+internal sealed partial class NetworkActorManager
 {
     public readonly Dictionary<long, IdentifiableModel> Actors    = new();
     public readonly Dictionary<int, IdentifiableType> ActorTypes  = new();
@@ -21,9 +21,9 @@ public sealed partial class NetworkActorManager
 
         foreach (var type in context.AutoSaveDirector._saveReferenceTranslation._identifiableTypeLookup)
             ActorTypes.TryAdd(GetPersistentID(type.value), type.value);
-        
+
         ActorTypes[-1] = null!;
-        
+
         MelonCoroutines.Start(ZoneLoadingLoop());
     }
 
@@ -34,7 +34,7 @@ public sealed partial class NetworkActorManager
             yield return new WaitForSceneGroupLoad(false);
             yield return new WaitForSceneGroupLoad();
 
-            if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+            if (!Main.Server.IsRunning && !Main.Client.IsConnected)
                 continue;
 
             if (!SystemContext.Instance.SceneLoader.IsCurrentSceneGroupGameplay())
@@ -76,26 +76,25 @@ public sealed partial class NetworkActorManager
 
                 if (actor2.value.sceneGroup != scene)
                     continue;
-                handlingPacket = true;
+                HandlingPacket = true;
                 var obj = InstantiationHelpers.InstantiateActorFromModel(model);
-                handlingPacket = false;
+                HandlingPacket = false;
 
                 if (!obj)
                     continue;
 
                 var networkComponent = obj.AddComponent<NetworkActor>();
 
-                networkComponent.previousPosition = model.lastPosition;
-                networkComponent.nextPosition = model.lastPosition;
-                networkComponent.previousRotation = model.lastRotation;
-                networkComponent.nextRotation = model.lastRotation;
+                networkComponent.PreviousPosition = model.lastPosition;
+                networkComponent.NextPosition = model.lastPosition;
+                networkComponent.PreviousRotation = model.lastRotation;
+                networkComponent.NextRotation = model.lastRotation;
 
-                actorManager.Actors.Add(model.actorId.Value, model);
+                ActorManager.Actors.Add(model.actorId.Value, model);
             }
 
             yield return TakeOwnershipOfNearby();
         }
-        // ReSharper disable once IteratorNeverReturns
     }
 
     private static bool ActorIDAlreadyInUse(ActorId id)

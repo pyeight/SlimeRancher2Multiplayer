@@ -5,9 +5,8 @@ using SR2MP.Server.Managers;
 
 namespace SR2MP.Patches.Weather;
 
-// Weather Registry
 [HarmonyPatch(typeof(WeatherRegistry))]
-public static class WeatherRegistryPatches
+internal static class WeatherRegistryPatches
 {
     [HarmonyPatch(nameof(WeatherRegistry.Update)), HarmonyPrefix]
     public static bool UpdatePrefix() => !Main.Client.IsConnected;
@@ -16,7 +15,7 @@ public static class WeatherRegistryPatches
     public static bool RunPatternStatePrefix()
     {
         WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || handlingPacket;
+        return !Main.Client.IsConnected || HandlingPacket;
     }
 
     [HarmonyPatch(nameof(WeatherRegistry.StopPatternState)), HarmonyPrefix]
@@ -27,6 +26,6 @@ public static class WeatherRegistryPatches
         if (!zone)
             return false;
 
-        return !Main.Client.IsConnected || handlingPacket;
+        return !Main.Client.IsConnected || HandlingPacket;
     }
 }

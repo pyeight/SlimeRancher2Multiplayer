@@ -4,7 +4,7 @@ using SR2MP.Packets.Actor;
 namespace SR2MP.Patches.Actor;
 
 [HarmonyPatch(typeof(Destroyer), nameof(Destroyer.DestroyActor), typeof(GameObject), typeof(string), typeof(bool))]
-public static class OnActorDestroy
+internal static class OnActorDestroy
 {
     public static bool Prefix(GameObject actorObj, string source)
     {
@@ -12,7 +12,7 @@ public static class OnActorDestroy
 
         try
         {
-            if (Main.Server.IsRunning() || Main.Client.IsConnected)
+            if (Main.Server.IsRunning || Main.Client.IsConnected)
             {
                 if (source is "SlimeFeral.Awake")
                 {
@@ -20,20 +20,23 @@ public static class OnActorDestroy
                 }
             }
         }
-        catch { }
+        catch
+        {
+            // ignored
+        }
 
-        if (handlingPacket || !actorObj)
+        if (HandlingPacket || !actorObj)
             return true;
 
         var actor = actorObj.GetComponent<IdentifiableActor>();
         if (!actor)
             return true;
 
-        actorManager.Actors.Remove(actor.GetActorId().Value);
-        
-        if (!Main.Server.IsRunning() && !Main.Client.IsConnected)
+        ActorManager.Actors.Remove(actor.GetActorId().Value);
+
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
             return true;
-        
+
         try
         {
             var packet = new ActorDestroyPacket { ActorId = actor.GetActorId() };

@@ -3,13 +3,14 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Actor;
 
-public sealed class ActorTransferPacket : IPacket
+internal sealed class ActorTransferPacket : IPacket
 {
     public ActorId ActorId;
     public string OwnerId;
 
     public PacketType Type => PacketType.ActorTransfer;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.ActorCritical;
 
     public void Serialise(PacketWriter writer)
     {
@@ -20,6 +21,6 @@ public sealed class ActorTransferPacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         ActorId = new ActorId(reader.ReadPackedLong());
-        OwnerId = reader.ReadStringWithSize(16)!;
+        OwnerId = reader.ReadPooledStringOfSize(16)!;
     }
 }

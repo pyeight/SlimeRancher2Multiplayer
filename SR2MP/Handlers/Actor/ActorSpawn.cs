@@ -8,22 +8,22 @@ using SR2MP.Shared.Utils;
 namespace SR2MP.Handlers.Actor;
 
 [PacketHandler((byte)PacketType.ActorSpawn)]
-public sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
+internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
 {
     protected override bool Handle(ActorSpawnPacket packet, IPEndPoint? _)
     {
-        if (actorManager.Actors.ContainsKey(packet.ActorId.Value))
+        if (ActorManager.Actors.ContainsKey(packet.ActorId.Value))
         {
-            SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} already exists", SrLogTarget.Both);
+            SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} already exists");
             return false;
         }
 
-        actorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor);
+        ActorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor);
 
         if (actor == null)
             return true;
-        
-        if (actor!.TryCast<SlimeModel>(out var slime))
+
+        if (actor.TryCast<SlimeModel>(out var slime))
             slime.Emotions = packet.Emotions;
 
         return true;

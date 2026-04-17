@@ -6,7 +6,7 @@ using SR2MP.Packets.World;
 namespace SR2MP.Handlers.Time;
 
 [PacketHandler((byte)PacketType.WorldTime, HandlerType.Client)]
-public sealed class WorldTimeHandler : BasePacketHandler<WorldTimePacket>
+internal sealed class WorldTimeHandler : BasePacketHandler<WorldTimePacket>
 {
     protected override bool Handle(WorldTimePacket packet, IPEndPoint? _)
     {

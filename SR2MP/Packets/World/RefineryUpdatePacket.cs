@@ -2,13 +2,14 @@
 
 namespace SR2MP.Packets.World;
 
-public sealed class RefineryUpdatePacket : IPacket
+internal sealed class RefineryUpdatePacket : IPacket
 {
     public ushort ItemCount;
     public ushort ItemID;
 
     public PacketType Type => PacketType.RefineryUpdate;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Ammo;
 
     public void Serialise(PacketWriter writer)
     {

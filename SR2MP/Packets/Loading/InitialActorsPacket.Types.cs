@@ -6,9 +6,9 @@ using Unity.Mathematics;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed partial class InitialActorsPacket
+internal partial class InitialActorsPacket
 {
-    public enum ActorType : byte
+    internal enum ActorType : byte
     {
         Basic = 0,
 
@@ -31,22 +31,22 @@ public sealed partial class InitialActorsPacket
 
     private static Dictionary<ActorType, Type> actorTypes = new(ActorTypeComparer.Instance)
     {
-        { ActorType.Basic, typeof(ActorBase) },
+        { ActorType.Basic,                typeof(ActorBase) },
+                                          
+        { ActorType.Slime,                typeof(Slime) },
+        { ActorType.Plort,                typeof(Plort) },
+        { ActorType.Resource,             typeof(Resource) },
         
-        { ActorType.Slime, typeof(Slime) },
-        { ActorType.Plort, typeof(Plort) },
-        { ActorType.Resource, typeof(Resource) },
-        
-        { ActorType.Gadget, typeof(ActorBase) },
-        { ActorType.LinkedGadget, typeof(LinkedGadget) },
+        { ActorType.Gadget,               typeof(ActorBase) },
+        { ActorType.LinkedGadget,         typeof(LinkedGadget) },
         { ActorType.LinkedGadgetWithAmmo, typeof(LinkedAmmoGadget) },
         
-        { ActorType.DroneStation, typeof(DroneStation) },
-        { ActorType.RanchDrone, typeof(RanchDrone) },
-        { ActorType.ExplorerDrone, typeof(ExplorerDrone) },
+        { ActorType.DroneStation,         typeof(DroneStation) },
+        { ActorType.RanchDrone,           typeof(RanchDrone) },
+        { ActorType.ExplorerDrone,        typeof(ExplorerDrone) },
     };
 
-    public class ActorBase : INetObject
+    internal class ActorBase : INetObject
     {
         public long ActorId;
         public Vector3 Position;
@@ -77,7 +77,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class Slime : ActorBase
+    internal sealed class Slime : ActorBase
     {
         public float4 Emotions;
 
@@ -95,7 +95,7 @@ public sealed partial class InitialActorsPacket
             Emotions = reader.ReadFloat4();
         }
     }
-    public sealed class DroneStation : ActorBase
+    internal sealed class DroneStation : ActorBase
     {
         public float Charge;
         public DroneType DroneType;
@@ -125,7 +125,7 @@ public sealed partial class InitialActorsPacket
         }
     }
     
-    public class ExplorerDrone : ActorBase
+    internal class ExplorerDrone : ActorBase
     {
         public ActorId Station;
         
@@ -144,7 +144,7 @@ public sealed partial class InitialActorsPacket
         }
     }
     
-    public sealed class RanchDrone : ExplorerDrone
+    internal sealed class RanchDrone : ExplorerDrone
     {
         public NetworkAmmo Ammo;
         protected override ActorType Type => ActorType.RanchDrone;
@@ -161,7 +161,7 @@ public sealed partial class InitialActorsPacket
             Ammo = reader.ReadNetObject<NetworkAmmo>();
         }
     }
-    public sealed class LinkedAmmoGadget : LinkedGadget
+    internal sealed class LinkedAmmoGadget : LinkedGadget
     {
         public NetworkAmmo Ammo;
         protected override ActorType Type => ActorType.LinkedGadgetWithAmmo;
@@ -178,10 +178,10 @@ public sealed partial class InitialActorsPacket
             Ammo = reader.ReadNetObject<NetworkAmmo>();
         }
     }
-    public class LinkedGadget : ActorBase
+    internal abstract class LinkedGadget : ActorBase
     {
         public long LinkedActorId;
-        
+
         protected override ActorType Type => ActorType.LinkedGadget;
 
         public override void Serialise(PacketWriter writer)
@@ -197,7 +197,7 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public abstract class Destroyable : ActorBase
+    internal abstract class Destroyable : ActorBase
     {
         public double DestroyTime;
 
@@ -214,11 +214,11 @@ public sealed partial class InitialActorsPacket
         }
     }
 
-    public sealed class Resource : Destroyable
+    internal sealed class Resource : Destroyable
     {
         public double ProgressTime;
         public ResourceCycle.State ResourceState;
-        
+
         public int JointIndex = -1;
         public string PlotID = string.Empty;
         public Vector3 SpawnerPosition;
@@ -230,7 +230,7 @@ public sealed partial class InitialActorsPacket
             base.Serialise(writer);
             writer.WriteDouble(ProgressTime);
             writer.WritePackedEnum(ResourceState);
-            writer.WriteInt(JointIndex);
+            writer.WritePackedInt(JointIndex);
             writer.WriteString(PlotID);
             writer.WriteVector3(SpawnerPosition);
         }
@@ -240,13 +240,13 @@ public sealed partial class InitialActorsPacket
             base.Deserialise(reader);
             ProgressTime = reader.ReadDouble();
             ResourceState = reader.ReadPackedEnum<ResourceCycle.State>();
-            JointIndex = reader.ReadInt();
-            PlotID = reader.ReadString();
+            JointIndex = reader.ReadPackedInt();
+            PlotID = reader.ReadPooledString()!;
             SpawnerPosition = reader.ReadVector3();
         }
     }
 
-    public sealed class Plort : Destroyable
+    internal sealed class Plort : Destroyable
     {
         public bool Invulnerable;
         public float InvulnerablePeriod;
@@ -277,7 +277,7 @@ public sealed partial class InitialActorsPacket
         public int GetHashCode(ActorType obj) => (int)obj;
     }
 
-    public struct DroneTask : INetObject
+    internal struct DroneTask : INetObject
     {
         public int TargetIdent;
         public DroneTaskTargetType Target;

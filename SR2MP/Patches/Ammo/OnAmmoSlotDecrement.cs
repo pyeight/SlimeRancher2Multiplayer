@@ -6,17 +6,17 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Ammo;
 
 [HarmonyPatch(typeof(AmmoSlot), nameof(AmmoSlot.DecrementAmmo))]
-public static class OnAmmoSlotDecrement
+internal static class OnAmmoSlotDecrement
 {
     public static void Postfix(AmmoSlot __instance)
     {
-        if ((!Main.Client.IsConnected && !Main.Server.IsRunning()) || handlingPacket) return;
+        if ((!Main.Client.IsConnected && !Main.Server.IsRunning) || HandlingPacket) return;
 
         if (__instance._count <= 0) __instance._id = null;
 
         var index = __instance.GetSlotIndex();
         if (index == null) return;
-        
+
         var packet = new AmmoDecrementPacket()
         {
             SlotIndex = (int)index,

@@ -2,7 +2,7 @@ using System.Net;
 
 namespace SR2MP.Shared.Utils;
 
-public readonly struct PacketKey : IEquatable<PacketKey>
+internal readonly struct PacketKey : IEquatable<PacketKey>
 {
     public readonly IPEndPoint EndPoint;
     public readonly ushort PacketId;

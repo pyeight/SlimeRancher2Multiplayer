@@ -1,3 +1,6 @@
+#pragma warning disable RCS1110 // Declare type inside namespace
+// ReSharper disable once CheckNamespace
+
 internal static class BuildInfo
 {
     internal const string Name = "Ranching Together";
@@ -6,17 +9,17 @@ internal static class BuildInfo
     internal const string CoAuthors = "";
     internal const string Contributors = "AlchlcSystm, PinkTarr";
     internal const string Company = "";
-    //Version is shown my ML
-    //DisplayVersion is shown by SR2E
-    //DisplayVersion automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
+    // Version is shown by ML
+    // DisplayVersion is shown by SR2E
+    // DisplayVersion automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
     internal const string Version = "0.3.0";
     internal const string DisplayVersion = "0.3.0"; // Auto-Dev_Do_not_remove
     internal const string DownloadLink = "https://discord.com/invite/a7wfBw5feU";
     internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
     internal const string Nexus = "https://www.nexusmods.com/slimerancher2/mods/118";
     internal const string UsePrism = "false";
-    internal const string Discord = "https://discord.com/invite/a7wfBw5feU"; // Discord Link for th Expansion.  (optional, set as null if none)
+    internal const string Discord = "https://discord.com/invite/a7wfBw5feU"; // Discord Link for th Expansion. (optional, set as null if none)
     internal const string MinSr2EVersion = SR2E.BuildInfo.CodeVersion; // e.g "3.6.3", the min required SR2 version. No beta or alpha versions
-    internal const string RequiredGameVersion = "1.1.1"; //e.g 1.1.0 or something similar (optional)
-    internal const string ExactRequiredGameVersion = "1.1.1"; //e.g 1.1.0 or something similar (optional)
+    internal const string RequiredGameVersion = "1.1.1"; // e.g 1.1.0 or something similar (optional)
+    internal const string ExactRequiredGameVersion = "1.1.1"; // e.g 1.1.0 or something similar (optional)
 }

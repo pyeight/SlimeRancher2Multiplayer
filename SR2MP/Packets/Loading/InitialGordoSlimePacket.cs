@@ -2,9 +2,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialGordosPacket : IPacket
+internal sealed class InitialGordosPacket : IPacket
 {
-    public sealed class GordoSlime : INetObject
+    internal sealed class GordoSlime : INetObject
     {
         public string Id;
         public int EatenCount;
@@ -19,18 +19,18 @@ public sealed class InitialGordosPacket : IPacket
             writer.WritePackedInt(EatenCount);
             writer.WritePackedInt(RequiredEatCount);
             writer.WritePackedInt(GordoSlimeType);
-            writer.WriteBool(WasSeen);
-            // writer.WriteBool(Popped);
+            writer.WritePackedBool(WasSeen);
+            // writer.WritePackedBool(Popped);
         }
 
         public void Deserialise(PacketReader reader)
         {
-            Id = reader.ReadString();
+            Id = reader.ReadPooledString()!;
             EatenCount = reader.ReadPackedInt();
             RequiredEatCount = reader.ReadPackedInt();
             GordoSlimeType = reader.ReadPackedInt();
-            WasSeen = reader.ReadBool();
-            // Popped = reader.ReadBool();
+            WasSeen = reader.ReadPackedBool();
+            // Popped = reader.ReadPackedBool();
         }
     }
 
@@ -38,8 +38,9 @@ public sealed class InitialGordosPacket : IPacket
 
     public PacketType Type => PacketType.InitialGordos;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(GordoSlimes, PacketWriterDels.NetObject<GordoSlime>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteList(GordoSlimes, PacketWriterDels.NetObject<GordoSlime>.Writer);
 
-    public void Deserialise(PacketReader reader) => GordoSlimes = reader.ReadList(PacketReaderDels.NetObject<GordoSlime>.Func);
+    public void Deserialise(PacketReader reader) => GordoSlimes = reader.ReadList(PacketReaderDels.NetObject<GordoSlime>.Reader)!;
 }

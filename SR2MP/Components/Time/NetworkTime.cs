@@ -1,17 +1,18 @@
+using JetBrains.Annotations;
 using MelonLoader;
-using SR2MP.Packets.World;
 using SR2MP.Packets.Utils;
+using SR2MP.Packets.World;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP.Components.Time;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class NetworkTime : MonoBehaviour
+internal sealed class NetworkTime : MonoBehaviour
 {
     private TimeDirector timeDirector;
-
     private float sendTimer;
 
+    [UsedImplicitly]
     public void Awake() => timeDirector = GetComponent<TimeDirector>();
 
     public void Update()

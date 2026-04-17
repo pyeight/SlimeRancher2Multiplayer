@@ -1,12 +1,13 @@
+using JetBrains.Annotations;
 using MelonLoader;
 using SR2MP.Packets.FX;
 
 namespace SR2MP.Components.FX;
 
 [RegisterTypeInIl2Cpp(false)]
-public sealed class NetworkPlayerSound : MonoBehaviour
+internal sealed class NetworkPlayerSound : MonoBehaviour
 {
-    public PlayerFXType fxType;
+    public PlayerFXType FXType;
 
     private bool cachedIsPlaying;
     private SECTR_AudioCue cachedAudioCue;
@@ -15,10 +16,8 @@ public sealed class NetworkPlayerSound : MonoBehaviour
     public bool IsPlaying => audioSource.IsPlaying && !audioSource.instance.Paused;
     public SECTR_AudioCue AudioCue => audioSource.Cue;
 
-    public void Awake()
-    {
-        audioSource = GetComponent<SECTR_PointSource>();
-    }
+    [UsedImplicitly]
+    public void Awake() => audioSource = GetComponent<SECTR_PointSource>();
 
     public void Update()
     {
@@ -30,20 +29,13 @@ public sealed class NetworkPlayerSound : MonoBehaviour
         if (!hasChanged)
             return;
 
-        SendPacket();
-    }
-
-    private void SendPacket()
-    {
         // Defaults to PlayerFXType.None
-        if (!fxManager.TryGetFXType(audioSource.Cue, out fxType))
-        {
+        if (!FXManager.TryGetFXType(audioSource.Cue, out FXType))
             return;
-        }
 
         var packet = new PlayerFXPacket
         {
-            FX = fxType,
+            FX = FXType,
             Player = LocalID
         };
         Main.SendToAllOrServer(packet);

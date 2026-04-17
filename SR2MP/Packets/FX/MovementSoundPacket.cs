@@ -5,13 +5,14 @@ namespace SR2MP.Packets.FX;
 // Do not rewrite this, the movement SFX comes in many materials and types (36 different sounds).
 // Il2CppMonomiPark.SlimeRancher.VFX.EnvironmentInteraction;
 // GroundCollisionMaterials.GroundCollisionMaterialType.X
-public sealed class MovementSoundPacket : IPacket
+internal sealed class MovementSoundPacket : IPacket
 {
     public Vector3 Position;
     public string CueName;
 
     public PacketType Type => PacketType.MovementSound;
     public PacketReliability Reliability => PacketReliability.Unreliable;
+    public NetworkChannel Channel => NetworkChannel.FX;
 
     public void Serialise(PacketWriter writer)
     {
@@ -22,6 +23,6 @@ public sealed class MovementSoundPacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         Position = reader.ReadVector3();
-        CueName = reader.ReadString();
+        CueName = reader.ReadPooledString()!;
     }
 }

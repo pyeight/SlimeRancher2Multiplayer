@@ -8,7 +8,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Access;
 
 [PacketHandler((byte)PacketType.SwitchActivate)]
-public sealed class WorldSwitchHandler : BasePacketHandler<WorldSwitchPacket>
+internal sealed class WorldSwitchHandler : BasePacketHandler<WorldSwitchPacket>
 {
     protected override bool Handle(WorldSwitchPacket packet, IPEndPoint? _)
     {
@@ -26,11 +26,11 @@ public sealed class WorldSwitchHandler : BasePacketHandler<WorldSwitchPacket>
                 var secondary = switchComponentBase.TryCast<WorldStateSecondarySwitch>();
                 var invisible = switchComponentBase.TryCast<WorldStateInvisibleSwitch>();
 
-                handlingPacket = true;
+                HandlingPacket = true;
                 primary?.SetStateForAll(packet.State, packet.Immediate);
                 secondary?.SetState(packet.State, packet.Immediate);
                 invisible?.SetStateForAll(packet.State, packet.Immediate);
-                handlingPacket = false;
+                HandlingPacket = false;
             }
         }
         else

@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.LandPlots;
 
 [PacketHandler((byte)PacketType.SiloSlotSelect)]
-public sealed class SiloSlotSelectHandler : BasePacketHandler<SiloSlotSelectPacket>
+internal sealed class SiloSlotSelectHandler : BasePacketHandler<SiloSlotSelectPacket>
 {
     protected override bool Handle(SiloSlotSelectPacket packet, IPEndPoint? _)
     {
@@ -16,9 +16,9 @@ public sealed class SiloSlotSelectHandler : BasePacketHandler<SiloSlotSelectPack
         if (!model.gameObj) return true;
 
         model.gameObj.GetComponentsInChildren<SiloStorageActivator>()
-            .FirstOrDefault((activator => activator.ActivatorIdx == packet.Side))?
+            .FirstOrDefault(activator => activator.ActivatorIdx == packet.Side)?
             .OnActiveSlotChanged();
-        
+
         return true;
     }
 }

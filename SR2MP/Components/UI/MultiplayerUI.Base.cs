@@ -3,13 +3,13 @@ using SR2E.Utils;
 
 namespace SR2MP.Components.UI;
 
-// TODO: Asset bundle
+// todo: Asset bundle
 [RegisterTypeInIl2Cpp(false)]
-public sealed partial class MultiplayerUI : MonoBehaviour
+internal sealed partial class MultiplayerUI : MonoBehaviour
 {
     public static MultiplayerUI Instance { get; private set; }
 
-    private bool didUnfocus = false;
+    private bool didUnfocus;
 
     private void Awake()
     {
@@ -22,7 +22,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
         if (Instance)
         {
-            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!", SrLogTarget.Both);
+            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!");
             Destroy(this);
             return;
         }
@@ -54,7 +54,6 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         }
         else if (!didUnfocus)
         {
-            shouldUnfocusChat = true;
             UnfocusChat();
             didUnfocus = true;
         }
@@ -85,9 +84,6 @@ public sealed partial class MultiplayerUI : MonoBehaviour
                 break;
             case MenuState.ConnectedHost:
                 HostingScreen();
-                break;
-            case MenuState.Error:
-                DrawError();
                 break;
             default:
                 UnimplementedScreen();

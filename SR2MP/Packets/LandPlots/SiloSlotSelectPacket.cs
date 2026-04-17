@@ -2,14 +2,15 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public class SiloSlotSelectPacket : IPacket
+internal sealed class SiloSlotSelectPacket : IPacket
 {
     public byte Side;
     public byte Index;
     public string ID;
-    
+
     public PacketType Type => PacketType.SiloSlotSelect;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {
@@ -22,6 +23,6 @@ public class SiloSlotSelectPacket : IPacket
     {
         Side = reader.ReadByte();
         Index = reader.ReadByte();
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString()!;
     }
 }

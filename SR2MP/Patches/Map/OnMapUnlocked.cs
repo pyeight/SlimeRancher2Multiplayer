@@ -1,12 +1,11 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.UI.Map;
 using SR2MP.Packets.World;
-using UnityEngine.Networking.Types;
 
 namespace SR2MP.Patches.Map;
 
 [HarmonyPatch(typeof(MapNodeActivator), nameof(MapNodeActivator.Activate))]
-public static class OnMapUnlocked
+internal static class OnMapUnlocked
 {
     public static void Postfix(MapNodeActivator __instance)
     {
@@ -15,7 +14,7 @@ public static class OnMapUnlocked
             // NodeID = __instance._fogRevealEvent._dataKey,
             NodeID =__instance._fogRevealEvent.DataKey
         };
-        
+
         Main.SendToAllOrServer(packet);
     }
 }

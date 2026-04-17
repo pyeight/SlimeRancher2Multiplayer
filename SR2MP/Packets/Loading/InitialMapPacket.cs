@@ -2,12 +2,13 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialMapPacket : IPacket
+internal sealed class InitialMapPacket : IPacket
 {
-    public List<string> UnlockedNodes;
+    public List<string?> UnlockedNodes;
 
     public PacketType Type => PacketType.InitialMapEntries;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     // todo: Add navigation marker data later.
 
@@ -18,6 +19,6 @@ public sealed class InitialMapPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        UnlockedNodes = reader.ReadList(PacketReaderDels.String);
+        UnlockedNodes = reader.ReadList(PacketReaderDels.String)!;
     }
 }

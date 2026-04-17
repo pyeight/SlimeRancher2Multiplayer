@@ -2,13 +2,14 @@
 
 namespace SR2MP.Packets.LandPlots;
 
-public class PlortCollectionPacket : IPacket
+internal sealed class PlortCollectionPacket : IPacket
 {
     public string ID;
     public double EndTime;
-    
+
     public PacketType Type => PacketType.PlortCollection;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
     {
@@ -18,7 +19,7 @@ public class PlortCollectionPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString()!;
         EndTime = reader.ReadDouble();
     }
 }

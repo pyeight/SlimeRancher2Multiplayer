@@ -7,31 +7,31 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.FX;
 
 [PacketHandler((byte)PacketType.PlayerFX)]
-public sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
+internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
 {
     protected override bool Handle(PlayerFXPacket packet, IPEndPoint? _)
     {
-        handlingPacket = true;
+        HandlingPacket = true;
 
         try
         {
             if (!IsPlayerSoundDictionary[packet.FX])
             {
-                var fxPrefab = fxManager.PlayerFXMap[packet.FX];
+                var fxPrefab = FXManager.PlayerFXMap[packet.FX];
                 FXHelpers.SpawnAndPlayFX(fxPrefab, packet.Position, Quaternion.identity);
             }
             else
             {
-                var cue = fxManager.PlayerAudioCueMap[packet.FX];
+                var cue = FXManager.PlayerAudioCueMap[packet.FX];
 
                 if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
                 {
-                    RemoteFXManager.PlayTransientAudio(cue, playerObjects[packet.Player].transform.position,
+                    RemoteFXManager.PlayTransientAudio(cue, PlayerObjects[packet.Player].transform.position,
                         PlayerSoundVolumeDictionary[packet.FX]);
                 }
                 else
                 {
-                    var playerAudio = playerObjects[packet.Player].GetComponent<SECTR_PointSource>();
+                    var playerAudio = PlayerObjects[packet.Player].GetComponent<SECTR_PointSource>();
                     playerAudio.Cue = cue;
                     playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
                     playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
@@ -42,7 +42,7 @@ public sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
         catch { /* Errors here are typically non-serious related to scene loading */ }
         finally
         {
-            handlingPacket = false;
+            HandlingPacket = false;
         }
 
         return true;

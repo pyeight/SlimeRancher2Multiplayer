@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.GordoSlime;
 
 [PacketHandler((byte)PacketType.InitialGordos, HandlerType.Client)]
-public sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordosPacket>
+internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordosPacket>
 {
     protected override bool Handle(InitialGordosPacket packet, IPEndPoint? _)
     {
@@ -34,7 +34,7 @@ public sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGord
                     fashions = new CppCollections.List<IdentifiableType>(0),
                     gordoEatCount = gordoSlime.EatenCount,
                     gordoSeen = false,
-                    identifiableType = actorManager.ActorTypes[gordoSlime.GordoSlimeType],
+                    identifiableType = ActorManager.ActorTypes[gordoSlime.GordoSlimeType],
                     gameObj = null,
                     targetCount = gordoSlime.RequiredEatCount
                 };

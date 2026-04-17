@@ -1,12 +1,14 @@
+/*
 using System.Net;
 using SR2E;
 using SR2E.Utils;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP;
 
-public sealed class HostCommand : SR2ECommand
+internal sealed class HostCommand : SR2ECommand
 {
     private static Server.SR2MPServer? server;
 
@@ -23,7 +25,23 @@ public sealed class HostCommand : SR2ECommand
     }
 }
 
-public sealed class ChatCommand : SR2ECommand
+internal sealed class AutoHostCommand : SR2ECommand
+{
+    private static Server.SR2MPServer? server;
+
+    public override string ID => "autohost";
+    public override string Usage => "autohost";
+
+    public override bool Execute(string[] args)
+    {
+        MenuEUtil.CloseOpenMenu();
+        MultiplayerUI.Instance.StartAutoHost();
+        SrLogger.LogMessage("Autohost command executed!");
+        return true;
+    }
+}
+
+internal sealed class ChatCommand : SR2ECommand
 {
     public override string ID => "chat";
     public override string Usage => "chat <message>";
@@ -52,7 +70,7 @@ public sealed class ChatCommand : SR2ECommand
     }
 }
 
-public sealed class ConnectCommand : SR2ECommand
+internal sealed class ConnectCommand : SR2ECommand
 {
     public override string ID => "connect";
     public override string Usage => "connect <ip/domain[:port]>";
@@ -113,7 +131,7 @@ public sealed class ConnectCommand : SR2ECommand
     }
 }
 
-public sealed class ResyncAllCommand : SR2ECommand
+internal sealed class ResyncAllCommand : SR2ECommand
 {
     public override string ID => "resync";
     public override string Usage => "resync";
@@ -122,11 +140,25 @@ public sealed class ResyncAllCommand : SR2ECommand
     {
         if (Main.Client.IsConnected)
             Main.Server.reSyncManager.RequestResync();
-        
-        if (Main.Server.IsRunning())
+
+        if (Main.Server.IsRunning)
             Main.Server.reSyncManager.SynchronizeAll();
-        
+
         SrLogger.LogMessage("Resync command executed!", SrLogTarget.Both);
         return true;
     }
 }
+
+public sealed class RemoveExceptionsCommand : SR2ECommand
+{
+    public override string ID => "removeexceptions";
+    public override string Usage => "removeexceptions";
+
+    public override bool Execute(string[] args)
+    {
+        Firewall.RemoveAllExceptions();
+        SrLogger.LogMessage("removeexceptions command executed!", SrLogTarget.Both);
+        return true;
+    }
+}
+*/

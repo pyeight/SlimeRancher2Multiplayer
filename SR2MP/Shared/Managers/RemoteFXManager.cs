@@ -3,7 +3,7 @@ using SR2MP.Components.FX;
 
 namespace SR2MP.Shared.Managers;
 
-public sealed class RemoteFXManager
+internal sealed class RemoteFXManager
 {
     // ReSharper disable once MemberCanBePrivate.Global
     public readonly Dictionary<string, GameObject> AllFX = new();
@@ -109,7 +109,7 @@ public sealed class RemoteFXManager
             foreach (var particle in resources.Where(x => x.name.Contains(obj.name)))
             {
                 if (!particle.GetComponent<NetworkPlayerFX>())
-                    particle.AddComponent<NetworkPlayerFX>().fxType = playerFX;
+                    particle.AddComponent<NetworkPlayerFX>().FXType = playerFX;
             }
         }
 
@@ -121,7 +121,7 @@ public sealed class RemoteFXManager
             foreach (var particle in resources.Where(x => x.name.Contains(obj.name)))
             {
                 if (!particle.GetComponent<NetworkWorldFX>())
-                    particle.AddComponent<NetworkWorldFX>().fxType = worldFX;
+                    particle.AddComponent<NetworkWorldFX>().FXType = worldFX;
             }
         }
 
@@ -138,7 +138,7 @@ public sealed class RemoteFXManager
                 cue.Value.Spatialization = SECTR_AudioCue.Spatializations.Occludable3D;
         }
 
-        SrLogger.LogMessage("RemoteFXManager initialized", SrLogTarget.Both);
+        SrLogger.LogMessage("RemoteFXManager initialized");
     }
 
     public bool TryGetFXType(SECTR_AudioCue cue, out PlayerFXType fxType) => TryGetFXType(cue, PlayerAudioCueMap, out fxType);
@@ -164,10 +164,10 @@ public sealed class RemoteFXManager
         return false;
     }
 
-    public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, bool loop = false)
-    {
-        SECTR_AudioSystem.Play(cue, position, loop);
-    }
+    // public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, bool loop = false)
+    // {
+    //     SECTR_AudioSystem.Play(cue, position, loop);
+    // }
 
     public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, float volume, bool loop = false)
     {

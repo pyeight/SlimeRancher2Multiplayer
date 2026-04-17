@@ -7,7 +7,7 @@ using SR2MP.Packets.Utils;
 namespace SR2MP.Handlers.Currency;
 
 [PacketHandler((byte)PacketType.CurrencyAdjust)]
-public sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
+internal sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
 {
     protected override bool Handle(CurrencyPacket packet, IPEndPoint? _)
     {
@@ -15,14 +15,14 @@ public sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
         var currencyDefinition = currency!.Cast<ICurrency>();
         var difference = packet.NewAmount - SceneContext.Instance.PlayerState.GetCurrency(currencyDefinition);
 
-        handlingPacket = true;
+        HandlingPacket = true;
 
         if (difference < 0)
             SceneContext.Instance.PlayerState.SpendCurrency(currencyDefinition, -difference);
         else
             SceneContext.Instance.PlayerState.AddCurrency(currencyDefinition, difference, packet.ShowUINotification);
 
-        handlingPacket = false;
+        HandlingPacket = false;
         return true;
     }
 }

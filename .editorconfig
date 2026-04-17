@@ -168,3 +168,30 @@ dotnet_diagnostic.CS8618.severity = none
 
 # IDE0079: Remove unnecessary suppression
 dotnet_diagnostic.IDE0079.severity = none
+
+# CS0436: Type conflicts with imported type
+dotnet_diagnostic.CS0436.severity = none
+
+# S3267: Loops should be simplified with "LINQ" expressions
+dotnet_diagnostic.S3267.severity = none
+
+# S3011: Reflection should not be used to increase accessibility of classes, methods, or fields
+dotnet_diagnostic.S3011.severity = none
+
+# S3398: "private" methods called only by inner classes should be moved to those classes
+dotnet_diagnostic.S3398.severity = none
+
+# S1133: Deprecated code should be removed
+dotnet_diagnostic.S1133.severity = none
+
+# S6562: Always set the "DateTimeKind" when creating new "DateTime" instances
+dotnet_diagnostic.S6562.severity = none
+
+# RCS1238: Avoid nested ?: operators
+dotnet_diagnostic.RCS1238.severity = none
+
+# S3358: Ternary operators should not be nested
+dotnet_diagnostic.S3358.severity = none
+
+# S2696: Instance members should not write to "static" fields
+dotnet_diagnostic.S2696.severity = none

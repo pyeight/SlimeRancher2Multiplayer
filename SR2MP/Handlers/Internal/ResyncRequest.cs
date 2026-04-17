@@ -1,24 +1,25 @@
 using System.Net;
 using SR2MP.Packets.Internal;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Internal;
 
 [PacketHandler((byte)PacketType.ResyncRequest, HandlerType.Server)]
-public sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket>
+internal sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket>
 {
     protected override bool Handle(ResyncRequestPacket packet, IPEndPoint? clientEp)
     {
         if (clientEp == null)
             return false;
 
-        if (!Main.Server.clientManager.TryGetClient(clientEp, out var clientInfo))
+        if (!Main.Server.ClientManager.TryGetClient(clientEp, out var clientInfo))
         {
-            SrLogger.LogWarning($"Resync requested for unknown endpoint: {clientEp}", SrLogTarget.Both);
+            SrLogger.LogWarning($"Resync requested for unknown endpoint: {clientEp}");
             return false;
         }
 
-        var resyncManager = Main.Server.reSyncManager;
+        var resyncManager = Main.Server.ReSyncManager;
 
         if (!resyncManager.CanResync(clientEp))
         {
@@ -27,7 +28,7 @@ public sealed class ResyncRequestHandler : BasePacketHandler<ResyncRequestPacket
         }
 
         resyncManager.MarkResynced(clientEp);
-        resyncManager.SynchronizeClient(clientInfo!.PlayerId, clientEp);
+        ReSyncManager.SynchronizeClient(clientInfo!.PlayerId, clientEp);
         resyncManager.LogResyncRequest(clientInfo.PlayerId, clientEp);
         resyncManager.SendSuccessMessage(clientEp);
 

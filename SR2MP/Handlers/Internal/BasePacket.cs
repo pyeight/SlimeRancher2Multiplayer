@@ -4,17 +4,18 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.Internal;
 
-public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : IPacket, new()
+internal abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : IPacket, new()
 {
     public bool IsServerSide { protected get; set; }
 
-    public void Handle(PacketReader reader)
+    // Do NOT override these! Only the ApiHandler class should be dealing with this!
+    public virtual void Handle(PacketReader reader)
     {
         if (!IsServerSide)
             ProcessPacket(reader, null);
     }
 
-    public void Handle(PacketReader reader, IPEndPoint? clientEp)
+    public virtual void Handle(PacketReader reader, IPEndPoint? clientEp)
     {
         if (IsServerSide)
             ProcessPacket(reader, clientEp);
@@ -26,19 +27,19 @@ public abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPacket
         var shouldSend = Handle(packet, clientEp);
 
         if (IsServerSide && shouldSend)
-            PacketSender.SendPacket(packet, clientEp);
+            PacketSender.SendToAllExcept(packet, clientEp);
     }
 
     protected abstract bool Handle(T packet, IPEndPoint? clientEp);
 }
 
-public static class PacketSender
+internal static class PacketSender
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SendPacket<T>(T packet) where T : IPacket
         => Main.Client.SendPacket(packet);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void SendPacket<T>(T packet, IPEndPoint? clientEp) where T : IPacket
-        => Main.Server.SendToAllExcept(packet, clientEp);
+    public static void SendToAllExcept<T>(T packet, IPEndPoint? excludedEp) where T : IPacket
+        => Main.Server.SendToAllExcept(packet, excludedEp);
 }

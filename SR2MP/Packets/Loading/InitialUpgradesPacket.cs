@@ -2,14 +2,15 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialUpgradesPacket : IPacket
+internal sealed class InitialUpgradesPacket : IPacket
 {
     public Dictionary<byte, sbyte> Upgrades;
 
     public PacketType Type => PacketType.InitialPlayerUpgrades;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer) => writer.WriteDictionary(Upgrades, PacketWriterDels.Byte, PacketWriterDels.SByte);
 
-    public void Deserialise(PacketReader reader) => Upgrades = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.SByte);
+    public void Deserialise(PacketReader reader) => Upgrades = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.SByte)!;
 }

@@ -29,7 +29,7 @@ using SR2E.Expansion;
 [assembly: AssemblyMetadata(SR2EExpansionAttributes.IsExpansion, "true")]
 
 [assembly: MelonAdditionalDependencies("SR2E")]
-[assembly: MelonOptionalDependencies("DiscordRPC")]
+[assembly: MelonOptionalDependencies("DiscordRPC", "SharpOpenNat")]
 
 // Modifies the minimum ML version required (mandatory)
 [assembly: VerifyLoaderVersion(0, 7, 1, true)]

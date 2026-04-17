@@ -3,9 +3,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialAccessDoorsPacket : IPacket
+internal sealed class InitialAccessDoorsPacket : IPacket
 {
-    public sealed class Door : INetObject
+    internal sealed class Door : INetObject
     {
         public string ID;
         public AccessDoor.State State;
@@ -18,7 +18,7 @@ public sealed class InitialAccessDoorsPacket : IPacket
 
         public void Deserialise(PacketReader reader)
         {
-            ID = reader.ReadString();
+            ID = reader.ReadPooledString()!;
             State = reader.ReadPackedEnum<AccessDoor.State>();
         }
     }
@@ -27,8 +27,9 @@ public sealed class InitialAccessDoorsPacket : IPacket
 
     public PacketType Type => PacketType.InitialAccessDoors;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(Doors, PacketWriterDels.NetObject<Door>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteList(Doors, PacketWriterDels.NetObject<Door>.Writer);
 
-    public void Deserialise(PacketReader reader) => Doors = reader.ReadList(PacketReaderDels.NetObject<Door>.Func);
+    public void Deserialise(PacketReader reader) => Doors = reader.ReadList(PacketReaderDels.NetObject<Door>.Reader)!;
 }
