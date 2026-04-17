@@ -47,7 +47,7 @@ internal static class DiscordRPCManager
             {Zone.LabyrinthHub, "Staring at the Impossible Sky"},
             {Zone.LabyrinthCore, "Inspecting the Core"},
             {Zone.MainMenu, "Getting ready for adventures!"},
-            {Zone.FinalBoss, "Fighting it"},
+            {Zone.FinalBoss, "||Fighting the Final Boss||..."},
             {Zone.Ending, "Relaxing after the end"}
         });
 
@@ -113,7 +113,8 @@ internal static class DiscordRPCManager
 
     public static ZoneDefinition? currentZone;
 
-    // public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
+    public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
+    public static bool IsFightingFinalBoss => BossFightController.Instance?._bossFightIsActive == true;
 
     internal static void UpdatePresence()
     {
@@ -127,8 +128,10 @@ internal static class DiscordRPCManager
             : DetailsStringOffline;
         var currentLocation = currentZone ? (DefinitionToZone.TryGetValue(currentZone!.name, out var zone) ? zone : Zone.Unknown) : Zone.MainMenu;
 
-        // if (IsInEndingCutscene)
-        //    currentLocation = Zone.Ending;
+        if (IsFightingFinalBoss)
+            currentLocation = Zone.FinalBoss;
+        if (IsInEndingCutscene)
+            currentLocation = Zone.Ending;
 
         var status = ZoneToStatus[currentLocation];
         var icon = ZoneToIcon[currentLocation];
