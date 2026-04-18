@@ -174,7 +174,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 6. Create or Update Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.4.2
         with:
           tag_name: continuous-build-${{ github.ref_name }}
           name: Continuous Build (${{ github.ref_name }})
@@ -186,7 +186,7 @@ jobs:
           draft: false
           prerelease: true
           files: FinalArtifacts/*.dll
-          make_latest: false
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
