@@ -186,7 +186,7 @@ jobs:
           draft: false
           prerelease: true
           files: FinalArtifacts/*.dll
-          make_latest: true
+          make_latest: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
