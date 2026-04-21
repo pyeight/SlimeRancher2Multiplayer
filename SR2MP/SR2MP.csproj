@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-      <TargetFramework>net6.0</TargetFramework>
-      <ImplicitUsings>enable</ImplicitUsings>
-      <Nullable>enable</Nullable>
-      <Version>0.3.0</Version>
-      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-      <PlatformTarget>x64</PlatformTarget>
-      <EnableNETAnalyzers>true</EnableNETAnalyzers>
-      <Configurations>Debug;Release</Configurations>
-      <DebugType>embedded</DebugType>
-      <NoWarn>1701;1702;RCS1037;CS0436;CS0656</NoWarn>
-        <OutputType>Library</OutputType>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>0.3.0</Version>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <Configurations>Debug;Release</Configurations>
+    <DebugType>embedded</DebugType>
+    <NoWarn>1701;1702;RCS1037;CS0436</NoWarn>
+    <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <DebugSymbols>true</DebugSymbols>
