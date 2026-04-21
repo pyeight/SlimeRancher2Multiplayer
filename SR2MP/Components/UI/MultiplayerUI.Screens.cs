@@ -153,63 +153,10 @@ internal sealed partial class MultiplayerUI
 
         mainTab = DrawMainTabRow("Join", "Host", mainTab);
 
-<<<<<<< HEAD
         if (mainTab == MainTab.Join)
             DrawJoinSection();
         else
             DrawHostSection();
-=======
-        DrawText("IP", 2);
-        ipInput = DrawSafeTextInput(
-            "join_ip",
-            CalculateInputLayout(6, 2, 1),
-            ipInput,
-            64
-        );
-
-        DrawText("Port", 2);
-        portInput = DrawSafeTextInput(
-            "join_port",
-            CalculateInputLayout(6, 2, 1),
-            portInput,
-            5,
-            true
-        );
-
-        var validPort = ushort.TryParse(portInput, out var port);
-        if (validPort)
-        {
-            if (GUI.Button(CalculateButtonLayout(6), "Connect"))
-                Connect(ipInput, port);
-        }
-        else
-        {
-            DrawText("Invalid port: Must be a number from 1 to 65535.");
-        }
-
-        DrawText("Host a world:");
-
-        DrawText("Port", 2);
-        hostPortInput = DrawSafeTextInput(
-            "host_port",
-            CalculateInputLayout(6, 2, 1),
-            hostPortInput,
-            5,
-            true
-        );
-
-        var validHostPort = ushort.TryParse(hostPortInput, out var hostPort);
-        if (validHostPort)
-        {
-            if (GUI.Button(CalculateButtonLayout(6), "Host"))
-                Host(hostPort);
-        }
-        else
-        {
-            DrawText("Invalid port. Must be a number from 1 to 65535.");
-            DrawText("Make sure your pc doesn't use the port anywhere else.");
-        }
->>>>>>> 42e3aa3 (Add libraries/ to gitignore (local game DLLs))
     }
 
     private void UnimplementedScreen()
