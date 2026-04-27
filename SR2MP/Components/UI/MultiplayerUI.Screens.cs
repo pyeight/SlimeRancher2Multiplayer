@@ -10,67 +10,80 @@ internal sealed partial class MultiplayerUI
     private string activeInputId = string.Empty;
     private bool suppressNextChar;
 
+    private GUIStyle boxStyle = new() { focused = { textColor = new Color32(205, 255, 205, 255) } };
+    
     private string DrawSafeTextInput(string id, Rect rect, string value, int maxLength = 64, bool numbersOnly = false)
     {
-        var e = Event.current;
-        bool focused = activeInputId == id;
-        string displayValue = string.IsNullOrEmpty(value) && !focused ? "Click to type..." : value;
+        var current = Event.current;
+        var displayValue = string.IsNullOrEmpty(value) && activeInputId != id ? "Click to type" : value;
+        
+        GUI.Box(rect, displayValue, boxStyle);
 
-        GUI.Box(rect, focused ? $"> {displayValue}_" : displayValue);
-
-        if (e.type == EventType.MouseDown)
+        if (current.type == EventType.MouseDown)
         {
-            if (rect.Contains(e.mousePosition))
+            if (rect.Contains(current.mousePosition))
             {
                 activeInputId = id;
                 suppressNextChar = true;
-                e.Use();
+                current.Use();
             }
-            else if (focused)
+            else if (activeInputId == id)
             {
                 activeInputId = string.Empty;
             }
         }
 
-        if (!focused)
+        if (activeInputId != id)
             return value;
 
-        if (e.type == EventType.KeyDown)
+        if (current.type == EventType.KeyDown)
         {
-            switch (e.keyCode)
+            switch (current.keyCode)
             {
+                case KeyCode.V:
+                    if (current.control)
+                        value += GUIUtility.systemCopyBuffer;
+                    return value;
+                case KeyCode.C:
+                    if (current.control)
+                        GUIUtility.systemCopyBuffer = value;
+                    return value;
+                case KeyCode.X:
+                    if (current.control)
+                        GUIUtility.systemCopyBuffer = value;
+                    return "";
+                
                 case KeyCode.Backspace:
                     if (!string.IsNullOrEmpty(value))
                         value = value[..^1];
-                    e.Use();
+                    current.Use();
                     return value;
 
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
                 case KeyCode.Escape:
                     activeInputId = string.Empty;
-                    e.Use();
+                    current.Use();
                     return value;
             }
 
             if (suppressNextChar)
             {
                 suppressNextChar = false;
-                e.Use();
+                current.Use();
                 return value;
             }
 
-            char c = e.character;
 
-            if (c != '\0' && !char.IsControl(c))
+            if (current.character != '\0' && !char.IsControl(current.character))
             {
-                if (!numbersOnly || char.IsDigit(c))
+                if (!numbersOnly || char.IsDigit(current.character))
                 {
                     if (value.Length < maxLength)
-                        value += c;
+                        value += current.character;
                 }
 
-                e.Use();
+                current.Use();
             }
         }
 
@@ -84,6 +97,7 @@ internal sealed partial class MultiplayerUI
         DrawText("Please select an username to play multiplayer.");
 
         DrawText("Username:", 2);
+        usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
         usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
 
         if (string.IsNullOrWhiteSpace(usernameInput))
