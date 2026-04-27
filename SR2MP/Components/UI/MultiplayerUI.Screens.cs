@@ -10,14 +10,18 @@ internal sealed partial class MultiplayerUI
     private string activeInputId = string.Empty;
     private bool suppressNextChar;
 
-    private GUIStyle boxStyle = new() { focused = { textColor = new Color32(205, 255, 205, 255) } };
+    //private GUIStyle boxStyle = new() { focused = { textColor = new Color32(205, 255, 205, 255) } };
+    //private GUIStyle textStyle = new() { richText = true };
     
     private string DrawSafeTextInput(string id, Rect rect, string value, int maxLength = 64, bool numbersOnly = false)
     {
         var current = Event.current;
         var displayValue = string.IsNullOrEmpty(value) && activeInputId != id ? "Click to type" : value;
-        
-        GUI.Box(rect, displayValue, boxStyle);
+
+        if (activeInputId == id)
+            GUI.skin.box.normal.textColor = SelectedTextColor;
+        GUI.Box(rect, displayValue);
+        GUI.skin.box.normal.textColor = Color.white;
 
         if (current.type == EventType.MouseDown)
         {
@@ -116,7 +120,7 @@ internal sealed partial class MultiplayerUI
     private void SettingsScreen()
     {
         DrawText("Username:", 2);
-        usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
+        usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
 
         DrawText("Allow Cheats:", 2);
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))

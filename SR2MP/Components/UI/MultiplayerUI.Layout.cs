@@ -6,6 +6,7 @@ internal sealed partial class MultiplayerUI
     private Rect previousLayoutChatRect;
     private int previousLayoutHorizontalIndex;
 
+    
     private void DrawText(string text, int horizontalShare = 1, int horizontalIndex = 0)
     {
         GUI.Label(CalculateTextLayout(6, text, horizontalShare, horizontalIndex), text);

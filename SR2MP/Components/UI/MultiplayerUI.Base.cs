@@ -7,6 +7,7 @@ namespace SR2MP.Components.UI;
 [RegisterTypeInIl2Cpp(false)]
 internal sealed partial class MultiplayerUI : MonoBehaviour
 {
+    public static readonly Color SelectedTextColor = new Color32(255, 255, 185, 255);
     public static MultiplayerUI Instance { get; private set; }
 
     private bool didUnfocus;
@@ -37,6 +38,8 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
 
     private void OnGUI()
     {
+        GUI.skin.label.richText = true;
+
         if (Event.current.type == EventType.Layout)
         {
             state = GetState();

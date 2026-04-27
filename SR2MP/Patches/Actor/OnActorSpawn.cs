@@ -32,7 +32,9 @@ internal static class OnActorSpawn
             SceneGroup = sceneGroup,
             ActorId = id,
             Position = actor.transform.position,
-            Rotation = actor.transform.rotation
+            Rotation = actor.transform.rotation,
+            FirstAppearance = appearance,
+            SecondAppearance = secondAppearance,
         };
 
         Main.SendToAllOrServer(packet);

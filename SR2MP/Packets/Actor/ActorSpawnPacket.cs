@@ -29,6 +29,8 @@ internal struct ActorSpawnPacket : IPacket
         writer.WriteFloat4(Emotions);
         writer.WritePackedInt(ActorType);
         writer.WriteByte(SceneGroup);
+        writer.WritePackedEnum(FirstAppearance);
+        writer.WritePackedEnum(SecondAppearance);
     }
 
     public void Deserialise(PacketReader reader)
@@ -39,5 +41,7 @@ internal struct ActorSpawnPacket : IPacket
         Emotions = reader.ReadFloat4();
         ActorType = reader.ReadPackedInt();
         SceneGroup = reader.ReadByte();
+        FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
+        SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
     }
 }

@@ -84,7 +84,7 @@ internal static class AutoHost
 
             var device = DiscoverDevice();
             if (device == null)
-                return AutoHostResult.Failure("UPnP is not available on this network.");
+                return AutoHostResult.Failure("**THIS IS NOT A BUG! DO NOT REPORT IT!**\nUPnP is not available on this network.\nYou need to use PlayIt or port forward **IF** you aren't on the same wifi.\n**IF** you are on the same wifi, you can directly connect without tools or playit.");
 
             var port = TryMapPort(device);
             if (port == 0)
