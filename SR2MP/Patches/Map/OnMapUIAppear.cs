@@ -14,31 +14,26 @@ internal class OnMapUIAppear
 {
     public static void Postfix(MapUI __instance)
     {
-        var playerMarkerPrefab = __instance._markerPrefabMapping._playerMarkerPrefab;
-        
-        // Players
         foreach (var player in PlayerManager.GetAllPlayers())
         {
             if (player.PlayerId == LocalID)
                 continue;
             
-            var markerInstance = Object.Instantiate(
-                playerMarkerPrefab, 
+            var marker = Object.Instantiate(
+                __instance._markerPrefabMapping._playerMarkerPrefab, 
                 __instance._mapContainer.transform.parent.FindChild("Markers"), 
                 true);
             
-            markerInstance.transform.position = new Vector3(player.Position.x, player.Position.z, 0);
-            markerInstance.transform.localScale = Vector3.one;
+            marker.transform.position = new Vector3(player.Position.x, player.Position.z, 0);
+            marker.transform.localScale = Vector3.one;
 
-            markerInstance.GetComponent<MapFader>()._targetOpacity = 100;
-
-            
+            marker.GetComponent<MapFader>()._targetOpacity = 100;
             
             var textObject = new GameObject("PlayerName")
             {
                 transform =
                 {
-                    parent = markerInstance.transform,
+                    parent = marker.transform,
                     localPosition = new Vector3(0, 42, 0),
                     localScale = Vector3.one * 0.6f,
                 }
@@ -52,12 +47,12 @@ internal class OnMapUIAppear
             textComponent.overflowMode = TextOverflowModes.Overflow;
             textComponent.enableWordWrapping = false;
             
-            var facingArrow = markerInstance.transform.FindChild("FacingFrame");
-            facingArrow.FindChild("FacingArrow").GetComponent<Image>().m_Color = RemotePlayerManager.GetPlayerColor(player);
+            var facingFrame = marker.transform.FindChild("FacingFrame");
+            facingFrame.FindChild("FacingArrow").GetComponent<Image>().m_Color = RemotePlayerManager.GetPlayerColor(player);
             
             var markerTransformGroup = PlayerMarkerTransforms[player.PlayerId];
-            markerTransformGroup.mainMarker = markerInstance.transform;
-            markerTransformGroup.markerArrow = facingArrow.transform;
+            markerTransformGroup.mainMarker = marker.transform;
+            markerTransformGroup.markerArrow = facingFrame.transform;
         }
     }
 }
