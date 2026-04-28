@@ -129,18 +129,18 @@ public sealed class RemotePlayerManager
     }
 
     /// <summary>
-    /// Gets a player color that is good for ui. Each value in RGB has a minimum of 127.
+    /// Gets a player color that is good for ui. Each value in RGB has a minimum of 70.
     /// </summary>
     /// <param name="player">The network player to get the color from.</param>
     public static Color GetPlayerColor(RemotePlayer player)
     {
-        var hash = HashCalculator.ComputeHashOfString(player.PlayerId);
+        var hash = HashCalculator.ComputeHashOfString(player.PlayerId.Replace("PLAYER_", ""));
         Main.modRandomization.Reseed((int)hash);
         var random = Main.modRandomization;
         return new Color32(
-            (byte)random.GetInRange(127, 255),
-            (byte)random.GetInRange(127, 255),
-            (byte)random.GetInRange(127, 255),
+            (byte)random.GetInRange(70, 255),
+            (byte)random.GetInRange(70, 255),
+            (byte)random.GetInRange(70, 255),
             255);
     }
 }

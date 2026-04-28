@@ -86,6 +86,7 @@ internal partial class NetworkPlayer : MonoBehaviour
             .GetChild(0)
             .GetComponent<TextMeshProUGUI>()
             .SetText(username);
+        GetComponent<RadarTrackedPointOfInterest>().enabled = true;
     }
 
     [UsedImplicitly]
