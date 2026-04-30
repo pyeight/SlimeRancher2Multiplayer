@@ -1,13 +1,11 @@
 using HarmonyLib;
-using Il2CppMonomiPark.SlimeRancher.Map;
 using Il2CppMonomiPark.SlimeRancher.UI.Map;
 using Il2CppTMPro;
-using SR2MP.Client.Models;
 using SR2MP.Components.Player;
 using SR2MP.Shared.Managers;
 using UnityEngine.UI;
 
-namespace NewSR2MP.Patches;
+namespace SR2MP.Patches.Map;
 
 [HarmonyPatch(typeof(MapUI), nameof(MapUI.Start))]
 internal class OnMapUIAppear
