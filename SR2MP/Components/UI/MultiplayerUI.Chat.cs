@@ -194,7 +194,6 @@ internal sealed partial class MultiplayerUI
     {
         if (shouldFocusChat && Event.current.type == EventType.Repaint)
         {
-            //GUI.FocusControl(ChatInputName);
             shouldFocusChat = false;
 
             if (!disabledInput)
@@ -206,7 +205,6 @@ internal sealed partial class MultiplayerUI
         }
         else if (shouldUnfocusChat)
         {
-            //GUI.FocusControl(null);
             shouldUnfocusChat = false;
 
             if (disabledInput)
@@ -221,7 +219,6 @@ internal sealed partial class MultiplayerUI
     private void UpdateChatFocusState()
     {
         var wasPreviouslyFocused = isChatFocused;
-        //isChatFocused = !disabledInput;
 
         if (isChatFocused && !wasPreviouslyFocused)
         {
@@ -259,18 +256,6 @@ internal sealed partial class MultiplayerUI
         foreach (var message in chatMessages)
             RenderChatMessage(message);
 
-        //GUI.SetNextControlName(ChatInputName);
-
-        if (string.IsNullOrEmpty(chatInput) && !isChatFocused)
-        {
-            var placeholderStyle = new GUIStyle(){ normal = { textColor = Color.gray } };
-            GUI.Label(
-                new Rect(6 + HorizontalSpacing, chatY + ChatHeight - InputHeight - 5, ChatWidth - (HorizontalSpacing * 2), InputHeight),
-                "Press Enter to chat...",
-                placeholderStyle
-            );
-        }
-
         chatInput = DrawSafeTextInput(
             "chat_input",
             new Rect(
@@ -280,7 +265,7 @@ internal sealed partial class MultiplayerUI
                 InputHeight
                 ),
             chatInput,
-            MaxChatMessageLength);
+            MaxChatMessageLength, false, true);
 
         UpdateChatFocusState();
         ProcessFocusRequests();

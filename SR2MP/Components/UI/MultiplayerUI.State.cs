@@ -4,7 +4,6 @@ namespace SR2MP.Components.UI;
 
 internal sealed partial class MultiplayerUI
 {
-    
     [Obsolete("Use DrawTabRow function!")]
     private enum MainTab { Join, Host }
     //private MainTab mainTab = MainTab.Join;

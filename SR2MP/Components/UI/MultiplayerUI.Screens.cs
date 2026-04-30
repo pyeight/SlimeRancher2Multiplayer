@@ -9,14 +9,11 @@ internal sealed partial class MultiplayerUI
 
     private string activeInputId = string.Empty;
     private bool suppressNextChar;
-
-    //private GUIStyle boxStyle = new() { focused = { textColor = new Color32(205, 255, 205, 255) } };
-    //private GUIStyle textStyle = new() { richText = true };
     
-    private string DrawSafeTextInput(string id, Rect rect, string value, int maxLength = 64, bool numbersOnly = false)
+    private string DrawSafeTextInput(string id, Rect rect, string value, int maxLength = 64, bool numbersOnly = false, bool isChat = false)
     {
         var current = Event.current;
-        var displayValue = string.IsNullOrEmpty(value) && activeInputId != id ? "Click to type" : value;
+        var displayValue = string.IsNullOrEmpty(value) && activeInputId != id ? isChat ? "Enter to Chat" : "Click to Type" : value;
 
         if (activeInputId == id)
             GUI.skin.box.normal.textColor = SelectedTextColor;
@@ -44,8 +41,6 @@ internal sealed partial class MultiplayerUI
         {
             switch (current.keyCode)
             {
-                
-                
                 case KeyCode.Backspace:
                     if (!string.IsNullOrEmpty(value))
                         value = value[..^1];
@@ -89,17 +84,13 @@ internal sealed partial class MultiplayerUI
                 return value;
             }
 
-
-            if (current.character != '\0' && !char.IsControl(current.character))
+            if (current.character == '\0' || char.IsControl(current.character)) return value;
+            if ((!numbersOnly || char.IsDigit(current.character)) && value.Length < maxLength)
             {
-                if (!numbersOnly || char.IsDigit(current.character))
-                {
-                    if (value.Length < maxLength)
-                        value += current.character;
-                }
-
-                current.Use();
+                value += current.character;
             }
+
+            current.Use();
         }
 
         return value;
