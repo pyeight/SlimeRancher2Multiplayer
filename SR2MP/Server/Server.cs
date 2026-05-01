@@ -80,8 +80,7 @@ public sealed class SR2MPServer
 
         try
         {
-            //PlayerId = DevMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
-            PlayerId = false ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
+            PlayerId = DevMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
 
             packetManager.RegisterHandlers(Main.Core);
             Application.quitting += new Action(Close);
