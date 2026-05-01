@@ -33,17 +33,16 @@ public static class GlobalVariables
     /// Gets or sets the Unity GameObject prefab used for the <see cref="NetworkPlayer"/> compass marker.
     /// </summary>
     public static GameObject PlayerCompassPrefab  { get; internal set; }
+    
     /// <summary>
     /// Gets or sets the Unity GameObject prefab used for the <see cref="NetworkPlayer"/> map marker.
     /// </summary>
     public static GameObject PlayerMapPrefab  { get; internal set; }
-
-    public static Dictionary<string, GameObject> playerObjects = new();
+    
     /// <summary>
     /// Gets or sets the base Unity GameObject prefab used for instantiating remote players.
     /// </summary>
     public static GameObject PlayerPrefab { get; internal set; }
-
     internal static readonly Dictionary<string, GameObject> PlayerObjects = new();
     
     /// <summary>
