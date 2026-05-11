@@ -38,16 +38,29 @@ internal sealed class NetworkActor : MonoBehaviour
 
     private Vector3 savedVelocity;
 
-    public Vector3 PreviousPosition;
-    public Vector3 NextPosition;
-    public Quaternion PreviousRotation;
-    public Quaternion NextRotation;
-    public float InterpolationStart;
-    public float InterpolationEnd;
+    public Vector3 previousPosition;
+    public Vector3 nextPosition;
+    public Quaternion previousRotation;
+    public Quaternion nextRotation;
+    public float interpolationStart;
+    public float interpolationEnd;
 
     private bool isSlime;
     private bool isResource;
     private bool isPlort;
+
+    private const int ForceSendInterval = 10;
+    private int skippedUpdates;
+    private bool staggerInitialized;
+
+    private Vector3 lastSentPosition;
+    private Quaternion lastSentRotation;
+    private Vector3 lastSentVelocity;
+    private float4 lastSentEmotions;
+    private double lastSentResourceProgress;
+    private ResourceCycle.State lastSentResourceState;
+    private bool lastSentInvulnerable;
+    private float lastSentInvulnerablePeriod;
 
     public ActorId ActorId
     {
@@ -215,25 +228,25 @@ internal sealed class NetworkActor : MonoBehaviour
         if (LocallyOwned || IsDestroyed)
             return;
 
-        PreviousPosition = transform.position;
-        PreviousRotation = transform.rotation;
-        NextPosition = packet.Position;
-        NextRotation = packet.Rotation;
+        previousPosition = transform.position;
+        previousRotation = transform.rotation;
+        nextPosition = packet.Position;
+        nextRotation = packet.Rotation;
         savedVelocity = packet.Velocity;
-        InterpolationStart = UnityEngine.Time.unscaledTime;
-        InterpolationEnd = InterpolationStart + Timers.ActorTimer;
+        interpolationStart = UnityEngine.Time.unscaledTime;
+        interpolationEnd = interpolationStart + Timers.ActorTimer;
     }
 
     private void UpdateInterpolation()
     {
-        if (LocallyOwned || IsDestroyed || InterpolationEnd <= InterpolationStart)
+        if (LocallyOwned || IsDestroyed || interpolationEnd <= interpolationStart)
             return;
 
-        var timer = Mathf.InverseLerp(InterpolationStart, InterpolationEnd, UnityEngine.Time.unscaledTime);
+        var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
         timer = Mathf.Clamp01(timer);
 
-        transform.position = Vector3.Lerp(PreviousPosition, NextPosition, timer);
-        transform.rotation = Quaternion.Lerp(PreviousRotation, NextRotation, timer);
+        transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
+        transform.rotation = Quaternion.Lerp(previousRotation, nextRotation, timer);
 
         if (rigidbody)
             rigidbody.velocity = savedVelocity;
@@ -314,18 +327,76 @@ internal sealed class NetworkActor : MonoBehaviour
     private void SendNetworkUpdate()
     {
         SyncTimer = Timers.ActorTimer;
-        PreviousPosition = transform.position;
-        PreviousRotation = transform.rotation;
-        NextPosition = transform.position;
-        NextRotation = transform.rotation;
+
+        var currentPosition = transform.position;
+        var currentRotation = transform.rotation;
+        var currentVelocity = rigidbody ? rigidbody.velocity : Vector3.zero;
+
+        if (!staggerInitialized)
+        {
+            var id = ActorId;
+
+            if (id.Value != 0)
+            {
+                skippedUpdates = (int)(id.Value % ForceSendInterval);
+                staggerInitialized = true;
+            }
+        }
+
+        var changed = HasChanged(currentPosition, currentRotation, currentVelocity);
+
+        if (!changed)
+        {
+            if (++skippedUpdates < ForceSendInterval)
+                return;
+        }
+
+        skippedUpdates = 0;
+        lastSentPosition = currentPosition;
+        lastSentRotation = currentRotation;
+        lastSentVelocity = currentVelocity;
+
+        previousPosition = currentPosition;
+        previousRotation = currentRotation;
+        nextPosition = currentPosition;
+        nextRotation = currentRotation;
 
         var actorId = ActorId;
 
         if (actorId.Value == 0)
             return;
 
-        var packet = CreateActorUpdatePacket(actorId);
-        Main.SendToAllOrServer(packet);
+        Main.SendToAllOrServer(CreateActorUpdatePacket(actorId));
+    }
+
+    private bool HasChanged(Vector3 position, Quaternion rotation, Vector3 velocity)
+    {
+        if (position != lastSentPosition || rotation != lastSentRotation || velocity != lastSentVelocity)
+            return true;
+
+        if (isSlime)
+        {
+            var currentEmotions = emotions ? emotions._model.Emotions : new float4(0, 0, 0, 0);
+            return !currentEmotions.Equals(lastSentEmotions);
+        }
+
+        if (isResource && cycle?._model != null)
+        {
+            return cycle._model.state != lastSentResourceState ||
+                   cycle._model.progressTime != lastSentResourceProgress;
+        }
+
+        if (isPlort)
+        {
+            plortModel ??= GetComponent<PlortModel>();
+
+            var invulnerable = plortModel?._invulnerability?.IsInvulnerable ?? false;
+            var invulnerablePeriod = plortModel?._invulnerability?.InvulnerabilityPeriod ?? 0f;
+
+            return invulnerable != lastSentInvulnerable || invulnerablePeriod != lastSentInvulnerablePeriod;
+        }
+
+        return false;
     }
 
     private ActorUpdatePacket CreateActorUpdatePacket(ActorId actorId)
@@ -333,8 +404,8 @@ internal sealed class NetworkActor : MonoBehaviour
         var packet = new ActorUpdatePacket
         {
             ActorId = actorId,
-            Position = NextPosition,
-            Rotation = NextRotation,
+            Position = nextPosition,
+            Rotation = nextRotation,
             Velocity = rigidbody ? rigidbody.velocity : Vector3.zero
         };
 
@@ -342,6 +413,7 @@ internal sealed class NetworkActor : MonoBehaviour
         {
             packet.UpdateType = ActorUpdateType.Slime;
             packet.Emotions = emotions ? emotions._model.Emotions : new float4(0, 0, 0, 0);
+            lastSentEmotions = packet.Emotions;
         }
         else if (isResource)
         {
@@ -352,6 +424,8 @@ internal sealed class NetworkActor : MonoBehaviour
 
             packet.ResourceProgress = cycle._model.progressTime;
             packet.ResourceState = cycle._model.state;
+            lastSentResourceProgress = packet.ResourceProgress;
+            lastSentResourceState = packet.ResourceState;
         }
         else if (isPlort)
         {
@@ -361,6 +435,8 @@ internal sealed class NetworkActor : MonoBehaviour
 
             packet.Invulnerable = plortModel?._invulnerability?.IsInvulnerable ?? false;
             packet.InvulnerablePeriod = plortModel?._invulnerability?.InvulnerabilityPeriod ?? 0f;
+            lastSentInvulnerable = packet.Invulnerable;
+            lastSentInvulnerablePeriod = packet.InvulnerablePeriod;
         }
         else
         {

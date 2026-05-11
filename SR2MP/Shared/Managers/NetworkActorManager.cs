@@ -85,10 +85,10 @@ internal sealed partial class NetworkActorManager
 
                 var networkComponent = obj.AddComponent<NetworkActor>();
 
-                networkComponent.PreviousPosition = model.lastPosition;
-                networkComponent.NextPosition = model.lastPosition;
-                networkComponent.PreviousRotation = model.lastRotation;
-                networkComponent.NextRotation = model.lastRotation;
+                networkComponent.previousPosition = model.lastPosition;
+                networkComponent.nextPosition = model.lastPosition;
+                networkComponent.previousRotation = model.lastRotation;
+                networkComponent.nextRotation = model.lastRotation;
 
                 ActorManager.Actors.Add(model.actorId.Value, model);
             }
