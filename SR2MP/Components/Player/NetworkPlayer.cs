@@ -5,13 +5,13 @@ using Il2CppMonomiPark.SlimeRancher.UI;
 using Il2CppTMPro;
 using JetBrains.Annotations;
 using MelonLoader;
-using SR2E.Utils;
+using Starlight.Utils;
 using SR2MP.Client.Models;
 using SR2MP.Components.FX;
 using SR2MP.Components.Utils;
 using SR2MP.Shared.Managers;
 
-using static SR2E.ContextShortcuts;
+using static Starlight.ContextShortcuts;
 using static SR2MP.Shared.Utils.Timers;
 
 namespace SR2MP.Components.Player;
@@ -71,22 +71,22 @@ internal partial class NetworkPlayer : MonoBehaviour
         UsernamePanel.alignment = TextAlignmentOptions.Center;
         UsernamePanel.fontSize = 3;
         UsernamePanel.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
-
         usernameFont = UsernamePanel.font;
-        
+
         if (!UsernamePanel.GetComponent<TransformLookAtCamera>())
         {
             UsernamePanel.gameObject.AddComponent<TransformLookAtCamera>().TargetTransform =
                 UsernamePanel.transform;
         }
         
-        GetComponent<RadarTrackedPointOfInterest>()
-            ._compassRadarPrefab
-            .transform
-            .GetChild(0)
-            .GetComponent<TextMeshProUGUI>()
-            .SetText(username);
-        GetComponent<RadarTrackedPointOfInterest>().enabled = true;
+        if (!radarComponent) return;
+
+        var nameLabel = radarComponent!._compassRadarPrefab?
+            .transform.GetChild(0)
+            .GetComponent<TextMeshProUGUI>();
+
+        if (nameLabel != null)
+            nameLabel.SetText(username);
     }
 
     [UsedImplicitly]
