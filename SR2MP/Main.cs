@@ -74,7 +74,7 @@ public sealed class Main : SR2EExpansionV3
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
-        preferences.CreateEntry("streamer_mode", false, is_hidden: false);
+        preferences.CreateEntry("streamer_mode", false, display_name: "Streamer Mode");
 
         preferences.CreateEntry("recent_port", string.Empty, is_hidden: true);
         preferences.CreateEntry("recent_ip", string.Empty, is_hidden: true);
