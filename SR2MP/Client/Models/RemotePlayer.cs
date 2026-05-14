@@ -24,6 +24,11 @@ public sealed class RemotePlayer
     /// Gets the current rotation of the player.
     /// </summary>
     public float Rotation { get; internal set; }
+    
+    /// <summary>
+    /// Gets the current SceneGroup of the player.
+    /// </summary>
+    public int SceneGroup { get; internal set; }
 
     // Animation stuff
 
