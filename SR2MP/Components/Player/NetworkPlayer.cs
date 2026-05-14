@@ -92,6 +92,7 @@ internal partial class NetworkPlayer : MonoBehaviour
     [UsedImplicitly]
     public void Awake()
     {
+        PlayerManager.OnPlayerGadgetUpdated += OnGadgetUpdate;
         if (transform.GetComponents<NetworkPlayer>().Length > 1)
         {
             Destroy(this);
@@ -205,8 +206,6 @@ internal partial class NetworkPlayer : MonoBehaviour
 
         if (IsLocal)
         {
-            UpdateLocalGadgetMode();
-
             RemotePlayerManager.SendPlayerUpdate(
                 position: transform.position,
                 rotation: transform.eulerAngles.y,

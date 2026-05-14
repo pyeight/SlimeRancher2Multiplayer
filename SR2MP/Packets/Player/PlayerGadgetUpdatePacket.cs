@@ -19,10 +19,10 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
     public void Serialise(PacketWriter writer)
     {
         writer.WriteBool(Enabled);
-
         writer.WriteString(PlayerId);
 
         if (!Enabled) return;
+        
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
         writer.WriteQuaternion(GadgetLocalRotation);
@@ -33,7 +33,7 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         Enabled = reader.ReadBool();
-        PlayerId = reader.ReadPooledStringOfSize(16)!;
+        PlayerId = reader.ReadString()!;
 
         if (!Enabled) return;
 

@@ -13,6 +13,7 @@ public sealed class RemotePlayerManager
     public event Action<string>? OnPlayerAdded;
     public event Action<string>? OnPlayerRemoved;
     public event Action<string, RemotePlayer>? OnPlayerUpdated;
+    public event Action<string, RemotePlayer>? OnPlayerGadgetUpdated;
 
     public int PlayerCount => players.Count;
 
@@ -74,7 +75,8 @@ public sealed class RemotePlayerManager
             HorizontalSpeed = horizontalSpeed,
             ForwardSpeed = forwardSpeed,
             Sprinting = sprinting,
-            LookY = lookY
+            LookY = lookY,
+            SceneGroup = sceneGroup
         };
         Main.SendToAllOrServer(updatePacket);
     }
@@ -91,10 +93,12 @@ public sealed class RemotePlayerManager
         float horizontalSpeed,
         float forwardSpeed,
         bool sprinting,
-        float lookY)
+        float lookY,
+        int sceneGroup)
     {
         if (!players.TryGetValue(playerId, out var player))
             return;
+
         player.Position = position;
         player.Rotation = rotation;
         player.HorizontalMovement = horizontalMovement;
@@ -107,7 +111,31 @@ public sealed class RemotePlayerManager
         player.Sprinting = sprinting;
         player.LastLookY = player.LookY;
         player.LookY = lookY;
+        player.SceneGroup = sceneGroup;
+
         OnPlayerUpdated?.Invoke(playerId, player);
+    }
+
+    internal void UpdatePlayerGadget(
+        string playerId,
+        bool enabled,
+        int gadgetId,
+        bool valid,
+        Vector3 position,
+        Quaternion rotation,
+        Quaternion localRotation)
+    {
+        if (!players.TryGetValue(playerId, out var player))
+            return;
+
+        player.OnlineGadgetMode = enabled;
+        player.OnlineGadgetID = gadgetId;
+        player.OnlineGadgetValid = valid;
+        player.OnlineGadgetPosition = position;
+        player.OnlineGadgetRotation = rotation;
+        player.OnlineGadgetLocalRotation = localRotation;
+
+        OnPlayerGadgetUpdated?.Invoke(playerId, player);
     }
 
     public List<RemotePlayer> GetAllPlayers()
@@ -121,9 +149,7 @@ public sealed class RemotePlayerManager
         players.Clear();
 
         foreach (var playerId in allPlayers)
-        {
             OnPlayerRemoved?.Invoke(playerId);
-        }
 
         SrLogger.LogMessage("All remote players cleared!");
     }
@@ -131,7 +157,6 @@ public sealed class RemotePlayerManager
     /// <summary>
     /// Gets a player color that is good for ui. Each value in RGB has a minimum of 70.
     /// </summary>
-    /// <param name="player">The network player to get the color from.</param>
     public static Color GetPlayerColor(RemotePlayer player)
     {
         var hash = player.PlayerId.Replace("PLAYER_", "").Hash32();

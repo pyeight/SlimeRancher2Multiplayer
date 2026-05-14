@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppMonomiPark.SlimeRancher.Util.Extensions;
+using SR2MP.Client.Models;
 using SR2MP.Packets.Player;
 using SR2MP.Shared.Managers;
 using static SR2MP.Shared.Utils.Timers;
@@ -94,16 +95,14 @@ internal partial class NetworkPlayer
         interpolationEndGadget = UnityEngine.Time.unscaledTime + PlayerTimer;
 
         if (CachedOnlineGadgetMode != OnlineGadgetMode)
-        {
-            CachedOnlineGadgetMode = OnlineGadgetMode;
-            OnNetworkGadgetModeChanged?.Invoke(CachedOnlineGadgetMode);
-        }
+            OnNetworkGadgetModeChanged?.Invoke(OnlineGadgetMode);
+        
+        CachedOnlineGadgetMode = OnlineGadgetMode;
 
         if (CachedOnlineGadgetID != OnlineGadgetID)
-        {
-            CachedOnlineGadgetID = OnlineGadgetID;
-            OnNetworkGadgetIDChanged?.Invoke(CachedOnlineGadgetID);
-        }
+            OnNetworkGadgetIDChanged?.Invoke(OnlineGadgetID);
+        
+        CachedOnlineGadgetID = OnlineGadgetID;
 
         if (FootprintPrefabInstance)
             FootprintRendererInstance!.material = GetFootprintMaterial(OnlinePlacementValid);
@@ -118,7 +117,7 @@ internal partial class NetworkPlayer
             var packet2 = new PlayerGadgetUpdatePacket
             {
                 Enabled = false,
-                PlayerId = ID,
+                PlayerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning ? Main.Server.PlayerId : string.Empty),
                 Position = Vector3.zero,
                 Rotation = Quaternion.identity,
                 GadgetLocalRotation = Quaternion.identity,
@@ -144,7 +143,7 @@ internal partial class NetworkPlayer
         var packet = new PlayerGadgetUpdatePacket
         {
             Enabled = true,
-            PlayerId = ID,
+            PlayerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning ? Main.Server.PlayerId : string.Empty),
             Position = FootprintPrefabInstance.transform.position,
             Rotation = FootprintPrefabInstance.transform.rotation,
             GadgetLocalRotation = gadgetLocalRotation,
@@ -157,6 +156,21 @@ internal partial class NetworkPlayer
         Main.SendToAllOrServer(packet);
     }
 
+    private void OnGadgetUpdate(string playerId, RemotePlayer player)
+    {
+        if (ID != playerId)
+            return;
+        
+        OnGadgetPositionReceived(
+            player.OnlineGadgetPosition,
+            player.OnlineGadgetRotation,
+            player.OnlineGadgetLocalRotation);
+
+        OnlineGadgetID = player.OnlineGadgetID;
+        OnlinePlacementValid = player.OnlineGadgetValid;
+        OnlineGadgetMode = player.OnlineGadgetMode;
+    }
+    
     public void OnGadgetPositionReceived(Vector3 newPosition, Quaternion newRotation, Quaternion newLocalRotation)
     {
         PrevGadgetPosition = FootprintPrefabInstance?.transform.position ?? newPosition;

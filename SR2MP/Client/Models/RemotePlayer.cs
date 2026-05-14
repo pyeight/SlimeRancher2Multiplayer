@@ -81,6 +81,13 @@ public sealed class RemotePlayer
     /// Gets the previous frame's vertical look angle.
     /// </summary>
     public float LastLookY { get; internal set; }
+    
+    public bool OnlineGadgetMode { get; internal set; }
+    public bool OnlineGadgetValid { get; internal set; }
+    public int OnlineGadgetID { get; internal set; }
+    public Vector3 OnlineGadgetPosition { get; internal set; }
+    public Quaternion OnlineGadgetRotation { get; internal set; }
+    public Quaternion OnlineGadgetLocalRotation { get; internal set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RemotePlayer"/> class.
