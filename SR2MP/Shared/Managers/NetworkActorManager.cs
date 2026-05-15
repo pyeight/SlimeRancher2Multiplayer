@@ -1,6 +1,5 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using MelonLoader;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 
@@ -166,7 +165,7 @@ internal sealed partial class NetworkActorManager
         }
     }
 
-    public static GadgetModel? GetLinkedGadget(GadgetModel model)
+    private static GadgetModel? GetLinkedGadget(GadgetModel model)
         => GameState.identifiables._entries.FirstOrDefault(x =>
             x.value != null &&
             model != null &&
