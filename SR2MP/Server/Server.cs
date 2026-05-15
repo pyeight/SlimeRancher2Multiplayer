@@ -18,7 +18,7 @@ namespace SR2MP.Server;
 /// </summary>
 public sealed class SR2MPServer
 {
-    internal readonly NetworkManager NetworkManager;
+    private readonly NetworkManager NetworkManager;
     internal readonly ClientManager ClientManager;
     internal readonly ReSyncManager ReSyncManager;
 
