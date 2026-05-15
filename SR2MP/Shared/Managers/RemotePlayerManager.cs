@@ -160,8 +160,8 @@ public sealed class RemotePlayerManager
     public static Color GetPlayerColor(RemotePlayer player)
     {
         var hash = player.PlayerId.Replace("PLAYER_", "").Hash32();
-        Main.modRandomization.Reseed((int)hash);
-        var random = Main.modRandomization;
+        Main.ModRandomization.Reseed((int)hash);
+        var random = Main.ModRandomization;
         return new Color32(
             (byte)random.GetInRange(70, 255),
             (byte)random.GetInRange(70, 255),

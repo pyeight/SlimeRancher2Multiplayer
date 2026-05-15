@@ -4,7 +4,6 @@ using MelonLoader;
 using MelonLoader.Utils;
 using Starlight.Expansion;
 using SR2MP.Client;
-using Starlight.Utils;
 using SR2MP.Components.FX;
 using SR2MP.Components.Player;
 using SR2MP.Components.Time;
@@ -13,8 +12,6 @@ using SR2MP.Packets.Utils;
 using SR2MP.Server;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
-using SR2MP.Client;
-using SR2MP.Server;
 using Starlight.Enums;
 using Starlight.Storage;
 using UnityEngine.UI;
@@ -46,10 +43,13 @@ public sealed class Main : StarlightExpansionV01
         UnloadTime = ExpansionUnloadTime.Never,
         MultiplayerRequirement = MultiplayerRequirement.ServerAndClient,
     };
+
     /// <summary>
-    /// The random parts of the mod. Please pass in a seed that can be the same between clients before attempting to randomize.
+    /// Randomization aspect of the mod
+    /// Pass in a seed that can be the same between clients before attempting to randomize.
     /// </summary>
-    public static Randoms modRandomization = new(); 
+    public static Randoms ModRandomization { get; } = new();
+
     /// <summary>
     /// Gets the active multiplayer client instance.
     /// </summary>
