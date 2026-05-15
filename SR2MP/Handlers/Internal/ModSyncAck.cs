@@ -74,6 +74,8 @@ internal sealed class ModSyncAckHandler : BasePacketHandler<ModSyncPacket>
         // The connectAck is different because of initialJoin, otherwise another PlayerJoin request will be sent
 
         Main.Server.SendToClient(ackPacket, clientEp!);
+        
+        ActorManager.SendActorTypeRegistry(clientEp!);
 
         ReSyncManager.SynchronizeClient(packet.PlayerId, clientEp!);
 

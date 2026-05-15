@@ -67,6 +67,7 @@ internal enum PacketType : byte
     InitialRefinery = 62,         // Server -> Client                             Low (depends on join)                 Refinery items on join
     PediaUnlock = 63,             // Both Ways                                    Medium (manual)                       On Pedia entry
     InitialPediaEntries = 64,     // Server -> Client                             Low                                   Pedia Entries on Load
+    ActorTypeRegistry = 80,       // Server -> Client                             Low (depends on join)                 IdentifiableTypes on join
     ModSync = 100,                // Server -> Client                             Low (manual)                          Sync Mod names on incompatible mod
     ModSyncAck = 101,             // Client -> Server                             Low (manual)                          Mod names on incompatible mod
     ApiCall = 253,                // Both Ways                                    Variable                              Backing for mod's api packets
