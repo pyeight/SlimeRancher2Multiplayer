@@ -87,6 +87,8 @@ public static class GlobalVariables
 
     internal const byte HeaderSize = 13;
 
+    internal const int ActorIdOffset = 1000000;
+
     // Constants for ammo types
 
     /// <summary>

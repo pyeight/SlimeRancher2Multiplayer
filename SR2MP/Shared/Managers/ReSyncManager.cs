@@ -329,8 +329,8 @@ internal sealed class ReSyncManager
         var actorsPacket = new InitialActorsPacket
         {
             StartingActorID =
-                (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * 100000,
-                    (playerIndex * 100000) + 100000) + 1,
+                (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * ActorIdOffset,
+                    (playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
             Actors = actorsList,
             WorldTime = GameState.world.worldTime
         };
