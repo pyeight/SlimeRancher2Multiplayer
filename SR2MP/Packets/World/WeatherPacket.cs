@@ -14,9 +14,29 @@ internal sealed class WeatherPacket : IPacket
     public PacketReliability Reliability => PacketReliability.Reliable;
     public NetworkChannel Channel => NetworkChannel.Weather;
 
-    public void Serialise(PacketWriter writer) => writer.WriteDictionary(Zones, PacketWriterDels.Byte, PacketWriterDels.NetObject<WeatherZoneData>.Writer);
+    public void Serialise(PacketWriter writer)
+    {
+        writer.WriteDictionary(Zones, PacketWriterDels.Byte, (w, zone) =>
+        {
+            w.WriteList(zone.WeatherForecasts, (fw, forecast) =>
+            {
+                var id = NetworkWeatherManager.GetPersistentID(forecast.State);
+                if (id == 0)
+                    SrLogger.LogWarning($"WeatherForecast: GetPersistentID returned 0 for state {forecast.State?.name}");
+                fw.WritePackedInt(id);
+                fw.WriteBool(forecast.WeatherStarted);
+                fw.WriteDouble(forecast.StartTime);
+                fw.WriteDouble(forecast.EndTime);
+            });
+            w.WriteVector3(zone.WindSpeed);
+        });
+    }
 
-    public void Deserialise(PacketReader reader) => Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Reader)!;
+    public void Deserialise(PacketReader reader)
+    {
+        NetworkWeatherManager.CheckInitialized();
+        Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Reader)!;
+    }
 
     public static IEnumerator CreateFromModel(
         WeatherModel model,
