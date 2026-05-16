@@ -23,6 +23,6 @@ internal sealed class MovementSoundPacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         Position = reader.ReadVector3();
-        CueName = reader.ReadPooledString()!;
+        CueName = reader.ReadString()!;
     }
 }

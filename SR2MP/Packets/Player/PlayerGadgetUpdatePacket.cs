@@ -18,7 +18,7 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteBool(Enabled);
+        writer.WritePackedBool(Enabled);
         writer.WriteString(PlayerId);
 
         if (!Enabled) return;
@@ -26,21 +26,21 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
         writer.WriteQuaternion(GadgetLocalRotation);
-        writer.WriteInt(CurrentGadget);
-        writer.WriteBool(ValidPlacement);
+        writer.WritePackedInt(CurrentGadget);
+        writer.WritePackedBool(ValidPlacement);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        Enabled = reader.ReadBool();
+        Enabled = reader.ReadPackedBool();
         PlayerId = reader.ReadString()!;
-
+        
         if (!Enabled) return;
-
+        
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();
         GadgetLocalRotation = reader.ReadQuaternion();
-        CurrentGadget = reader.ReadInt();
-        ValidPlacement = reader.ReadBool();
+        CurrentGadget = reader.ReadPackedInt();
+        ValidPlacement = reader.ReadPackedBool();
     }
 }

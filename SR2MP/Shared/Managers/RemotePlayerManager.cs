@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using SR2MP.Client.Models;
 using SR2MP.Packets.Player;
 using SR2MP.Shared.Utils;
-using Random = UnityEngine.Random;
 
 namespace SR2MP.Shared.Managers;
 
@@ -115,15 +114,15 @@ public sealed class RemotePlayerManager
 
         OnPlayerUpdated?.Invoke(playerId, player);
     }
-
+    
     internal void UpdatePlayerGadget(
         string playerId,
         bool enabled,
-        int gadgetId,
-        bool valid,
-        Vector3 position,
-        Quaternion rotation,
-        Quaternion localRotation)
+        int gadgetId = -1,
+        bool valid = false,
+        Vector3 position = default,
+        Quaternion rotation = default,
+        Quaternion localRotation = default)
     {
         if (!players.TryGetValue(playerId, out var player))
             return;

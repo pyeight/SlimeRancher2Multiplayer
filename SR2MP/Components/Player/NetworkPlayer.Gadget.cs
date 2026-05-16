@@ -117,12 +117,7 @@ internal partial class NetworkPlayer
             var packet2 = new PlayerGadgetUpdatePacket
             {
                 Enabled = false,
-                PlayerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning ? Main.Server.PlayerId : string.Empty),
-                Position = Vector3.zero,
-                Rotation = Quaternion.identity,
-                GadgetLocalRotation = Quaternion.identity,
-                CurrentGadget = -1,
-                ValidPlacement = false,
+                PlayerId = LocalID,
             };
 
             Main.SendToAllOrServer(packet2);
@@ -143,7 +138,7 @@ internal partial class NetworkPlayer
         var packet = new PlayerGadgetUpdatePacket
         {
             Enabled = true,
-            PlayerId = Main.Client.IsConnected ? Main.Client.PlayerId : (Main.Server.IsRunning ? Main.Server.PlayerId : string.Empty),
+            PlayerId = LocalID,
             Position = FootprintPrefabInstance.transform.position,
             Rotation = FootprintPrefabInstance.transform.rotation,
             GadgetLocalRotation = gadgetLocalRotation,
@@ -173,8 +168,16 @@ internal partial class NetworkPlayer
     
     public void OnGadgetPositionReceived(Vector3 newPosition, Quaternion newRotation, Quaternion newLocalRotation)
     {
-        PrevGadgetPosition = FootprintPrefabInstance?.transform.position ?? newPosition;
-        PrevGadgetRotation = FootprintPrefabInstance?.transform.rotation ?? newRotation;
+        if (FootprintPrefabInstance != null && FootprintPrefabInstance)
+        {
+            PrevGadgetPosition = FootprintPrefabInstance.transform.position;
+            PrevGadgetRotation = FootprintPrefabInstance.transform.rotation;
+        }
+        else
+        {
+            PrevGadgetPosition = newPosition;
+            PrevGadgetRotation = newRotation;
+        }
 
         NextGadgetPosition = newPosition;
         NextGadgetRotation = newRotation;

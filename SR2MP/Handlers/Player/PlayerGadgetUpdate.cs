@@ -11,14 +11,23 @@ internal sealed class PlayerGadgetUpdate : BasePacketHandler<PlayerGadgetUpdateP
 {
     protected override bool Handle(PlayerGadgetUpdatePacket packet, IPEndPoint? _)
     {
-        PlayerManager.UpdatePlayerGadget(
-            packet.PlayerId,
-            packet.Enabled,
-            packet.CurrentGadget,
-            packet.ValidPlacement,
-            packet.Position,
-            packet.Rotation,
-            packet.GadgetLocalRotation);
+        if (packet.Enabled)
+        {
+            PlayerManager.UpdatePlayerGadget(
+                packet.PlayerId,
+                packet.Enabled,
+                packet.CurrentGadget,
+                packet.ValidPlacement,
+                packet.Position,
+                packet.Rotation,
+                packet.GadgetLocalRotation);
+        }
+        else
+        {
+            PlayerManager.UpdatePlayerGadget(
+                packet.PlayerId,
+                packet.Enabled);
+        }
         
         return true;
     }
