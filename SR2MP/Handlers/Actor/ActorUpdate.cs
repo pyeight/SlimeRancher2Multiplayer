@@ -51,6 +51,8 @@ internal sealed class ActorUpdateHandler : BasePacketHandler<ActorUpdatePacket>
         {
             case ActorUpdateType.Slime when slime != null:
             {
+                slime.isSleeping = packet.Sleeping;
+
                 var slimeEmotions = networkComponent.GetComponent<SlimeEmotions>();
                 if (slimeEmotions)
                     slimeEmotions.SetAll(packet.Emotions);

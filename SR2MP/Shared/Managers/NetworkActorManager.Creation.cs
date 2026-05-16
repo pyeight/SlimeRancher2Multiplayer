@@ -81,15 +81,39 @@ internal sealed partial class NetworkActorManager
             : GameState.droneModel.GetRanchDrone(model.actorId).actorId.Value
     };
 
-    private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model) => new()
+    private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model)
     {
-        ActorId = model.actorId.Value,
-        ActorTypeId = GetPersistentID(model.ident),
-        Position = model.lastPosition,
-        Rotation = model.lastRotation,
-        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-        Emotions = model.Emotions
-    };
+        var gameObj = model.GetGameObject();
+        var radiancy = ActorAppearanceType.Default;
+
+        if (gameObj)
+        {
+            var applicator = gameObj.GetComponent<SlimeAppearanceApplicator>();
+            var def = gameObj.GetComponent<Identifiable>()?.identType.TryCast<SlimeDefinition>();
+            if (applicator && def)
+            {
+                var current = applicator.Appearance;
+                if (current == def!.RadiantBase)
+                    radiancy = ActorAppearanceType.BaseRadiant;
+                else if (current == def.RadiantLargo0)
+                    radiancy = ActorAppearanceType.LargoRadiant0;
+                else if (current == def.RadiantLargo1)
+                    radiancy = ActorAppearanceType.LargoRadiant1;
+            }
+        }
+
+        return new InitialActorsPacket.Slime
+        {
+            ActorId = model.actorId.Value,
+            ActorTypeId = GetPersistentID(model.ident),
+            Position = model.lastPosition,
+            Rotation = model.lastRotation,
+            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+            Emotions = model.Emotions,
+            Sleeping = model.isSleeping,
+            Radiancy = (int)radiancy
+        };
+    }
     
     private static InitialActorsPacket.LinkedGadget CreateInitialLinkedGadget(GadgetModel model) => new()
     {

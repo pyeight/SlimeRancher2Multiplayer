@@ -3,7 +3,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
-using SR2MP.Shared.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Actor;
 
@@ -23,8 +23,17 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
         if (actor == null)
             return true;
 
-        if (actor.TryCast<SlimeModel>(out var slime))
-            slime.Emotions = packet.Emotions;
+        var slime = actor.TryCast<SlimeModel>();
+        if (slime == null)
+            return true;
+
+        slime.firstAppearanceSaveSet = packet.FirstAppearance;
+        slime.secondAppearanceSaveSet = packet.SecondAppearance;
+        slime.Emotions = packet.Emotions;
+        slime.isSleeping = packet.Sleeping;
+
+        if (packet.Radiancy != (int)ActorAppearanceType.Default)
+            NetworkActorManager.ApplyRadiancy(slime, (ActorAppearanceType)packet.Radiancy);
 
         return true;
     }

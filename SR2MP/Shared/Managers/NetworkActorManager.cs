@@ -1,5 +1,6 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Slime;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 
@@ -7,7 +8,7 @@ namespace SR2MP.Shared.Managers;
 
 internal sealed partial class NetworkActorManager
 {
-    public readonly Dictionary<long, IdentifiableModel> Actors   = new();
+    public readonly Dictionary<long, IdentifiableModel> Actors = new();
     public readonly Dictionary<int, IdentifiableType> ActorTypes = new();
 
     public static int GetPersistentID(IdentifiableType type)
@@ -97,10 +98,7 @@ internal sealed partial class NetworkActorManager
     }
 
     private static bool ActorIDAlreadyInUse(ActorId id)
-    {
-        var gameModel = SceneContext.Instance?.GameModel;
-        return gameModel && gameModel!.TryGetIdentifiableModel(id, out _);
-    }
+        => SceneContext.Instance?.GameModel?.TryGetIdentifiableModel(id, out _) ?? false;
 
     public static long GetHighestActorIdInRange(long min, long max)
     {
@@ -115,6 +113,7 @@ internal sealed partial class NetworkActorManager
                 result = id;
             }
         }
+
         return result;
     }
 
@@ -150,11 +149,7 @@ internal sealed partial class NetworkActorManager
                 yield break;
             }
 
-            var packet = new ActorTransferPacket
-            {
-                ActorId = actorId,
-                OwnerId = LocalID
-            };
+            var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
             Main.SendToAllOrServer(packet);
             i++;
 
@@ -167,12 +162,62 @@ internal sealed partial class NetworkActorManager
 
     private static GadgetModel? GetLinkedGadget(GadgetModel model)
         => GameState.identifiables._entries.FirstOrDefault(x =>
-            x.value != null &&
-            model != null &&
-            x.value.ident == model?.ident
-            && model != x.value
-            && (model.ident.Cast<GadgetDefinition>().BuyInPairs 
-                || model.ident.Cast<GadgetDefinition>().LinkedDefinition
-                || model.ident.Cast<GadgetDefinition>().LinkedGadgetRange != 0f))?
+                x.value != null &&
+                model != null &&
+                x.value.ident == model?.ident
+                && model != x.value
+                && (model.ident.Cast<GadgetDefinition>().BuyInPairs
+                    || model.ident.Cast<GadgetDefinition>().LinkedDefinition
+                    || model.ident.Cast<GadgetDefinition>().LinkedGadgetRange != 0f))?
             .value.Cast<GadgetModel>()!;
+
+    internal static bool ApplyRadiancy(SlimeModel slime, ActorAppearanceType radiancy = ActorAppearanceType.Default)
+    {
+        if (slime == null) return false;
+
+        var gameObj = slime.GetGameObject();
+        if (!gameObj) return false;
+
+        var applicator = gameObj.GetComponent<SlimeAppearanceApplicator>();
+        if (!applicator) return false;
+
+        var def = gameObj.GetComponent<Identifiable>().identType.TryCast<SlimeDefinition>();
+        if (!def) return false;
+        
+        if (radiancy == ActorAppearanceType.Default && slime.IsRadiant)
+        {
+            if (def!.RadiantBase && def.RadiantBase.AppearType == SlimeAppearance.AppearanceType.RADIANT_BASE)
+                radiancy = ActorAppearanceType.BaseRadiant;
+            else if (def.RadiantLargo0 &&
+                     def.RadiantLargo0.AppearType == SlimeAppearance.AppearanceType.RADIANT_LARGO_0)
+                radiancy = ActorAppearanceType.LargoRadiant0;
+            else if (def.RadiantLargo1 &&
+                     def.RadiantLargo1.AppearType == SlimeAppearance.AppearanceType.RADIANT_LARGO_1)
+                radiancy = ActorAppearanceType.LargoRadiant1;
+        }
+
+        var newAppearance = radiancy switch
+        {
+            ActorAppearanceType.BaseRadiant => def!.RadiantBase,
+            ActorAppearanceType.LargoRadiant0 => def!.RadiantLargo0,
+            ActorAppearanceType.LargoRadiant1 => def!.RadiantLargo1,
+            _ => applicator.Appearance
+        };
+
+        if (!newAppearance) return false;
+
+        var slimeRadiant = gameObj.GetComponent<SlimeRadiant>();
+        if (slimeRadiant)
+        {
+            slimeRadiant.SetRadiant();
+            slimeRadiant.SetRadiantAppearance();
+        }
+
+        slime.GetAmmoMetadata().Radiant = true;
+        applicator.Appearance = newAppearance;
+        applicator.ApplyAppearance();
+        applicator.HandleChosenAppearanceChanged(def, newAppearance);
+
+        return true;
+    }
 }

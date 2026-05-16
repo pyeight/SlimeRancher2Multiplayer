@@ -15,6 +15,7 @@ internal struct ActorUpdatePacket : IPacket
     public Vector3 Velocity;
 
     public float4 Emotions;
+    public bool Sleeping;
 
     public double ResourceProgress;
     public ResourceCycle.State ResourceState;
@@ -39,6 +40,7 @@ internal struct ActorUpdatePacket : IPacket
         if (UpdateType == ActorUpdateType.Slime)
         {
             writer.WriteFloat4(Emotions);
+            writer.WriteBool(Sleeping);
         }
         else if (UpdateType == ActorUpdateType.Resource)
         {
@@ -63,6 +65,7 @@ internal struct ActorUpdatePacket : IPacket
         if (UpdateType == ActorUpdateType.Slime)
         {
             Emotions = reader.ReadFloat4();
+            Sleeping = reader.ReadBool();
         }
         else if (UpdateType == ActorUpdateType.Resource)
         {

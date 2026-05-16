@@ -58,6 +58,7 @@ internal sealed class NetworkActor : MonoBehaviour
     private Quaternion lastSentRotation;
     private Vector3 lastSentVelocity;
     private float4 lastSentEmotions;
+    private bool lastSentSleeping;
     private double lastSentResourceProgress;
     private ResourceCycle.State lastSentResourceState;
     private bool lastSentInvulnerable;
@@ -378,7 +379,8 @@ internal sealed class NetworkActor : MonoBehaviour
         if (isSlime)
         {
             var currentEmotions = emotions ? emotions._model.Emotions : new float4(0, 0, 0, 0);
-            return !currentEmotions.Equals(lastSentEmotions);
+            var currentSleeping = emotions && emotions._model.isSleeping;
+            return !currentEmotions.Equals(lastSentEmotions) || currentSleeping != lastSentSleeping;
         }
 
         if (isResource && cycle?._model != null)
@@ -414,7 +416,9 @@ internal sealed class NetworkActor : MonoBehaviour
         {
             packet.UpdateType = ActorUpdateType.Slime;
             packet.Emotions = emotions ? emotions._model.Emotions : new float4(0, 0, 0, 0);
+            packet.Sleeping = emotions ? emotions._model.isSleeping : false;
             lastSentEmotions = packet.Emotions;
+            lastSentSleeping = packet.Sleeping;
         }
         else if (isResource)
         {

@@ -1,7 +1,7 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Drone;
-using Starlight.Utils;
 using SR2MP.Components.Actor;
+using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
 
@@ -391,7 +391,9 @@ internal sealed partial class NetworkActorManager
         if (model == null)
             return false;
 
-        model.Cast<SlimeModel>().Emotions = emotions;
+        var slime = model.Cast<SlimeModel>();
+        slime.Emotions = emotions;
+        slime.isSleeping = actorData.Sleeping;
 
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -421,8 +423,12 @@ internal sealed partial class NetworkActorManager
         actor.transform.position = position;
         ActorManager.Actors[actorId.Value] = model;
 
+        if (actorData.Radiancy != (int)ActorAppearanceType.Default)
+            ApplyRadiancy(slime, (ActorAppearanceType)actorData.Radiancy);
+
         return true;
     }
+
     private bool TrySpawnInitialDrone(InitialActorsPacket.ExplorerDrone actorData, out IdentifiableModel? model)
     {
         model = null;

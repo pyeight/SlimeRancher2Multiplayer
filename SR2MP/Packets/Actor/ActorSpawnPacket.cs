@@ -11,9 +11,13 @@ internal struct ActorSpawnPacket : IPacket
     public Vector3 Position;
 
     public float4 Emotions;
+    public bool Sleeping;
 
     public int ActorType;
     public byte SceneGroup;
+    
+    public int Radiancy;
+    
     public SlimeAppearance.AppearanceSaveSet FirstAppearance;
     public SlimeAppearance.AppearanceSaveSet SecondAppearance;
 
@@ -27,10 +31,12 @@ internal struct ActorSpawnPacket : IPacket
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
         writer.WriteFloat4(Emotions);
+        writer.WriteBool(Sleeping);
         writer.WritePackedInt(ActorType);
         writer.WriteByte(SceneGroup);
         writer.WritePackedEnum(FirstAppearance);
         writer.WritePackedEnum(SecondAppearance);
+        writer.WritePackedInt(Radiancy);
     }
 
     public void Deserialise(PacketReader reader)
@@ -39,9 +45,11 @@ internal struct ActorSpawnPacket : IPacket
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();
         Emotions = reader.ReadFloat4();
+        Sleeping = reader.ReadBool();
         ActorType = reader.ReadPackedInt();
         SceneGroup = reader.ReadByte();
         FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
         SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
+        Radiancy = reader.ReadPackedInt();
     }
 }

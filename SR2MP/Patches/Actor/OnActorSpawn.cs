@@ -3,7 +3,6 @@ using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Player;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
-using MelonLoader;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Managers;
@@ -29,9 +28,30 @@ internal static class OnActorSpawn
         var id = actor.GetComponent<IdentifiableActor>().GetActorId();
 
         var emotions = float4.zero;
+        var sleeping = false;
         var slimeModel = actor.GetComponent<IdentifiableActor>()._model.TryCast<SlimeModel>();
         if (slimeModel != null)
+        {
             emotions = slimeModel.Emotions;
+            sleeping = slimeModel.isSleeping;
+        }
+
+        var radiancy = ActorAppearanceType.Default;
+        var slimeAppearanceApplicator = actor.GetComponent<SlimeAppearanceApplicator>();
+        if (slimeAppearanceApplicator != null)
+        {
+            var currentAppearance = slimeAppearanceApplicator.Appearance;
+            var def = actor.GetComponent<Identifiable>().identType.TryCast<SlimeDefinition>();
+            if (def != null && currentAppearance != null)
+            {
+                if (currentAppearance == def.RadiantBase)
+                    radiancy = ActorAppearanceType.BaseRadiant;
+                else if (currentAppearance == def.RadiantLargo0)
+                    radiancy = ActorAppearanceType.LargoRadiant0;
+                else if (currentAppearance == def.RadiantLargo1)
+                    radiancy = ActorAppearanceType.LargoRadiant1;
+            }
+        }
 
         var packet = new ActorSpawnPacket
         {
@@ -41,8 +61,10 @@ internal static class OnActorSpawn
             Position = actor.transform.position,
             Rotation = actor.transform.rotation,
             Emotions = emotions,
+            Sleeping = sleeping,
             FirstAppearance = appearance,
             SecondAppearance = secondAppearance,
+            Radiancy = (int)radiancy
         };
 
         Main.SendToAllOrServer(packet);

@@ -80,6 +80,9 @@ internal partial class InitialActorsPacket
     internal sealed class Slime : ActorBase
     {
         public float4 Emotions;
+        public bool Sleeping;
+
+        public int Radiancy;
 
         protected override ActorType Type => ActorType.Slime;
 
@@ -87,12 +90,16 @@ internal partial class InitialActorsPacket
         {
             base.Serialise(writer);
             writer.WriteFloat4(Emotions);
+            writer.WriteBool(Sleeping);
+            writer.WritePackedInt(Radiancy);
         }
 
         public override void Deserialise(PacketReader reader)
         {
             base.Deserialise(reader);
             Emotions = reader.ReadFloat4();
+            Sleeping = reader.ReadBool();
+            Radiancy = reader.ReadPackedInt();
         }
     }
     internal sealed class DroneStation : LinkedGadget
