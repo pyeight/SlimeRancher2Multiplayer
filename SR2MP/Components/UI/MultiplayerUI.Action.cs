@@ -94,16 +94,23 @@ internal sealed partial class MultiplayerUI
     {
         joinManualError = string.Empty;
 
-        if (!IPAddress.TryParse(ip, out _))
+        if (string.IsNullOrWhiteSpace(ip))
         {
-            joinManualError = "Invalid IP address.";
+            joinManualError = "Invalid IP address or hostname.";
             return;
         }
 
-        Connect(ip, port);
+        var resolved = ResolveIp(ip);
+        if (resolved is null)
+        {
+            joinManualError = "Could not resolve hostname.";
+            return;
+        }
+
+        Connect(resolved, port);
     }
 
-    private static string ResolveIp(string ip)
+    private static string? ResolveIp(string ip)
     {
         if (ip.StartsWith("[") && ip.EndsWith("]"))
             ip = ip[1..^1];
@@ -117,14 +124,14 @@ internal sealed partial class MultiplayerUI
             if (addresses.Length > 0)
                 return addresses[0].ToString();
 
-            SrLogger.LogWarning("IP address incorrect!");
+            SrLogger.LogWarning("Could not resolve hostname: no addresses returned.");
         }
         catch
         {
-            SrLogger.LogWarning("IP address could not be resolved! (are you connected to the internet?)");
+            SrLogger.LogWarning("Could not resolve hostname (are you connected to the internet?)");
         }
 
-        return ip;
+        return null;
     }
 
     public void Kick(string player)
