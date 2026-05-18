@@ -124,6 +124,13 @@ internal static class NetworkAmmoManager
 
     public static ushort GetId(AmmoSlotDefinition def)
     {
+        if (def.name == null)
+        {
+            SrLogger.LogError("GetId called with a null definition name.");
+            return 0;
+        }
+
+        SrLogger.LogMessage(def.name);
         var hash = def.name.Hash16();
         slotDefinitions.TryAdd(hash, def);
         return hash;

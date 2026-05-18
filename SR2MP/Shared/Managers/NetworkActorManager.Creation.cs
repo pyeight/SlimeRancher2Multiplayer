@@ -1,6 +1,7 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Drone;
 using Il2CppMonomiPark.SlimeRancher.Player;
+using Il2CppMonomiPark.SlimeRancher.VFX;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Ammo;
 using SR2MP.Packets.Loading;
@@ -21,22 +22,11 @@ internal sealed partial class NetworkActorManager
         if (actor.TryCast<ProduceModel>(out var resource))
             return CreateInitialResource(resource);
 
-        return CreateInitialActorBase(actor);
-    }
+        var gameObj = actor.GetGameObject();
+        if (gameObj && gameObj.GetComponent<RandomMaterial>() != null)
+            return CreateInitialSprinkle(actor);
 
-    public static InitialActorsPacket.ActorBase CreateInitialGadget(GadgetModel gadget)
-    {
-        if (gadget.TryCast<DroneStationGadgetModel>(out var drone))
-            return CreateInitialDroneStation(gadget.Cast<DroneStationGadgetModel>());
-        
-        if (GetLinkedGadget(gadget) != null)
-        {
-            if (GetAmmoFromGadget(gadget) != null)
-                return CreateInitialAmmoGadget(gadget);
-            
-            return CreateInitialLinkedGadget(gadget);
-        }
-        return CreateInitialGadgetBase(gadget);
+        return CreateInitialActorBase(actor);
     }
 
     private static InitialActorsPacket.ActorBase CreateInitialActorBase(IdentifiableModel model) => new()
@@ -46,39 +36,6 @@ internal sealed partial class NetworkActorManager
         Position = model.lastPosition,
         Rotation = model.TryCast<ActorModel>()?.lastRotation ?? Quaternion.identity,
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
-    };
-    
-    private static InitialActorsPacket.ActorBase CreateInitialGadgetBase(GadgetModel model) => new()
-    {
-        ActorId = model.actorId.Value,
-        ActorTypeId = GetPersistentID(model.ident),
-        Position = model.lastPosition,
-        Rotation = model.GetRot(),
-        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
-    };
-    private static InitialActorsPacket.DroneStation CreateInitialDroneStation(DroneStationGadgetModel model) => new()
-    {
-        ActorId = model.actorId.Value,
-        ActorTypeId = GetPersistentID(model.ident),
-        Position = model.lastPosition,
-        Rotation = model.GetRot(),
-        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-        DroneType = model._type,
-        DroneInStation = model._isDroneAtStation,
-        // 0.8333 is looking quite random, but i couldnt find an actual const or variable that gave the correct output.
-        // This number was taken from a UE Hook on GetCurrEnergy on DroneStationGadgetModel.
-        Charge = model.GetCurrEnergy(SceneContext.Instance.TimeDirector, 0.8333f),
-        Task = new InitialActorsPacket.DroneTask
-        {
-            TargetIdent = GetPersistentID(model._taskData.TargetIdentType),
-            Sink = model._taskData.SinkType,
-            Target = model._taskData.TargetType,
-            Source = model._taskData.SourceType,
-        },
-        
-        LinkedActorId = model._type == DroneType.EXPLORER_DRONE
-            ? GameState.droneModel.GetExplorerDrone(model.actorId).actorId.Value 
-            : GameState.droneModel.GetRanchDrone(model.actorId).actorId.Value
     };
 
     private static InitialActorsPacket.Slime CreateInitialSlime(SlimeModel model)
@@ -114,38 +71,6 @@ internal sealed partial class NetworkActorManager
             Radiancy = (int)radiancy
         };
     }
-    
-    private static InitialActorsPacket.LinkedGadget CreateInitialLinkedGadget(GadgetModel model) => new()
-    {
-        ActorId = model.actorId.Value,
-        ActorTypeId = GetPersistentID(model.ident),
-        Position = model.lastPosition,
-        Rotation = model.GetRot(),
-        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-        LinkedActorId = GetLinkedGadget(model)!.actorId.Value
-    };
-    
-    private static InitialActorsPacket.LinkedAmmoGadget CreateInitialAmmoGadget(GadgetModel model) => new()
-    {
-        ActorId = model.actorId.Value,
-        ActorTypeId = GetPersistentID(model.ident),
-        Position = model.lastPosition,
-        Rotation = model.GetRot(),
-        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-        LinkedActorId = GetLinkedGadget(model)!.actorId.Value,
-        Ammo = new NetworkAmmo()
-        {
-            AmmoSlots = GetAmmoFromGadget(model)!.Slots
-                .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                    slot => (int)slot.GetSlotIndex()!,
-                    slot => new NetworkAmmoSlot()
-                    {
-                        Count = slot.Count,
-                        Identifiable = GetPersistentID(slot._id),
-                        SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                    })
-        }
-    };
 
     private static InitialActorsPacket.Plort CreateInitialPlort(PlortModel model) => new()
     {
@@ -195,23 +120,114 @@ internal sealed partial class NetworkActorManager
         return packet;
     }
 
-    // public static ActorUpdateType DetermineUpdateTypeFromModel(ActorModel model)
-    // {
-    //     if (model.TryCast<SlimeModel>() != null)
-    //         return ActorUpdateType.Slime;
-    //     if (model.TryCast<ProduceModel>() != null)
-    //         return ActorUpdateType.Resource;
-    //     if (model.TryCast<PlortModel>() != null)
-    //         return ActorUpdateType.Plort;
-
-    //     return ActorUpdateType.Actor;
-    // }
-    // not sure if there are more...
-    private static AmmoModel? GetAmmoFromGadget(GadgetModel model)
+    private static InitialActorsPacket.Sprinkle CreateInitialSprinkle(IdentifiableModel model)
     {
-        if (model.TryCast(out WarpDepotModel? warp))
-            return warp.ammo;
-        
-        return null!;
+        byte materialIndex = 0;
+        var gameObj = model.GetGameObject();
+        if (gameObj)
+        {
+            var sprinkle = gameObj.GetComponent<RandomMaterial>();
+            if (sprinkle)
+            {
+                var currentMaterial = sprinkle._renderers?[0]?.sharedMaterial;
+                if (currentMaterial != null)
+                {
+                    var materialName = currentMaterial.name.Replace(" (Instance)", "");
+                    if (Enum.TryParse(materialName, out SprinkleMaterialType type))
+                        materialIndex = (byte)type;
+                }
+            }
+        }
+
+        return new InitialActorsPacket.Sprinkle
+        {
+            ActorId = model.actorId.Value,
+            ActorTypeId = GetPersistentID(model.ident),
+            Position = model.lastPosition,
+            Rotation = model.TryCast<ActorModel>()?.lastRotation ?? Quaternion.identity,
+            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+            MaterialIndex = materialIndex
+        };
     }
+
+    public static InitialActorsPacket.ActorBase CreateInitialGadget(GadgetModel gadget)
+    {
+        if (gadget.TryCast<DroneStationGadgetModel>(out _))
+            return CreateInitialDroneStation(gadget.Cast<DroneStationGadgetModel>());
+
+        if (GetLinkedGadget(gadget) != null)
+        {
+            if (GetAmmoFromGadget(gadget) != null)
+                return CreateInitialAmmoGadget(gadget);
+
+            return CreateInitialLinkedGadget(gadget);
+        }
+
+        return CreateInitialGadgetBase(gadget);
+    }
+
+    private static InitialActorsPacket.ActorBase CreateInitialGadgetBase(GadgetModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.GetRot(),
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup)
+    };
+
+    private static InitialActorsPacket.LinkedGadget CreateInitialLinkedGadget(GadgetModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.GetRot(),
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        LinkedActorId = GetLinkedGadget(model)!.actorId.Value
+    };
+
+    private static InitialActorsPacket.LinkedAmmoGadget CreateInitialAmmoGadget(GadgetModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.GetRot(),
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        LinkedActorId = GetLinkedGadget(model)!.actorId.Value,
+        Ammo = new NetworkAmmo()
+        {
+            AmmoSlots = GetAmmoFromGadget(model)!.Slots
+                .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
+                    slot => (int)slot.GetSlotIndex()!,
+                    slot => new NetworkAmmoSlot()
+                    {
+                        Count = slot.Count,
+                        Identifiable = GetPersistentID(slot._id),
+                        SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
+                    })
+        }
+    };
+
+    private static InitialActorsPacket.DroneStation CreateInitialDroneStation(DroneStationGadgetModel model) => new()
+    {
+        ActorId = model.actorId.Value,
+        ActorTypeId = GetPersistentID(model.ident),
+        Position = model.lastPosition,
+        Rotation = model.GetRot(),
+        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+        DroneType = model._type,
+        DroneInStation = model._isDroneAtStation,
+        // 0.8333 is looking quite random, but i couldnt find an actual const or variable that gave the correct output.
+        // This number was taken from a UE Hook on GetCurrEnergy on DroneStationGadgetModel.
+        Charge = model.GetCurrEnergy(SceneContext.Instance.TimeDirector, 0.8333f),
+        Task = new InitialActorsPacket.DroneTask
+        {
+            TargetIdent = GetPersistentID(model._taskData.TargetIdentType),
+            Sink = model._taskData.SinkType,
+            Target = model._taskData.TargetType,
+            Source = model._taskData.SourceType,
+        },
+        LinkedActorId = model._type == DroneType.EXPLORER_DRONE
+            ? GameState.droneModel.GetExplorerDrone(model.actorId).actorId.Value
+            : GameState.droneModel.GetRanchDrone(model.actorId).actorId.Value
+    };
 }

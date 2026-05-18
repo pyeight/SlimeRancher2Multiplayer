@@ -3,6 +3,7 @@ using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Player;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
+using Il2CppMonomiPark.SlimeRancher.VFX;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Managers;
@@ -53,6 +54,19 @@ internal static class OnActorSpawn
             }
         }
 
+        var material = SprinkleMaterialType.none;
+        var sprinkle = actor.GetComponent<RandomMaterial>();
+
+        if (sprinkle != null)
+        {
+            var materialName = sprinkle._renderers
+                .Select(r => r.sharedMaterial?.name.Replace(" (Instance)", ""))
+                .FirstOrDefault();
+
+            if (Enum.TryParse(materialName, out SprinkleMaterialType type))
+                material = type;
+        }
+
         var packet = new ActorSpawnPacket
         {
             ActorType = actorType,
@@ -64,7 +78,8 @@ internal static class OnActorSpawn
             Sleeping = sleeping,
             FirstAppearance = appearance,
             SecondAppearance = secondAppearance,
-            Radiancy = (int)radiancy
+            Radiancy = (int)radiancy,
+            MaterialIndex = (byte)material
         };
 
         Main.SendToAllOrServer(packet);

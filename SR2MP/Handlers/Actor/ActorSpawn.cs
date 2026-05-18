@@ -23,6 +23,13 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
         if (actor == null)
             return true;
 
+        if (packet.MaterialIndex != (byte)SprinkleMaterialType.none)
+        {
+            var gameObj = actor.GetGameObject();
+            if (gameObj)
+                StartCoroutine(NetworkActorManager.ApplySprinkleMaterial(gameObj, (SprinkleMaterialType)packet.MaterialIndex));
+        }
+
         var slime = actor.TryCast<SlimeModel>();
         if (slime == null)
             return true;

@@ -403,105 +403,27 @@ internal sealed class ReSyncManager
                 },
                 LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData
                 {
-                    CollectorAmmo = new NetworkAmmo
-                    {
-                        AmmoSlots = (!plot.siloAmmo.ContainsKey(PlortCollectorAmmo)
-                                ? null
-                                : plot.siloAmmo[PlortCollectorAmmo])?.Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
-                                slot => new NetworkAmmoSlot()
-                                {
-                                    Count = slot.Count,
-                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })!
-                    }
+                    CollectorAmmo = SerializeAmmo(plot.siloAmmo, PlortCollectorAmmo)
                 },
                 LandPlot.Id.COOP => new InitialLandPlotsPacket.CoopPondData
                 {
-                    CollectorAmmo = new NetworkAmmo
-                    {
-                        AmmoSlots = (!plot.siloAmmo.ContainsKey(CoopAmmo)
-                                ? null
-                                : plot.siloAmmo[CoopAmmo])?.Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => plot.siloAmmo[CoopAmmo].Slots.IndexOf(slot),
-                                slot => new NetworkAmmoSlot()
-                                {
-                                    Count = slot.Count,
-                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })!
-                    }
+                    CollectorAmmo = SerializeAmmo(plot.siloAmmo, CoopAmmo)
                 },
                 LandPlot.Id.INCINERATOR => new InitialLandPlotsPacket.IncineratorData
                 {
                     AshLevel = plot.ashUnits,
-                    PlortCollectorAmmo = new NetworkAmmo
-                    {
-                        AmmoSlots = (!plot.siloAmmo.ContainsKey(PlortCollectorAmmo)
-                                ? null
-                                : plot.siloAmmo[PlortCollectorAmmo])?.Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
-                                slot => new NetworkAmmoSlot()
-                                {
-                                    Count = slot.Count,
-                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })!
-                    }
+                    PlortCollectorAmmo = SerializeAmmo(plot.siloAmmo, PlortCollectorAmmo)
                 },
                 LandPlot.Id.SILO => new InitialLandPlotsPacket.SiloData
                 {
                     SelectedSlots = plot.siloStorageIndices.ToList().ConvertAll(val => (byte)val),
-                    Ammo = new NetworkAmmo
-                    {
-                        AmmoSlots = (!plot.siloAmmo.ContainsKey(SiloAmmo)
-                                ? null
-                                : plot.siloAmmo[SiloAmmo])?.Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => plot.siloAmmo[SiloAmmo].Slots.IndexOf(slot),
-                                slot => new NetworkAmmoSlot()
-                                {
-                                    Count = slot.Count,
-                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })!
-                    }
+                    Ammo = SerializeAmmo(plot.siloAmmo, SiloAmmo)
                 },
                 LandPlot.Id.CORRAL => new InitialLandPlotsPacket.CorralData
                 {
                     AutoFeederSpeed = (byte)plot.feederCycleSpeed,
-                    PlortCollectorAmmo = new NetworkAmmo()
-                    {
-                        AmmoSlots = (!plot.siloAmmo.ContainsKey(PlortCollectorAmmo)
-                                ? null
-                                : plot.siloAmmo[PlortCollectorAmmo])?.Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => plot.siloAmmo[PlortCollectorAmmo].Slots.IndexOf(slot),
-                                slot => new NetworkAmmoSlot()
-                                {
-                                    Count = slot.Count,
-                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })!
-                    },
-                    AutoFeederAmmo = new NetworkAmmo()
-                    {
-                        AmmoSlots = (!plot.siloAmmo.ContainsKey(FeederAmmo)
-                                ? null
-                                : plot.siloAmmo[FeederAmmo])?.Slots
-                            .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                                slot => plot.siloAmmo[FeederAmmo].Slots.IndexOf(slot),
-                                slot => new NetworkAmmoSlot()
-                                {
-                                    Count = slot.Count,
-                                    Identifiable = NetworkActorManager.GetPersistentID(slot._id),
-                                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                                })!
-                    }
+                    PlortCollectorAmmo = SerializeAmmo(plot.siloAmmo, PlortCollectorAmmo),
+                    AutoFeederAmmo = SerializeAmmo(plot.siloAmmo, FeederAmmo)
                 },
                 _ => null
             };
@@ -538,5 +460,37 @@ internal sealed class ReSyncManager
         }
 
         return new InitialTreasurePodsPacket() { TreasurePods = treasurePods };
+    }
+    
+    private static NetworkAmmo SerializeAmmo(
+        CppCollections.Dictionary<string, AmmoModel> siloAmmo,
+        string ammoKey)
+    {
+        if (!siloAmmo.ContainsKey(ammoKey))
+            return new NetworkAmmo { AmmoSlots = new Dictionary<int, NetworkAmmoSlot>() };
+
+        var slots = siloAmmo[ammoKey].Slots;
+
+        var ammoSlots = new Dictionary<int, NetworkAmmoSlot>();
+
+        for (var i = 0; i < slots.Count; i++)
+        {
+            var slot = slots[i];
+
+            if (slot == null)
+                continue;
+
+            if (slot.Definition == null || slot.Definition.name == null)
+                continue;
+
+            ammoSlots[i] = new NetworkAmmoSlot
+            {
+                Count = slot.Count,
+                Identifiable = NetworkActorManager.GetPersistentID(slot._id),
+                SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
+            };
+        }
+
+        return new NetworkAmmo { AmmoSlots = ammoSlots };
     }
 }

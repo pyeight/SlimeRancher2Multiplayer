@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Drone;
+using Il2CppMonomiPark.SlimeRancher.VFX;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
@@ -9,64 +10,291 @@ namespace SR2MP.Shared.Managers;
 
 internal sealed partial class NetworkActorManager
 {
-    private bool TrySpawnNetworkGadget(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? identModel)
-    {
-        identModel = null;
-
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn gadget with an invalid type!\n\tActor {actorId}: type_{typeId}");
-            return false;
-        }
-
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
-        model.eulerRotation = rotation.eulerAngles;
-
-        HandlingPacket = true;
-        var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
-        HandlingPacket = false;
-
-        gadget.transform.SetPositionAndRotation(position, rotation);
-
-        identModel = model.TryCast<IdentifiableModel>();
-        return true;
-    }
-
     public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model)
     {
         model = null;
-
+        
         if (Main.RockPlortBug)
             typeId = 25;
-
+        
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-
+        
         if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
             return false;
         }
-
+        
         if (!type.prefab)
             return false;
-
+        
         if (type.IsGadget())
             return TrySpawnNetworkGadget(actorId, position, rotation, typeId, sceneId, out model);
-
+        
         if (ActorIDAlreadyInUse(actorId))
             return false;
-
-        model = GameState.CreateActorModel(
-            actorId,
-            type,
-            scene,
-            position,
-            rotation).TryCast<IdentifiableModel>();
-
+        
+        model = GameState.CreateActorModel(actorId, type, scene, position, rotation).TryCast<IdentifiableModel>();
+        
         if (model == null)
             return false;
+        
+        GameState.identifiables[actorId] = model;
+        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
+            actors.Add(model);
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            GameState.identifiablesByIdent.Add(type, actors);
+        }
+        
+        HandlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        HandlingPacket = false;
+        
+        if (!actor)
+            return true;
+        
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        ActorManager.Actors[actorId.Value] = model;
+        
+        actor.GetComponent<ResourceCycle>()?.AttachToNearest();
+        
+        return true;
+    }
+    
+    private bool TrySpawnNetworkGadget(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? identModel)
+    {
+        identModel = null;
+        
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn gadget with an invalid type!\n\tActor {actorId}: type_{typeId}");
+            return false;
+        }
+        
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
+        model.eulerRotation = rotation.eulerAngles;
+        
+        HandlingPacket = true;
+        var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
+        HandlingPacket = false;
+        
+        gadget.transform.SetPositionAndRotation(position, rotation);
+        
+        identModel = model.TryCast<IdentifiableModel>();
+        return true;
+    }
+    
+    public bool TrySpawnInitialActor(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? model)
+    {
+        model = null;
+        
+        var typeId = actorData.ActorTypeId;
+        
+        if (Main.RockPlortBug)
+            typeId = 25;
+        
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
+            return false;
+        }
+        
+        if (type.IsGadget())
+            return TrySpawnInitialGadget(actorData, out model);
+        
+        switch (actorData)
+        {
+            case InitialActorsPacket.Slime slimeData:
+                return TrySpawnInitialSlime(slimeData, out model);
+            case InitialActorsPacket.Plort plortData:
+                return TrySpawnInitialPlort(plortData, out model);
+            case InitialActorsPacket.Resource resourceData:
+                return TrySpawnInitialResource(resourceData, out model);
+            case InitialActorsPacket.Sprinkle sprinkleData:
+                return TrySpawnInitialSprinkle(sprinkleData, out model);
+            case InitialActorsPacket.RanchDrone ranchDroneData:
+                return TrySpawnInitialRanchDrone(ranchDroneData, out model);
+            case InitialActorsPacket.ExplorerDrone droneData:
+                return TrySpawnInitialDrone(droneData, out model);
+        }
+        
+        var sceneId = actorData.Scene;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        
+        if (!type.prefab)
+            return false;
+        
+        if (type.IsGadget())
+        {
+            SrLogger.LogWarning($"Tried to spawn gadget over the network, but used the non-gadget function!\n\tActor {actorId.Value}: {type.name}");
+            return false;
+        }
+        
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+        
+        model = GameState.CreateActorModel(actorId, type, scene, position, rotation).TryCast<IdentifiableModel>();
+        
+        if (model == null)
+            return false;
+        
+        GameState.identifiables[actorId] = model;
+        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
+            actors.Add(model);
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            GameState.identifiablesByIdent.Add(type, actors);
+        }
+        
+        HandlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        HandlingPacket = false;
+        
+        if (!actor)
+            return true;
+        
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        ActorManager.Actors[actorId.Value] = model;
+        
+        return true;
+    }
+    
+    private bool TrySpawnInitialSlime(InitialActorsPacket.Slime actorData, out IdentifiableModel? model)
+    {
+        model = null;
+        
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var emotions = actorData.Emotions;
+        
+        if (Main.RockPlortBug)
+            typeId = 25;
+        
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+        
+        if (!type.prefab)
+            return false;
+        
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+        
+        model = GameState.CreateSlimeActorModel(actorId, type.Cast<SlimeDefinition>(), scene, position, rotation).TryCast<IdentifiableModel>();
+        
+        if (model == null)
+            return false;
+        
+        var slime = model.Cast<SlimeModel>();
+        slime.Emotions = emotions;
+        slime.isSleeping = actorData.Sleeping;
+        
+        GameState.identifiables[actorId] = model;
+        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
+        {
+            actors.Add(model);
+        } 
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            GameState.identifiablesByIdent.Add(type, actors);
+        }
+        
+        HandlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        HandlingPacket = false;
+        
+        if (!actor)
+            return true;
+        
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        ActorManager.Actors[actorId.Value] = model;
+        
+        if (actorData.Radiancy != (int)ActorAppearanceType.Default)
+            ApplyRadiancy(slime, (ActorAppearanceType)actorData.Radiancy);
+        
+        return true;
+    }
 
+    private bool TrySpawnInitialPlort(InitialActorsPacket.Plort actorData, out IdentifiableModel? model)
+    {
+        model = null;
+        
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var destroyTime = actorData.DestroyTime;
+        var invulnerable = actorData.Invulnerable;
+        var invulnerablePeriod = actorData.InvulnerablePeriod;
+        
+        if (Main.RockPlortBug)
+            typeId = 25;
+        
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+        
+        if (!type.prefab)
+            return false;
+        
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+        
+        model = GameState.CreateActorModel(actorId, type, scene, position, rotation).TryCast<IdentifiableModel>();
+        
+        if (model == null)
+            return false;
+        
+        var plortModel = model.TryCast<PlortModel>();
+        if (plortModel == null)
+        {
+            SrLogger.LogWarning($"Plort Actor failed to initialize: Did not create a PlortModel successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
+            return false;
+        }
+        
+        plortModel.destroyTime = destroyTime;
+        
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
         {
@@ -78,14 +306,14 @@ internal sealed partial class NetworkActorManager
             actors.Add(model);
             GameState.identifiablesByIdent.Add(type, actors);
         }
-
+        
         HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
         HandlingPacket = false;
-
+        
         if (!actor)
             return true;
-
+        
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
@@ -94,57 +322,229 @@ internal sealed partial class NetworkActorManager
         networkComponent.nextRotation = rotation;
         actor.transform.position = position;
         ActorManager.Actors[actorId.Value] = model;
-
-        actor.GetComponent<ResourceCycle>()?.AttachToNearest();
-
+        
+        var plortInvulnerability = actor.GetComponent<PlortInvulnerability>();
+        if (plortInvulnerability)
+        {
+            plortInvulnerability.IsInvulnerable = invulnerable;
+            plortInvulnerability.InvulnerabilityPeriod = invulnerablePeriod;
+        }
+        
         return true;
     }
 
+    private bool TrySpawnInitialResource(InitialActorsPacket.Resource actorData, out IdentifiableModel? model)
+    {
+        model = null;
+        
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var destroyTime = actorData.DestroyTime;
+        var state = actorData.ResourceState;
+        var progress = actorData.ProgressTime;
+        
+        if (Main.RockPlortBug)
+            typeId = 25;
+        
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}\n\tIdentifiable Type: {typeId}");
+            return false;
+        }
+        
+        if (!type.prefab)
+            return false;
+        
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+        
+        model = GameState.CreateActorModel(actorId, type, scene, position, rotation).TryCast<IdentifiableModel>();
+        
+        if (model == null)
+        {
+            SrLogger.LogWarning($"Resource Actor failed to initialize: Did not create any models successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
+            return false;
+        }
+        
+        var produceModel = model.TryCast<ProduceModel>();
+        if (produceModel == null)
+        {
+            SrLogger.LogWarning($"Resource Actor failed to initialize: Did not create a ProduceModel successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
+            return false;
+        }
+        
+        produceModel.destroyTime = destroyTime;
+        produceModel.state = state;
+        produceModel.progressTime = progress;
+        
+        GameState.identifiables[actorId] = model;
+        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
+            actors.Add(model);
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            GameState.identifiablesByIdent.Add(type, actors);
+        }
+        
+        HandlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        HandlingPacket = false;
+
+        if (!actor)
+            return true;
+        
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        ActorManager.Actors[actorId.Value] = model;
+        
+        var cycle = actor.GetComponent<ResourceCycle>();
+
+        if (actorData.JointIndex >= 0 && cycle != null)
+        {
+            Joint? targetJoint = null;
+
+            if (!string.IsNullOrEmpty(actorData.PlotID))
+            {
+                if (GameState.landPlots.TryGetValue(actorData.PlotID, out var plotModel) && plotModel.gameObj)
+                {
+                    var spawner = plotModel.gameObj.GetComponentInChildren<SpawnResource>();
+                    if (spawner != null && actorData.JointIndex < spawner.SpawnJoints.Count)
+                        targetJoint = spawner.SpawnJoints[actorData.JointIndex];
+                }
+            }
+            else
+            {
+                foreach (var spawner in Object.FindObjectsOfType<SpawnResource>())
+                {
+                    if (Vector3.Distance(spawner.transform.position, actorData.SpawnerPosition) < 0.1f)
+                    {
+                        if (actorData.JointIndex < spawner.SpawnJoints.Count)
+                            targetJoint = spawner.SpawnJoints[actorData.JointIndex];
+                        break;
+                    }
+                }
+            }
+            
+            if (targetJoint != null)
+            {
+                HandlingPacket = true;
+                cycle.Attach(targetJoint);
+                HandlingPacket = false;
+
+                produceModel.state = state;
+                produceModel.progressTime = progress;
+            }
+        }
+        
+        if (cycle != null)
+        {
+            if (state == ResourceCycle.State.UNRIPE)
+            {
+                actor.transform.localScale = cycle._defaultScale * 0.33f;
+                if (cycle._vacuumable)
+                    cycle._vacuumable.enabled = false;
+            }
+            else
+            {
+                networkComponent.SetResourceState(state, progress, true);
+            }
+        }
+        
+        return true;
+    }
+    
+    private bool TrySpawnInitialSprinkle(InitialActorsPacket.Sprinkle actorData, out IdentifiableModel? model)
+    {
+        model = null;
+        
+        var sceneId = actorData.Scene;
+        var typeId = actorData.ActorTypeId;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        
+        if (Main.RockPlortBug)
+            typeId = 25;
+        
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn sprinkle with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
+            return false;
+        }
+        
+        if (!type.prefab)
+            return false;
+        
+        if (ActorIDAlreadyInUse(actorId))
+            return false;
+        
+        model = GameState.CreateActorModel(actorId, type, scene, position, rotation).TryCast<IdentifiableModel>();
+
+        if (model == null)
+            return false;
+        
+        GameState.identifiables[actorId] = model;
+        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
+        {
+            actors.Add(model);
+        }
+        else
+        {
+            actors = new CppCollections.List<IdentifiableModel>();
+            actors.Add(model);
+            GameState.identifiablesByIdent.Add(type, actors);
+        }
+        
+        HandlingPacket = true;
+        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        HandlingPacket = false;
+        
+        if (!actor)
+            return true;
+        
+        var networkComponent = actor.AddComponent<NetworkActor>();
+        networkComponent.LocallyOwned = false;
+        networkComponent.previousPosition = position;
+        networkComponent.nextPosition = position;
+        networkComponent.previousRotation = rotation;
+        networkComponent.nextRotation = rotation;
+        actor.transform.position = position;
+        ActorManager.Actors[actorId.Value] = model;
+        
+        StartCoroutine(ApplySprinkleMaterial(actor, (SprinkleMaterialType)actorData.MaterialIndex));
+        
+        return true;
+    }
+    
     private bool TrySpawnInitialGadget(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? identifiableModel)
     {
         identifiableModel = null;
+        
         if (ActorIDAlreadyInUse(new ActorId(actorData.ActorId)))
             return false;
+        
         switch (actorData)
         {
             case InitialActorsPacket.DroneStation stationData:
                 return TrySpawnInitialDroneStation(stationData, out identifiableModel);
             case InitialActorsPacket.LinkedAmmoGadget linkedAmmoData:
                 return TrySpawnInitialAmmoGadget(linkedAmmoData, out identifiableModel);
-            case InitialActorsPacket.LinkedGadget linkedData: // i dont know how to set this up for linked gadgets to work, but its possible they auto work
+            case InitialActorsPacket.LinkedGadget linkedData:
                 return TrySpawnInitialLinkedGadget(linkedData, out identifiableModel);
         }
-
-        var sceneId = actorData.Scene;
-        var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-        var typeId = actorData.ActorTypeId;
-
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
-            return false;
-        }
-
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
-        model.eulerRotation = rotation.eulerAngles;
-
-        identifiableModel = model.TryCast<IdentifiableModel>();
-
-        HandlingPacket = true;
-        var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
-        HandlingPacket = false;
-
-        gadget.transform.SetPositionAndRotation(position, rotation);
-
-        return true;
-    }
-// place holder ig
-    private bool TrySpawnInitialLinkedGadget(InitialActorsPacket.LinkedGadget actorData, out IdentifiableModel? identifiableModel)
-    {
-        identifiableModel = null;
         
         var sceneId = actorData.Scene;
         var actorId = new ActorId(actorData.ActorId);
@@ -157,11 +557,42 @@ internal sealed partial class NetworkActorManager
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
             return false;
         }
-
+        
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
         model.eulerRotation = rotation.eulerAngles;
+        
+        identifiableModel = model.TryCast<IdentifiableModel>();
+        
+        HandlingPacket = true;
+        var gadget = GadgetDirector.InstantiateGadgetFromModel(model);
+        HandlingPacket = false;
+        
+        gadget.transform.SetPositionAndRotation(position, rotation);
+        
+        return true;
+    }
 
+    private bool TrySpawnInitialLinkedGadget(InitialActorsPacket.LinkedGadget actorData, out IdentifiableModel? identifiableModel)
+    {
+        identifiableModel = null;
+        
+        var sceneId = actorData.Scene;
+        var actorId = new ActorId(actorData.ActorId);
+        var position = actorData.Position;
+        var rotation = actorData.Rotation;
+        var typeId = actorData.ActorTypeId;
+        
+        if (!ActorTypes.TryGetValue(typeId, out var type))
+        {
+            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
+            return false;
+        }
+        
+        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
+        var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
+        model.eulerRotation = rotation.eulerAngles;
+        
         identifiableModel = model.Cast<IdentifiableModel>();
         
         HandlingPacket = true;
@@ -182,13 +613,13 @@ internal sealed partial class NetworkActorManager
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var typeId = actorData.ActorTypeId;
-
+        
         if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
             return false;
         }
-
+        
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var droneModel = new DroneStationGadgetModel(actorId, type, scene, position, false);
         droneModel.eulerRotation = rotation.eulerAngles;
@@ -202,17 +633,18 @@ internal sealed partial class NetworkActorManager
             TargetType = actorData.Task.Target,
             TargetIdentType = ActorTypes[actorData.Task.TargetIdent],
         };
-
+        
         if (droneModel._type == DroneType.RANCH_DRONE)
         {
             droneModel.InitializeForRancher(SceneContext.Instance.DroneDirector);
             GameState.droneModel._ranchDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<RanchDroneModel>();
         }
         else
-        {   
+        {
             droneModel.InitializeForExplorer(SceneContext.Instance.DroneDirector, SceneContext.Instance.TimeDirector, SceneContext.Instance.DroneDirector.GetStationAreaResources(droneModel));
             GameState.droneModel._explorerDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<ExplorerDroneModel>();
-        }       
+        }
+        
         droneModel.Initialized = true;
         
         identifiableModel = droneModel.Cast<IdentifiableModel>();
@@ -224,9 +656,10 @@ internal sealed partial class NetworkActorManager
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         SrLogger.LogWarning($"DEBUG: Spawning drone station;\n\tGadget Id: {actorId}\n\tDrone Id: {new ActorId(actorData.LinkedActorId)}\n\tBattery: {actorData.Charge}\n\tType: {actorData.DroneType}\n\tDrone Task:\n\t\tSink: {actorData.Task.Sink}\n\t\tSource: {actorData.Task.Source}\n\t\tTarget: {actorData.Task.Target}");
+        
         return true;
     }
-    
+
     private bool TrySpawnInitialAmmoGadget(InitialActorsPacket.LinkedAmmoGadget actorData, out IdentifiableModel? identifiableModel)
     {
         identifiableModel = null;
@@ -236,17 +669,17 @@ internal sealed partial class NetworkActorManager
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var typeId = actorData.ActorTypeId;
-
+        
         if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
             return false;
         }
-
+        
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var gadgetModel = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
         gadgetModel.eulerRotation = rotation.eulerAngles;
-
+        
         if (gadgetModel.TryCast<WarpDepotModel>(out var depotModel))
             depotModel.ammo = actorData.Ammo.ToGameAmmo()._ammoModel;
         
@@ -260,231 +693,56 @@ internal sealed partial class NetworkActorManager
         
         return true;
     }
-    
-    public bool TrySpawnInitialActor(InitialActorsPacket.ActorBase actorData, out IdentifiableModel? model)
-    {
-        model = null;
-
-        var typeId = actorData.ActorTypeId;
-
-        if (Main.RockPlortBug)
-            typeId = 25;
-
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorData.ActorId}: type_{typeId}");
-            return false;
-        }
-
-        if (type.IsGadget())
-            return TrySpawnInitialGadget(actorData, out model);
-
-        switch (actorData)
-        {
-            case InitialActorsPacket.Slime slimeData:
-                return TrySpawnInitialSlime(slimeData, out model);
-            case InitialActorsPacket.Plort plortData:
-                return TrySpawnInitialPlort(plortData, out model);
-            case InitialActorsPacket.Resource resourceData:
-                return TrySpawnInitialResource(resourceData, out model);
-            case InitialActorsPacket.RanchDrone ranchDroneData:
-                return TrySpawnInitialRanchDrone(ranchDroneData, out model);
-            case InitialActorsPacket.ExplorerDrone droneData:
-                return TrySpawnInitialDrone(droneData, out model);
-        }
-
-        var sceneId = actorData.Scene;
-        var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-
-        if (!type.prefab)
-            return false;
-
-        if (type.IsGadget())
-        {
-            SrLogger.LogWarning($"Tried to spawn gadget over the network, but used the non-gadget function!\n\tActor {actorId.Value}: {type.name}");
-            return false;
-        }
-
-        if (ActorIDAlreadyInUse(actorId))
-            return false;
-
-        model = GameState.CreateActorModel(
-            actorId,
-            type,
-            scene,
-            position,
-            rotation).TryCast<IdentifiableModel>();
-
-        if (model == null)
-            return false;
-
-        GameState.identifiables[actorId] = model;
-        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-        {
-            actors.Add(model);
-        }
-        else
-        {
-            actors = new CppCollections.List<IdentifiableModel>();
-            actors.Add(model);
-            GameState.identifiablesByIdent.Add(type, actors);
-        }
-
-        HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        HandlingPacket = false;
-
-        if (!actor)
-            return true;
-
-        var networkComponent = actor.AddComponent<NetworkActor>();
-        networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
-        actor.transform.position = position;
-        ActorManager.Actors[actorId.Value] = model;
-
-        return true;
-    }
-
-    private bool TrySpawnInitialSlime(InitialActorsPacket.Slime actorData, out IdentifiableModel? model)
-    {
-        model = null;
-
-        var sceneId = actorData.Scene;
-        var typeId = actorData.ActorTypeId;
-        var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-        var emotions = actorData.Emotions;
-
-        if (Main.RockPlortBug)
-            typeId = 25;
-
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
-            return false;
-        }
-
-        if (!type.prefab)
-            return false;
-
-        if (ActorIDAlreadyInUse(actorId))
-            return false;
-
-        model = GameState.CreateSlimeActorModel(
-            actorId,
-            type.Cast<SlimeDefinition>(),
-            scene,
-            position,
-            rotation).TryCast<IdentifiableModel>();
-
-        if (model == null)
-            return false;
-
-        var slime = model.Cast<SlimeModel>();
-        slime.Emotions = emotions;
-        slime.isSleeping = actorData.Sleeping;
-
-        GameState.identifiables[actorId] = model;
-        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-        {
-            actors.Add(model);
-        }
-        else
-        {
-            actors = new CppCollections.List<IdentifiableModel>();
-            actors.Add(model);
-            GameState.identifiablesByIdent.Add(type, actors);
-        }
-
-        HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        HandlingPacket = false;
-
-        if (!actor)
-            return true;
-        
-        var networkComponent = actor.AddComponent<NetworkActor>();
-        networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
-        actor.transform.position = position;
-        ActorManager.Actors[actorId.Value] = model;
-
-        if (actorData.Radiancy != (int)ActorAppearanceType.Default)
-            ApplyRadiancy(slime, (ActorAppearanceType)actorData.Radiancy);
-
-        return true;
-    }
 
     private bool TrySpawnInitialDrone(InitialActorsPacket.ExplorerDrone actorData, out IdentifiableModel? model)
     {
         model = null;
-
+        
         var sceneId = actorData.Scene;
         var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var station = actorData.Station;
-
+        
         if (Main.RockPlortBug)
             typeId = 25;
-
+        
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-
+        
         if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
             return false;
         }
-
+        
         if (!type.prefab)
             return false;
-
+        
         if (ActorIDAlreadyInUse(actorId))
             return false;
 
-        model = GameState.CreateActorModel(
-            actorId,
-            type,
-            scene,
-            position,
-            rotation);
+        model = GameState.CreateActorModel(actorId, type, scene, position, rotation);
 
         if (model == null)
             return false;
-
+        
         model.Cast<ExplorerDroneModel>().StationId = station;
-
+        
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-        {
             actors.Add(model);
-        }
         else
         {
             actors = new CppCollections.List<IdentifiableModel>();
             actors.Add(model);
             GameState.identifiablesByIdent.Add(type, actors);
         }
-
+        
         HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
         HandlingPacket = false;
-
+        
         if (!actor)
             return true;
         
@@ -496,13 +754,14 @@ internal sealed partial class NetworkActorManager
         networkComponent.nextRotation = rotation;
         actor.transform.position = position;
         ActorManager.Actors[actorId.Value] = model;
-
+        
         return true;
     }
+
     private bool TrySpawnInitialRanchDrone(InitialActorsPacket.RanchDrone actorData, out IdentifiableModel? model)
     {
         model = null;
-
+        
         var sceneId = actorData.Scene;
         var typeId = actorData.ActorTypeId;
         var actorId = new ActorId(actorData.ActorId);
@@ -513,53 +772,47 @@ internal sealed partial class NetworkActorManager
 
         if (Main.RockPlortBug)
             typeId = 25;
-
+        
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-
+        
         if (!ActorTypes.TryGetValue(typeId, out var type))
         {
             SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
             return false;
         }
-
+        
         if (!type.prefab)
             return false;
-
+        
         if (ActorIDAlreadyInUse(actorId))
             return false;
-
-        model = GameState.CreateActorModel(
-            actorId,
-            type,
-            scene,
-            position,
-            rotation);
-
+        
+        model = GameState.CreateActorModel(actorId, type, scene, position, rotation);
+        
         if (model == null)
             return false;
+        
         var droneModel = model.Cast<RanchDroneModel>();
         droneModel.StationId = station;
         droneModel.Ammo = ammo.ToGameAmmo()._ammoModel;
-
+        
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-        {
             actors.Add(model);
-        }
         else
         {
             actors = new CppCollections.List<IdentifiableModel>();
             actors.Add(model);
             GameState.identifiablesByIdent.Add(type, actors);
         }
-
+        
         HandlingPacket = true;
         var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
         HandlingPacket = false;
-
+        
         if (!actor)
             return true;
-
+        
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
         networkComponent.previousPosition = position;
@@ -568,237 +821,7 @@ internal sealed partial class NetworkActorManager
         networkComponent.nextRotation = rotation;
         actor.transform.position = position;
         ActorManager.Actors[actorId.Value] = model;
-
-        return true;
-    }
-
-    private bool TrySpawnInitialPlort(InitialActorsPacket.Plort actorData, out IdentifiableModel? model)
-    {
-        model = null;
-
-        var sceneId = actorData.Scene;
-        var typeId = actorData.ActorTypeId;
-        var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-        var destroyTime = actorData.DestroyTime;
-        var invulnerable = actorData.Invulnerable;
-        var invulnerablePeriod = actorData.InvulnerablePeriod;
-
-        if (Main.RockPlortBug)
-            typeId = 25;
-
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
-            return false;
-        }
-
-        if (!type.prefab)
-            return false;
-
-        if (ActorIDAlreadyInUse(actorId))
-            return false;
-
-        model = GameState.CreateActorModel(
-            actorId,
-            type,
-            scene,
-            position,
-            rotation).TryCast<IdentifiableModel>();
-
-        if (model == null)
-            return false;
-
-        var plortModel = model.TryCast<PlortModel>();
-        if (plortModel == null)
-        {
-            SrLogger.LogWarning(
-                $"Plort Actor failed to initialize: Did not create a PlortModel successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
-            return false;
-        }
-
-        plortModel.destroyTime = destroyTime;
-
-        GameState.identifiables[actorId] = model;
-        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-        {
-            actors.Add(model);
-        }
-        else
-        {
-            actors = new CppCollections.List<IdentifiableModel>();
-            actors.Add(model);
-            GameState.identifiablesByIdent.Add(type, actors);
-        }
-
-        HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        HandlingPacket = false;
-
-        if (!actor)
-            return true;
-
-        var networkComponent = actor.AddComponent<NetworkActor>();
-        networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
-        actor.transform.position = position;
-        ActorManager.Actors[actorId.Value] = model;
-
-        var plortInvulnerability = actor.GetComponent<PlortInvulnerability>();
-        if (plortInvulnerability)
-        {
-            plortInvulnerability.IsInvulnerable = invulnerable;
-            plortInvulnerability.InvulnerabilityPeriod = invulnerablePeriod;
-        }
-
-        return true;
-    }
-
-    private bool TrySpawnInitialResource(InitialActorsPacket.Resource actorData, out IdentifiableModel? model)
-    {
-        model = null;
-
-        var sceneId = actorData.Scene;
-        var typeId = actorData.ActorTypeId;
-        var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-        var destroyTime = actorData.DestroyTime;
-        var state = actorData.ResourceState;
-        var progress = actorData.ProgressTime;
-
-        if (Main.RockPlortBug)
-            typeId = 25;
-
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}\n\tIdentifiable Type: {typeId}");
-            return false;
-        }
-
-        if (!type.prefab)
-            return false;
-
-        if (ActorIDAlreadyInUse(actorId))
-            return false;
-
-        model = GameState.CreateActorModel(
-            actorId,
-            type,
-            scene,
-            position,
-            rotation).TryCast<IdentifiableModel>();
-
-        if (model == null)
-        {
-            SrLogger.LogWarning(
-                $"Resource Actor failed to initialize: Did not create any models successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
-            return false;
-        }
-
-        var produceModel = model.TryCast<ProduceModel>();
-        if (produceModel == null)
-        {
-            SrLogger.LogWarning(
-                $"Resource Actor failed to initialize: Did not create a ProduceModel successfully.\n\tActor ID: {actorId},\n\tIdentifiable Type: {type.name}");
-            return false;
-        }
-
-        produceModel.destroyTime = destroyTime;
-        produceModel.state = state;
-        produceModel.progressTime = progress;
-
-        GameState.identifiables[actorId] = model;
-        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-        {
-            actors.Add(model);
-        }
-        else
-        {
-            actors = new CppCollections.List<IdentifiableModel>();
-            actors.Add(model);
-            GameState.identifiablesByIdent.Add(type, actors);
-        }
-
-        HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        HandlingPacket = false;
-
-        if (!actor)
-            return true;
-
-        var networkComponent = actor.AddComponent<NetworkActor>();
-        networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
-        actor.transform.position = position;
-        ActorManager.Actors[actorId.Value] = model;
-
-        var cycle = actor.GetComponent<ResourceCycle>();
-
-        if (actorData.JointIndex >= 0 && cycle != null)
-        {
-            Joint? targetJoint = null;
-
-            if (!string.IsNullOrEmpty(actorData.PlotID))
-            {
-                if (GameState.landPlots.TryGetValue(actorData.PlotID, out var plotModel)
-                    && plotModel.gameObj)
-                {
-                    var spawner = plotModel.gameObj.GetComponentInChildren<SpawnResource>();
-                    if (spawner != null && actorData.JointIndex < spawner.SpawnJoints.Count)
-                        targetJoint = spawner.SpawnJoints[actorData.JointIndex];
-                }
-            }
-            else
-            {
-                foreach (var spawner in Object.FindObjectsOfType<SpawnResource>())
-                {
-                    if (Vector3.Distance(spawner.transform.position, actorData.SpawnerPosition) < 0.1f)
-                    {
-                        if (actorData.JointIndex < spawner.SpawnJoints.Count)
-                            targetJoint = spawner.SpawnJoints[actorData.JointIndex];
-                        
-                        break;
-                    }
-                }
-            }
-
-            if (targetJoint != null)
-            {
-                HandlingPacket = true;
-                cycle.Attach(targetJoint);
-                HandlingPacket = false;
-
-                produceModel.state = state;
-                produceModel.progressTime = progress;
-            }
-        }
-
-        if (cycle != null)
-        {
-            if (state == ResourceCycle.State.UNRIPE)
-            {
-                actor.transform.localScale = cycle._defaultScale * 0.33f;
-                if (cycle._vacuumable)
-                    cycle._vacuumable.enabled = false;
-            }
-            else
-            {
-                networkComponent.SetResourceState(state, progress, true);
-            }
-        }
-
+        
         return true;
     }
 }

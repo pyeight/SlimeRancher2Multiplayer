@@ -16,10 +16,12 @@ internal struct ActorSpawnPacket : IPacket
     public int ActorType;
     public byte SceneGroup;
     
-    public int Radiancy;
-    
     public SlimeAppearance.AppearanceSaveSet FirstAppearance;
     public SlimeAppearance.AppearanceSaveSet SecondAppearance;
+    
+    public int Radiancy;
+
+    public byte MaterialIndex;
 
     public readonly PacketType Type => PacketType.ActorSpawn;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
@@ -37,6 +39,7 @@ internal struct ActorSpawnPacket : IPacket
         writer.WritePackedEnum(FirstAppearance);
         writer.WritePackedEnum(SecondAppearance);
         writer.WritePackedInt(Radiancy);
+        writer.WriteByte(MaterialIndex);
     }
 
     public void Deserialise(PacketReader reader)
@@ -51,5 +54,6 @@ internal struct ActorSpawnPacket : IPacket
         FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
         SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
         Radiancy = reader.ReadPackedInt();
+        MaterialIndex = reader.ReadByte();
     }
 }
