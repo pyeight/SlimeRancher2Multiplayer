@@ -78,7 +78,7 @@ internal static class OnActorSpawn
             Sleeping = sleeping,
             FirstAppearance = appearance,
             SecondAppearance = secondAppearance,
-            Radiancy = (int)radiancy,
+            Radiancy = (byte)radiancy,
             MaterialIndex = (byte)material
         };
 

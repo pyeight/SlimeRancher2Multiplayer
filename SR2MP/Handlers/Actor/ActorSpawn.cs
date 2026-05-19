@@ -39,7 +39,7 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
         slime.Emotions = packet.Emotions;
         slime.isSleeping = packet.Sleeping;
 
-        if (packet.Radiancy != (int)ActorAppearanceType.Default)
+        if (packet.Radiancy != (byte)ActorAppearanceType.Default)
             NetworkActorManager.ApplyRadiancy(slime, (ActorAppearanceType)packet.Radiancy);
 
         return true;

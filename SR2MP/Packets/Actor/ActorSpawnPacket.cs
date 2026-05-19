@@ -19,7 +19,7 @@ internal struct ActorSpawnPacket : IPacket
     public SlimeAppearance.AppearanceSaveSet FirstAppearance;
     public SlimeAppearance.AppearanceSaveSet SecondAppearance;
     
-    public int Radiancy;
+    public byte Radiancy;
 
     public byte MaterialIndex;
 
@@ -38,7 +38,7 @@ internal struct ActorSpawnPacket : IPacket
         writer.WriteByte(SceneGroup);
         writer.WritePackedEnum(FirstAppearance);
         writer.WritePackedEnum(SecondAppearance);
-        writer.WritePackedInt(Radiancy);
+        writer.WriteByte(Radiancy);
         writer.WriteByte(MaterialIndex);
     }
 
@@ -53,7 +53,7 @@ internal struct ActorSpawnPacket : IPacket
         SceneGroup = reader.ReadByte();
         FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
         SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
-        Radiancy = reader.ReadPackedInt();
+        Radiancy = reader.ReadByte();
         MaterialIndex = reader.ReadByte();
     }
 }
