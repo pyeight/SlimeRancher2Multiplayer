@@ -15,7 +15,7 @@ public static class GlobalVariables
     /// <summary>
     /// Gets or sets a value indicating whether development mode is currently active.
     /// </summary>
-    public static bool DevMode { get; internal set; } = true;
+    public static bool DevMode { get; } = false;
 
     internal static readonly string[] CheatCommands = {
         "actortype", "clearinv", "delwarp", "emotions", "fastforward", "flatlook", "fling", "floaty", "freeze",
