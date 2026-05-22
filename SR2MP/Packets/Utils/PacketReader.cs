@@ -397,10 +397,9 @@ public sealed class PacketReader : PacketBuffer
         }
 
         var stringBytes = ReadRequest(len);
-        var s = isPooled
+        return isPooled
             ? NetworkStringPool.GetOrAdd(stringBytes)
             : Encoding.UTF8.GetString(stringBytes);
-        return s;
     }
 
     /// <summary>

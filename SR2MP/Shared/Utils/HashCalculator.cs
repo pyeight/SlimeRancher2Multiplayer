@@ -7,7 +7,7 @@ internal static class HashCalculator
 
     // public static ushort FoldHash(uint hash) => (ushort)(hash ^ (hash >> 16));
 
-    public static uint ComputeHashOfBytes(Span<byte> bytes)
+    public static uint ComputeHashOfBytes(ReadOnlySpan<byte> bytes)
     {
         unchecked
         {

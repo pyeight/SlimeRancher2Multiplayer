@@ -15,7 +15,7 @@ public static class NetworkStringPool
     /// </summary>
     /// <param name="utf8Bytes">The bytes of the string.</param>
     /// <returns>The string represented by the bytes.</returns>
-    public static string GetOrAdd(Span<byte> utf8Bytes)
+    public static string GetOrAdd(ReadOnlySpan<byte> utf8Bytes)
     {
         if (utf8Bytes.IsEmpty)
             return string.Empty;
