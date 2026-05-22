@@ -198,3 +198,6 @@ dotnet_diagnostic.S2696.severity = none
 
 # S2190: Loops and recursions should not be infinite
 dotnet_diagnostic.S2190.severity = none
+
+# S3881: "IDisposable" should be implemented correctly
+dotnet_diagnostic.S3881.severity = none

@@ -4,7 +4,7 @@ namespace SR2MP.Packets.Loading;
 
 internal partial class InitialActorsPacket : IPacket
 {
-    private static readonly Func<PacketReader, ActorBase> ReadFunction = reader =>
+    private static readonly ReadDel<ActorBase> ReadFunction = reader =>
     {
         var actorTypeEnum = reader.ReadEnum<ActorType>();
         var actorType = actorTypes![actorTypeEnum];

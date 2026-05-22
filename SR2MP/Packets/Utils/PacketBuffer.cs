@@ -52,7 +52,7 @@ public abstract class PacketBuffer : IRecyclable
     /// Initializes a new instance of the <see cref="PacketBuffer"/> class.
     /// </summary>
     /// <param name="startingBitIndex">The starting bit index used when packing booleans and when resetting state in <see cref="Clear"/>.</param>
-    protected internal PacketBuffer(int startingBitIndex) => startingIndex = currentBitIndex = startingBitIndex;
+    protected PacketBuffer(int startingBitIndex) => startingIndex = currentBitIndex = startingBitIndex;
 
     /// <summary>
     /// Gets the byte at the specified index.
@@ -71,13 +71,6 @@ public abstract class PacketBuffer : IRecyclable
     /// Called when the buffer is recycled.
     /// </summary>
     protected virtual void OnRecycle() { }
-
-    /// <summary>
-    /// Ensures that the buffer has enough bounds to write the specified number of bytes.
-    /// </summary>
-    /// <param name="count">The number of bytes to write.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the buffer has already been recycled.</exception>
-    protected abstract void EnsureBounds(int count);
 
     /// <summary>
     /// Moves the cursor forward by the specified number of bytes.
@@ -125,12 +118,12 @@ public abstract class PacketBuffer : IRecyclable
     /// </summary>
     /// <param name="pos">The zero-based absolute position to move to.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="pos"/> is negative or exceeds <see cref="int.MaxValue"/>.</exception>
-    public void SetCursor(long pos)
+    public void SetCursor(int pos)
     {
         if (pos is > int.MaxValue or < 0)
             throw new ArgumentOutOfRangeException(nameof(pos), "Position must be non negative and within int32 bounds.");
 
-        var delta = (int)pos - Position;
+        var delta = pos - Position;
 
         if (delta > 0)
             MoveForward(delta);
@@ -143,7 +136,7 @@ public abstract class PacketBuffer : IRecyclable
     /// </summary>
     /// <param name="offset">The offset from <paramref name="origin"/>.</param>
     /// <param name="origin">The reference point used to compute the target position.</param>
-    public void Seek(long offset, SeekOrigin origin) => SetCursor(offset + (origin switch
+    public void Seek(int offset, SeekOrigin origin) => SetCursor(offset + (origin switch
     {
         SeekOrigin.Begin => 0,
         SeekOrigin.End => DataSize,

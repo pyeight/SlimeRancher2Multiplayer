@@ -259,7 +259,7 @@ public sealed class PacketWriter : PacketBuffer
     /// </summary>
     /// <param name="value">The Guid to write.</param>
     /// <inheritdoc cref="EnsureCapacity"/>
-    public void WriteGuid(Guid value) => value.TryWriteBytes(WriteAlloc(16));
+    public void WriteGuid(Guid value) => _ = value.TryWriteBytes(WriteAlloc(16));
 
     /// <summary>
     /// Writes an enum value.
@@ -393,7 +393,7 @@ public sealed class PacketWriter : PacketBuffer
     /// </summary>
     /// <inheritdoc cref="WriteCount"/>
     /// <inheritdoc cref="WriteCollectionWithoutSize"/>
-    private void WriteCollection<T>(int count, IEnumerable<T> items, Action<PacketWriter, T> writer, CountType countType)
+    private void WriteCollection<T>(int count, IEnumerable<T> items, WriteDel<T> writer, CountType countType)
     {
         WriteCount(count, countType);
 
@@ -409,7 +409,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <typeparam name="T">The element type.</typeparam>
     /// <inheritdoc cref="EnsureCapacity"/>
     /// <exception cref="InvalidDataException">Thrown if the collection is null or empty.</exception>
-    private void WriteCollectionWithoutSize<T>(IEnumerable<T>? items, Action<PacketWriter, T> writer)
+    private void WriteCollectionWithoutSize<T>(IEnumerable<T>? items, WriteDel<T> writer)
     {
         // ReSharper disable once PossibleMultipleEnumeration
         if (items.IsNullOrEmpty())
@@ -426,7 +426,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="array">The array to write.</param>
     /// <inheritdoc cref="WriteCollection"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteArray<T>(T[]? array, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
+    public void WriteArray<T>(T[]? array, WriteDel<T> writer, CountType countType = CountType.UShort)
         => WriteCollection(array?.Length ?? 0, array ?? Enumerable.Empty<T>(), writer, countType);
 
     /// <summary>
@@ -435,7 +435,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="array">The array to write.</param>
     /// <inheritdoc cref="WriteCollectionWithoutSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteArrayWithoutSize<T>(T[]? array, Action<PacketWriter, T> writer)
+    public void WriteArrayWithoutSize<T>(T[]? array, WriteDel<T> writer)
         => WriteCollectionWithoutSize(array, writer);
 
     /// <summary>
@@ -444,7 +444,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="list">The list to write.</param>
     /// <inheritdoc cref="WriteCollection"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteList<T>(List<T>? list, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
+    public void WriteList<T>(List<T>? list, WriteDel<T> writer, CountType countType = CountType.UShort)
         => WriteCollection(list?.Count ?? 0, list ?? Enumerable.Empty<T>(), writer, countType);
 
     /// <summary>
@@ -453,7 +453,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="list">The list to write.</param>
     /// <inheritdoc cref="WriteCollectionWithoutSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteListWithoutSize<T>(List<T>? list, Action<PacketWriter, T> writer)
+    public void WriteListWithoutSize<T>(List<T>? list, WriteDel<T> writer)
         => WriteCollectionWithoutSize(list, writer);
 
     /// <summary>
@@ -462,7 +462,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="set">The hash set to write.</param>
     /// <inheritdoc cref="WriteCollection"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteHashSet<T>(HashSet<T>? set, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
+    public void WriteHashSet<T>(HashSet<T>? set, WriteDel<T> writer, CountType countType = CountType.UShort)
         => WriteCollection(set?.Count ?? 0, set ?? Enumerable.Empty<T>(), writer, countType);
 
     /// <summary>
@@ -471,7 +471,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="set">The hash set to write.</param>
     /// <inheritdoc cref="WriteCollectionWithoutSize"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteHashSetWithoutSize<T>(HashSet<T>? set, Action<PacketWriter, T> writer)
+    public void WriteHashSetWithoutSize<T>(HashSet<T>? set, WriteDel<T> writer)
         => WriteCollectionWithoutSize(set, writer);
 
     /// <summary>
@@ -479,7 +479,7 @@ public sealed class PacketWriter : PacketBuffer
     /// </summary>
     /// <param name="set">The il2cpp hash set to write.</param>
     /// <inheritdoc cref="WriteCollection"/>
-    public void WriteCppHashSet<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer, CountType countType = CountType.UShort)
+    public void WriteCppHashSet<T>(CppCollections.HashSet<T>? set, WriteDel<T> writer, CountType countType = CountType.UShort)
     {
         if (set == null)
         {
@@ -498,7 +498,7 @@ public sealed class PacketWriter : PacketBuffer
     /// </summary>
     /// <param name="set">The il2cpp hash set to write.</param>
     /// <inheritdoc cref="WriteCollectionWithoutSize"/>
-    public void WriteCppHashSetWithoutSize<T>(CppCollections.HashSet<T>? set, Action<PacketWriter, T> writer)
+    public void WriteCppHashSetWithoutSize<T>(CppCollections.HashSet<T>? set, WriteDel<T> writer)
     {
         if (set == null || set.Count == 0)
             throw new InvalidDataException("Collection cannot be null or empty.");
@@ -518,7 +518,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="countType">The header type used to store dictionary length.</param>
     /// <inheritdoc cref="EnsureCapacity"/>
     /// <inheritdoc cref="WriteCount"/>
-    public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter, CountType countType = CountType.UShort) where TKey : notnull
+    public void WriteDictionary<TKey, TValue>(Dictionary<TKey, TValue>? dict, WriteDel<TKey> keyWriter, WriteDel<TValue> valueWriter, CountType countType = CountType.UShort) where TKey : notnull
     {
         if (dict == null)
         {
@@ -545,7 +545,7 @@ public sealed class PacketWriter : PacketBuffer
     /// <param name="valueWriter">The delegate used to write values.</param>
     /// <exception cref="InvalidDataException">Thrown if the provided dictionary is null or empty.</exception>
     /// <inheritdoc cref="EnsureCapacity"/>
-    public void WriteDictionaryWithoutSize<TKey, TValue>(Dictionary<TKey, TValue>? dict, Action<PacketWriter, TKey> keyWriter, Action<PacketWriter, TValue> valueWriter) where TKey : notnull
+    public void WriteDictionaryWithoutSize<TKey, TValue>(Dictionary<TKey, TValue>? dict, WriteDel<TKey> keyWriter, WriteDel<TValue> valueWriter) where TKey : notnull
     {
         if (dict == null || dict.Count == 0)
             throw new InvalidDataException("Collection cannot be null or empty.");
@@ -620,7 +620,7 @@ public sealed class PacketWriter : PacketBuffer
     public void WriteNullable<T>(T? value)
     {
         var hasValue = value != null!;
-        WriteBool(hasValue);
+        WritePackedBool(hasValue);
 
         if (hasValue)
             WriteObject(value!);
@@ -707,10 +707,6 @@ public sealed class PacketWriter : PacketBuffer
             ArrayPool<byte>.Shared.Return(buffer);
     }
 
-    /// <inheritdoc/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected override void EnsureBounds(int count) => EnsureCapacity(count);
-
     private void Reset(int initialCapacity = 256)
     {
         buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
@@ -743,6 +739,16 @@ public sealed class PacketWriter : PacketBuffer
         position += count;
 
         if (position > size)
+            size = position;
+    }
+
+    /// <summary>
+    /// Truncates the high-water size of the writer back down to the pointer position.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Truncate()
+    {
+        if (position < size)
             size = position;
     }
 
@@ -894,147 +900,147 @@ public static class PacketWriterDels
     /// <summary>
     /// A delegate to write a byte.
     /// </summary>
-    public static readonly Action<PacketWriter, byte> Byte = (writer, value) => writer.WriteByte(value);
+    public static readonly WriteDel<byte> Byte = (writer, value) => writer.WriteByte(value);
 
     /// <summary>
     /// A delegate to write an sbyte.
     /// </summary>
-    public static readonly Action<PacketWriter, sbyte> SByte = (writer, value) => writer.WriteSByte(value);
+    public static readonly WriteDel<sbyte> SByte = (writer, value) => writer.WriteSByte(value);
 
     /// <summary>
     /// A delegate to write a string.
     /// </summary>
-    public static readonly Action<PacketWriter, string?> String = (writer, value) => writer.WriteString(value);
+    public static readonly WriteDel<string?> String = (writer, value) => writer.WriteString(value);
 
     /// <summary>
     /// A delegate to write a ushort.
     /// </summary>
-    public static readonly Action<PacketWriter, ushort> UShort = (writer, value) => writer.WriteUShort(value);
+    public static readonly WriteDel<ushort> UShort = (writer, value) => writer.WriteUShort(value);
 
     /// <summary>
     /// A delegate to write an int.
     /// </summary>
-    public static readonly Action<PacketWriter, int> Int = (writer, value) => writer.WriteInt(value);
+    public static readonly WriteDel<int> Int = (writer, value) => writer.WriteInt(value);
 
     /// <summary>
     /// A delegate to write a packed int.
     /// </summary>
-    public static readonly Action<PacketWriter, int> PackedInt = (writer, value) => writer.WritePackedInt(value);
+    public static readonly WriteDel<int> PackedInt = (writer, value) => writer.WritePackedInt(value);
 
     /// <summary>
     /// A delegate to write a boolean.
     /// </summary>
-    public static readonly Action<PacketWriter, bool> Bool = (writer, value) => writer.WriteBool(value);
+    public static readonly WriteDel<bool> Bool = (writer, value) => writer.WriteBool(value);
 
     /// <summary>
     /// A delegate to write a short.
     /// </summary>
-    public static readonly Action<PacketWriter, short> Short = (writer, value) => writer.WriteShort(value);
+    public static readonly WriteDel<short> Short = (writer, value) => writer.WriteShort(value);
 
     /// <summary>
     /// A delegate to write a uint.
     /// </summary>
-    public static readonly Action<PacketWriter, uint> UInt = (writer, value) => writer.WriteUInt(value);
+    public static readonly WriteDel<uint> UInt = (writer, value) => writer.WriteUInt(value);
 
     /// <summary>
     /// A delegate to write a long.
     /// </summary>
-    public static readonly Action<PacketWriter, long> Long = (writer, value) => writer.WriteLong(value);
+    public static readonly WriteDel<long> Long = (writer, value) => writer.WriteLong(value);
 
     /// <summary>
     /// A delegate to write a ulong.
     /// </summary>
-    public static readonly Action<PacketWriter, ulong> ULong = (writer, value) => writer.WriteULong(value);
+    public static readonly WriteDel<ulong> ULong = (writer, value) => writer.WriteULong(value);
 
     /// <summary>
     /// A delegate to write a float.
     /// </summary>
-    public static readonly Action<PacketWriter, float> Float = (writer, value) => writer.WriteFloat(value);
+    public static readonly WriteDel<float> Float = (writer, value) => writer.WriteFloat(value);
 
     /// <summary>
     /// A delegate to write a double.
     /// </summary>
-    public static readonly Action<PacketWriter, double> Double = (writer, value) => writer.WriteDouble(value);
+    public static readonly WriteDel<double> Double = (writer, value) => writer.WriteDouble(value);
 
     /// <summary>
     /// A delegate to write a packed uint.
     /// </summary>
-    public static readonly Action<PacketWriter, uint> PackedUInt = (writer, value) => writer.WritePackedUInt(value);
+    public static readonly WriteDel<uint> PackedUInt = (writer, value) => writer.WritePackedUInt(value);
 
     /// <summary>
     /// A delegate to write a packed long.
     /// </summary>
-    public static readonly Action<PacketWriter, long> PackedLong = (writer, value) => writer.WritePackedLong(value);
+    public static readonly WriteDel<long> PackedLong = (writer, value) => writer.WritePackedLong(value);
 
     /// <summary>
     /// A delegate to write a packed ulong.
     /// </summary>
-    public static readonly Action<PacketWriter, ulong> PackedULong = (writer, value) => writer.WritePackedULong(value);
+    public static readonly WriteDel<ulong> PackedULong = (writer, value) => writer.WritePackedULong(value);
 
     /// <summary>
     /// A delegate to write a packed bool.
     /// </summary>
-    public static readonly Action<PacketWriter, bool> PackedBool = (writer, value) => writer.WritePackedBool(value);
+    public static readonly WriteDel<bool> PackedBool = (writer, value) => writer.WritePackedBool(value);
 
     /// <summary>
     /// A delegate to write a Vector2.
     /// </summary>
-    public static readonly Action<PacketWriter, Vector2> Vector2 = (writer, value) => writer.WriteVector2(value);
+    public static readonly WriteDel<Vector2> Vector2 = (writer, value) => writer.WriteVector2(value);
 
     /// <summary>
     /// A delegate to write a Vector3.
     /// </summary>
-    public static readonly Action<PacketWriter, Vector3> Vector3 = (writer, value) => writer.WriteVector3(value);
+    public static readonly WriteDel<Vector3> Vector3 = (writer, value) => writer.WriteVector3(value);
 
     /// <summary>
     /// A delegate to write a Quaternion.
     /// </summary>
-    public static readonly Action<PacketWriter, Quaternion> Quaternion = (writer, value) => writer.WriteQuaternion(value);
+    public static readonly WriteDel<Quaternion> Quaternion = (writer, value) => writer.WriteQuaternion(value);
 
     /// <summary>
     /// A delegate to write a float4.
     /// </summary>
-    public static readonly Action<PacketWriter, float4> Float4 = (writer, value) => writer.WriteFloat4(value);
+    public static readonly WriteDel<float4> Float4 = (writer, value) => writer.WriteFloat4(value);
 
     /// <summary>
     /// A delegate to write a half.
     /// </summary>
-    public static readonly Action<PacketWriter, Half> Half = (writer, value) => writer.WriteHalf(value);
+    public static readonly WriteDel<Half> Half = (writer, value) => writer.WriteHalf(value);
 
     /// <summary>
     /// A delegate to write a decimal.
     /// </summary>
-    public static readonly Action<PacketWriter, decimal> Decimal = (writer, value) => writer.WriteDecimal(value);
+    public static readonly WriteDel<decimal> Decimal = (writer, value) => writer.WriteDecimal(value);
 
     /// <summary>
     /// A delegate to write a Color.
     /// </summary>
-    public static readonly Action<PacketWriter, Color> Color = (writer, value) => writer.WriteColor(value);
+    public static readonly WriteDel<Color> Color = (writer, value) => writer.WriteColor(value);
 
     /// <summary>
     /// A delegate to write a Color32.
     /// </summary>
-    public static readonly Action<PacketWriter, Color32> Color32 = (writer, value) => writer.WriteColor32(value);
+    public static readonly WriteDel<Color32> Color32 = (writer, value) => writer.WriteColor32(value);
 
     /// <summary>
     /// A delegate to write a DateTime.
     /// </summary>
-    public static readonly Action<PacketWriter, DateTime> DateTime = (writer, value) => writer.WriteDateTime(value);
+    public static readonly WriteDel<DateTime> DateTime = (writer, value) => writer.WriteDateTime(value);
 
     /// <summary>
     /// A delegate to write a TimeSpan.
     /// </summary>
-    public static readonly Action<PacketWriter, TimeSpan> TimeSpan = (writer, value) => writer.WriteTimeSpan(value);
+    public static readonly WriteDel<TimeSpan> TimeSpan = (writer, value) => writer.WriteTimeSpan(value);
 
     /// <summary>
     /// A delegate to write a Guid.
     /// </summary>
-    public static readonly Action<PacketWriter, Guid> Guid = (writer, value) => writer.WriteGuid(value);
+    public static readonly WriteDel<Guid> Guid = (writer, value) => writer.WriteGuid(value);
 
     /// <summary>
     /// A delegate to write a char.
     /// </summary>
-    public static readonly Action<PacketWriter, char> Char = (writer, value) => writer.WriteChar(value);
+    public static readonly WriteDel<char> Char = (writer, value) => writer.WriteChar(value);
 
     /// <summary>
     /// Caches a writing delegate for types implementing <see cref="INetObject"/>.
@@ -1045,7 +1051,7 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write an <see cref="INetObject"/>.
         /// </summary>
-        public static readonly Action<PacketWriter, T> Writer = (writer, value) => value.Serialise(writer);
+        public static readonly WriteDel<T> Writer = (writer, value) => value.Serialise(writer);
     }
 
     /// <summary>
@@ -1057,7 +1063,7 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write an optional value.
         /// </summary>
-        public static readonly Action<PacketWriter, T?> Writer = (writer, value) => writer.WriteNullable(value);
+        public static readonly WriteDel<T?> Writer = (writer, value) => writer.WriteNullable(value);
     }
 
     /// <summary>
@@ -1070,9 +1076,9 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write a <see cref="Tuple"/>.
         /// </summary>
-        public static readonly Action<PacketWriter, T> Writer = CreateWriter();
+        public static readonly WriteDel<T> Writer = CreateWriter();
 
-        private static Action<PacketWriter, T> CreateWriter()
+        private static WriteDel<T> CreateWriter()
         {
             var writerParam = Expression.Parameter(typeof(PacketWriter), "writer");
             var tupleParam = Expression.Parameter(typeof(T), "value");
@@ -1081,15 +1087,24 @@ public static class PacketWriterDels
             var writeCalls = new Expression[componentTypes.Length];
             var writeObjectMethodDef = Method(nameof(PacketWriter.WriteObject));
 
-            for (var i = 0; i < componentTypes.Length; i++)
+            var elemCount = Mathf.Min(componentTypes.Length, 7);
+
+            for (var i = 0; i < elemCount; i++)
             {
-                var fieldAccess = Expression.Field(tupleParam, $"Item{i + 1}");
+                var fieldAccess = Expression.PropertyOrField(tupleParam, $"Item{i + 1}");
                 var genericWrite = writeObjectMethodDef.MakeGenericMethod(componentTypes[i]);
                 writeCalls[i] = Expression.Call(writerParam, genericWrite, fieldAccess);
             }
 
+            if (componentTypes.Length == 8)
+            {
+                var fieldAccess = Expression.PropertyOrField(tupleParam, "Rest");
+                var genericWrite = Method(nameof(PacketWriter.WriteTuple)).MakeGenericMethod(componentTypes[7]);
+                writeCalls[7] = Expression.Call(writerParam, genericWrite, fieldAccess);
+            }
+
             var block = Expression.Block(writeCalls);
-            return Expression.Lambda<Action<PacketWriter, T>>(block, writerParam, tupleParam).Compile();
+            return Expression.Lambda<WriteDel<T>>(block, writerParam, tupleParam).Compile();
         }
     }
 
@@ -1099,16 +1114,18 @@ public static class PacketWriterDels
     /// <typeparam name="T">The value type.</typeparam>
     public static class Object<T>
     {
+        internal static volatile WriteDel<T> _writer = CreateWriter();
+
         /// <summary>
         /// A delegate to write a value.
         /// </summary>
-        public static Action<PacketWriter, T> Writer { get; internal set; } = CreateWriter();
+        public static WriteDel<T> Writer => _writer;
 
-        private static Action<PacketWriter, T> CreateWriter()
+        private static WriteDel<T> CreateWriter()
         {
             try
             {
-                return (Action<PacketWriter, T>)Delegate.CreateDelegate(typeof(Action<PacketWriter, T>), GetWriteExpression(typeof(T)));
+                return (WriteDel<T>)Delegate.CreateDelegate(typeof(WriteDel<T>), GetWriteExpression(typeof(T)));
             }
             catch
             {
@@ -1126,9 +1143,9 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write an enum value.
         /// </summary>
-        public static readonly Action<PacketWriter, T> Writer = CreateWriter();
+        public static readonly WriteDel<T> Writer = CreateWriter();
 
-        private static Action<PacketWriter, T> CreateWriter()
+        private static WriteDel<T> CreateWriter()
         {
             var size = Unsafe.SizeOf<T>();
             return size switch
@@ -1151,9 +1168,9 @@ public static class PacketWriterDels
         /// <summary>
         /// A delegate to write a packed enum value.
         /// </summary>
-        public static readonly Action<PacketWriter, T> Writer = CreateWriter();
+        public static readonly WriteDel<T> Writer = CreateWriter();
 
-        private static Action<PacketWriter, T> CreateWriter()
+        private static WriteDel<T> CreateWriter()
         {
             var size = Unsafe.SizeOf<T>();
             var underlying = Enum.GetUnderlyingType(typeof(T));
@@ -1192,6 +1209,7 @@ public static class PacketWriterDels
         [typeof(string)] = nameof(PacketWriter.WriteString),
         [typeof(float4)] = nameof(PacketWriter.WriteFloat4),
         [typeof(decimal)] = nameof(PacketWriter.WriteDecimal),
+        [typeof(Vector2)] = nameof(PacketWriter.WriteVector2),
         [typeof(Vector3)] = nameof(PacketWriter.WriteVector3),
         [typeof(Color32)] = nameof(PacketWriter.WriteColor32),
         [typeof(DateTime)] = nameof(PacketWriter.WriteDateTime),
@@ -1220,7 +1238,7 @@ public static class PacketWriterDels
         if (method == null)
             throw new NotSupportedException($"Type {type.Name} is not supported in automatic serialization.");
 
-        TypeWriteCache[type] = method;
+        TypeWriteCache.GetOrAdd(type, method);
         return method;
     }
 

@@ -44,27 +44,26 @@ public static class ApiHandlers
 
     internal static readonly HashSet<uint> SharedSideMods = new();
 
-    private static readonly HashSet<Type> RegisteredTypes = new()
+    private static readonly ConcurrentDictionary<Type, bool> RegisteredTypes = new()
     {
         // C# Primitives & Basic Types
-        typeof(bool),
-        typeof(byte), typeof(sbyte),
-        typeof(short), typeof(ushort),
-        typeof(int), typeof(uint),
-        typeof(long), typeof(ulong),
-        typeof(float), typeof(double),
-        typeof(char), typeof(string),
-        typeof(decimal),
+        [typeof(bool)]    = true,
+        [typeof(byte)]    = true, [typeof(sbyte)]  = true,
+        [typeof(short)]   = true, [typeof(ushort)] = true,
+        [typeof(int)]     = true, [typeof(uint)]   = true,
+        [typeof(long)]    = true, [typeof(ulong)]  = true,
+        [typeof(float)]   = true, [typeof(double)] = true,
+        [typeof(char)]    = true, [typeof(string)] = true,
+        [typeof(decimal)] = true,
 
         // System Structs
-        typeof(DateTime), typeof(TimeSpan),
-        typeof(Guid),
-        typeof(Half),
+        [typeof(DateTime)] = true, [typeof(TimeSpan)] = true,
+        [typeof(Guid)]     = true, [typeof(Half)]     = true,
 
         // Unity & Mathematics Types
-        typeof(Vector2), typeof(Vector3),
-        typeof(Quaternion), typeof(float4),
-        typeof(Color), typeof(Color32)
+        [typeof(Vector2)]    = true, [typeof(Vector3)] = true,
+        [typeof(Quaternion)] = true, [typeof(float4)]  = true,
+        [typeof(Color)]      = true, [typeof(Color32)] = true,
     };
 
     /// <summary>
@@ -125,27 +124,66 @@ public static class ApiHandlers
     /// <param name="reader">The reader delegate.</param>
     /// <param name="writer">The writer delegate.</param>
     /// <remarks>If you have a special way to serialise a value that's already registered or supported natively, it's recommended that you create a simple wrapper struct or INetObject and serialise that instead!</remarks>
-    public static void RegisterCustomTypeSerialisation<T>(Func<PacketReader, T> reader, Action<PacketWriter, T> writer)
+    public static void RegisterCustomTypeSerialisation<T>(ReadDel<T> reader, WriteDel<T> writer)
     {
         ArgumentNullException.ThrowIfNull(reader);
         ArgumentNullException.ThrowIfNull(writer);
 
         var type = typeof(T);
 
-        if (type.IsEnum || typeof(INetObject).IsAssignableFrom(type) || typeof(ITuple).IsAssignableFrom(type))
+        if (type.IsEnum || typeof(INetObject).IsAssignableFrom(type) || type.IsTuple() || Nullable.GetUnderlyingType(type) != null)
         {
-            SrLogger.LogWarning($"Cannot register {type.Name}. Enums, INetObjects, and Tuples are already handled natively!");
+            SrLogger.LogWarning($"Cannot register {type.Name}. Enums, INetObjects, Tuples and Nullables are already handled natively!");
             return;
         }
 
-        if (!RegisteredTypes.Add(type))
+        if (!RegisteredTypes.TryAdd(type, true))
         {
             SrLogger.LogWarning(type.Name + " is already registered/supported! If you need custom serialisation for an existing type (be it already registered or natively supported), wrap it in a custom struct or INetObject instead.");
             return;
         }
 
-        PacketReaderDels.Object<T>.Reader = reader;
-        PacketWriterDels.Object<T>.Writer = writer;
+        PacketReaderDels.Object<T>._reader = reader;
+        PacketWriterDels.Object<T>._writer = writer;
+    }
+
+    /// <summary>
+    /// Pre-caches the delegates for reading and writing values to avoid the overhead of delegate creation when the value is transmitted/read for the first time.
+    /// </summary>
+    /// <typeparam name="T">The type to warm up.</typeparam>
+    public static void WarmUp<T>()
+    {
+        _ = PacketReaderDels.Object<T>._reader;
+        _ = PacketWriterDels.Object<T>._writer;
+    }
+
+    private static bool IsTuple(this Type type)
+    {
+        if (!typeof(ITuple).IsAssignableFrom(type) || !type.IsGenericType)
+            return false;
+
+        var genericTypeDef = type.GetGenericTypeDefinition();
+
+        if (type.IsValueType)
+        {
+            return genericTypeDef == typeof(ValueTuple<>) ||
+                    genericTypeDef == typeof(ValueTuple<,>) ||
+                    genericTypeDef == typeof(ValueTuple<,,>) ||
+                    genericTypeDef == typeof(ValueTuple<,,,>) ||
+                    genericTypeDef == typeof(ValueTuple<,,,,>) ||
+                    genericTypeDef == typeof(ValueTuple<,,,,,>) ||
+                    genericTypeDef == typeof(ValueTuple<,,,,,,>) ||
+                    genericTypeDef == typeof(ValueTuple<,,,,,,,>);
+        }
+
+        return genericTypeDef == typeof(Tuple<>) ||
+                genericTypeDef == typeof(Tuple<,>) ||
+                genericTypeDef == typeof(Tuple<,,>) ||
+                genericTypeDef == typeof(Tuple<,,,>) ||
+                genericTypeDef == typeof(Tuple<,,,,>) ||
+                genericTypeDef == typeof(Tuple<,,,,,>) ||
+                genericTypeDef == typeof(Tuple<,,,,,,>) ||
+                genericTypeDef == typeof(Tuple<,,,,,,,>);
     }
 
     internal static byte GetOrIncrementNetId(uint modId)
