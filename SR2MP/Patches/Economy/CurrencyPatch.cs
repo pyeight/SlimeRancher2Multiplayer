@@ -5,7 +5,7 @@ using SR2MP.Packets.Economy;
 namespace SR2MP.Patches.Economy;
 
 [HarmonyPatch(typeof(PlayerState))]
-public static class CurrencyPatch
+internal static class CurrencyPatch
 {
     [HarmonyPostfix, HarmonyPatch(nameof(PlayerState.AddCurrency))]
     public static void AddCurrency(
@@ -13,7 +13,7 @@ public static class CurrencyPatch
         ICurrency currencyDefinition,
         bool showUiNotification)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (currencyDefinition == null)
@@ -25,7 +25,7 @@ public static class CurrencyPatch
         {
             NewAmount = __instance._model.GetCurrencyAmount(currencyDefinition),
             CurrencyType = (byte)currency,
-            ShowUINotification = showUiNotification,
+            ShowUINotification = showUiNotification
         };
 
         Main.SendToAllOrServer(packet);
@@ -36,7 +36,7 @@ public static class CurrencyPatch
         PlayerState __instance,
         ICurrency currency)
     {
-        if (handlingPacket) return;
+        if (HandlingPacket) return;
 
         var currencyId = currency.PersistenceId;
 
@@ -44,7 +44,7 @@ public static class CurrencyPatch
         {
             NewAmount = __instance._model.GetCurrencyAmount(currency),
             CurrencyType = (byte)currencyId,
-            ShowUINotification = true,
+            ShowUINotification = true
         };
 
         Main.SendToAllOrServer(packet);

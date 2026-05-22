@@ -5,16 +5,17 @@ using MelonLoader;
 namespace SR2MP.Patches.FX;
 
 [HarmonyPatch(typeof(SceneContext), nameof(SceneContext.Start))]
-public static class OnSceneContextLoaded
+internal static class OnSceneContextLoaded
 {
     private static IEnumerator WaitForFinishLoading()
     {
         yield return new WaitForSceneGroupLoad();
 
-        fxManager.Initialize();
+        FXManager.Initialize();
     }
+
     public static void Postfix()
     {
-        MelonCoroutines.Start(WaitForFinishLoading());
+        StartCoroutine(WaitForFinishLoading());
     }
 }

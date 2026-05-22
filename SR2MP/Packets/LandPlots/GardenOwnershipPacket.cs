@@ -1,0 +1,22 @@
+﻿using SR2MP.Packets.Utils;
+
+namespace SR2MP.Packets.LandPlots;
+
+internal sealed class GardenOwnershipPacket : IPacket
+{
+    public string GardenID;
+
+    public PacketType Type => PacketType.GardenOwnership;
+    public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Landplots;
+
+    public void Serialise(PacketWriter writer)
+    {
+        writer.WriteString(GardenID);
+    }
+
+    public void Deserialise(PacketReader reader)
+    {
+        GardenID = reader.ReadPooledString()!;
+    }
+}

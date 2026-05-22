@@ -3,48 +3,49 @@ using System.Text;
 
 namespace SR2MP.Shared.Utils;
 
-public static class PlayerIdGenerator
+internal static class PlayerIdGenerator
 {
     public static string GeneratePersistentPlayerId()
     {
         try
         {
-            string systemInfo = $"{Environment.MachineName}{Environment.UserName}";
+            var systemInfo = Environment.MachineName + Environment.UserName;
 
-            using SHA256 sha256 = SHA256.Create();
-            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
+            using var sha256 = SHA256.Create();
+            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
 
-            string hash = BitConverter.ToString(hashBytes)
+            var hash = BitConverter.ToString(hashBytes)
                 .Replace("-", string.Empty)[..9]
-                .ToUpper();
+                .ToUpperInvariant();
 
-            string playerId = $"PLAYER_{hash}";
+            var playerId = $"PLAYER_{hash}";
 
-            SrLogger.LogMessage($"Generated persistent player ID: {playerId}", SrLogTarget.Both);
+            SrLogger.LogMessage($"Generated persistent player ID: {playerId}");
             return playerId;
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to generate persistent player ID: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to generate persistent player ID: {ex}");
             return null!;
         }
     }
+
     public static ushort GetPlayerIDNumber(string id)
     {
         ushort number = 12345;
-        foreach (char c in id[7..])
+        foreach (var c in id[7..])
             number = (ushort)((number << 5) + number + c);
         return number;
     }
 
-    public static bool IsValidPlayerId(string playerId)
-    {
-        if (string.IsNullOrWhiteSpace(playerId))
-            return false;
+    // public static bool IsValidPlayerId(string playerId)
+    // {
+    //     if (string.IsNullOrWhiteSpace(playerId))
+    //         return false;
 
-        if (!playerId.StartsWith("PLAYER_"))
-            return false;
+    //     if (!playerId.StartsWith("PLAYER_"))
+    //         return false;
 
-        return playerId.Length == 16;
-    }
+    //     return playerId.Length == 16;
+    // }
 }

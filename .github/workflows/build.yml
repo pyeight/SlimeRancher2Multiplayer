@@ -2,7 +2,7 @@
 # IT INTERACTS WITH THE SR2E API!
 # DO NOT CHANGE IT
 # even you Az, don't
-name: SR2MP Compilation
+name: Ranching Together Compilation
 
 on:
   push:
@@ -16,9 +16,12 @@ on:
       SR2Ver-ManifestID:
         description: 'The SR2 version'
         required: true
-        default: '1.1.1 [20260113175555-106213] (5465448617380444426)'
+        default: '1.2.3 [20260509030000-110642] (8733226813009597637)'
         type: choice
         options:
+          - '1.2.3 [20260509030000-110642] (8733226813009597637)'
+          - '1.2.2 [20260428202703-110243] (1455386661538578022)'
+          - '1.2.0 [20260326225622-109067] (1249982347421925860)'
           - '1.1.1 [20260113175555-106213] (5465448617380444426)'
           - '1.1.0 [20251101030000-104680] (3171952233644049159)'
           - '1.0.3 [20251022195412-104356] (856213111485396824)'
@@ -43,9 +46,11 @@ on:
       SR2Ver-MLVer:
         description: 'The MelonLoader version'
         required: true
-        default: '0.7.1'
+        default: '0.7.3'
         type: choice
         options:
+          - '0.7.3'
+          - '0.7.2'
           - '0.7.1'
           - '0.7.0'
           - '0.6.4'
@@ -55,9 +60,9 @@ on:
 
 env:
   DEP_ZIP_NAME: dependencies.zip
-  API_BASE_URL: https://api.sr2e.sr2.dev
-  DEFAULT_SR2_VER_MANIFESTID: '1.1.1 [20260113175555-106213] (5465448617380444426)'
-  DEFAULT_SR2_VER_MLVER: '0.7.1'
+  API_BASE_URL: https://api.starlight.sr2.dev
+  DEFAULT_SR2_VER_MANIFESTID: '1.2.3 [20260509030000-110642] (8733226813009597637)'
+  DEFAULT_SR2_VER_MLVER: '0.7.3'
 
 jobs:
   build:
@@ -171,14 +176,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 6. Create or Update Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.4.2
         with:
           tag_name: continuous-build-${{ github.ref_name }}
           name: Continuous Build (${{ github.ref_name }})
           body: |
             This release contains the latest automated build artifacts.
-            **SR2 Version:** ${{ steps.script_execution.outputs.sr2e_version }}
-            **SR2E Version:** ${{ steps.manifest_lookup.outputs.manifest_id_long }}
+            **SR2 Version:** ${{ steps.manifest_lookup.outputs.manifest_id_long }}
+            **Starlight Version:** ${{ steps.script_execution.outputs.starlight_version }}
             **MelonLoader:** ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}
           draft: false
           prerelease: true
@@ -191,11 +196,11 @@ jobs:
         env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
           WEBHOOK_NAME: "Build Bot"
-          AVATAR_URL: "https://sr2e.sr2.dev/img/sr2mp-bot.png#profile"
+          AVATAR_URL: "https://starlight.sr2.dev/img/sr2mp-bot.png#profile"
           MESSAGE_CONTENT: |
             **Compiled from Branch:** `${{ github.ref_name }}`
             **SR2 Version:** `${{ steps.manifest_lookup.outputs.manifest_id_long }}`
-            **SR2E Version:** `${{ steps.script_execution.outputs.sr2e_version }}`
+            **Starlight Version:** `${{ steps.script_execution.outputs.starlight_version }}`
             **MelonLoader:** `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.SR2Ver-MLVer || env.DEFAULT_SR2_VER_MLVER }}`
             **Link:** <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>
         run: |

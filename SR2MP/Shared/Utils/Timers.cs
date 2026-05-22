@@ -1,30 +1,24 @@
+// ReSharper disable UnusedMember.Global
+using JetBrains.Annotations;
+
 namespace SR2MP.Shared.Utils;
 
+[PublicApi]
 public static class Timers
 {   // Time Sync is set to a lower value than 1 to prevent
-    // time reverting on high ping
-    private static float timeSyncTimer = 0.85f;
-    private static float actorSyncTimer = 0.125f;
-    private static float playerSyncTimer = 0.125f;
-    private static float weatherSyncTimer = 4.5f;
-    private static float playerInventorySyncTimer = 5f;
-    private static float planterSyncTimer = 2.5f;
+    public static float WeatherTimer { get; private set; } = 4.5f;
+    public static float ActorTimer { get; private set; } = 0.125f;
+    public static float PlayerTimer { get; private set; } = 0.125f;
+    public static float TimeSyncTimer { get; private set; } = 0.85f;
+    public static float PlayerInventoryTimer { get; private set; } = 5f;
 
-    public static float WeatherTimer => weatherSyncTimer;
-    public static float ActorTimer => actorSyncTimer;
-    public static float PlayerTimer => playerSyncTimer;
-    public static float TimeSyncTimer => timeSyncTimer;
-    public static float PlayerInventoryTimer => playerInventorySyncTimer;
-    public static float PlanterTimer => planterSyncTimer;
-
-    public enum SyncTimerType : byte
+    internal enum SyncTimerType : byte
     {
         PLAYER,
         ACTOR,
         PLAYER_INVENTORY,
         WORLD_WEATHER,
-        WORLD_TIME,
-        WORLD_PLANTER,
+        WORLD_TIME
     }
 
     internal static void SetTimer(SyncTimerType timerType, float value)
@@ -32,23 +26,22 @@ public static class Timers
         switch (timerType)
         {
             case SyncTimerType.WORLD_WEATHER:
-                weatherSyncTimer = value;
+                WeatherTimer = value;
                 return;
             case SyncTimerType.ACTOR:
-                actorSyncTimer = value;
+                ActorTimer = value;
                 return;
             case SyncTimerType.PLAYER:
-                playerSyncTimer = value;
+                PlayerTimer = value;
                 return;
             case SyncTimerType.WORLD_TIME:
-                timeSyncTimer = value;
+                TimeSyncTimer = value;
                 return;
             case SyncTimerType.PLAYER_INVENTORY:
-                playerInventorySyncTimer = value;
+                PlayerInventoryTimer = value;
                 return;
-            case SyncTimerType.WORLD_PLANTER:
-                planterSyncTimer = value;
-                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(timerType), timerType, null);
         }
     }
 }

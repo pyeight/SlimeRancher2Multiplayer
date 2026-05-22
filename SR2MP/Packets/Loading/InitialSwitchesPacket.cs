@@ -2,32 +2,33 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-public sealed class InitialSwitchesPacket : IPacket
+internal sealed class InitialSwitchesPacket : IPacket
 {
-    public sealed class Switch : INetObject
+    internal sealed class Switch : INetObject
     {
-        public string ID { get; set; }
-        public SwitchHandler.State State { get; set; }
+        public string ID;
+        public SwitchHandler.State State;
 
         public void Serialise(PacketWriter writer)
         {
             writer.WriteString(ID);
-            writer.WriteEnum(State);
+            writer.WritePackedEnum(State);
         }
 
         public void Deserialise(PacketReader reader)
         {
-            ID = reader.ReadString();
-            State = reader.ReadEnum<SwitchHandler.State>();
+            ID = reader.ReadPooledString()!;
+            State = reader.ReadPackedEnum<SwitchHandler.State>();
         }
     }
 
-    public List<Switch> Switches { get; set; }
+    public List<Switch> Switches;
 
     public PacketType Type => PacketType.InitialSwitches;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
-    public void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Func);
+    public void Serialise(PacketWriter writer) => writer.WriteList(Switches, PacketWriterDels.NetObject<Switch>.Writer);
 
-    public void Deserialise(PacketReader reader) => Switches = reader.ReadList(PacketReaderDels.NetObject<Switch>.Func);
+    public void Deserialise(PacketReader reader) => Switches = reader.ReadList(PacketReaderDels.NetObject<Switch>.Reader)!;
 }

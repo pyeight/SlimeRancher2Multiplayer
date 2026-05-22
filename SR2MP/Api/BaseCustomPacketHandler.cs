@@ -1,0 +1,56 @@
+using System.Net;
+using JetBrains.Annotations;
+using SR2MP.Packets.Utils;
+
+namespace SR2MP.Api;
+
+/// <summary>
+/// Represents a base handler for processing custom network packets on either the client or server.
+/// </summary>
+/// <typeparam name="T">The type of the custom packet to handle. Must implement <see cref="ICustomPacket"/> and have a parameterless constructor.</typeparam>
+[PublicApi]
+public abstract class BaseCustomPacketHandler<T> : IClientPacketHandler, IServerPacketHandler where T : ICustomPacket, new()
+{
+    /// <summary>
+    /// Gets or sets a value indicating whether this handler is currently executing on the server side.
+    /// </summary>
+    public bool IsServerSide { protected get; set; }
+
+    /// <summary>
+    /// Handles an incoming packet from the server. This method is invoked on the client side.
+    /// </summary>
+    /// <param name="reader">The reader containing the packet data.</param>
+    public void Handle(PacketReader reader)
+    {
+        if (!IsServerSide)
+            ProcessPacket(reader, null);
+    }
+
+    /// <summary>
+    /// Handles an incoming packet from a client. This method is invoked on the server side.
+    /// </summary>
+    /// <param name="reader">The reader containing the packet data.</param>
+    /// <param name="clientEp">The endpoint of the client that sent the packet.</param>
+    public void Handle(PacketReader reader, IPEndPoint? clientEp)
+    {
+        if (IsServerSide)
+            ProcessPacket(reader, clientEp);
+    }
+
+    private void ProcessPacket(PacketReader reader, IPEndPoint? clientEp)
+    {
+        var packet = reader.ReadCustomPacket<T>();
+        var shouldSend = Handle(packet, clientEp);
+
+        if (IsServerSide && shouldSend)
+            PacketSender.SendDataToAllExcept(packet, clientEp);
+    }
+
+    /// <summary>
+    /// Processes the strongly-typed packet data.
+    /// </summary>
+    /// <param name="packet">The deserialized packet instance.</param>
+    /// <param name="selfEp">The endpoint of the sender (if server-side), or null (if client-side).</param>
+    /// <returns><c>true</c> if the server should automatically relay this packet to all other clients; otherwise, <c>false</c>.</returns>
+    protected abstract bool Handle(T packet, IPEndPoint? selfEp);
+}

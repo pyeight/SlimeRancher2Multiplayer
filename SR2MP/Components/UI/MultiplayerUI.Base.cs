@@ -1,15 +1,16 @@
 using MelonLoader;
-using SR2E.Utils;
+using Starlight.Storage;
+using Starlight.Utils;
 
 namespace SR2MP.Components.UI;
 
-// TODO: Asset bundle
-[RegisterTypeInIl2Cpp(false)]
-public sealed partial class MultiplayerUI : MonoBehaviour
+// todo: Asset bundle
+[InjectIntoIL]
+internal sealed partial class MultiplayerUI : MonoBehaviour
 {
     public static MultiplayerUI Instance { get; private set; }
 
-    private bool didUnfocus = false;
+    private bool didUnfocus;
 
     private void Awake()
     {
@@ -22,7 +23,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
 
         if (Instance)
         {
-            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!", SrLogTarget.Both);
+            SrLogger.LogError("Tried to create instance of MultiplayerUI, but it already exists!");
             Destroy(this);
             return;
         }
@@ -35,8 +36,17 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         Instance = null!;
     }
 
+    private void Update()
+    {
+        HandleUIToggle();
+        HandleChatToggle();
+        HandleChatInput();
+    }
+
     private void OnGUI()
     {
+        GUI.skin.label.richText = true;
+
         if (Event.current.type == EventType.Layout)
         {
             state = GetState();
@@ -46,7 +56,7 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         previousLayoutRect = new Rect(6, 16, WindowWidth, 0);
         previousLayoutHorizontalIndex = 0;
 
-        if (!MenuEUtil.isAnyMenuOpen)
+        if (!MenuEUtil.isAnyMenuOpen && !MenuEUtil.isAnyPopUpOpen)
         {
             didUnfocus = false;
             DrawWindow();
@@ -54,7 +64,6 @@ public sealed partial class MultiplayerUI : MonoBehaviour
         }
         else if (!didUnfocus)
         {
-            shouldUnfocusChat = true;
             UnfocusChat();
             didUnfocus = true;
         }

@@ -1,20 +1,55 @@
-using SR2E;
+using Starlight;
 
 namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
-    private bool viewingSettings = false;
-    private bool firstTime = true;
-    private bool viewingHelp = false;
+    private byte mainTab = 0;
+    private byte hostTab = 0;
+    private byte joinTab = 0;
+
+    public enum MenuState : byte
+    {
+        Hidden,
+        DisconnectedMainMenu,
+        DisconnectedInGame,
+        ConnectedClient,
+        ConnectedHost,
+        SettingsInitial,
+        SettingsMain,
+        SettingsHelp,
+        Kicked,
+        Error,
+    }
+
+    public enum ErrorType : byte
+    {
+        None,
+        UnknownError,
+        InvalidIP,
+        IPNotFound,
+    }
+
+    public enum HelpTopic : byte
+    {
+        Root,
+        PlayIt,
+        SyncState,
+        DiscordSupport,
+    }
 
     public MenuState state = MenuState.Hidden;
-    private bool chatShown = false;
+
+    private bool viewingSettings;
+    private bool firstTime = true;
+    private bool viewingHelp;
+    private bool chatShown;
     private MenuState previousState = MenuState.Hidden;
 
-    private static bool GetIsLoading()
+    private bool GetIsLoading()
     {
-        return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is "StandaloneStart" or "CompanyLogo" or "LoadScene";
+        return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is
+            "StandaloneStart" or "CompanyLogo" or "LoadScene";
     }
 
     private MenuState GetState()
@@ -24,7 +59,7 @@ public sealed partial class MultiplayerUI
         var inGame = ContextShortcuts.inGame;
         var loading = GetIsLoading();
         var connected = Main.Client.IsConnected;
-        var hosting = Main.Server.IsRunning();
+        var hosting = Main.Server.IsRunning;
 
         if (loading) return MenuState.Hidden;
         if (firstTime) return MenuState.SettingsInitial;
@@ -38,9 +73,8 @@ public sealed partial class MultiplayerUI
 
     private void UpdateChatVisibility()
     {
-        bool isInGame = state is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
-
-        bool isMainMenu = state == MenuState.DisconnectedMainMenu;
+        var isInGame = state is MenuState.DisconnectedInGame or MenuState.ConnectedClient or MenuState.ConnectedHost;
+        var isMainMenu = state == MenuState.DisconnectedMainMenu;
 
         if (isMainMenu)
         {
@@ -57,10 +91,12 @@ public sealed partial class MultiplayerUI
             chatHidden = false;
             chatShown = true;
 
-            if (previousState == MenuState.DisconnectedMainMenu || previousState == MenuState.Hidden)
-            {
+            if (previousState is MenuState.DisconnectedMainMenu or MenuState.Hidden)
                 ClearAndWelcome();
-            }
+        }
+        else if (!isInGame)
+        {
+            chatShown = false;
         }
 
         previousState = state;

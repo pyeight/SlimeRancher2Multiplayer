@@ -1,20 +1,17 @@
 ﻿using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.Shop;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
 using SR2MP.Packets.World;
-using SR2MP.Patches.Weather;
 using SR2MP.Server.Managers;
-using UnityEngine.Windows.Speech;
 
 namespace SR2MP.Client.Managers;
 
-public static class NetworkWeatherManager
+internal static class NetworkWeatherManager
 {
     public static WeatherRegistry Registry => SceneContext.Instance.WeatherRegistry;
 
-    public static WeatherDirector? Director
+    public static WeatherDirector Director
     {
         get
         {
@@ -42,36 +39,38 @@ public static class NetworkWeatherManager
 
     private static LightningStrike lightning;
     private static WeatherDirector director;
-    public static Dictionary<int, WeatherStateDefinition> weatherStates = new();
+
+    public static readonly Dictionary<int, WeatherStateDefinition> WeatherStates = new();
 
     internal static void Initialize()
     {
         var refer = GameContext.Instance.AutoSaveDirector._saveReferenceTranslation;
         foreach (var state in refer._weatherStateTranslation.RawLookupDictionary)
         {
-            weatherStates.Add(refer.GetPersistenceId(state.value), state.value.TryCast<WeatherStateDefinition>()!);
+            WeatherStates.Add(refer.GetPersistenceId(state.value), state.value.TryCast<WeatherStateDefinition>()!);
         }
     }
 
     public static void CheckInitialized()
     {
-        if (weatherStates.Count == 0)
+        if (WeatherStates.Count == 0)
             Initialize();
     }
 
     public static int GetPersistentID(WeatherStateDefinition state)
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
             .GetPersistenceId(state.Cast<IWeatherState>());
-    
-    internal static IEnumerator Apply(WeatherPacket packet, bool immediate) 
+
+    internal static IEnumerator Apply(WeatherPacket packet, bool immediate)
     {
-        handlingPacket = true;
+        yield return new WaitFrames(3);
+        HandlingPacket = true;
 
         var registry = Registry;
-        var director = Director;
+        var localDirector = Director;
 
         var zoneKeys = new List<ZoneDefinition>();
-        foreach (var zone in registry!._zones)
+        foreach (var zone in registry._zones)
         {
             zoneKeys.Add(zone.Key);
             yield return null;
@@ -86,11 +85,12 @@ public static class NetworkWeatherManager
             var zone = registry._zones[zoneKey];
 
             var forecastCopy = new List<WeatherModel.ForecastEntry>();
-            for (var i = 0; i < zone.Forecast.Count; i++)
-                forecastCopy.Add(zone.Forecast[i]);
+            foreach (var forecast in zone.Forecast)
+                forecastCopy.Add(forecast);
 
             foreach (var forecast in forecastCopy)
             {
+                yield return null;
                 var patternInstance = registry.GetWeatherPatternInstance(
                     zoneKey,
                     forecast.Pattern
@@ -98,7 +98,7 @@ public static class NetworkWeatherManager
 
                 if (patternInstance == null)
                 {
-                    director!.StopState(
+                    localDirector.StopState(
                         forecast.State.Cast<IWeatherState>(),
                         zone.Parameters
                     );
@@ -112,8 +112,7 @@ public static class NetworkWeatherManager
                     );
                 }
 
-                yield return null;
-                yield return null;
+                yield return new WaitFrames(2);
             }
 
             zone.Forecast.Clear();
@@ -122,6 +121,7 @@ public static class NetworkWeatherManager
             foreach (var forecast in data.WeatherForecasts)
             {
                 var pattern = WeatherUpdateHelper.GetPatternForZoneAndState(zoneKey, forecast.State.name);
+                yield return null;
 
                 zone.Forecast.Add(new WeatherModel.ForecastEntry
                 {
@@ -132,50 +132,52 @@ public static class NetworkWeatherManager
                     EndTime = forecast.EndTime
                 });
 
-                yield return null;
-                yield return null;
+                yield return new WaitFrames(2);
             }
 
+            yield return null;
             zoneId++;
-            yield return null;
-            yield return null;
+            yield return new WaitFrames(2);
         }
 
-        if (!registry._zones.TryGetValue(director!.Zone, out var activeZone))
+        if (!registry._zones.TryGetValue(localDirector.Zone, out var activeZone))
             yield break;
 
         var activeCopy = new List<WeatherModel.ForecastEntry>();
-        for (var i = 0; i < activeZone.Forecast.Count; i++)
-            activeCopy.Add(activeZone.Forecast[i]);
+        foreach (var activeForecast in activeZone.Forecast)
+        {
+            activeCopy.Add(activeForecast);
+            yield return null;
+        }
 
         yield return null;
-        
+
         foreach (var forecast in activeCopy)
         {
+            yield return null;
             var patternInstance = registry.GetWeatherPatternInstance(
-                director.Zone,
+                localDirector.Zone,
                 forecast.Pattern
             );
 
+            yield return null;
             if (patternInstance == null)
             {
-                director.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
+                localDirector.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
             }
             else
             {
                 registry.RunPatternState(
-                    director.Zone,
+                    localDirector.Zone,
                     patternInstance,
                     forecast.State,
                     immediate
                 );
             }
 
-            yield return null;
-            yield return null;
-            yield return null;
+            yield return new WaitFrames(3);
         }
 
-        handlingPacket = false;
+        HandlingPacket = false;
     }
 }

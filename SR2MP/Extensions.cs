@@ -3,9 +3,9 @@ using SR2MP.Components.Actor;
 
 namespace SR2MP;
 
-public static class Extensions
+internal static class Extensions
 {
-    public static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
+    internal static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
     {
         var gameObject = actor.GetGameObject();
 
@@ -30,7 +30,7 @@ public static class Extensions
         return path;
     }
 
-    /*public static long SR2MPMax(this IEnumerable<long> source)
+    /* public static long SR2MPMax(this IEnumerable<long> source)
     {
         if (source == null)
         {
@@ -40,6 +40,7 @@ public static class Extensions
         }
 
         long? value;
+
         using (IEnumerator<long> e = source.GetEnumerator())
         {
             if (!e.MoveNext())
@@ -50,13 +51,13 @@ public static class Extensions
             }
 
             value = e.Current;
+
             while (e.MoveNext())
             {
                 long? x = e.Current;
+
                 if (x > value)
-                {
                     value = x;
-                }
             }
         }
 
@@ -68,5 +69,5 @@ public static class Extensions
         }
 
         return (long)value;
-    }*/
+    } */
 }

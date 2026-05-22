@@ -1,25 +1,25 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
-using SR2E.Utils;
+using Starlight.Utils;
 using SR2MP.Components.Player;
 
 namespace SR2MP.Patches.Player;
 
 [HarmonyPatch(typeof(SRCharacterController), nameof(SRCharacterController.Awake))]
-public static class OnPlayerLoadPatch
+internal static class OnPlayerLoadPatch
 {
     public static void Postfix(SRCharacterController __instance)
     {
-        if (Main.Server.IsRunning())
+        if (Main.Server.IsRunning)
         {
             var networkPlayer = __instance.AddComponent<NetworkPlayer>();
-            networkPlayer.ID = "HOST";
+            networkPlayer.ID = Main.Server.PlayerId;
             networkPlayer.IsLocal = true;
         }
         else if (Main.Client.IsConnected)
         {
             var networkPlayer = __instance.AddComponent<NetworkPlayer>();
-            networkPlayer.ID = Main.Client.OwnPlayerId;
+            networkPlayer.ID = Main.Client.PlayerId;
             networkPlayer.IsLocal = true;
         }
         else
@@ -33,7 +33,7 @@ public static class OnPlayerLoadPatch
                 networkPlayer.ID = id;
                 networkPlayer.IsLocal = true;
 
-                playerManager.AddPlayer(id).Username = Main.Username;
+                PlayerManager.AddPlayer(id).Username = Main.Username;
             };
 
             Main.Server.OnServerStarted += () =>
@@ -41,10 +41,10 @@ public static class OnPlayerLoadPatch
                 if (!__instance)
                     return;
 
-                playerManager.AddPlayer("HOST").Username = Main.Username;
+                PlayerManager.AddPlayer(Main.Server.PlayerId).Username = Main.Username;
 
                 var networkPlayer = __instance.AddComponent<NetworkPlayer>();
-                networkPlayer.ID = "HOST";
+                networkPlayer.ID = Main.Server.PlayerId;
                 networkPlayer.IsLocal = true;
             };
         }

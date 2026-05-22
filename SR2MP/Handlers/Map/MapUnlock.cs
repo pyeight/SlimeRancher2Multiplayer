@@ -1,0 +1,42 @@
+using System.Net;
+using Il2CppMonomiPark.SlimeRancher.Event;
+using Il2CppMonomiPark.SlimeRancher.UI.Map;
+using SR2MP.Handlers.Internal;
+using SR2MP.Packets.Utils;
+using SR2MP.Packets.World;
+
+namespace SR2MP.Handlers.Map;
+
+[PacketHandler((byte)PacketType.MapUnlock)]
+internal sealed class MapUnlockHandler : BasePacketHandler<MapUnlockPacket>
+{
+    protected override bool Handle(MapUnlockPacket packet, IPEndPoint? _)
+    {
+        var gameEvent = Resources.FindObjectsOfTypeAll<StaticGameEvent>().FirstOrDefault(x => x._dataKey == packet.NodeID);
+        SceneContext.Instance.MapDirector.NotifyZoneUnlocked(gameEvent, false, 0);
+
+        var activator = Resources.FindObjectsOfTypeAll<MapNodeActivator>().FirstOrDefault(x => x._fogRevealEvent._dataKey == packet.NodeID);
+        activator?.StartCoroutine(activator.ActivateHologramAnimation());
+
+        var eventDirModel = SceneContext.Instance.eventDirector._model;
+        if (!eventDirModel.table.TryGetValue(MapEventKey, out var table))
+        {
+            eventDirModel.table.Add(MapEventKey,
+                new CppCollections.Dictionary<string, EventRecordModel.Entry>());
+            table = eventDirModel.table[MapEventKey];
+        }
+
+        table[packet.NodeID] = new EventRecordModel.Entry
+        {
+            count = 1,
+            createdRealTime = 0,
+            createdGameTime = 0,
+            dataKey = packet.NodeID,
+            eventKey = MapEventKey,
+            updatedRealTime = 0,
+            updatedGameTime = 0
+        };
+
+        return true;
+    }
+}

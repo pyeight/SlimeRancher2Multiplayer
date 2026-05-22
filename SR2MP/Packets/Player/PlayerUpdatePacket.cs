@@ -2,27 +2,29 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerUpdatePacket : IPacket
+internal sealed class PlayerUpdatePacket : IPacket
 {
-    public string PlayerId { get; set; }
-    public Vector3 Position { get; set; }
-    public float Rotation { get; set; }
-    public int AirborneState {get; set;}
-    public bool Moving { get; set; }
-    public float Yaw { get; set; }
-    public float HorizontalMovement { get; set; }
-    public float ForwardMovement { get; set; }
-    public float HorizontalSpeed { get; set; }
-    public float ForwardSpeed { get; set; }
-    public bool Sprinting { get; set; }
-    public float LookY { get; set; }
+    public string PlayerId;
+    public Vector3 Position;
+    public float Rotation;
+    public int AirborneState;
+    public bool Moving;
+    public float Yaw;
+    public float HorizontalMovement;
+    public float ForwardMovement;
+    public float HorizontalSpeed;
+    public float ForwardSpeed;
+    public bool Sprinting;
+    public float LookY;
+    public int SceneGroup;
 
     public PacketType Type => PacketType.PlayerUpdate;
-    public PacketReliability Reliability => PacketReliability.Unreliable;
+    public PacketReliability Reliability => PacketReliability.Ordered;
+    public  NetworkChannel Channel => NetworkChannel.PlayerUpdate;
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteString(PlayerId);
+        writer.WriteStringWithoutSize(PlayerId);
 
         writer.WriteVector3(Position);
         writer.WriteFloat(Rotation);
@@ -36,15 +38,15 @@ public sealed class PlayerUpdatePacket : IPacket
 
         writer.WriteFloat(LookY);
 
-        writer.ResetPackingBools();
         writer.WritePackedBool(Moving);
         writer.WritePackedBool(Sprinting);
-        writer.EndPackingBools();
+        
+        writer.WriteInt(SceneGroup);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadString();
+        PlayerId = reader.ReadPooledStringOfSize(16)!;
 
         Position = reader.ReadVector3();
         Rotation = reader.ReadFloat();
@@ -60,6 +62,7 @@ public sealed class PlayerUpdatePacket : IPacket
 
         Moving = reader.ReadPackedBool();
         Sprinting = reader.ReadPackedBool();
-        reader.EndPackingBools();
+
+        SceneGroup = reader.ReadInt();
     }
 }

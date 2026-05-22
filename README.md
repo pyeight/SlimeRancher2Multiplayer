@@ -44,6 +44,6 @@
 
 ## Acknowledgements
 Special thanks to:
-- [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining their [Slime Rancher 2 Essentials Mod](https://github.com/ThatFinnDev/SR2E)
+- [ThatFinn](https://github.com/ThatFinnDev) for developing and maintaining their [Starlight Core Essentials Mod](https://github.com/ThatFinnDev/Starlight)
 - [Lachee](https://github.com/Lachee/) for developing and maintaining their [Discord RPC C# library](https://github.com/Lachee/discord-rpc-csharp)
 - Each and every one of you for supporting us!

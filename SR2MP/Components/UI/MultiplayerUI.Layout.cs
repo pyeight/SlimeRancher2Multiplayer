@@ -1,6 +1,6 @@
 namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
     private Rect previousLayoutRect;
     private Rect previousLayoutChatRect;
@@ -17,10 +17,10 @@ public sealed partial class MultiplayerUI
         var style = GUI.skin.label;
         var height = style.CalcHeight(new GUIContent(text), maxWidth / horizontalShare);
 
-        float x = originalX + HorizontalSpacing;
-        float y = previousLayoutRect.y;
-        float w = maxWidth / horizontalShare;
-        float h = height;
+        var x = originalX + HorizontalSpacing;
+        var y = previousLayoutRect.y;
+        var w = maxWidth / horizontalShare;
+        var h = height;
 
         x += horizontalIndex * w;
 
@@ -39,9 +39,9 @@ public sealed partial class MultiplayerUI
     {
         const float maxWidth = WindowWidth - (HorizontalSpacing * 2);
 
-        float x = originalX + HorizontalSpacing;
-        float y = previousLayoutRect.y;
-        float w = maxWidth / horizontalShare;
+        var x = originalX + HorizontalSpacing;
+        var y = previousLayoutRect.y;
+        var w = maxWidth / horizontalShare;
         const float h = InputHeight;
 
         x += horizontalIndex * w;
@@ -61,9 +61,9 @@ public sealed partial class MultiplayerUI
     {
         const float maxWidth = WindowWidth - (HorizontalSpacing * 2);
 
-        float x = originalX + HorizontalSpacing;
-        float y = previousLayoutRect.y;
-        float w = maxWidth / horizontalShare;
+        var x = originalX + HorizontalSpacing;
+        var y = previousLayoutRect.y;
+        var w = maxWidth / horizontalShare;
         const float h = ButtonHeight;
 
         x += horizontalIndex * w;
@@ -77,5 +77,12 @@ public sealed partial class MultiplayerUI
         previousLayoutRect = result;
 
         return result;
+    }
+
+    private void DrawTabRow(ref byte selected, params string[] labels)
+    {
+        for (byte i = 0; i < labels.Length; i++)
+            if (GUI.Toggle(CalculateButtonLayout(6, labels.Length, i), selected == i, labels[i], GUI.skin.button))
+                selected = i;
     }
 }

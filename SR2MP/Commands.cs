@@ -1,14 +1,16 @@
+/*
 using System.Net;
-using SR2E;
-using SR2E.Utils;
+using Starlight;
+using Starlight.Utils;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
+using SR2MP.Shared.Utils;
 
 namespace SR2MP;
 
-public sealed class HostCommand : SR2ECommand
+internal sealed class HostCommand : StarlightCommand
 {
-    private static Server.Server? server;
+    private static Server.SR2MPServer? server;
 
     public override string ID => "host";
     public override string Usage => "host <port>";
@@ -18,10 +20,28 @@ public sealed class HostCommand : SR2ECommand
         MenuEUtil.CloseOpenMenu();
         server = Main.Server;
         server.Start(int.Parse(args[0]), true);
+        SrLogger.LogMessage("Host command executed!");
         return true;
     }
 }
-public sealed class ChatCommand : SR2ECommand
+
+internal sealed class AutoHostCommand : StarlightCommand
+{
+    private static Server.SR2MPServer? server;
+
+    public override string ID => "autohost";
+    public override string Usage => "autohost";
+
+    public override bool Execute(string[] args)
+    {
+        MenuEUtil.CloseOpenMenu();
+        MultiplayerUI.Instance.StartAutoHost();
+        SrLogger.LogMessage("Autohost command executed!");
+        return true;
+    }
+}
+
+internal sealed class ChatCommand : StarlightCommand
 {
     public override string ID => "chat";
     public override string Usage => "chat <message>";
@@ -36,20 +56,21 @@ public sealed class ChatCommand : SR2ECommand
         var chatPacket = new ChatMessagePacket
         {
             Username = Main.Username,
-            Message = msg,
+            Message = msg
         };
 
         Main.SendToAllOrServer(chatPacket);
 
-        string messageId = $"{Main.Username}_{msg.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        var messageId = $"{Main.Username}_{msg.GetHashCode()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
         MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
 
+        SrLogger.LogMessage("Chat command executed!", SrLogTarget.Both);
         return true;
     }
 }
 
-public sealed class ConnectCommand : SR2ECommand
+internal sealed class ConnectCommand : StarlightCommand
 {
     public override string ID => "connect";
     public override string Usage => "connect <ip/domain[:port]>";
@@ -104,7 +125,40 @@ public sealed class ConnectCommand : SR2ECommand
             return false;
         }
 
+        SrLogger.LogMessage("Connect command executed!", SrLogTarget.Both);
         Main.Client.Connect(ip, port);
         return true;
     }
 }
+
+internal sealed class ResyncAllCommand : StarlightCommand
+{
+    public override string ID => "resync";
+    public override string Usage => "resync";
+
+    public override bool Execute(string[] args)
+    {
+        if (Main.Client.IsConnected)
+            Main.Server.reSyncManager.RequestResync();
+
+        if (Main.Server.IsRunning)
+            Main.Server.reSyncManager.SynchronizeAll();
+
+        SrLogger.LogMessage("Resync command executed!", SrLogTarget.Both);
+        return true;
+    }
+}
+
+public sealed class RemoveExceptionsCommand : StarlightCommand
+{
+    public override string ID => "removeexceptions";
+    public override string Usage => "removeexceptions";
+
+    public override bool Execute(string[] args)
+    {
+        Firewall.RemoveAllExceptions();
+        SrLogger.LogMessage("removeexceptions command executed!", SrLogTarget.Both);
+        return true;
+    }
+}
+*/

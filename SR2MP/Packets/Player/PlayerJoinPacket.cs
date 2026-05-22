@@ -2,23 +2,24 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
-public sealed class PlayerJoinPacket : IPacket
+internal sealed class PlayerJoinPacket : IPacket
 {
-    public string PlayerId { get; set; }
-    public string? PlayerName { get; set; }
+    public string PlayerId;
+    public string? PlayerName;
 
-    public PacketType Type { get; set; }
+    public PacketType Type { get; init; }
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.Important;
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteString(PlayerId);
+        writer.WriteStringWithoutSize(PlayerId);
         writer.WriteString(PlayerName ?? "No Name Set");
     }
 
     public void Deserialise(PacketReader reader)
     {
-        PlayerId = reader.ReadString();
-        PlayerName = reader.ReadString();
+        PlayerId = reader.ReadPooledStringOfSize(16)!;
+        PlayerName = reader.ReadPooledString();
     }
 }

@@ -1,0 +1,111 @@
+﻿using System.Collections;
+using System.Net;
+using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Slime;
+using Il2CppMonomiPark.SlimeRancher.VFX;
+using SR2MP.Packets.Actor;
+using SR2MP.Shared.Utils;
+
+namespace SR2MP.Shared.Managers;
+
+internal sealed partial class NetworkActorManager
+{
+    private static GadgetModel? GetLinkedGadget(GadgetModel model)
+        => GameState.identifiables._entries.FirstOrDefault(x =>
+                x.value != null &&
+                model != null &&
+                x.value.ident == model?.ident
+                && model != x.value
+                && (model.ident.Cast<GadgetDefinition>().BuyInPairs
+                    || model.ident.Cast<GadgetDefinition>().LinkedDefinition
+                    || model.ident.Cast<GadgetDefinition>().LinkedGadgetRange != 0f))?
+            .value.Cast<GadgetModel>()!;
+    
+    private static AmmoModel? GetAmmoFromGadget(GadgetModel model)
+    {
+        if (model.TryCast(out WarpDepotModel? warp))
+            return warp.ammo;
+        
+        return null!;
+    }
+    
+    internal void SendActorTypeRegistry(IPEndPoint clientEndPoint)
+    {
+        if (!Main.Server.IsRunning) return;
+
+        var packet = new ActorTypeRegistryPacket
+        {
+            Registry = new Dictionary<int, string>(ActorTypes.Count)
+        };
+
+        foreach (var (persistentId, type) in ActorTypes)
+        {
+            if (type == null) continue;
+            packet.Registry[persistentId] = type.ReferenceId;
+        }
+
+        Main.Server.SendToClient(packet, clientEndPoint);
+    }
+    
+    internal static bool ApplyRadiancy(SlimeModel slime, ActorAppearanceType radiancy = ActorAppearanceType.Default)
+    {
+        if (slime == null) return false;
+        
+        var gameObj = slime.GetGameObject();
+        if (!gameObj) return false;
+        
+        var applicator = gameObj.GetComponent<SlimeAppearanceApplicator>();
+        if (!applicator) return false;
+        
+        var def = gameObj.GetComponent<Identifiable>().identType.TryCast<SlimeDefinition>();
+        if (!def) return false;
+        
+        if (radiancy == ActorAppearanceType.Default && slime.IsRadiant)
+        {
+            if (def!.RadiantBase && def.RadiantBase.AppearType == SlimeAppearance.AppearanceType.RADIANT_BASE)
+                radiancy = ActorAppearanceType.BaseRadiant;
+            else if (def.RadiantLargo0 &&
+                     def.RadiantLargo0.AppearType == SlimeAppearance.AppearanceType.RADIANT_LARGO_0)
+                radiancy = ActorAppearanceType.LargoRadiant0;
+            else if (def.RadiantLargo1 &&
+                     def.RadiantLargo1.AppearType == SlimeAppearance.AppearanceType.RADIANT_LARGO_1)
+                radiancy = ActorAppearanceType.LargoRadiant1;
+        }
+        
+        var newAppearance = radiancy switch
+        {
+            ActorAppearanceType.BaseRadiant => def!.RadiantBase,
+            ActorAppearanceType.LargoRadiant0 => def!.RadiantLargo0,
+            ActorAppearanceType.LargoRadiant1 => def!.RadiantLargo1,
+            _ => applicator.Appearance
+        };
+        
+        if (!newAppearance) return false;
+        
+        var slimeRadiant = gameObj.GetComponent<SlimeRadiant>();
+        if (slimeRadiant)
+        {
+            slimeRadiant.SetRadiant();
+            slimeRadiant.SetRadiantAppearance();
+        }
+        
+        slime.GetAmmoMetadata().Radiant = true;
+        applicator.Appearance = newAppearance;
+        applicator.ApplyAppearance();
+        applicator.HandleChosenAppearanceChanged(def, newAppearance);
+        
+        return true;
+    }
+    
+    internal static IEnumerator ApplySprinkleMaterial(GameObject gameObj, SprinkleMaterialType material)
+    {
+        yield return new WaitFrames(2);
+        
+        if (!gameObj) yield break;
+        
+        var sprinkle = gameObj.GetComponent<RandomMaterial>();
+        if (!sprinkle) yield break;
+
+        sprinkle.SetMaterial((int)material);
+    }
+}

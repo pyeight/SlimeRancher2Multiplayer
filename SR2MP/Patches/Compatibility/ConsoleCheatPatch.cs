@@ -1,30 +1,30 @@
 using HarmonyLib;
-using SR2E.Managers;
+using Starlight.Managers;
 
 namespace SR2MP.Patches.Compatibility;
 
-[HarmonyPatch(typeof(SR2ECommandManager), nameof(SR2ECommandManager.ExecuteByString), typeof(string), typeof(bool), typeof(bool))]
-public static class ConsoleCheatPatch
+[HarmonyPatch(typeof(StarlightCommandManager), nameof(StarlightCommandManager.ExecuteByString), typeof(string), typeof(bool), typeof(bool))]
+internal static class ConsoleCheatPatch
 {
     public static bool Prefix(string input)
     {
-        if (!(Main.Server.IsRunning() || Main.Client.IsConnected))
+        if (!(Main.Server.IsRunning || Main.Client.IsConnected))
             return true;
 
-        if (cheatsEnabled)
+        if (CheatsEnabled)
             return true;
 
         var containsCheat = false;
 
-        // Code copied from SR2E
-        string[] cmds = input.Split(';');
-        foreach (string cc in cmds)
+        // Code copied from Starlight
+        var cmds = input.Split(';');
+        foreach (var cc in cmds)
         {
-            string c = cc.TrimStart(' ');
+            var c = cc.TrimStart(' ');
             if (string.IsNullOrWhiteSpace(c))
                 continue;
-            bool spaces = c.Contains(' ');
-            string cmd = spaces ? c[..c.IndexOf(' ')] : c;
+            var spaces = c.Contains(' ');
+            var cmd = spaces ? c[..c.IndexOf(' ')] : c;
 
             if (!CheatCommands.Contains(cmd))
                 continue;
@@ -35,7 +35,7 @@ public static class ConsoleCheatPatch
         if (!containsCheat)
             return true;
 
-        SR2ELogManager.SendError("Cheats are disabled on this server!");
+        StarlightLogManager.SendError("Cheats are disabled on this server!");
         return false;
     }
 }

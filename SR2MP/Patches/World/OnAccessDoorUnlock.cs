@@ -1,19 +1,22 @@
 ﻿using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.UI.AccessDoor;
+using Il2CppMonomiPark.SlimeRancher.UI.Framework.Displays;
 using Il2CppMonomiPark.World;
 using SR2MP.Packets.World;
 
 namespace SR2MP.Patches.World;
 
-[HarmonyPatch(typeof(AccessDoorUIRoot), nameof(AccessDoorUIRoot.UnlockDoor))]
-public static class OnAccessDoorUnlock
+[HarmonyPatch(typeof(AccessDoor), nameof(AccessDoor.CurrState),  MethodType.Setter)]
+internal static class OnAccessDoorUnlock
 {
-    public static void Postfix(AccessDoorUIRoot __instance)
+    public static void Postfix(AccessDoor __instance, AccessDoor.State value)
     {
+        if (HandlingPacket) return;
+        
         var packet = new AccessDoorPacket
         {
-            ID = __instance._door.Id,
-            State = AccessDoor.State.OPEN
+            ID = __instance._id,
+            State = value,
         };
         Main.SendToAllOrServer(packet);
     }

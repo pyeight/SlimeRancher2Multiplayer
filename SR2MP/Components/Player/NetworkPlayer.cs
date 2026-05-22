@@ -1,20 +1,24 @@
+using Il2CppMonomiPark.SlimeRancher.Map;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
+using Il2CppMonomiPark.SlimeRancher.UI;
 using Il2CppTMPro;
+using JetBrains.Annotations;
 using MelonLoader;
-using SR2E.Utils;
+using Starlight.Utils;
 using SR2MP.Client.Models;
 using SR2MP.Components.FX;
 using SR2MP.Components.Utils;
 using SR2MP.Shared.Managers;
-
-using static SR2E.ContextShortcuts;
+using Starlight.Storage;
+using static Starlight.ContextShortcuts;
 using static SR2MP.Shared.Utils.Timers;
 
 namespace SR2MP.Components.Player;
 
-[RegisterTypeInIl2Cpp(false)]
-public partial class NetworkPlayer : MonoBehaviour
+[InjectIntoIL]
+//[InjectIntoIL(typeof(IMapMarkerSource))]
+internal partial class NetworkPlayer : MonoBehaviour
 {
     private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
     private static readonly int ForwardMovement = Animator.StringToHash("ForwardMovement");
@@ -25,28 +29,30 @@ public partial class NetworkPlayer : MonoBehaviour
     private static readonly int ForwardSpeed = Animator.StringToHash("ForwardSpeed");
     private static readonly int Sprinting = Animator.StringToHash("Sprinting");
 
-    private MeshRenderer[] renderers;
+    // private MeshRenderer[] renderers;
     private Collider collider;
 
-    internal Vector3 previousPosition;
-    internal Vector3 nextPosition;
+    public int previousScene;
+    
+    public Vector3 previousPosition;
+    public Vector3 nextPosition;
 
-    internal Vector2 previousRotation;
-    internal Vector2 nextRotation;
+    public Vector2 previousRotation;
+    public Vector2 nextRotation;
 
     private float interpolationStart;
     private float interpolationEnd;
 
-    public TextMeshPro usernamePanel;
+    public TextMeshPro UsernamePanel;
 
     private float transformTimer = PlayerTimer;
 
     private Animator animator;
     private bool hasAnimationController;
 
-    internal RemotePlayer? model;
+    private RemotePlayer? model;
 
-    internal Transform camera;
+    public Transform camera;
 
     public string ID { get; internal set; }
 
@@ -54,24 +60,39 @@ public partial class NetworkPlayer : MonoBehaviour
 
     private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
 
+    internal TMP_FontAsset usernameFont;
+    
     public void SetUsername(string username)
     {
         username = username.Trim();
 
-        usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
-        usernamePanel.text = username;
-        usernamePanel.alignment = TextAlignmentOptions.Center;
-        usernamePanel.fontSize = 3;
-        usernamePanel.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
-        if (!usernamePanel.GetComponent<TransformLookAtCamera>())
+        UsernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
+        UsernamePanel.text = username;
+        UsernamePanel.alignment = TextAlignmentOptions.Center;
+        UsernamePanel.fontSize = 3;
+        UsernamePanel.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
+        usernameFont = UsernamePanel.font;
+
+        if (!UsernamePanel.GetComponent<TransformLookAtCamera>())
         {
-            usernamePanel.gameObject.AddComponent<TransformLookAtCamera>().targetTransform =
-                usernamePanel.transform;
+            UsernamePanel.gameObject.AddComponent<TransformLookAtCamera>().TargetTransform =
+                UsernamePanel.transform;
         }
+        
+        if (!radarComponent) return;
+
+        var nameLabel = radarComponent!._compassRadarPrefab?
+            .transform.GetChild(0)
+            .GetComponent<TextMeshProUGUI>();
+
+        if (nameLabel != null)
+            nameLabel.SetText(username);
     }
 
-    private void Awake()
+    [UsedImplicitly]
+    public void Awake()
     {
+        PlayerManager.OnPlayerGadgetUpdated += OnGadgetUpdate;
         if (transform.GetComponents<NetworkPlayer>().Length > 1)
         {
             Destroy(this);
@@ -84,35 +105,43 @@ public partial class NetworkPlayer : MonoBehaviour
         {
             SrLogger.LogWarning("NetworkPlayer has no Animator component!");
         }
+        AwakeGadgetMode();
     }
 
-    private void Start()
+    public void Start()
     {
         if (IsLocal)
         {
             camera = GetComponent<SRCharacterController>()._cameraController.transform;
             GetComponent<PlayerItemController>()._vacuumItem.AddComponent<NetworkPlayerSound>();
         }
+        else
+        {
+            PlayerMarkerTransforms[ID] = new();
+        }
 
-        usernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
+        UsernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
 
         SetupRenderersAndCollision();
     }
 
     private void SetupRenderersAndCollision()
     {
-        if (IsLocal)
-        {
-            var modelRenderers = GetComponentsInChildren<MeshRenderer>();
-            var cameraRenderers = camera.GetComponentsInChildren<MeshRenderer>();
-            var allRenderers = new MeshRenderer[modelRenderers.Length + cameraRenderers.Length];
+        // if (IsLocal)
+        // {
+        //     var modelRenderers = GetComponentsInChildren<MeshRenderer>();
+        //     var cameraRenderers = camera.GetComponentsInChildren<MeshRenderer>();
+        //     var allRenderers = new MeshRenderer[modelRenderers.Length + cameraRenderers.Length];
 
-            modelRenderers.CopyTo(allRenderers, 0);
-            cameraRenderers.CopyTo(allRenderers, modelRenderers.Length);
+        //     modelRenderers.CopyTo(allRenderers, 0);
+        //     cameraRenderers.CopyTo(allRenderers, modelRenderers.Length);
 
-            renderers = allRenderers;
-        }
-        else { renderers = GetComponentsInChildren<MeshRenderer>(); }
+        //     renderers = allRenderers;
+        // }
+        // else
+        // {
+        //     renderers = GetComponentsInChildren<MeshRenderer>();
+        // }
 
         collider = GetComponentInChildren<Collider>();
     }
@@ -121,33 +150,58 @@ public partial class NetworkPlayer : MonoBehaviour
     {
         if (model == null)
         {
-            model = playerManager.GetPlayer(ID) ?? playerManager.AddPlayer(ID);
+            model = PlayerManager.GetPlayer(ID) ?? PlayerManager.AddPlayer(ID);
 
-            if (!usernamePanel)
+            if (!UsernamePanel)
                 return;
-            usernamePanel.gameObject.AddComponent<TransformLookAtCamera>().targetTransform =
-                usernamePanel.transform;
 
+            UsernamePanel.gameObject.AddComponent<TransformLookAtCamera>().TargetTransform =
+                UsernamePanel.transform;
+
+            SetupMarker();
             SetUsername(model.Username);
 
             return;
         }
 
         transformTimer -= UnityEngine.Time.unscaledDeltaTime;
+
         if (!IsLocal)
         {
-            float timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
-            timer = Mathf.Clamp01(timer);
+            var timer = Mathf.InverseLerp(interpolationStart, interpolationEnd, UnityEngine.Time.unscaledTime);
 
-            transform.position = Vector3.Lerp(previousPosition, nextPosition, timer);
+            var networkPosition = Vector3.LerpUnclamped(previousPosition, nextPosition, timer);
+            var networkLookY = Mathf.LerpAngle(previousRotation.y, nextRotation.y, timer);
+            var networkYaw = Mathf.LerpAngle(previousRotation.x, nextRotation.x, timer);
 
-            receivedLookY = Mathf.LerpAngle(previousRotation.y, nextRotation.y, timer);
-            transform.eulerAngles = new Vector3(0,  Mathf.LerpAngle(previousRotation.x, nextRotation.x, timer), 0);
+            if (Vector3.SqrMagnitude(transform.position - networkPosition) > 9f)
+            {
+                transform.position = networkPosition;
+                transform.eulerAngles = new Vector3(0, networkYaw, 0);
+                ReceivedLookY = networkLookY;
+            }
+            else
+            {
+                var blendSpeed = UnityEngine.Time.unscaledDeltaTime * 15f;
+
+                transform.position = Vector3.Lerp(transform.position, networkPosition, blendSpeed);
+
+                ReceivedLookY = Mathf.LerpAngle(ReceivedLookY, networkLookY, blendSpeed);
+
+                var targetRot = Quaternion.Euler(0, networkYaw, 0);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, blendSpeed);
+            }
         }
 
         ReloadMeshTransform();
+
+        UpdateGadgetMode();
+
+        UpdateMarker();
+        
         if (transformTimer >= 0f)
             return;
+
         transformTimer = PlayerTimer;
 
         if (IsLocal)
@@ -163,7 +217,8 @@ public partial class NetworkPlayer : MonoBehaviour
                 horizontalSpeed: animator.GetFloat(HorizontalSpeed),
                 forwardSpeed: animator.GetFloat(ForwardSpeed),
                 sprinting: animator.GetBool(Sprinting),
-                lookY: camera.eulerAngles.x
+                lookY: camera.eulerAngles.x,
+                sceneGroup: NetworkSceneManager.GetPersistentID(SystemContext.Instance.SceneLoader._currentSceneGroup)
             );
         }
         else
@@ -182,10 +237,11 @@ public partial class NetworkPlayer : MonoBehaviour
                 }
             }
 
+            previousPosition = nextPosition;
             nextPosition = model.Position;
-            previousPosition = transform.position;
-            nextRotation = new Vector2(model.Rotation, model.LookY);
+
             previousRotation = new Vector2(transform.eulerAngles.y, model.LastLookY);
+            nextRotation = new Vector2(model.Rotation, model.LookY);
 
             interpolationStart = UnityEngine.Time.unscaledTime;
             interpolationEnd = UnityEngine.Time.unscaledTime + PlayerTimer;
@@ -213,13 +269,10 @@ public partial class NetworkPlayer : MonoBehaviour
         if (IsLocal)
             return;
 
-        // This is for the
         collider.enabled = false;
         collider.enabled = true;
     }
 
-    private void LateUpdate()
-    {
-        AnimateArmY();
-    }
+    [UsedImplicitly]
+    public void LateUpdate() => AnimateArmY();
 }

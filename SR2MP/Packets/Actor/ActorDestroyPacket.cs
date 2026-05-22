@@ -3,14 +3,15 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Actor;
 
-public struct ActorDestroyPacket : IPacket
+internal struct ActorDestroyPacket : IPacket
 {
-    public ActorId ActorId { get; set; }
+    public ActorId ActorId;
 
     public readonly PacketType Type => PacketType.ActorDestroy;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly NetworkChannel Channel => NetworkChannel.ActorCritical;
 
-    public readonly void Serialise(PacketWriter writer) => writer.WriteLong(ActorId.Value);
+    public readonly void Serialise(PacketWriter writer) => writer.WritePackedLong(ActorId.Value);
 
-    public void Deserialise(PacketReader reader) => ActorId = new ActorId(reader.ReadLong());
+    public void Deserialise(PacketReader reader) => ActorId = new ActorId(reader.ReadPackedLong());
 }

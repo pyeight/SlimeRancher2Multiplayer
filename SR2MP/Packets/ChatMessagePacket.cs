@@ -2,15 +2,16 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets;
 
-public sealed class ChatMessagePacket : IPacket
+internal sealed class ChatMessagePacket : IPacket
 {
-    public string Username { get; set; }
-    public string Message { get; set; }
-    public string MessageID { get; set; }
-    public byte MessageType { get; set; }
+    public string Username;
+    public string Message;
+    public string MessageID;
+    public byte MessageType;
 
     public PacketType Type => PacketType.ChatMessage;
-    public PacketReliability Reliability => PacketReliability.ReliableOrdered;
+    public PacketReliability Reliability => PacketReliability.Reliable;
+    public  NetworkChannel Channel => NetworkChannel.Chat;
 
     public void Serialise(PacketWriter writer)
     {
@@ -22,9 +23,9 @@ public sealed class ChatMessagePacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        Username = reader.ReadString();
-        Message = reader.ReadString();
-        MessageID = reader.ReadString();
+        Username = reader.ReadPooledString()!;
+        Message = reader.ReadString()!;
+        MessageID = reader.ReadString()!;
         MessageType = reader.ReadByte();
     }
 }

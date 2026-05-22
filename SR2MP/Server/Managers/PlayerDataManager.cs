@@ -1,144 +1,144 @@
-using Newtonsoft.Json;
-using SR2MP.Server.Models;
+// using Newtonsoft.Json;
+// using SR2MP.Server.Models;
 
-namespace SR2MP.Server.Managers;
+// namespace SR2MP.Server.Managers;
 
-public sealed class PlayerDataManager
-{
-    private readonly Dictionary<string, PlayerData> playerDataCache = new();
-    private readonly string saveDirectory;
-    // this needs to be something like: ORIGINAL-SR2-SAVE-ID_player_data.json
-    private readonly string saveFileName = "player_data.json";
-    private string SavePath => Path.Combine(saveDirectory, saveFileName);
+// internal sealed class PlayerDataManager
+// {
+//     private readonly Dictionary<string, PlayerData> playerDataCache = new();
+//     private readonly string saveDirectory;
+//     // this needs to be something like: ORIGINAL-SR2-SAVE-ID_player_data.json
+//     private readonly string saveFileName = "player_data.json";
+//     private string SavePath => Path.Combine(saveDirectory, saveFileName);
 
-    public event Action<PlayerData>? OnPlayerDataLoaded;
-    public event Action<PlayerData>? OnPlayerDataSaved;
+//     public event Action<PlayerData>? OnPlayerDataLoaded;
+//     public event Action<PlayerData>? OnPlayerDataSaved;
 
-    public PlayerDataManager(string saveDirectory)
-    {
-        this.saveDirectory = saveDirectory;
+//     public PlayerDataManager(string saveDirectory)
+//     {
+//         this.saveDirectory = saveDirectory;
 
-        if (!Directory.Exists(saveDirectory))
-        {
-            Directory.CreateDirectory(saveDirectory);
-            SrLogger.LogMessage($"Created save directory: {saveDirectory}", SrLogTarget.Both);
-        }
+//         if (!Directory.Exists(saveDirectory))
+//         {
+//             Directory.CreateDirectory(saveDirectory);
+//             SrLogger.LogMessage($"Created save directory: {saveDirectory}");
+//         }
 
-        LoadAllPlayerData();
-    }
+//         LoadAllPlayerData();
+//     }
 
-    public PlayerData GetOrCreatePlayerData(string playerId, string playerName = "Undefined name")
-    {
-        if (playerDataCache.TryGetValue(playerId, out var existingData))
-        {
-            SrLogger.LogMessage($"Loaded existing data for player: {playerId}");
-            OnPlayerDataLoaded?.Invoke(existingData);
-            return existingData;
-        }
+//     public PlayerData GetOrCreatePlayerData(string playerId, string playerName = "Undefined name")
+//     {
+//         if (playerDataCache.TryGetValue(playerId, out var existingData))
+//         {
+//             SrLogger.LogMessage($"Loaded existing data for player: {playerId}");
+//             OnPlayerDataLoaded?.Invoke(existingData);
+//             return existingData;
+//         }
 
-        var newData = new PlayerData(playerId, playerName);
-        playerDataCache[playerId] = newData;
+//         var newData = new PlayerData(playerId, playerName);
+//         playerDataCache[playerId] = newData;
 
-        SrLogger.LogMessage($"Created new player data for: {playerId}", SrLogTarget.Both);
-        SavePlayerData(newData);
+//         SrLogger.LogMessage($"Created new player data for: {playerId}");
+//         SavePlayerData(newData);
 
-        return newData;
-    }
+//         return newData;
+//     }
 
-    // every time the player updates something qwq
-    // ex. inventory, position + rotation, health + energy
-    public void UpdatePlayerData(string playerId, Action<PlayerData> updateAction)
-    {
-        if (playerDataCache.TryGetValue(playerId, out var data))
-        {
-            updateAction(data);
-            SavePlayerData(data);
-        }
-        else
-        {
-            SrLogger.LogWarning($"Attempted to update non-existent player data: {playerId}");
-        }
-    }
+//     // every time the player updates something qwq
+//     // ex. inventory, position + rotation, health + energy
+//     public void UpdatePlayerData(string playerId, Action<PlayerData> updateAction)
+//     {
+//         if (playerDataCache.TryGetValue(playerId, out var data))
+//         {
+//             updateAction(data);
+//             SavePlayerData(data);
+//         }
+//         else
+//         {
+//             SrLogger.LogWarning($"Attempted to update non-existent player data: {playerId}");
+//         }
+//     }
 
-    public void SavePlayerData(PlayerData data)
-    {
-        try
-        {
-            playerDataCache[data.PlayerId] = data;
-            SaveAllPlayerData();
-            OnPlayerDataSaved?.Invoke(data);
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogError($"Failed to save player data for {data.PlayerId}: {ex}", SrLogTarget.Both);
-        }
-    }
+//     public void SavePlayerData(PlayerData data)
+//     {
+//         try
+//         {
+//             playerDataCache[data.PlayerId] = data;
+//             SaveAllPlayerData();
+//             OnPlayerDataSaved?.Invoke(data);
+//         }
+//         catch (Exception ex)
+//         {
+//             SrLogger.LogError($"Failed to save player data for {data.PlayerId}: {ex}");
+//         }
+//     }
 
-    // on Server Close
-    public void SaveAllPlayerData()
-    {
-        try
-        {
-            var json = JsonConvert.SerializeObject(playerDataCache.Values.ToList(), Formatting.Indented);
-            File.WriteAllText(SavePath, json);
-            SrLogger.LogMessage($"Saved data for {playerDataCache.Count} players", SrLogTarget.Both);
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogError($"Failed to save player data: {ex}", SrLogTarget.Both);
-        }
-    }
+//     // on Server Close
+//     public void SaveAllPlayerData()
+//     {
+//         try
+//         {
+//             var json = JsonConvert.SerializeObject(playerDataCache.Values.ToList(), Formatting.Indented);
+//             File.WriteAllText(SavePath, json);
+//             SrLogger.LogMessage($"Saved data for {playerDataCache.Count} players");
+//         }
+//         catch (Exception ex)
+//         {
+//             SrLogger.LogError($"Failed to save player data: {ex}");
+//         }
+//     }
 
-    // on Server start
-    private void LoadAllPlayerData()
-    {
-        try
-        {
-            if (!File.Exists(SavePath))
-            {
-                SrLogger.LogMessage("No player data file found, creating new",  SrLogTarget.Both);
-                return;
-            }
+//     // on Server start
+//     private void LoadAllPlayerData()
+//     {
+//         try
+//         {
+//             if (!File.Exists(SavePath))
+//             {
+//                 SrLogger.LogMessage("No player data file found, creating new");
+//                 return;
+//             }
 
-            var json = File.ReadAllText(SavePath);
-            var playerList = JsonConvert.DeserializeObject<List<PlayerData>>(json);
+//             var json = File.ReadAllText(SavePath);
+//             var playerList = JsonConvert.DeserializeObject<List<PlayerData>>(json);
 
-            if (playerList == null)
-                return;
-            foreach (var data in playerList)
-            {
-                playerDataCache[data.PlayerId] = data;
-            }
+//             if (playerList == null)
+//                 return;
+//             foreach (var data in playerList)
+//             {
+//                 playerDataCache[data.PlayerId] = data;
+//             }
 
-            SrLogger.LogMessage($"Loaded data for {playerDataCache.Count} players", SrLogTarget.Both);
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogError($"Failed to load player data: {ex}", SrLogTarget.Both);
-        }
-    }
+//             SrLogger.LogMessage($"Loaded data for {playerDataCache.Count} players");
+//         }
+//         catch (Exception ex)
+//         {
+//             SrLogger.LogError($"Failed to load player data: {ex}");
+//         }
+//     }
 
-    public PlayerData? GetPlayerData(string playerId)
-    {
-        return playerDataCache.GetValueOrDefault(playerId);
-    }
+//     public PlayerData? GetPlayerData(string playerId)
+//     {
+//         return playerDataCache.GetValueOrDefault(playerId);
+//     }
 
-    public bool HasPlayerData(string playerId)
-    {
-        return playerDataCache.ContainsKey(playerId);
-    }
+//     public bool HasPlayerData(string playerId)
+//     {
+//         return playerDataCache.ContainsKey(playerId);
+//     }
 
-    public List<PlayerData> GetAllPlayerData()
-    {
-        return playerDataCache.Values.ToList();
-    }
+//     public List<PlayerData> GetAllPlayerData()
+//     {
+//         return playerDataCache.Values.ToList();
+//     }
 
-    public bool DeletePlayerData(string playerId)
-    {
-        if (!playerDataCache.Remove(playerId))
-            return false;
-        SaveAllPlayerData();
-        SrLogger.LogMessage($"Deleted player data: {playerId}", SrLogTarget.Both);
-        return true;
-    }
-}
+//     public bool DeletePlayerData(string playerId)
+//     {
+//         if (!playerDataCache.Remove(playerId))
+//             return false;
+//         SaveAllPlayerData();
+//         SrLogger.LogMessage($"Deleted player data: {playerId}");
+//         return true;
+//     }
+// }

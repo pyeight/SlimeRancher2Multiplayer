@@ -410,8 +410,10 @@ FodyWeavers.xsd
 /UnityBundle/Temp
 *.png
 *.ttf
-/NewSR2MP/Networking/EOS/Mirror/Runtime/Transport/EpicOnlineTransport/EOSSDK
-NewSR2MP/Networking/Patches/SteamContextPatch.cs
+
+/SR2MP/Assets/PlayerMarker.xcf
 /SR2MP/Patches/Private
-!SR2MP/DiscordRPC.dll
 ExternalAnnotations/
+.vscode/
+cspell.json
+libraries

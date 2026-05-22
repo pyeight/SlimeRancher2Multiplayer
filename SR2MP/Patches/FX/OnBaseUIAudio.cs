@@ -5,21 +5,20 @@ using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.FX;
 
-[HarmonyPatch(typeof(BaseUI))]
-public static class OnPlayUIAudio
+[HarmonyPatch(typeof(BaseUI), nameof(BaseUI.Play))]
+internal static class OnPlayUIAudio
 {
     [HarmonyPrefix]
-    [HarmonyPatch(nameof(BaseUI.Play))]
     public static bool OnPlay(SECTR_AudioCue cue)
     {
         if (!SceneContext.Instance)
             return true;
-        if (!fxManager.TryGetFXType(cue, out WorldFXType fxType))
+        if (!FXManager.TryGetFXType(cue, out WorldFXType fxType))
             return true;
 
         SendPacket(fxType, SceneContext.Instance.player.transform.position);
 
-        RemoteFXManager.PlayTransientAudio(fxManager.WorldAudioCueMap[fxType], SceneContext.Instance.player.transform.position, 1f);
+        RemoteFXManager.PlayTransientAudio(FXManager.WorldAudioCueMap[fxType], SceneContext.Instance.player.transform.position, 1f);
 
         return false;
     }

@@ -2,12 +2,13 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets;
 
-public struct ClosePacket : IPacket
+internal readonly struct ClosePacket : IPacket
 {
     public readonly PacketType Type => PacketType.Close;
-    public PacketReliability Reliability => PacketReliability.Reliable;
+    public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly NetworkChannel Channel => NetworkChannel.Important;
 
-    public readonly void Serialise(PacketWriter writer) { }
+    public void Serialise(PacketWriter writer) { }
 
-    public readonly void Deserialise(PacketReader reader) { }
+    public void Deserialise(PacketReader reader) { }
 }

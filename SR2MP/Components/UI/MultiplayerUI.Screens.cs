@@ -1,22 +1,129 @@
 namespace SR2MP.Components.UI;
 
-public sealed partial class MultiplayerUI
+internal sealed partial class MultiplayerUI
 {
     private bool multiplayerUIHidden;
+
     private string usernameInput = "Player";
-    private string ipInput = string.Empty;
-    private string portInput = string.Empty;
-    private string hostPortInput = "1919";
     private bool allowCheatsInput;
+
+    private string activeInputId = string.Empty;
+    private bool justUnfocusedInput;
+    private bool suppressNextChar;
+
+    private string DrawSafeTextInput(string id, Rect rect, string value, int maxLength = 64, bool numbersOnly = false, bool isChat = false)
+    {
+        var current = Event.current;
+        var displayValue = string.IsNullOrEmpty(value) && activeInputId != id
+            ? (isChat ? "Enter to Chat" : "Click to Type")
+            : value;
+
+        if (activeInputId == id)
+            GUI.skin.box.normal.textColor = new Color32(255, 255, 185, 255);
+
+        GUI.Box(rect, displayValue);
+
+        GUI.skin.box.normal.textColor = Color.white;
+
+        if (current.type == EventType.MouseDown)
+        {
+            if (rect.Contains(current.mousePosition))
+            {
+                activeInputId = id;
+                suppressNextChar = true;
+                current.Use();
+            }
+            else if (activeInputId == id)
+            {
+                activeInputId = string.Empty;
+            }
+        }
+
+        if (activeInputId != id)
+            return value;
+
+        if (current.type == EventType.KeyDown)
+        {
+            switch (current.keyCode)
+            {
+                case KeyCode.Backspace:
+                    if (!string.IsNullOrEmpty(value))
+                        value = value[..^1];
+                    current.Use();
+                    return value;
+                
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    if (!isChat)
+                    {
+                        activeInputId = string.Empty;
+                        justUnfocusedInput = true;
+                        current.Use();
+                    }
+                    return value;
+
+                case KeyCode.Escape:
+                    activeInputId = string.Empty;
+                    current.Use();
+                    return value;
+
+                case KeyCode.X:
+                    if (current.control)
+                    {
+                        GUIUtility.systemCopyBuffer = value;
+                        return "";
+                    }
+
+                    break;
+
+                case KeyCode.V:
+                    if (current.control)
+                    {
+                        value += GUIUtility.systemCopyBuffer;
+                        return value;
+                    }
+
+                    break;
+
+                case KeyCode.C:
+                    if (current.control)
+                    {
+                        GUIUtility.systemCopyBuffer = value;
+                        return value;
+                    }
+
+                    break;
+            }
+
+            if (suppressNextChar)
+            {
+                suppressNextChar = false;
+                current.Use();
+                return value;
+            }
+
+            if (current.character == '\0' || char.IsControl(current.character))
+                return value;
+
+            if ((!numbersOnly || char.IsDigit(current.character)) && value.Length < maxLength)
+            {
+                value += current.character;
+            }
+
+            current.Use();
+        }
+
+        return value;
+    }
 
     private void FirstTimeScreen()
     {
-        bool valid = true;
+        var valid = true;
 
         DrawText("Please select an username to play multiplayer.");
 
         DrawText("Username:", 2);
-        usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
+        usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
@@ -34,24 +141,19 @@ public sealed partial class MultiplayerUI
 
     private void SettingsScreen()
     {
-        bool validUsername = true;
-
         DrawText("Username:", 2);
-        usernameInput = GUI.TextField(CalculateInputLayout(6, 2, 1), usernameInput);
+        usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
 
         DrawText("Allow Cheats:", 2);
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
-        {
             allowCheatsInput = !allowCheatsInput;
-        }
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
             DrawText("You must set an Username.");
-            validUsername = false;
+            return;
         }
 
-        if (!validUsername) return;
         if (!GUI.Button(CalculateButtonLayout(6), "Save")) return;
 
         Main.SetConfigValue("username", usernameInput);
@@ -73,70 +175,16 @@ public sealed partial class MultiplayerUI
         if (GUI.Button(CalculateButtonLayout(6), "Settings"))
             viewingSettings = true;
 
-        DrawText("Join a world:");
+        DrawTabRow(ref mainTab, "Join", "Host");
 
-        DrawText("IP", 2);
-        ipInput = GUI.TextField(CalculateInputLayout(6, 2, 1), ipInput);
-
-        DrawText("Port", 2);
-        portInput = GUI.TextField(CalculateInputLayout(6, 2, 1), portInput);
-
-        var validPort = ushort.TryParse(portInput, out var port);
-        if (validPort)
-        {
-            if (GUI.Button(CalculateButtonLayout(6), "Connect"))
-                Connect(ipInput, port);
-        }
+        if (mainTab == 0)
+            DrawJoinSection();
         else
-        {
-            DrawText("Invalid port: Must be a number from 1 to 65535.");
-        }
-
-        DrawText("Host a world:");
-
-        DrawText("Port", 2);
-        hostPortInput = GUI.TextField(CalculateInputLayout(6, 2, 1), hostPortInput);
-
-        var validHostPort = ushort.TryParse(hostPortInput, out var hostPort);
-        if (validHostPort)
-        {
-            if (GUI.Button(CalculateButtonLayout(6), "Host"))
-                Host(hostPort);
-        }
-        else
-        {
-            DrawText("Invalid port. Must be a number from 1 to 65535.");
-            DrawText("Make sure your pc doesn't use the port anywhere else.");
-        }
+            DrawHostSection();
     }
 
     private void UnimplementedScreen()
     {
         DrawText("This screen hasn't been implemented yet.");
-    }
-
-    private void HostingScreen()
-    {
-        DrawText($"You are the hosting on port: {Main.Server.Port}");
-        DrawText("All players:");
-
-        var players = playerManager.GetAllPlayers();
-
-        foreach (var player in players)
-        {
-            DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
-        }
-    }
-
-    private void ConnectedScreen()
-    {
-        DrawText("You are connected to the server.");
-        DrawText("All players:");
-
-        var players = playerManager.GetAllPlayers();
-        foreach (var player in players)
-        {
-            DrawText(!string.IsNullOrEmpty(player.Username) ? player.Username : "Invalid username.");
-        }
     }
 }

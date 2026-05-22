@@ -1,8 +1,9 @@
 namespace SR2MP.Components.Player;
 
-public partial class NetworkPlayer
+internal partial class NetworkPlayer
 {
-    public float receivedLookY;
+    public float ReceivedLookY;
+
     private Transform rightShoulder;
     private Transform rightArmUpper;
     private Transform rightArmLower;
@@ -18,10 +19,9 @@ public partial class NetworkPlayer
 
     private void AnimateArmY()
     {
-        if (IsLocal) return;
-        if (!hasAnimationController) return;
+        if (IsLocal || !hasAnimationController) return;
 
-        rightShoulder.localRotation = Quaternion.Euler(320, 180, -receivedLookY + 89);
+        rightShoulder.localRotation = Quaternion.Euler(320, 180, -ReceivedLookY + 89);
         rightHand.localRotation = Quaternion.Euler(90, 180, 0);
         rightShoulder.localPosition = new Vector3(-0.0612f, -0.1155f, 0.2556f);
         rightArmUpper.localRotation = Quaternion.identity;

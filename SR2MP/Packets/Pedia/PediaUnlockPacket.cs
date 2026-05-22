@@ -2,13 +2,14 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Pedia;
 
-public sealed class PediaUnlockPacket : IPacket
+internal sealed class PediaUnlockPacket : IPacket
 {
-    public string ID { get; set; }
-    public bool Popup { get; set; }
+    public string ID;
+    public bool Popup;
 
     public PacketType Type => PacketType.PediaUnlock;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer)
     {
@@ -18,7 +19,7 @@ public sealed class PediaUnlockPacket : IPacket
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
+        ID = reader.ReadPooledString()!;
         Popup = reader.ReadBool();
     }
 }

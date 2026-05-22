@@ -4,10 +4,11 @@ using Il2CppMonomiPark.SlimeRancher.World;
 
 namespace SR2MP.Shared.Managers;
 
-public static class DiscordRPCManager
+internal static class DiscordRPCManager
 {
     private enum Zone : byte
     {
+        Unknown,
         Conservatory,
         RainbowFields,
         StarlightStand,
@@ -23,16 +24,18 @@ public static class DiscordRPCManager
 
         // Introduce at like, 0.4 or 1.0.?
         FinalBoss,
-        Ending,
+        Ending
     }
+
     // This can be public, do not freak out :)
     private const string DiscordAppID = "1422276739026911262";
-    private static DiscordRpcClient rpcClient;
+    private static DiscordRpcClient? rpcClient;
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToStatus =
         new(new Dictionary<Zone, string>
         {
-            {Zone.Conservatory, "Ranching at the Conservatory"},
+            {Zone.Unknown, "Exploring unknown areas"},
+            {Zone.Conservatory, "Ranching in the Conservatory"},
             {Zone.RainbowFields, "Exploring the Rainbow Fields"},
             {Zone.StarlightStand, "Amazed by the Starlight Strands"},
             {Zone.EmberValley, "Finding Boom Slimes in the Ember Valley"},
@@ -44,8 +47,8 @@ public static class DiscordRPCManager
             {Zone.LabyrinthHub, "Staring at the Impossible Sky"},
             {Zone.LabyrinthCore, "Inspecting the Core"},
             {Zone.MainMenu, "Getting ready for adventures!"},
-            {Zone.FinalBoss, "Fighting it."},
-            {Zone.Ending, "Relaxing after the end"},
+            {Zone.FinalBoss, "||Fighting the *Final Boss*||..."}, // i guess we using markdown now
+            {Zone.Ending, "Relaxing after the end"}
         });
 
     private static readonly ReadOnlyDictionary<string, Zone> DefinitionToZone =
@@ -67,12 +70,13 @@ public static class DiscordRPCManager
             {"Conservatory Den", Zone.Conservatory},
             {"Conservatory Digsite", Zone.Conservatory},
             {"Conservatory Gully", Zone.Conservatory},
-            {"Conservatory Pools", Zone.Conservatory},
+            {"Conservatory Pools", Zone.Conservatory}
         });
 
     private static readonly ReadOnlyDictionary<Zone, string> ZoneToIcon =
         new(new Dictionary<Zone, string>
         {
+            {Zone.Unknown, "unknown"},
             {Zone.Conservatory, "conservatory"},
             {Zone.RainbowFields, "rainbowfields"},
             {Zone.StarlightStand, "starlightstand"},
@@ -86,7 +90,7 @@ public static class DiscordRPCManager
             {Zone.LabyrinthCore, "core"},
             {Zone.MainMenu, "mainmenu"},
             {Zone.FinalBoss, "battle"},
-            {Zone.Ending, "ending"},
+            {Zone.Ending, "ending"}
         });
 
     private const string DetailsStringOnline = "Playing in a group of {0} players";
@@ -108,34 +112,38 @@ public static class DiscordRPCManager
     }
 
     public static ZoneDefinition? currentZone;
-    public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup.name == "OutroSequence";
+
+    public static bool IsInEndingCutscene => SystemContext.Instance.SceneLoader._currentSceneGroup?.name == "OutroSequence";
+    public static bool IsFightingFinalBoss => BossFightController.Instance?._bossFightIsActive == true;
 
     internal static void UpdatePresence()
     {
-        var online = Main.Server.IsRunning() || Main.Client.IsConnected;
-        var solo = playerManager.PlayerCount < 2;
+        var online = Main.Server.IsRunning || Main.Client.IsConnected;
+        var solo = PlayerManager.PlayerCount < 2;
 
         var details = online
             ? solo
                 ? DetailsStringOnlineSolo
-                : string.Format(DetailsStringOnline, playerManager.PlayerCount)
+                : string.Format(DetailsStringOnline, PlayerManager.PlayerCount)
             : DetailsStringOffline;
-        var currentLocation = currentZone ? DefinitionToZone[currentZone!.name] : Zone.MainMenu;
+        var currentLocation = currentZone ? (DefinitionToZone.TryGetValue(currentZone!.name, out var zone) ? zone : Zone.Unknown) : Zone.MainMenu;
 
-        //if (IsInEndingCutscene)
-        //    currentLocation = Zone.Ending;
+        if (IsFightingFinalBoss)
+            currentLocation = Zone.FinalBoss;
+        if (IsInEndingCutscene)
+            currentLocation = Zone.Ending;
 
         var status = ZoneToStatus[currentLocation];
         var icon = ZoneToIcon[currentLocation];
 
-        rpcClient.SetPresence(new RichPresence
+        rpcClient?.SetPresence(new RichPresence
         {
             Details = details,
             State = status,
             Assets = new Assets
             {
                 LargeImageKey = icon,
-                LargeImageText = string.Empty,
+                LargeImageText = string.Empty
             },
             Buttons = new[]
             {

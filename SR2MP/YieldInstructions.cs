@@ -3,23 +3,41 @@ using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 
 namespace SR2MP;
 
-public abstract class MpYieldInstruction : IEnumerator
+internal abstract class MpYieldInstruction : IEnumerator
 {
-    public object? Current => null;
+    public virtual object? Current => null;
 
     protected abstract bool ShouldWait { get; }
 
     public bool MoveNext() => ShouldWait;
 
-    public void Reset() { }
+    public virtual void Reset() { }
 }
 
-public sealed class WaitForSceneGroupLoad : MpYieldInstruction
+internal sealed class WaitForSceneGroupLoad : MpYieldInstruction
 {
-    private readonly bool state;
-    private readonly SceneLoader sceneLoader = SystemContext.Instance.SceneLoader;
+    private readonly bool targetState;
 
-    public WaitForSceneGroupLoad(bool state = true) => this.state = state;
+    private SceneLoader sceneLoader = SystemContext.Instance.SceneLoader;
 
-    protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == state;
+    public override object Current => sceneLoader;
+
+    protected override bool ShouldWait => sceneLoader.IsSceneLoadInProgress == targetState;
+
+    public WaitForSceneGroupLoad(bool waitWhileLoading = true) => targetState = waitWhileLoading;
+
+    public override void Reset() => sceneLoader = SystemContext.Instance.SceneLoader; // Attempts to fetch the newest instance
+}
+
+internal sealed class WaitFrames : MpYieldInstruction
+{
+    private readonly byte framesToWait;
+
+    private byte waited;
+
+    protected override bool ShouldWait => waited++ < framesToWait;
+
+    public WaitFrames(byte frames) => framesToWait = frames;
+
+    public override void Reset() => waited = 0;
 }

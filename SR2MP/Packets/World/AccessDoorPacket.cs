@@ -3,23 +3,24 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
-public sealed class AccessDoorPacket : IPacket
+internal sealed class AccessDoorPacket : IPacket
 {
-    public string ID { get; set; }
-    public AccessDoor.State State { get; set; }
+    public string ID;
+    public AccessDoor.State State;
 
     public PacketType Type => PacketType.AccessDoor;
     public PacketReliability Reliability => PacketReliability.Reliable;
+    public NetworkChannel Channel => NetworkChannel.WorldState;
 
     public void Serialise(PacketWriter writer)
     {
         writer.WriteString(ID);
-        writer.WriteEnum(State);
+        writer.WritePackedEnum(State);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadString();
-        State = reader.ReadEnum<AccessDoor.State>();
+        ID = reader.ReadPooledString()!;
+        State = reader.ReadPackedEnum<AccessDoor.State>();
     }
 }

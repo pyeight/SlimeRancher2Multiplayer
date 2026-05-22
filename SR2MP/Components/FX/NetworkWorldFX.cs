@@ -1,25 +1,24 @@
+using JetBrains.Annotations;
 using MelonLoader;
 using SR2MP.Packets.FX;
+using Starlight.Storage;
 
 namespace SR2MP.Components.FX;
 
-[RegisterTypeInIl2Cpp(false)]
-public sealed class NetworkWorldFX : MonoBehaviour
+[InjectIntoIL]
+internal sealed class NetworkWorldFX : MonoBehaviour
 {
-    public WorldFXType fxType;
+    public WorldFXType FXType;
 
-    private void OnEnable()
+    [UsedImplicitly]
+    public void OnEnable()
     {
-        SendPacket();
-    }
-
-    private void SendPacket()
-    {
-        if (handlingPacket) return;
+        if (HandlingPacket)
+            return;
 
         var packet = new WorldFXPacket
         {
-            FX = fxType,
+            FX = FXType,
             Position = transform.position
         };
 

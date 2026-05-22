@@ -5,7 +5,7 @@ using SR2MP.Packets.Actor;
 namespace SR2MP.Patches.Actor;
 
 [HarmonyPatch(typeof(Vacuumable), nameof(Vacuumable.Capture))]
-public static class OnActorVacced
+internal static class OnActorVacced
 {
     public static void Postfix(Vacuumable __instance)
     {
@@ -18,7 +18,7 @@ public static class OnActorVacced
         var packet = new ActorTransferPacket
         {
             ActorId = __instance._identifiable.GetActorId(),
-            OwnerPlayer = LocalID,
+            OwnerId = LocalID
         };
 
         Main.SendToAllOrServer(packet);

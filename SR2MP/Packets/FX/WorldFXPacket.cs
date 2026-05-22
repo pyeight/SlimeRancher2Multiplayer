@@ -2,9 +2,9 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.FX;
 
-public struct WorldFXPacket : IPacket
+internal struct WorldFXPacket : IPacket
 {
-    public enum WorldFXType : byte
+    internal enum WorldFXType : byte
     {
         None,
         BuyPlot,
@@ -14,17 +14,18 @@ public struct WorldFXPacket : IPacket
         SellPlortDroneSound,
         FavoriteFoodEaten, // Also applies to gordo slimes.
         GordoFoodEaten,
-        GordoFoodEatenSound,
+        GordoFoodEatenSound
         // FabricatorPurchaseGadget,
         // FabricatorPurchaseUpgrade,
     }
 
-    public Vector3 Position { get; set; }
+    public Vector3 Position;
 
-    public WorldFXType FX { get; set; }
+    public WorldFXType FX;
 
     public readonly PacketType Type => PacketType.WorldFX;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
+    public readonly NetworkChannel Channel => NetworkChannel.FX;
 
     public readonly void Serialise(PacketWriter writer)
     {

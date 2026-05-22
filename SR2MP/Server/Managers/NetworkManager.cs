@@ -1,18 +1,20 @@
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
-using SR2MP.Shared.Managers;
 using SR2MP.Packets.Utils;
+using SR2MP.Server.Models;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Server.Managers;
 
-public sealed class NetworkManager
+internal sealed class NetworkManager
 {
     private UdpClient? udpClient;
     private volatile bool isRunning;
     private Thread? receiveThread;
     private ReliabilityManager? reliabilityManager;
 
-    public event Action<byte[], IPEndPoint>? OnDataReceived;
+    public event Action<byte[], int, IPEndPoint>? OnDataReceived;
 
     public bool IsRunning => isRunning;
 
@@ -20,7 +22,7 @@ public sealed class NetworkManager
     {
         if (isRunning)
         {
-            SrLogger.LogMessage("Server is already running!", SrLogTarget.Both);
+            SrLogger.LogMessage("Server is already running!");
             return;
         }
 
@@ -31,12 +33,12 @@ public sealed class NetworkManager
                 udpClient = new UdpClient(AddressFamily.InterNetworkV6);
                 udpClient.Client.DualMode = true;
                 udpClient.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
-                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}", SrLogTarget.Both);
+                SrLogger.LogMessage($"Server started in dual mode (IPv6 + IPv4) on port: {port}");
             }
             else
             {
                 udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-                SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}", SrLogTarget.Both);
+                SrLogger.LogMessage($"Server started in IPv4 mode on port: {port}");
             }
 
             udpClient.Client.ReceiveBufferSize = 512 * 1024;
@@ -48,13 +50,15 @@ public sealed class NetworkManager
 
             isRunning = true;
 
-            receiveThread = new Thread(new Action(ReceiveLoop));
-            receiveThread.IsBackground = true;
+            receiveThread = new Thread(new Action(ReceiveLoop))
+            {
+                IsBackground = true
+            };
             receiveThread.Start();
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Failed to start Server: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Failed to start Server: {ex}");
             throw;
         }
     }
@@ -63,133 +67,111 @@ public sealed class NetworkManager
     {
         if (udpClient == null)
         {
-            SrLogger.LogError("Server is null in ReceiveLoop!", SrLogTarget.Both);
+            SrLogger.LogError("Server is null in ReceiveLoop!");
             return;
         }
 
-        SrLogger.LogMessage("Server ReceiveLoop started!", SrLogTarget.Both);
+        SrLogger.LogMessage("Server ReceiveLoop started!");
 
-        IPEndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
+        EndPoint remoteEp = new IPEndPoint(IPAddress.IPv6Any, 0);
+        var receiveBuffer = ArrayPool<byte>.Shared.Rent(2048);
 
-        while (isRunning)
+        try
         {
-            try
+            while (isRunning)
             {
-                byte[] data = udpClient.Receive(ref remoteEp);
+                try
+                {
+                    var receivedBytes = udpClient.Client.ReceiveFrom(receiveBuffer, ref remoteEp);
 
-                if (data.Length == 0)
-                    continue;
-
-                OnDataReceived?.Invoke(data, remoteEp);
-            }
-            catch (SocketException)
-            {
-                // never happens, no timeout set
-            }
-            catch (Exception ex)
-            {
-                if (isRunning)
-                    SrLogger.LogError($"ReceiveLoop error: {ex}", SrLogTarget.Both);
+                    if (receivedBytes > 0)
+                        OnDataReceived?.Invoke(receiveBuffer, receivedBytes, (IPEndPoint)remoteEp);
+                }
+                catch (SocketException)
+                {
+                    // never happens, no timeout set
+                }
+                catch (Exception ex)
+                {
+                    if (isRunning)
+                        SrLogger.LogError($"ReceiveLoop error: {ex}");
+                }
             }
         }
-
-        SrLogger.LogMessage("Server ReceiveLoop stopped", SrLogTarget.Both);
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(receiveBuffer);
+            SrLogger.LogMessage("Server ReceiveLoop stopped");
+        }
     }
 
-    public void Send(byte[] data, IPEndPoint endPoint, PacketReliability? reliability = null)
+    public void Send(ReadOnlySpan<byte> data, IPEndPoint endPoint, PacketReliability? reliability = null,
+        NetworkChannel channel = NetworkChannel.Default)
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogWarning("Cannot send: Server not running!", SrLogTarget.Both);
+            SrLogger.LogWarning("Cannot send: Server not running!");
             return;
         }
 
         try
         {
-            PacketReliability packetReliability = reliability ?? PacketReliability.Unreliable;
+            var packetReliability = reliability ?? PacketReliability.Unreliable;
             ushort sequenceNumber = 0;
 
-            if (packetReliability == PacketReliability.ReliableOrdered)
-            {
-                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
-            }
+            if (packetReliability.HasFlag(PacketReliability.Ordered))
+                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(channel, data[0], endPoint) ?? 0;
 
-            var chunks = PacketChunkManager.SplitPacket(data, packetReliability, sequenceNumber, out ushort packetId);
+            var splitResult = PacketChunkManager.SplitPacket(data, packetReliability, channel, sequenceNumber, out var packetId);
 
-            if (packetReliability != PacketReliability.Unreliable)
-            {
-                reliabilityManager?.TrackPacket(chunks, endPoint, packetId, data[0], packetReliability, sequenceNumber);
-            }
+            if (packetReliability.HasFlag(PacketReliability.Reliable))
+                reliabilityManager?.TrackPacket(splitResult, endPoint, packetId, data[0], packetReliability);
 
-            foreach (var chunk in chunks)
-            {
-                SendRaw(chunk, endPoint);
-            }
+            for (var i = 0; i < splitResult.Count; i++)
+                SendRaw(splitResult.Chunks[i], endPoint);
+
+            if (!packetReliability.HasFlag(PacketReliability.Reliable))
+                splitResult.Dispose();
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Send failed to {endPoint}: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Send failed to {endPoint}: {ex}");
         }
     }
 
-    // Broadcast to multiple endpoints efficiently
-    public void Broadcast(byte[] data, IEnumerable<IPEndPoint> endpoints, PacketReliability? reliability = null)
+    public void Broadcast(ReadOnlySpan<byte> data, ICollection<ClientInfo> endPoints,
+        PacketReliability? reliability = null, NetworkChannel channel = NetworkChannel.Important)
     {
         if (udpClient == null || !isRunning)
         {
-            SrLogger.LogWarning("Cannot broadcast: Server not running!", SrLogTarget.Both);
+            SrLogger.LogWarning("Cannot broadcast: Server not running!");
             return;
         }
 
         try
         {
-            PacketReliability finalReliability = reliability ?? PacketReliability.Unreliable;
-            ushort sequenceNumber = 0;
-
-            if (finalReliability == PacketReliability.ReliableOrdered)
-            {
-                sequenceNumber = reliabilityManager?.GetNextSequenceNumber(data[0]) ?? 0;
-            }
-
-            // Split once, send to many
-            var chunks = PacketChunkManager.SplitPacket(data, finalReliability, sequenceNumber, out ushort packetId);
-
-            foreach (var endpoint in endpoints)
-            {
-                // Track for reliability if needed
-                if (finalReliability != PacketReliability.Unreliable)
-                {
-                    reliabilityManager?.TrackPacket(chunks, endpoint, packetId, data[0], finalReliability, sequenceNumber);
-                }
-
-                foreach (var chunk in chunks)
-                {
-                    SendRaw(chunk, endpoint);
-                }
-            }
+            foreach (var endPoint in endPoints)
+                Send(data, endPoint.EndPoint, reliability, channel);
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Broadcast failed: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Broadcast failed: {ex}");
         }
     }
 
     // Sends raw data without reliability tracking (used for resends or internally)
-    private void SendRaw(byte[] data, IPEndPoint endPoint)
+    private void SendRaw(ArraySegment<byte> data, IPEndPoint endPoint)
     {
-        udpClient?.Send(data, data.Length, endPoint);
+        if (data.Array != null)
+            udpClient?.Client.SendTo(data.Array, data.Offset, data.Count, SocketFlags.None, endPoint);
     }
 
     public void HandleAck(IPEndPoint sender, ushort packetId, byte packetType)
-    {
-        reliabilityManager?.HandleAck(sender, packetId, packetType);
-    }
+        => reliabilityManager?.HandleAck(sender, packetId, packetType);
 
-    // Check if ordered packet should be processed
-    public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType)
-    {
-        return reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType) ?? true;
-    }
+    public bool ShouldProcessOrderedPacket(IPEndPoint sender, ushort sequenceNumber, byte packetType,
+        NetworkChannel channel, PacketReliability reliability, Action? processAction = null)
+            => reliabilityManager?.ShouldProcessOrderedPacket(sender, sequenceNumber, packetType, channel, reliability, processAction) ?? true;
 
     public void Stop()
     {
@@ -205,14 +187,14 @@ public sealed class NetworkManager
 
             if (receiveThread is { IsAlive: true })
             {
-                SrLogger.LogWarning("Receive thread did not stop gracefully", SrLogTarget.Both);
+                SrLogger.LogWarning("Receive thread did not stop gracefully");
             }
 
-            SrLogger.LogMessage("Server stopped", SrLogTarget.Both);
+            SrLogger.LogMessage("Server stopped");
         }
         catch (Exception ex)
         {
-            SrLogger.LogError($"Error stopping Server: {ex}", SrLogTarget.Both);
+            SrLogger.LogError($"Error stopping Server: {ex}");
         }
     }
 
