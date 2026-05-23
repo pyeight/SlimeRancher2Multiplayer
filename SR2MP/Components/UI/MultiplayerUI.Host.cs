@@ -49,17 +49,20 @@ internal sealed partial class MultiplayerUI
         if (hostIpInput.Length == 0)
             DrawText("Invalid IP. Must not be empty");
 
-        if (ushort.TryParse(hostLocalPortInput, out var hostPort))
-        {
-            GUI.enabled = !hostAutoInProgress;
-            if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : "Start Server"))
-                TryHostManual(hostIpInput, hostPort);
-            GUI.enabled = true;
-        }
-        else
-        {
-            DrawText("Invalid port. Must be a number from 1 to 65535.");
-        }
+        var ipValid = hostIpInput.Length > 0 && (hostIpInput != "127.0.0.1" || DevMode);
+        var localPortValid = ushort.TryParse(hostLocalPortInput, out var hostPort);
+        var tunnelPortValid = ushort.TryParse(hostTunnelPortInput, out var tunnelPort);
+
+        if (!localPortValid)
+            DrawText("Invalid local port. Must be a number from 1 to 65535.");
+
+        if (!tunnelPortValid)
+            DrawText("Invalid tunnel port. Must be a number from 1 to 65535.");
+
+        GUI.enabled = ipValid && localPortValid && tunnelPortValid && !hostAutoInProgress;
+        if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : "Start Server"))
+            TryHostManual(hostIpInput, tunnelPort, hostPort);
+        GUI.enabled = true;
     }
 
     private void DrawHostAutomatic()

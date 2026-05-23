@@ -15,7 +15,7 @@ internal sealed partial class MultiplayerUI
         Main.SetConfigValue("host_port", hostLocalPortInput);
     }
 
-    private void TryHostManual(string ip, ushort port)
+    private void TryHostManual(string ip, ushort tunnelPort, ushort localPort)
     {
         hostManualError = string.Empty;
         hostManualJoinCode = string.Empty;
@@ -29,11 +29,11 @@ internal sealed partial class MultiplayerUI
             return;
         }
 
-        Host(port);
-        hostManualJoinCode = JoinCode.Encode(address, port);
+        Host(localPort);
+        hostManualJoinCode = JoinCode.Encode(address, tunnelPort);
     }
 
-    internal void StartAutoHost()
+    private void StartAutoHost()
     {
         if (hostAutoInProgress) return;
 
@@ -218,6 +218,7 @@ internal sealed partial class MultiplayerUI
         portInput = portInput.WithAllWhitespaceStripped();
         hostLocalPortInput = hostLocalPortInput.WithAllWhitespaceStripped();
         hostIpInput = hostIpInput.WithAllWhitespaceStripped();
+        hostTunnelPortInput = hostTunnelPortInput.WithAllWhitespaceStripped();
         joinCodeInput = joinCodeInput.WithAllWhitespaceStripped();
     }
 }
