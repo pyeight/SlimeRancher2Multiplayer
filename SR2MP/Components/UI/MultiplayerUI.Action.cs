@@ -12,7 +12,7 @@ internal sealed partial class MultiplayerUI
     {
         MenuEUtil.CloseOpenMenu();
         Main.Server.Start(port, true);
-        Main.SetConfigValue("host_port", hostPortInput);
+        Main.SetConfigValue("host_port", hostLocalPortInput);
     }
 
     private void TryHostManual(string ip, ushort port)
@@ -57,7 +57,7 @@ internal sealed partial class MultiplayerUI
             return;
         }
 
-        hostPortInput = result.Port.ToString();
+        hostLocalPortInput = result.Port.ToString();
         Host(result.Port);
         hostAutoJoinCode = result.JoinCode;
         hostAutoInProgress = false;
@@ -216,7 +216,7 @@ internal sealed partial class MultiplayerUI
     {
         ipInput = ipInput.WithAllWhitespaceStripped();
         portInput = portInput.WithAllWhitespaceStripped();
-        hostPortInput = hostPortInput.WithAllWhitespaceStripped();
+        hostLocalPortInput = hostLocalPortInput.WithAllWhitespaceStripped();
         hostIpInput = hostIpInput.WithAllWhitespaceStripped();
         joinCodeInput = joinCodeInput.WithAllWhitespaceStripped();
     }

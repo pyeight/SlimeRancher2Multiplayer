@@ -2,7 +2,8 @@
 
 internal sealed partial class MultiplayerUI
 {
-    private string hostPortInput = "1919";
+    private string hostLocalPortInput = "1919";
+    private string hostTunnelPortInput = string.Empty;
     private string hostIpInput = string.Empty;
 
     private string hostAutoJoinCode = string.Empty;
@@ -32,7 +33,9 @@ internal sealed partial class MultiplayerUI
         DrawText("Tunnel IP:", 2);
         hostIpInput = DrawSafeTextInput("host_ip", CalculateInputLayout(6, 2, 1), hostIpInput);
         DrawText("Tunnel Port:", 2);
-        hostPortInput = DrawSafeTextInput("host_port", CalculateInputLayout(6, 2, 1), hostPortInput);
+        hostTunnelPortInput = DrawSafeTextInput("host_tunnel_port", CalculateInputLayout(6, 2, 1), hostTunnelPortInput);
+        DrawText("Local Port:", 2);
+        hostLocalPortInput = DrawSafeTextInput("host_local_port", CalculateInputLayout(6, 2, 1), hostLocalPortInput);
 
         if (!string.IsNullOrWhiteSpace(hostManualError))
             DrawText(hostManualError);
@@ -46,7 +49,7 @@ internal sealed partial class MultiplayerUI
         if (hostIpInput.Length == 0)
             DrawText("Invalid IP. Must not be empty");
 
-        if (ushort.TryParse(hostPortInput, out var hostPort))
+        if (ushort.TryParse(hostLocalPortInput, out var hostPort))
         {
             GUI.enabled = !hostAutoInProgress;
             if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : "Start Server"))
@@ -76,12 +79,12 @@ internal sealed partial class MultiplayerUI
     private void DrawHostManualSimple()
     {
         DrawText("Local Port:", 2);
-        hostPortInput = DrawSafeTextInput("host_port", CalculateInputLayout(6, 2, 1), hostPortInput);
+        hostLocalPortInput = DrawSafeTextInput("host_port", CalculateInputLayout(6, 2, 1), hostLocalPortInput);
 
         if (!string.IsNullOrWhiteSpace(hostManualError))
             DrawText(hostManualError);
 
-        if (ushort.TryParse(hostPortInput, out var hostPort))
+        if (ushort.TryParse(hostLocalPortInput, out var hostPort))
         {
             GUI.enabled = !hostAutoInProgress;
             if (GUI.Button(CalculateButtonLayout(6), "Start Server"))
