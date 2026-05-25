@@ -300,13 +300,13 @@ internal sealed class NetworkActor : MonoBehaviour
 
     private void HandleOwnershipChange()
     {
-        if (CachedLocallyOwned == LocallyOwned)
-            return;
+        if (CachedLocallyOwned != LocallyOwned)
+        {
+            SetRigidbodyState(LocallyOwned);
 
-        SetRigidbodyState(LocallyOwned);
-
-        if (LocallyOwned && rigidbody)
-            rigidbody.velocity = savedVelocity;
+            if (LocallyOwned && rigidbody)
+                rigidbody.velocity = savedVelocity;
+        }
 
         CachedLocallyOwned = LocallyOwned;
     }
