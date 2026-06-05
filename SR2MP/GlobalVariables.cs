@@ -15,7 +15,7 @@ public static class GlobalVariables
     /// <summary>
     /// Gets or sets a value indicating whether development mode is currently active.
     /// </summary>
-    public static bool DevMode { get; } = false;
+    public static bool DevMode { get; } = true;
 
     internal static readonly string[] CheatCommands = {
         "actortype", "clearinv", "delwarp", "emotions", "fastforward", "flatlook", "fling", "floaty", "freeze",
@@ -79,6 +79,8 @@ public static class GlobalVariables
     /// Gets or sets the currently active Market UI instance.
     /// </summary>
     public static MarketUI? MarketUIInstance { get; internal set; }
+    
+    public static bool IsInRanchHouse { get; internal set; }
 
     /// <summary>
     /// The dictionary key representing the event of fog being revealed on the map.
