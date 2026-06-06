@@ -302,31 +302,31 @@ internal sealed class NetworkActor : MonoBehaviour
 
     private void HandleOwnershipChange()
     {
-        if (CachedLocallyOwned == LocallyOwned)
-            return;
+        if (CachedLocallyOwned != LocallyOwned)
+        {
+            SetRigidbodyState(LocallyOwned);
 
-        SetRigidbodyState(LocallyOwned);
-
-        if (LocallyOwned && rigidbody)
-            rigidbody.velocity = savedVelocity;
+            if (LocallyOwned && rigidbody)
+                rigidbody.velocity = savedVelocity;
+        }
 
         CachedLocallyOwned = LocallyOwned;
     }
 
     private void HandleCycleReleasing()
     {
-        if (CycleReleasing == cachedCycleReleasing)
-            return;
+        if (CycleReleasing != cachedCycleReleasing)
+        {
+            if (CycleReleasing == true)
+            {
+                var actorId = ActorId;
 
+                if (actorId.Value != 0)
+                    Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
+            }
+        }
+        
         cachedCycleReleasing = CycleReleasing;
-
-        if (CycleReleasing != true)
-            return;
-
-        var actorId = ActorId;
-
-        if (actorId.Value != 0)
-            Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
     }
 
     private void SendNetworkUpdate()
