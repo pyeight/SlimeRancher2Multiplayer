@@ -46,6 +46,7 @@ internal static class OnActorDestroy
         {
             SrLogger.LogError($"Failed to send ActorDestroy packet: {ex.Message}");
         }
+
         return true;
     }
 }

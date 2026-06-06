@@ -93,7 +93,10 @@ public static class Logger
     /// </summary>
     /// <inheritdoc cref="LogInternal"/>
     public static void LogDebug(object? message, SrLogTarget target = SrLogTarget.Both)
-        => LogInternal(message, LogLevel.Debug, target, null, null);
+    {
+        if (DevMode)
+            LogInternal(message, LogLevel.Debug, target, null, _melonLogger.Msg);
+    }
 
     /// <summary>
     /// Logs packet size information, if packet size logging is globally enabled.

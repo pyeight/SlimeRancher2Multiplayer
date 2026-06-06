@@ -42,11 +42,11 @@ internal sealed class InitialLandPlotsPacket : IPacket
 
             if (!DataTypes.TryGetValue(Type, out var dataType))
             {
-                SrLogger.LogPacketSize($"{ID} -> (No Data)");
+                SrLogger.LogDebug($"{ID} -> (No Data)");
                 return;
             }
 
-            SrLogger.LogPacketSize($"{ID} -> {dataType.Name}");
+            SrLogger.LogDebug($"{ID} -> {dataType.Name}");
             Data = (INetObject)Activator.CreateInstance(dataType)!;
             Data.Deserialise(reader);
         }

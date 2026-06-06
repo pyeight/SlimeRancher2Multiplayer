@@ -20,7 +20,7 @@ internal partial class NetworkPlayer
         radarComponent._overflowMode = RadarCompassOverflowMode.CLAMP;
         radarComponent._ranchBehaviour = RadarEntryRanchHandling.SHOW_IN_RANCH_AS_WELL;
 
-        SrLogger.LogPacketSize($"Remote player marker added: {model!.PlayerId}");
+        SrLogger.LogDebug($"Remote player marker added: {model!.PlayerId}");
     }
 
     private void RefreshMarker()

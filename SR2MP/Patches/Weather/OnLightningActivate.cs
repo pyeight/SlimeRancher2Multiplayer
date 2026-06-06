@@ -9,7 +9,7 @@ internal static class OnLightningActivate
 {
     public static void Postfix(LightningStrike __instance)
     {
-        if (__instance.gameObject.name.Contains("net", StringComparison.InvariantCultureIgnoreCase))
+        if (__instance.gameObject.name.Contains("(net)"))
             return;
 
         var packet = new LightningStrikePacket { Position = __instance.transform.position };

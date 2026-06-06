@@ -9,7 +9,7 @@ namespace SR2MP.Handlers.Player;
 
 internal abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePacket>
 {
-    protected void RemovePlayerData(string playerId)
+    protected static void RemovePlayerData(string playerId)
     {
         PlayerManager.RemovePlayer(playerId);
 
@@ -18,8 +18,7 @@ internal abstract class BasePlayerLeaveHandler : BasePacketHandler<PlayerLeavePa
             if (playerObj)
             {
                 Object.Destroy(playerObj);
-                if (!IsServerSide) SrLogger.LogPacketSize($"Destroyed player object for {playerId}");
-                else SrLogger.LogMessage($"Destroyed player object for {playerId}");
+                SrLogger.LogDebug($"Destroyed player object for {playerId}");
             }
             PlayerObjects.Remove(playerId);
         }

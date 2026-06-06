@@ -12,8 +12,6 @@ internal partial class InitialActorsPacket : IPacket
 
         actor.Deserialise(reader);
 
-        SrLogger.LogDebug($"{actorTypeEnum} Actor: {actor.ActorId}");
-
         return actor;
     };
 

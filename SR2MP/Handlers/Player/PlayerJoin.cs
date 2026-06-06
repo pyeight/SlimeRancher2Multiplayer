@@ -29,7 +29,7 @@ internal sealed class ClientPlayerJoinHandler : BasePlayerJoinHandler
     {
         if (PlayerManager.GetPlayer(packet.PlayerId) != null)
         {
-            SrLogger.LogPacketSize($"Player {packet.PlayerId} already exists");
+            SrLogger.LogDebug($"Player {packet.PlayerId} already exists");
             return false;
         }
 

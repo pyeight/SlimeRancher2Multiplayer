@@ -12,8 +12,8 @@ internal static class BuildInfo
     // MelonVersion is shown by ML on startup
     // Version is shown by Starlight
     // Version automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
-    internal const string MelonVersion = "0.3.2"; 
-    internal const string Version = "0.3.2"; // Auto-Dev_Do_not_remove
+    internal const string MelonVersion = "0.3.3"; 
+    internal const string Version = "0.3.3"; // Auto-Dev_Do_not_remove
     internal const string Discord = "https://discord.com/invite/a7wfBw5feU";
     internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
     internal const string Nexus = "https://www.nexusmods.com/slimerancher2/mods/118";
