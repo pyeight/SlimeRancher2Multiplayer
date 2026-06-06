@@ -121,7 +121,7 @@ internal sealed partial class NetworkActorManager
         const int max = 12;
 
         var player = SceneContext.Instance.player;
-        var bounds = new Bounds(player.transform.position, new Vector3(325, 1000, 325));
+        var bounds = new Bounds(player.transform.position, new Vector3(600, 1250, 600));
         
         var i = 0;
         foreach (var actor in Actors)
