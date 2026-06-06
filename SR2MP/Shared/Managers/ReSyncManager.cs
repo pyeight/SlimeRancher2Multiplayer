@@ -144,9 +144,7 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(pricesPacket,          client.EndPoint);
 
             SendWeatherPacket(client.EndPoint);
-
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
-
             SendWeatherPacket(client.EndPoint);
         }
 
@@ -466,7 +464,6 @@ internal sealed class ReSyncManager
             return new NetworkAmmo { AmmoSlots = new Dictionary<int, NetworkAmmoSlot>() };
 
         var slots = siloAmmo[ammoKey].Slots;
-
         var ammoSlots = new Dictionary<int, NetworkAmmoSlot>();
 
         for (var i = 0; i < slots.Count; i++)
@@ -482,6 +479,7 @@ internal sealed class ReSyncManager
             ammoSlots[i] = new NetworkAmmoSlot
             {
                 Count = slot.Count,
+                MaxCount = slot.MaxCount,
                 Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                 SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
             };

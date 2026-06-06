@@ -1,6 +1,7 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.Caretaker;
 using Il2CppMonomiPark.SlimeRancher.Player;
+using SR2MP.Packets.Ammo;
 using SR2MP.Shared.Utils;
 // ReSharper disable InconsistentNaming
 
@@ -39,7 +40,27 @@ internal static class NetworkAmmoManager
 
         return -1;
     }
+    
+    public static void ApplySlotData(this AmmoSlotManager ammo, NetworkAmmo networkAmmo)
+    {
+        foreach (var (slotIndex, networkSlot) in networkAmmo.AmmoSlots)
+        {
+            var ammoSlot = ammo.Slots[slotIndex];
+            if (ammoSlot != null)
+            {
+                ammoSlot.Count = networkSlot.Count;
+                ammoSlot.MaxCount = networkSlot.MaxCount;
+            }
 
+            var ammoModelSlot = ammo._ammoModel?.Slots[slotIndex];
+            if (ammoModelSlot != null)
+            {
+                ammoModelSlot.Count = networkSlot.Count;
+                ammoModelSlot.MaxCount = networkSlot.MaxCount;
+            }
+        }
+    }
+    
     private static readonly Dictionary<ushort, AmmoSlotDefinition> slotDefinitions = new();
     private static readonly Dictionary<IntPtr, string> ammoToID = new();
     private static readonly Dictionary<string, AmmoSlotManager> IDToAmmo = new();
@@ -63,7 +84,7 @@ internal static class NetworkAmmoManager
 
     public static AmmoSlotManager? GetAmmo(string? id) => IDToAmmo!.GetValueOrDefault(id);
 
-    public static void ClearAmmoCache()
+    private static void ClearAmmoCache()
     {
         ammoToID.Clear();
         IDToAmmo.Clear();

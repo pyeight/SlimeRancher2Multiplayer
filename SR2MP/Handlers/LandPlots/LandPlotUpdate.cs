@@ -24,6 +24,12 @@ internal sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpg
             HandlingPacket = true;
             landPlotComponent.AddUpgrade(packet.ID);
             HandlingPacket = false;
+            
+            foreach (var storage in model.gameObj.GetComponentsInChildren<SiloStorage>(true))
+            {
+                if (storage.Ammo == null) continue;
+                model.siloAmmo[storage.AmmoSetReference.Guid] = storage.Ammo._ammoModel;
+            }
         }
 
         return true;

@@ -201,6 +201,7 @@ internal sealed partial class NetworkActorManager
                     slot => new NetworkAmmoSlot()
                     {
                         Count = slot.Count,
+                        MaxCount = slot.MaxCount,
                         Identifiable = GetPersistentID(slot._id),
                         SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
                     })
