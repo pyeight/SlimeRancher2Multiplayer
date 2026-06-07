@@ -35,7 +35,7 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
     private Vector3 savedVelocity;
 
-    private bool isSlime;
+    internal bool isSlime;
     private bool isResource;
     private bool isPlort;
 
