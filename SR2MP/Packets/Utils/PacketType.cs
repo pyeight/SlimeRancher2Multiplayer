@@ -23,7 +23,8 @@ internal enum PacketType : byte
     PlayerUpgrade = 18,           // Both Ways                                    Low (manual)                          On Upgrade
     ActorSpawn = 19,              // Both Ways                                    High (can be manual)                  On Actor Spawn
     ActorDestroy = 20,            // Both Ways                                    High (can be manual)                  On Actor Destroy
-    ActorUpdate = 21,             // Both Ways                                    Very High                             On Actor Update
+    ActorState = 122,             // Both Ways                                    High                                  On Actor State Update
+    ActorUpdate = 21,             // Both Ways                                    Very High                             On Actor Position / Rotation Update
     ActorTransfer = 22,           // Both Ways                                    High (can be manual)                  On Actor Transfer
     ActorUnload = 23,             // Both Ways                                    High                                  On Actor unloaded
     InitialActors = 24,           // Server -> Client                             Low                                   Actors on Load
