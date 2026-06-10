@@ -84,6 +84,8 @@ internal sealed partial class MultiplayerUI
         DrawText("Local Port:", 2);
         hostLocalPortInput = DrawSafeTextInput("host_port", CalculateInputLayout(6, 2, 1), hostLocalPortInput);
 
+        // todo: separate manual code and manual simple, if manual code errors,
+        // actually no need really, if people use manualcode command, they know what they're doing
         if (!string.IsNullOrWhiteSpace(hostManualError))
             DrawText(hostManualError);
 
