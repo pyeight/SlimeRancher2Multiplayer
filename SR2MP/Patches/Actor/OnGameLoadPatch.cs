@@ -18,11 +18,18 @@ internal static class OnGameLoadPatch
 
             if (!transform)
                 continue;
+            
             var networkComponent = transform.GetComponent<NetworkActor>();
 
-            if (networkComponent) continue;
-
-            transform.gameObject.AddComponent<NetworkActor>().LocallyOwned = true;
+            if (networkComponent)
+            {
+                networkComponent.CurrentOwnerId = LocalID;
+                continue;
+            }
+            
+            var networkComponent2 = transform.gameObject.AddComponent<NetworkActor>();
+            networkComponent2.LocallyOwned = true;
+            networkComponent2.CurrentOwnerId = LocalID;
 
             ActorManager.Actors[actor.value.actorId.Value] = actor.value;
         }

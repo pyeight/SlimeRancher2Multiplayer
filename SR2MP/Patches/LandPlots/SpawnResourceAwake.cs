@@ -8,6 +8,8 @@ internal static class SpawnResourceAwakePatch
 {
     public static void Postfix(SpawnResource __instance)
     {
+        if (!Main.Server.IsRunning || !Main.Client.IsConnected) return;
+        
         if (__instance.gameObject.GetComponent<NetworkGarden>() == null)
             __instance.gameObject.AddComponent<NetworkGarden>();
     }

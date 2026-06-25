@@ -8,13 +8,13 @@ internal sealed partial class NetworkActor
 
     private void UpdateResourceState()
     {
-        if (!isResource || LocallyOwned || cycle == null || cycle._model == null || ShouldUpdateResourceState)
+        if (!isResource || LocallyOwned || cycle == null || cycle._model == null)
             return;
 
-        cycle._model.progressTime = double.MaxValue;
-        ShouldUpdateResourceState = false;
+        if (!ShouldUpdateResourceState)
+            cycle._model.progressTime = double.MaxValue;
     }
-    
+
     private void HandleCycleReleasing()
     {
         if (CycleReleasing != cachedCycleReleasing)

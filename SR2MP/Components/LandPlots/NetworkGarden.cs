@@ -1,6 +1,5 @@
 ﻿using Il2CppMonomiPark.SlimeRancher.Regions;
 using JetBrains.Annotations;
-using MelonLoader;
 using SR2MP.Packets.LandPlots;
 using Starlight.Storage;
 
@@ -15,8 +14,10 @@ internal sealed class NetworkGarden : MonoBehaviour
     public static readonly Dictionary<string, NetworkGarden> Gardens = new();
 
     public bool LocallyOwned { get; set; }
-    private double cachedNextSpawnTime;
+    public bool IsHibernated { get; private set; }
+    public string CurrentOwnerId { get; set; } = string.Empty;
 
+    private double cachedNextSpawnTime;
     private float syncTimer;
     private const float SyncInterval = 5f;
 
@@ -29,13 +30,22 @@ internal sealed class NetworkGarden : MonoBehaviour
         if (garden != null && !string.IsNullOrEmpty(garden._id))
             Gardens[garden._id] = this;
 
-        LocallyOwned = true;
+        IsHibernated = false;
+        LocallyOwned = Main.Server.IsRunning;
 
-        if (Main.Client.IsConnected)
-            LocallyOwned = false;
+        if (Main.Server.IsRunning)
+            CurrentOwnerId = Main.Server.PlayerId;
     }
 
     public void Start()
+    {
+        SetupHibernationEvent();
+
+        if (Main.Client.IsConnected && !LocallyOwned && !IsHibernated)
+            ClaimOwnership();
+    }
+
+    private void SetupHibernationEvent()
     {
         if (regionMember == null)
             return;
@@ -60,25 +70,25 @@ internal sealed class NetworkGarden : MonoBehaviour
 
     public void OnHibernationChanged(bool hibernating)
     {
+        IsHibernated = hibernating;
+
         if (hibernating)
         {
             if (garden?._model != null)
                 cachedNextSpawnTime = garden._model.nextSpawnTime;
 
+            var wasOwner = LocallyOwned;
             LocallyOwned = false;
+
+            if (wasOwner)
+                SendOwnershipPacket(string.Empty, CurrentOwnerId);
         }
         else
         {
             if (garden?._model != null)
                 garden._model.nextSpawnTime = cachedNextSpawnTime;
 
-            LocallyOwned = true;
-
-            if (garden == null || string.IsNullOrEmpty(garden._id))
-                return;
-
-            var packet = new GardenOwnershipPacket { GardenID = garden._id };
-            Main.SendToAllOrServer(packet);
+            ClaimOwnership();
         }
     }
 
@@ -98,9 +108,9 @@ internal sealed class NetworkGarden : MonoBehaviour
 
         var packet = new GardenUpdatePacket
         {
-            GardenID = garden._id,
-            NextSpawnTime = garden._model.nextSpawnTime,
-            StoredWater = garden._model.storedWater,
+            GardenID       = garden._id,
+            NextSpawnTime  = garden._model.nextSpawnTime,
+            StoredWater    = garden._model.storedWater,
             NextSpawnRipens = garden._model.nextSpawnRipens
         };
         Main.SendToAllOrServer(packet);
@@ -119,9 +129,32 @@ internal sealed class NetworkGarden : MonoBehaviour
             return;
 
         cachedNextSpawnTime = nextSpawnTime;
-
-        garden._model.nextSpawnTime = nextSpawnTime;
-        garden._model.storedWater = storedWater;
+        
+        garden._model.nextSpawnTime  = nextSpawnTime;
+        garden._model.storedWater    = storedWater;
         garden._model.nextSpawnRipens = nextSpawnRipens;
+    }
+
+    public void ClaimOwnership()
+    {
+        var myId = Main.Client.IsConnected ? Main.Client.PlayerId : Main.Server.PlayerId;
+        LocallyOwned = true;
+        CurrentOwnerId = myId;
+        SendOwnershipPacket(myId, string.Empty);
+    }
+
+    private void SendOwnershipPacket(string claimerId, string previousOwnerId)
+    {
+        if (garden == null || string.IsNullOrEmpty(garden._id))
+            return;
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
+            return;
+
+        Main.SendToAllOrServer(new GardenOwnershipPacket
+        {
+            GardenID        = garden._id,
+            ClaimerID       = claimerId,
+            PreviousOwnerID = previousOwnerId
+        });
     }
 }

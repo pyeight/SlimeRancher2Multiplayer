@@ -1,6 +1,5 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using MelonLoader;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
@@ -31,8 +30,7 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
         }
         HandlingPacket = false;
 
-        GameState._actorIdProvider._nextActorId =
-            packet.StartingActorID;
+        GameState._actorIdProvider._nextActorId = packet.StartingActorID;
         GameState.world.worldTime = packet.WorldTime;
 
         foreach (var actor in packet.Actors)

@@ -91,7 +91,7 @@ internal sealed partial class NetworkActorManager
                 networkComponent.previousRotation = model.lastRotation;
                 networkComponent.nextRotation     = model.lastRotation;
 
-                ActorManager.Actors.Add(model.actorId.Value, model);
+                Actors.Add(model.actorId.Value, model);
             }
 
             yield return TakeOwnershipOfNearby();
@@ -116,7 +116,7 @@ internal sealed partial class NetworkActorManager
         return result;
     }
 
-    internal IEnumerator TakeOwnershipOfNearby()
+    internal IEnumerator TakeOwnershipOfNearby(bool onlyUnowned = false)
     {
         const int max = 12;
 
@@ -135,7 +135,16 @@ internal sealed partial class NetworkActorManager
             if (!actor.Value.TryGetNetworkComponent(out var netActor))
                 continue;
 
+            // todo: only if you wanna claim actors that are currently unowned, 
+            // could hook this up somewhere in the future
+            if (onlyUnowned)
+            {
+                if (!string.IsNullOrEmpty(netActor.CurrentOwnerId))
+                    continue;
+            }
+
             netActor.LocallyOwned = true;
+            netActor.CurrentOwnerId = LocalID;
 
             var actorId = netActor.ActorId;
             if (actorId.Value == 0)

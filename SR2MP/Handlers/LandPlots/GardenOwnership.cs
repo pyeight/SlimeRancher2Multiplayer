@@ -11,8 +11,28 @@ internal sealed class GardenOwnershipHandler : BasePacketHandler<GardenOwnership
 {
     protected override bool Handle(GardenOwnershipPacket packet, IPEndPoint? _)
     {
-        if (NetworkGarden.Gardens.TryGetValue(packet.GardenID, out var garden))
-            garden.LocallyOwned = false;
+        if (!NetworkGarden.Gardens.TryGetValue(packet.GardenID, out var garden))
+            return true;
+
+        if (string.IsNullOrEmpty(packet.ClaimerID))
+        {
+            if (!string.IsNullOrEmpty(garden.CurrentOwnerId) &&
+                garden.CurrentOwnerId != packet.PreviousOwnerID)
+                return true;
+            
+            if (!garden.IsHibernated)
+                garden.ClaimOwnership();
+        }
+        else
+        {
+            garden.CurrentOwnerId = packet.ClaimerID;
+
+            if (garden.IsHibernated)
+                garden.LocallyOwned = false;
+            
+            else if (packet.ClaimerID != garden.CurrentOwnerId || !garden.LocallyOwned)
+                garden.LocallyOwned = false;
+        }
 
         return true;
     }

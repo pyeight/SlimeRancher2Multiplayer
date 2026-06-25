@@ -30,6 +30,8 @@ internal sealed partial class NetworkActor : MonoBehaviour
     public byte  AttemptedGetIdentifiable;
     public bool  CachedLocallyOwned;
 
+    public string CurrentOwnerId = string.Empty;
+
     private bool? CycleReleasing => cycle?._preparingToRelease;
     private bool? cachedCycleReleasing;
 
@@ -177,9 +179,17 @@ internal sealed partial class NetworkActor : MonoBehaviour
             LocallyOwned = !hibernating;
 
             if (hibernating)
-                Main.SendToAllOrServer(new ActorUnloadPacket { ActorId = actorId });
+                Main.SendToAllOrServer(new ActorUnloadPacket
+                {
+                    ActorId  = actorId,
+                    SenderId = LocalID
+                });
             else
-                Main.SendToAllOrServer(new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID });
+                Main.SendToAllOrServer(new ActorTransferPacket
+                {
+                    ActorId = actorId,
+                    OwnerId = LocalID
+                });
         }
         catch (Exception ex)
         {

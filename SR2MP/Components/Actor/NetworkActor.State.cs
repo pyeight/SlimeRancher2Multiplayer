@@ -49,7 +49,7 @@ internal sealed partial class NetworkActor
             var currentInvulnerable       = plortModel?._invulnerability?.IsInvulnerable       ?? false;
             var currentInvulnerablePeriod = plortModel?._invulnerability?.InvulnerabilityPeriod ?? 0f;
 
-            return currentInvulnerable != lastSentInvulnerable || currentInvulnerablePeriod != lastSentInvulnerablePeriod;
+            return currentInvulnerable != lastSentInvulnerable || !Mathf.Approximately(currentInvulnerablePeriod, lastSentInvulnerablePeriod);
         }
 
         return false;
