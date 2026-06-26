@@ -24,7 +24,9 @@ internal sealed class RemoteFXManager
         if (cue.name.Contains("Step")
             || cue.name.Contains("Run")
             || cue.name.Contains("Jump")
-            || cue.name.Contains("Land"))
+            || cue.name.Contains("Land")
+            || cue.name.Contains("Splash")
+            || cue.name.Contains("Water"))
         {
             return true;
         }
@@ -66,7 +68,8 @@ internal sealed class RemoteFXManager
             { PlayerFXType.None, null! },
             { PlayerFXType.VacReject, AllFX["FX_vacReject"] },
             { PlayerFXType.VacAccept, AllFX["FX_vacAcquire"] },
-            { PlayerFXType.VacShoot, AllFX["FX_VacpackShoot"] }
+            { PlayerFXType.VacShoot, AllFX["FX_VacpackShoot"] },
+            { PlayerFXType.WaterSplash, null! }
         };
         PlayerAudioCueMap = new Dictionary<PlayerFXType, SECTR_AudioCue>
         {
@@ -95,8 +98,8 @@ internal sealed class RemoteFXManager
             { WorldFXType.SellPlortDroneSound, AllCues["SiloRewardDrone"]},
             { WorldFXType.GordoFoodEatenSound, AllCues["GordoGulp"] }
             // { WorldFXType.FabricatorPurchaseGadget, AllCues["PurchaseGadget"] },
-           // { WorldFXType.FabricatorPurchaseGadget, AllCues["Click3"] },
-           // { WorldFXType.FabricatorPurchaseUpgrade, AllCues["PurchaseFabricatorUpgrade"] },
+            // { WorldFXType.FabricatorPurchaseGadget, AllCues["Click3"] },
+            // { WorldFXType.FabricatorPurchaseUpgrade, AllCues["PurchaseFabricatorUpgrade"] },
         };
 
         foreach (var (playerFX, obj) in PlayerFXMap)
@@ -171,8 +174,8 @@ internal sealed class RemoteFXManager
 
     public static void PlayTransientAudio(SECTR_AudioCue cue, Vector3 position, float volume, bool loop = false)
     {
-        var played = SECTR_AudioSystem.Play(cue, position, loop);
+        var audio = SECTR_AudioSystem.Play(cue, position, loop);
 
-        played.Volume = volume;
+        audio.Volume = volume;
     }
 }
