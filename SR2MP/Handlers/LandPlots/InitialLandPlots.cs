@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Components.LandPlots;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
@@ -79,7 +80,9 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                                     Destroyer.Destroy(connectedObj, "InitialLandPlotsHandler.OnDestroy");
                                 }
 
-                                spawnResource._model.nextSpawnTime = double.MaxValue;
+                                var networkGarden = plantedObject.GetComponent<NetworkGarden>();
+                                if (networkGarden != null)
+                                    networkGarden.ApplyUpdate(garden.NextSpawnTime, garden.StoredWater, garden.NextSpawnRipens);
                             }
                         }
                     }
