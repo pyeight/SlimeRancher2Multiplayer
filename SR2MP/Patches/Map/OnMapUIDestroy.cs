@@ -8,8 +8,8 @@ internal static class OnMapUIDestroy
 {
     public static void Prefix(MapUI __instance)
     {
-        if (OnMapUIStart.activeMapUI == __instance)
-            OnMapUIStart.activeMapUI = null;
+        if (ActiveMapUI == __instance)
+            ActiveMapUI = null;
 
         foreach (var pair in PlayerMarkerTransforms)
         {
