@@ -425,5 +425,5 @@ public sealed class SR2MPClient
     /// Retrieves a list of all currently connected remote players.
     /// </summary>
     /// <returns>A <see cref="List{RemotePlayer}"/> containing all active remote players in the session.</returns>
-    public static List<RemotePlayer> GetAllRemotePlayers() => PlayerManager.GetAllPlayers();
+    private static List<RemotePlayer> GetAllRemotePlayers() => PlayerManager.GetAllPlayers();
 }
