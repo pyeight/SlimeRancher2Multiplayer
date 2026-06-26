@@ -12,7 +12,7 @@ internal sealed class PlayerFXPacket : IPacket
         VacAccept,
         VacShoot,
         VacShootEmpty,
-        // WaterSplash,
+        WaterSplash,
         VacSlotChange,
         VacRunning,
         VacRunningStart,

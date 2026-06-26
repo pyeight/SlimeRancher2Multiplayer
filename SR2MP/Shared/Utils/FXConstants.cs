@@ -11,6 +11,7 @@ internal static class FXConstants
         { PlayerFXType.VacReject, false },
         { PlayerFXType.VacAccept, false },
         { PlayerFXType.VacShoot, false },
+        { PlayerFXType.WaterSplash, false },
 
         { PlayerFXType.VacHold, true },
         { PlayerFXType.VacShootEmpty, true },
@@ -39,6 +40,7 @@ internal static class FXConstants
         { PlayerFXType.VacRunningStart, 0.7f },
         { PlayerFXType.VacRunningEnd, 0.7f },
         { PlayerFXType.VacShootSound, 0.8f },
+        { PlayerFXType.WaterSplash, 0.5f },
         { PlayerFXType.VacHold, 0.65f }
     });
     public static readonly ReadOnlyDictionary<PlayerFXType, bool> ShouldPlayerSoundBeTransientDictionary = new(new Dictionary<PlayerFXType, bool>
