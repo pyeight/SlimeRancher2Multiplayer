@@ -5,11 +5,15 @@ using SR2MP.Packets.Player;
 using SR2MP.Shared.Managers;
 using static SR2MP.Shared.Utils.Timers;
 
+using Il2CppInterop.Runtime.Attributes;
+
 namespace SR2MP.Components.Player;
 
 internal partial class NetworkPlayer
 {
+    [HideFromIl2Cpp]
     public event Action<bool>? OnNetworkGadgetModeChanged;
+    [HideFromIl2Cpp]
     public event Action<int>? OnNetworkGadgetIDChanged;
 
     // private bool InGadgetMode => IsLocal ? PlayerItemController._gadgetItem.enabled : OnlineGadgetMode;
@@ -39,10 +43,16 @@ internal partial class NetworkPlayer
 
     private void AwakeGadgetMode()
     {
-        PlayerItemController = SceneContext.Instance.Player.GetComponent<PlayerItemController>();
-
         OnNetworkGadgetModeChanged += OnGadgetModeChanged;
         OnNetworkGadgetIDChanged += OnGadgetIDChanged;
+    }
+
+    private PlayerItemController? GetPlayerItemController()
+    {
+        if (!PlayerItemController)
+            PlayerItemController = SceneContext.Instance.Player.GetComponent<PlayerItemController>();
+        
+        return PlayerItemController;
     }
 
     private void ApplyGadgetLocalRotation()
@@ -82,11 +92,13 @@ internal partial class NetworkPlayer
             UpdateOnlineGadgetMode();
     }
 
-    private Material GetFootprintMaterial(bool isValidPlacement)
+    private Material? GetFootprintMaterial(bool isValidPlacement)
     {
+        var controller = GetPlayerItemController();
+
         return isValidPlacement
-            ? PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintValidMaterial
-            : PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintInvalidMaterial;
+            ? controller!._gadgetItem._gadgetItemMetadata.GadgetFootprintValidMaterial
+            : controller!._gadgetItem._gadgetItemMetadata.GadgetFootprintInvalidMaterial;
     }
 
     private void UpdateOnlineGadgetMode()
@@ -105,12 +117,18 @@ internal partial class NetworkPlayer
         CachedOnlineGadgetID = OnlineGadgetID;
 
         if (FootprintPrefabInstance)
-            FootprintRendererInstance!.material = GetFootprintMaterial(OnlinePlacementValid);
+        {
+            var material = GetFootprintMaterial(OnlinePlacementValid);
+            if (material != null)
+                FootprintRendererInstance!.material = material;
+        }
     }
 
     private void UpdateLocalGadgetMode()
     {
-        FootprintPrefabInstance = PlayerItemController._gadgetItem._gadgetFootprintInstance;
+        var controller = GetPlayerItemController();
+
+        FootprintPrefabInstance = controller!._gadgetItem._gadgetFootprintInstance;
 
         if (!FootprintPrefabInstance)
         {
@@ -124,7 +142,7 @@ internal partial class NetworkPlayer
             return;
         }
 
-        var gadget = PlayerItemController._gadgetItem._heldGadget;
+        var gadget = controller._gadgetItem._heldGadget;
         var gadgetID =
             gadget
             ? NetworkActorManager.GetPersistentID(gadget.Cast<IdentifiableType>())
@@ -143,14 +161,15 @@ internal partial class NetworkPlayer
             Rotation = FootprintPrefabInstance.transform.rotation,
             GadgetLocalRotation = gadgetLocalRotation,
             CurrentGadget = gadgetID,
-            ValidPlacement = (PlayerItemController._gadgetItem._isPlacementValid &&
-                              !PlayerItemController._gadgetItem._isPlacementBlocked)
+            ValidPlacement = (controller._gadgetItem._isPlacementValid &&
+                              !controller._gadgetItem._isPlacementBlocked)
                               || gadgetID == -1,
         };
 
         Main.SendToAllOrServer(packet);
     }
 
+    [HideFromIl2Cpp]
     private void OnGadgetUpdate(string playerId, RemotePlayer player)
     {
         if (ID != playerId)
@@ -190,9 +209,11 @@ internal partial class NetworkPlayer
     {
         if (newMode)
         {
-            var footprintPrefab = PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintPrefab;
+            var controller = GetPlayerItemController();
+
+            var footprintPrefab = controller!._gadgetItem._gadgetItemMetadata.GadgetFootprintPrefab;
             var footprintRendererPrefab =
-                PlayerItemController._gadgetItem._gadgetItemMetadata.GadgetFootprintRendererPrefab;
+                controller._gadgetItem._gadgetItemMetadata.GadgetFootprintRendererPrefab;
             FootprintPrefabInstance = Instantiate(footprintPrefab);
             DontDestroyOnLoad(FootprintPrefabInstance);
 
@@ -212,9 +233,11 @@ internal partial class NetworkPlayer
 
     private void OnGadgetIDChanged(int gadgetID)
     {
+        var controller = GetPlayerItemController();
+
         if (gadgetID == -1)
         {
-            SetHeldGadget(PlayerItemController._gadgetItem, null);
+            SetHeldGadget(controller!._gadgetItem, null);
             return;
         }
 
@@ -231,7 +254,7 @@ internal partial class NetworkPlayer
             return;
         }
 
-        SetHeldGadget(PlayerItemController._gadgetItem, definition);
+        SetHeldGadget(controller!._gadgetItem, definition);
     }
 
     public void SetHeldGadget(GadgetItem self, GadgetDefinition? gadgetDefinition)
