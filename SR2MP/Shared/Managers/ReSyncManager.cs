@@ -10,9 +10,11 @@ using SR2MP.Packets.Ammo;
 using SR2MP.Packets.Economy;
 using SR2MP.Packets.Internal;
 using SR2MP.Packets.Loading;
+using SR2MP.Packets.Player;
 using SR2MP.Packets.TreasurePod;
 using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;
+using SR2MP.Server.Managers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
@@ -67,6 +69,9 @@ internal sealed class ReSyncManager
         SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
         SendPricesPacket(endPoint);
         SendWeatherPacket(endPoint);
+        SendPuzzleSlotsPacket(endPoint);
+        SendPlortDepositorsPacket(endPoint);
+        SendPrismaBarriersPacket(endPoint);
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
@@ -100,16 +105,20 @@ internal sealed class ReSyncManager
 
         var clients = Main.Server.ClientManager.GetAllClients().ToList();
 
-        var gordosPacket       = CreateGordoSlimesPacket();
-        var switchesPacket     = CreateSwitchesPacket();
-        var plotsPacket        = CreatePlotsPacket();
-        var upgradesPacket     = CreateUpgradesPacket();
-        var refineryPacket     = CreateRefineryPacket();
-        var pediaPacket        = CreatePediaPacket();
-        var mapPacket          = CreateMapPacket();
-        var accessDoorsPacket  = CreateAccessDoorsPacket();
-        var treasurePodsPacket = CreateTreasurePodsPacket();
-        var pricesPacket       = CreatePricesPacket();
+        var gordosPacket            = CreateGordoSlimesPacket();
+        var switchesPacket          = CreateSwitchesPacket();
+        var plotsPacket             = CreatePlotsPacket();
+        var upgradesPacket          = CreateUpgradesPacket();
+        var refineryPacket          = CreateRefineryPacket();
+        var pediaPacket             = CreatePediaPacket();
+        var mapPacket               = CreateMapPacket();
+        var accessDoorsPacket       = CreateAccessDoorsPacket();
+        var resourceNodesPacket     = CreateResourceNodesPacket();
+        var treasurePodsPacket      = CreateTreasurePodsPacket();
+        var pricesPacket            = CreatePricesPacket();
+        var puzzleSlotsPacket       = CreatePuzzleSlotsPacket();
+        var plortDepositorsPacket   = CreatePlortDepositorsPacket();
+        var prismaBarriersPacket    = CreatePrismaBarriersPacket();
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -130,7 +139,7 @@ internal sealed class ReSyncManager
                 RainbowMoney = rainbowMoney,
                 AllowCheats = Main.AllowCheats
             };
-            Main.Server.SendToClient(approvePacket, client.EndPoint);
+            Main.Server.SendToClient(approvePacket,         client.EndPoint);
 
             Main.Server.SendToClient(gordosPacket,          client.EndPoint);
             Main.Server.SendToClient(switchesPacket,        client.EndPoint);
@@ -140,8 +149,12 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(pediaPacket,           client.EndPoint);
             Main.Server.SendToClient(mapPacket,             client.EndPoint);
             Main.Server.SendToClient(accessDoorsPacket,     client.EndPoint);
+            Main.Server.SendToClient(resourceNodesPacket,   client.EndPoint);
             Main.Server.SendToClient(treasurePodsPacket,    client.EndPoint);
             Main.Server.SendToClient(pricesPacket,          client.EndPoint);
+            Main.Server.SendToClient(puzzleSlotsPacket,     client.EndPoint);
+            Main.Server.SendToClient(plortDepositorsPacket, client.EndPoint);
+            Main.Server.SendToClient(prismaBarriersPacket,  client.EndPoint);
 
             SendWeatherPacket(client.EndPoint);
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
@@ -299,6 +312,89 @@ internal sealed class ReSyncManager
 
         return new InitialAccessDoorsPacket { Doors = accessDoorsList };
     }
+    
+    private static void SendResourceNodesPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateResourceNodesPacket(), client);
+    
+    private static InitialResourceNodesPacket CreateResourceNodesPacket()
+    {
+        var nodesList = new List<InitialResourceNodesPacket.Node>();
+
+        var spawners = Il2CppSystem.Linq.Enumerable
+            .ToArray(GameState.AllResourceNodes()
+                .Cast<Il2CppSystem.Collections.Generic.IEnumerable<ResourceNodeSpawnerModel>>());
+
+        foreach (var spawner in spawners)
+        {
+            if (spawner == null)
+                continue;
+
+            nodesList.Add(new InitialResourceNodesPacket.Node
+            {
+                ID = spawner.nodeId,
+                State = (byte)spawner.nodeState
+            });
+        }
+
+        return new InitialResourceNodesPacket { Nodes = nodesList };
+    }
+
+    private static void SendPuzzleSlotsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePuzzleSlotsPacket(), client);
+
+    private static InitialPuzzleSlotsPacket CreatePuzzleSlotsPacket()
+    {
+        var slotsList = new List<InitialPuzzleSlotsPacket.Slot>();
+
+        foreach (var slot in GameState.slots)
+        {
+            slotsList.Add(new InitialPuzzleSlotsPacket.Slot
+            {
+                ID = slot.Key,
+                Filled = slot.Value.filled
+            });
+        }
+
+        return new InitialPuzzleSlotsPacket { Slots = slotsList };
+    }
+
+    private static void SendPlortDepositorsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePlortDepositorsPacket(), client);
+
+    private static InitialPlortDepositorsPacket CreatePlortDepositorsPacket()
+    {
+        var depositorsList = new List<InitialPlortDepositorsPacket.Depositor>();
+
+        foreach (var depositor in GameState.depositors)
+        {
+            depositorsList.Add(new InitialPlortDepositorsPacket.Depositor
+            {
+                ID = depositor.Key,
+                AmountDeposited = depositor.Value.AmountDeposited
+            });
+        }
+
+        return new InitialPlortDepositorsPacket { Depositors = depositorsList };
+    }
+
+    private static void SendPrismaBarriersPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePrismaBarriersPacket(), client);
+
+    private static InitialPrismaBarriersPacket CreatePrismaBarriersPacket()
+    {
+        var barriersList = new List<InitialPrismaBarriersPacket.Barrier>();
+
+        foreach (var barrier in GameState.AllPrismaBarriers())
+        {
+            barriersList.Add(new InitialPrismaBarriersPacket.Barrier
+            {
+                ID = barrier.Key,
+                ActivationTime = barrier.Value.ActivationTime
+            });
+        }
+
+        return new InitialPrismaBarriersPacket { Barriers = barriersList };
+    }
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
@@ -393,7 +489,10 @@ internal sealed class ReSyncManager
                 {
                     Crop = plot.resourceGrowerDefinition == null
                         ? 9
-                        : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
+                        : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition._primaryResourceType!),
+                    NextSpawnTime = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnTime ?? 0,
+                    StoredWater = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.storedWater ?? 0,
+                    NextSpawnRipens = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnRipens ?? false,
                 },
                 LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData
                 {
