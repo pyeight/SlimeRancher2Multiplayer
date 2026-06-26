@@ -1,6 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Drone;
-using Il2CppMonomiPark.SlimeRancher.VFX;
+using Il2CppMonomiPark.SlimeRancher.Player;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
@@ -80,6 +80,8 @@ internal sealed partial class NetworkActorManager
             return false;
         }
         
+        RemoveExistingGadgetModel(actorId);
+
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
         model.eulerRotation = rotation.eulerAngles;
@@ -533,8 +535,11 @@ internal sealed partial class NetworkActorManager
     {
         identifiableModel = null;
         
-        if (ActorIDAlreadyInUse(new ActorId(actorData.ActorId)))
+        var actorId = new ActorId(actorData.ActorId);
+        if (ActorIDAlreadyInUse(actorId))
             return false;
+        
+        RemoveExistingGadgetModel(actorId);
         
         switch (actorData)
         {
@@ -547,7 +552,6 @@ internal sealed partial class NetworkActorManager
         }
         
         var sceneId = actorData.Scene;
-        var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var typeId = actorData.ActorTypeId;
@@ -634,15 +638,26 @@ internal sealed partial class NetworkActorManager
             TargetIdentType = ActorTypes[actorData.Task.TargetIdent],
         };
         
+        var linkedModel = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId));
         if (droneModel._type == DroneType.RANCH_DRONE)
         {
             droneModel.InitializeForRancher(SceneContext.Instance.DroneDirector);
-            GameState.droneModel._ranchDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<RanchDroneModel>();
+            if (linkedModel != null)
+            {
+                var ranchModel = linkedModel.TryCast<RanchDroneModel>();
+                if (ranchModel != null)
+                    GameState.droneModel._ranchDrones[actorId] = ranchModel;
+            }
         }
         else
         {
             droneModel.InitializeForExplorer(SceneContext.Instance.DroneDirector, SceneContext.Instance.TimeDirector, SceneContext.Instance.DroneDirector.GetStationAreaResources(droneModel));
-            GameState.droneModel._explorerDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<ExplorerDroneModel>();
+            if (linkedModel != null)
+            {
+                var explorerModel = linkedModel.TryCast<ExplorerDroneModel>();
+                if (explorerModel != null)
+                    GameState.droneModel._explorerDrones[actorId] = explorerModel;
+            }
         }
         
         droneModel.Initialized = true;
@@ -722,12 +737,9 @@ internal sealed partial class NetworkActorManager
         if (ActorIDAlreadyInUse(actorId))
             return false;
 
-        model = GameState.CreateActorModel(actorId, type, scene, position, rotation);
-
-        if (model == null)
-            return false;
+        var droneModel = new ExplorerDroneModel(actorId, type, scene, position, rotation, station);
         
-        model.Cast<ExplorerDroneModel>().StationId = station;
+        model = droneModel.Cast<IdentifiableModel>();
         
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -740,11 +752,24 @@ internal sealed partial class NetworkActorManager
         }
         
         HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        var actor = InstantiationHelpers.InstantiateActor(
+            type.prefab,
+            scene,
+            position,
+            rotation,
+            false,
+            SlimeAppearance.AppearanceSaveSet.NONE,
+            SlimeAppearance.AppearanceSaveSet.NONE,
+            new Il2CppSystem.Nullable<AmmoSlot.AmmoMetadata>()
+        );
         HandlingPacket = false;
         
         if (!actor)
             return true;
+
+        var explorerDrone = actor.GetComponent<ExplorerDrone>();
+        if (explorerDrone != null)
+            explorerDrone.InitModel(droneModel, SceneContext.Instance.DroneDirector.GetDroneTaskConfig());
         
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;
@@ -787,14 +812,10 @@ internal sealed partial class NetworkActorManager
         if (ActorIDAlreadyInUse(actorId))
             return false;
         
-        model = GameState.CreateActorModel(actorId, type, scene, position, rotation);
-        
-        if (model == null)
-            return false;
-        
-        var droneModel = model.Cast<RanchDroneModel>();
-        droneModel.StationId = station;
+        var droneModel = new RanchDroneModel(actorId, type, scene, position, rotation, station);
         droneModel.Ammo = ammo.ToGameAmmo()._ammoModel;
+        
+        model = droneModel.Cast<IdentifiableModel>();
         
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -807,11 +828,24 @@ internal sealed partial class NetworkActorManager
         }
         
         HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
+        var actor = InstantiationHelpers.InstantiateActor(
+            type.prefab,
+            scene,
+            position,
+            rotation,
+            false,
+            SlimeAppearance.AppearanceSaveSet.NONE,
+            SlimeAppearance.AppearanceSaveSet.NONE,
+            new Il2CppSystem.Nullable<AmmoSlot.AmmoMetadata>()
+        );
         HandlingPacket = false;
         
         if (!actor)
             return true;
+
+        var ranchDrone = actor.GetComponent<RanchDrone>();
+        if (ranchDrone != null)
+            ranchDrone.InitModel(droneModel, SceneContext.Instance.DroneDirector.GetDroneTaskConfig());
         
         var networkComponent = actor.AddComponent<NetworkActor>();
         networkComponent.LocallyOwned = false;

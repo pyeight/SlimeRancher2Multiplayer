@@ -1,6 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Drone;
-using Il2CppMonomiPark.SlimeRancher.Player;
 using Il2CppMonomiPark.SlimeRancher.VFX;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Ammo;
@@ -185,28 +184,41 @@ internal sealed partial class NetworkActorManager
         LinkedActorId = GetLinkedGadget(model)!.actorId.Value
     };
 
-    private static InitialActorsPacket.LinkedAmmoGadget CreateInitialAmmoGadget(GadgetModel model) => new()
+    private static InitialActorsPacket.LinkedAmmoGadget CreateInitialAmmoGadget(GadgetModel model)
     {
-        ActorId = model.actorId.Value,
-        ActorTypeId = GetPersistentID(model.ident),
-        Position = model.lastPosition,
-        Rotation = model.GetRot(),
-        Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-        LinkedActorId = GetLinkedGadget(model)!.actorId.Value,
-        Ammo = new NetworkAmmo()
+        var ammoSlots = new Dictionary<int, NetworkAmmoSlot>();
+        var ammoModel = GetAmmoFromGadget(model);
+        if (ammoModel != null && ammoModel.Slots != null)
         {
-            AmmoSlots = GetAmmoFromGadget(model)!.Slots
-                .ToDictionary<AmmoSlot, int, NetworkAmmoSlot>(
-                    slot => (int)slot.GetSlotIndex()!,
-                    slot => new NetworkAmmoSlot()
-                    {
-                        Count = slot.Count,
-                        MaxCount = slot.MaxCount,
-                        Identifiable = GetPersistentID(slot._id),
-                        SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
-                    })
+            var slots = ammoModel.Slots;
+            for (var i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                if (slot == null) continue;
+
+                if (slot.Definition == null) continue;
+
+                ammoSlots[i] = new NetworkAmmoSlot
+                {
+                    Count = slot.Count,
+                    MaxCount = slot.MaxCount,
+                    Identifiable = GetPersistentID(slot._id),
+                    SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
+                };
+            }
         }
-    };
+
+        return new InitialActorsPacket.LinkedAmmoGadget
+        {
+            ActorId = model.actorId.Value,
+            ActorTypeId = GetPersistentID(model.ident),
+            Position = model.lastPosition,
+            Rotation = model.GetRot(),
+            Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
+            LinkedActorId = GetLinkedGadget(model)!.actorId.Value,
+            Ammo = new NetworkAmmo { AmmoSlots = ammoSlots }
+        };
+    }
 
     private static InitialActorsPacket.DroneStation CreateInitialDroneStation(DroneStationGadgetModel model) => new()
     {

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
@@ -19,7 +19,7 @@ internal sealed partial class NetworkActorManager
                 && model != x.value
                 && (model.ident.Cast<GadgetDefinition>().BuyInPairs
                     || model.ident.Cast<GadgetDefinition>().LinkedDefinition
-                    || model.ident.Cast<GadgetDefinition>().LinkedGadgetRange != 0f))?
+                    || Math.Abs(model.ident.Cast<GadgetDefinition>().LinkedGadgetRange) > 0.0001f))?
             .value.Cast<GadgetModel>()!;
     
     private static AmmoModel? GetAmmoFromGadget(GadgetModel model)
@@ -150,5 +150,26 @@ internal sealed partial class NetworkActorManager
         }
 
         component.LocallyOwned = locallyOwned;
+    }
+    
+    private static void RemoveExistingGadgetModel(ActorId actorId)
+    {
+        if (actorId.Value == 0) return;
+
+        try
+        {
+            foreach (var gadget in GameState.AllGadgets())
+            {
+                if (gadget != null && gadget.actorId.Value == actorId.Value)
+                {
+                    GameState.DestroyGadgetModel(gadget);
+                    break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to remove existing gadget model for {actorId.Value}: {ex.Message}");
+        }
     }
 }
