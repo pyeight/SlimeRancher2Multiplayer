@@ -21,13 +21,16 @@ internal static class Extensions
     // https://discussions.unity.com/t/how-can-i-get-the-full-path-to-a-gameobject/412
     public static string GetGameObjectPath(this GameObject obj)
     {
-        var path = "/" + obj.name;
-        while (obj.transform.parent != null)
+        var pathParts = new List<string>();
+        var current = obj;
+        while (current != null)
         {
-            obj = obj.transform.parent.gameObject;
-            path = "/" + obj.name + path;
+            pathParts.Add(current.name);
+            var parentTransform = current.transform.parent;
+            current = parentTransform != null ? parentTransform.gameObject : null!;
         }
-        return path;
+        pathParts.Reverse();
+        return "/" + string.Join("/", pathParts);
     }
 
     /* public static long SR2MPMax(this IEnumerable<long> source)
