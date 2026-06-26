@@ -11,7 +11,7 @@ internal static class WeatherDirectorStatePatches
     public static bool Prefix()
     {
         WeatherUpdateHelper.EnsureLookupInitialized();
-        return !Main.Client.IsConnected || HandlingPacket;
+        return !Main.Client.IsConnected || Main.Server.IsRunning || HandlingPacket;
     }
 
     public static void Postfix()

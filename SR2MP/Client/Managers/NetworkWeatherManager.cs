@@ -1,8 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
+using Il2CppMonomiPark.SlimeRancher.UI.Map;
 using SR2MP.Packets.World;
+using SR2MP.Patches.Map;
 using SR2MP.Server.Managers;
 
 namespace SR2MP.Client.Managers;
@@ -42,7 +44,7 @@ internal static class NetworkWeatherManager
 
     public static readonly Dictionary<int, WeatherStateDefinition> WeatherStates = new();
 
-    internal static void Initialize()
+    private static void Initialize()
     {
         var refer = GameContext.Instance.AutoSaveDirector._saveReferenceTranslation;
         foreach (var state in refer._weatherStateTranslation.RawLookupDictionary)
@@ -63,6 +65,11 @@ internal static class NetworkWeatherManager
 
     internal static IEnumerator Apply(WeatherPacket packet, bool immediate)
     {
+        while (SceneContext.Instance.WeatherRegistry == null)
+            yield return null;
+
+        WeatherUpdateHelper.EnsureLookupInitialized();
+
         yield return new WaitFrames(3);
         HandlingPacket = true;
 
@@ -176,6 +183,22 @@ internal static class NetworkWeatherManager
             }
 
             yield return new WaitFrames(3);
+        }
+
+        if (OnMapUIStart.activeMapUI != null)
+        {
+            var zoomedOutUI = OnMapUIStart.activeMapUI._zoomedOutUI;
+            if (zoomedOutUI != null && zoomedOutUI._zoneMarkerUIs != null)
+            {
+                foreach (var markerUI in zoomedOutUI._zoneMarkerUIs)
+                {
+                    var zoneMarkerUI = markerUI.TryCast<ZoneMarkerUI>();
+                    if (zoneMarkerUI != null)
+                    {
+                        zoneMarkerUI.SetUpWeather();
+                    }
+                }
+            }
         }
 
         HandlingPacket = false;
