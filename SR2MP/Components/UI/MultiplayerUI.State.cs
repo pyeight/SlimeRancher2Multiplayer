@@ -46,7 +46,7 @@ internal sealed partial class MultiplayerUI
     private bool chatShown;
     private MenuState previousState = MenuState.Hidden;
 
-    private bool GetIsLoading()
+    private static bool GetIsLoading()
     {
         return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is
             "StandaloneStart" or "CompanyLogo" or "LoadScene";
