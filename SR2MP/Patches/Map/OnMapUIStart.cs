@@ -7,11 +7,9 @@ namespace SR2MP.Patches.Map;
 [HarmonyPatch(typeof(MapUI), nameof(MapUI.Start))]
 internal static class OnMapUIStart
 {
-    public static MapUI? activeMapUI;
-
     public static void Postfix(MapUI __instance)
     {
-        activeMapUI = __instance;
+        ActiveMapUI = __instance;
         foreach (var player in PlayerManager.GetAllPlayers())
         {
             if (player.PlayerId == LocalID)

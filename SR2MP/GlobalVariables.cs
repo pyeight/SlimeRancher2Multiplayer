@@ -1,5 +1,6 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.UI;
+using Il2CppMonomiPark.SlimeRancher.UI.Map;
 using SR2MP.Components.Player;
 using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
@@ -53,11 +54,16 @@ public static class GlobalVariables
     internal static readonly RemoteFXManager FXManager = new();
     internal static readonly NetworkActorManager ActorManager = new();
 
-    // To prevent stuff from being stuck in an infinite sending loop
     /// <summary>
+    /// To prevent stuff from being stuck in an infinite sending loop
     /// Gets or sets a value indicating whether a network packet is currently being processed.
     /// </summary>
     public static bool HandlingPacket { get; internal set; }
+    
+    /// <summary>
+    /// Required for certain patches for compatibility
+    /// </summary>
+    public static MapUI? ActiveMapUI;
 
     /// <summary>
     /// Gets the local identifier for the current instance, dynamically checking whether it is acting as the server or a client.
