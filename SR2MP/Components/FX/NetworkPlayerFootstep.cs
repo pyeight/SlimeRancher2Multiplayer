@@ -1,5 +1,4 @@
 using JetBrains.Annotations;
-using MelonLoader;
 using Starlight.Storage;
 
 namespace SR2MP.Components.FX;
@@ -66,8 +65,7 @@ internal sealed class NetworkPlayerFootstep : MonoBehaviour
         => Physics.Raycast(transform.position, Vector3.down, GroundCheckDistance, layer);
 
     public void Update()
-    {   // Don't change it, this is the LayerMask qwq
-        // "Magic number that breaks everything if you change it"
+    {
         var isGrounded = CheckGrounded(GroundedLayer);
 
         if (isGrounded == playerGrounded)
