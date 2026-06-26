@@ -1,3 +1,5 @@
+using Il2CppInterop.Runtime.Attributes;
+
 namespace SR2MP.Components.UI;
 
 internal sealed partial class MultiplayerUI
@@ -188,6 +190,7 @@ internal sealed partial class MultiplayerUI
         return result;
     }
 
+    [HideFromIl2Cpp]
     private void DrawTabRow(ref byte selected, params string[] labels)
     {
         for (byte i = 0; i < labels.Length; i++)
