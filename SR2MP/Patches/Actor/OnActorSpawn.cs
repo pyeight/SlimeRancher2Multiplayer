@@ -102,6 +102,8 @@ internal static class OnActorSpawn
 
         var networkActor = __result.AddComponent<NetworkActor>();
         networkActor.LocallyOwned = true;
+        networkActor.CachedLocallyOwned = true;
+        networkActor.CurrentOwnerId = LocalID;
 
         var actorType = NetworkActorManager.GetPersistentID(original.GetComponent<Identifiable>().identType);
         var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
