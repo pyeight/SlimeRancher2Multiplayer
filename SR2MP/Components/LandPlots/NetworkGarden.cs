@@ -137,10 +137,9 @@ internal sealed class NetworkGarden : MonoBehaviour
 
     public void ClaimOwnership()
     {
-        var myId = Main.Client.IsConnected ? Main.Client.PlayerId : Main.Server.PlayerId;
         LocallyOwned = true;
-        CurrentOwnerId = myId;
-        SendOwnershipPacket(myId, string.Empty);
+        CurrentOwnerId = LocalID;
+        SendOwnershipPacket(LocalID, string.Empty);
     }
 
     private void SendOwnershipPacket(string claimerId, string previousOwnerId)
