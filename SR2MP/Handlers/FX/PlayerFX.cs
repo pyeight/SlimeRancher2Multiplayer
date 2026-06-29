@@ -25,14 +25,11 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
             {
                 var remotePlayer = PlayerObjects[packet.Player];
                 PlayPlayerAudio(packet, remotePlayer);
-                remotePlayer.GetComponent<NetworkPlayer>()?.ReceiveVacFX(packet.FX);
             }
         }
         catch { /* Non-critical; typically triggered during scene transitions. */ }
-        finally
-        {
-            HandlingPacket = false;
-        }
+        
+        HandlingPacket = false;
 
         return true;
     }
