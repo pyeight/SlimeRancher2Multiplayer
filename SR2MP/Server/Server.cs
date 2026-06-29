@@ -133,7 +133,6 @@ public sealed class SR2MPServer
         if (player == null) return;
 
         PlayerManager.RemovePlayer(playerId);
-        NetworkAmmoManager.UnregisterAmmoPointer(playerId);
 
         if (PlayerObjects.TryGetValue(playerId, out var playerObj))
         {
