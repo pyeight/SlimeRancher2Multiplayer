@@ -1,23 +1,17 @@
-using Il2CppMonomiPark.SlimeRancher.Map;
 using Il2CppMonomiPark.SlimeRancher.Player.CharacterController;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
-using Il2CppMonomiPark.SlimeRancher.UI;
 using Il2CppTMPro;
 using JetBrains.Annotations;
-using MelonLoader;
-using Starlight.Utils;
 using SR2MP.Client.Models;
 using SR2MP.Components.FX;
 using SR2MP.Components.Utils;
 using SR2MP.Shared.Managers;
 using Starlight.Storage;
-using static Starlight.ContextShortcuts;
 using static SR2MP.Shared.Utils.Timers;
 
 namespace SR2MP.Components.Player;
 
 [InjectIntoIL]
-//[InjectIntoIL(typeof(IMapMarkerSource))]
 internal partial class NetworkPlayer : MonoBehaviour
 {
     private static readonly int HorizontalMovement = Animator.StringToHash("HorizontalMovement");
@@ -58,9 +52,10 @@ internal partial class NetworkPlayer : MonoBehaviour
 
     public bool IsLocal { get; internal set; }
 
-    private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
+    private static TMP_FontAsset GetFont(string fontName) =>
+        Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
 
-    internal TMP_FontAsset usernameFont;
+    private TMP_FontAsset usernameFont;
     
     public void SetUsername(string username)
     {
@@ -102,9 +97,8 @@ internal partial class NetworkPlayer : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
 
         if (animator == null)
-        {
             SrLogger.LogWarning("NetworkPlayer has no Animator component!");
-        }
+        
         AwakeGadgetMode();
     }
 
@@ -118,6 +112,8 @@ internal partial class NetworkPlayer : MonoBehaviour
         else
         {
             PlayerMarkerTransforms[ID] = new();
+            if (ActiveMapUI != null)
+                CreateMapMarker(ActiveMapUI);
         }
 
         UsernamePanel = transform.GetChild(1).GetComponent<TextMeshPro>();
@@ -125,7 +121,7 @@ internal partial class NetworkPlayer : MonoBehaviour
         SetupRenderersAndCollision();
     }
 
-    private void SetupRenderersAndCollision()
+    public void OnDestroy()
     {
         // if (IsLocal)
         // {
@@ -142,9 +138,20 @@ internal partial class NetworkPlayer : MonoBehaviour
         // {
         //     renderers = GetComponentsInChildren<MeshRenderer>();
         // }
+        
+        if (IsLocal) return;
 
-        collider = GetComponentInChildren<Collider>();
+        if (PlayerMarkerTransforms.TryGetValue(ID, out var marker))
+        {
+            if (marker.mainMarker != null)
+                Destroy(marker.mainMarker.gameObject);
+
+            PlayerMarkerTransforms.Remove(ID);
+        }
     }
+
+    private void SetupRenderersAndCollision() =>
+        collider = GetComponentInChildren<Collider>();
 
     public void Update()
     {
