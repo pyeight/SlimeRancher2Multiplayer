@@ -139,7 +139,7 @@ internal sealed partial class NetworkActorManager
             // could hook this up somewhere in the future
             if (onlyUnowned)
             {
-                if (!string.IsNullOrEmpty(netActor.CurrentOwnerId))
+                if (!PlayerManager.CheckPlayerExists(netActor.CurrentOwnerId) || string.IsNullOrEmpty(netActor.CurrentOwnerId))
                     continue;
             }
 

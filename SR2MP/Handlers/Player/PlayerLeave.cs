@@ -91,6 +91,9 @@ internal sealed class ServerPlayerLeaveHandler : BasePlayerLeaveHandler
             SrLogger.LogWarning($"Player leave request from unknown client (PlayerId: {playerId})",
                 $"Player leave request from unknown client: {clientInfo} (PlayerId: {playerId})");
         }
+        
+        // todo: maybe client sided too?
+        StartCoroutine(ActorManager.TakeOwnershipOfNearby(true));
 
         return false;
     }
