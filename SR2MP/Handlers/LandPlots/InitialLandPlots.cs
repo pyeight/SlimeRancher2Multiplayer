@@ -183,7 +183,7 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                 {
                     var incineratorAmmo = incinerator.PlortCollectorAmmo!.ToGameAmmo();
                     model.siloAmmo[PlortCollectorAmmo] = incineratorAmmo._ammoModel;
-                    model.ashUnits = incinerator.AshLevel;
+                    try { model.ashUnits = incinerator.AshLevel; } catch { /* ignored */ }
 
                     if (!model.gameObj) break;
 

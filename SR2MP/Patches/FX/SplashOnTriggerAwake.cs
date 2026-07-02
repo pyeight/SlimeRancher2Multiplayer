@@ -8,6 +8,6 @@ internal static class SplashOnTriggerAwake
     public static void Postfix(SplashOnTrigger __instance)
     {
         if (__instance.playerSplashFX != null)
-            FXManager.PlayerFXMap[PlayerFXType.WaterSplash] = __instance.playerSplashFX;
+            try { FXManager.PlayerFXMap[PlayerFXType.WaterSplash] = __instance.playerSplashFX; } catch { /* ignored */ }
     }
 }
