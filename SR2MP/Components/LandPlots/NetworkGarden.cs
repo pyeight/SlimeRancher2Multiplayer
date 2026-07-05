@@ -20,6 +20,24 @@ internal sealed class NetworkGarden : MonoBehaviour
     private double cachedNextSpawnTime;
     private float syncTimer;
     private const float SyncInterval = 5f;
+    
+    internal static void OnServerStarted()
+    {
+        foreach (var spawnResource in FindObjectsOfType<SpawnResource>(true))
+        {
+            if (spawnResource.GetComponent<NetworkGarden>() == null)
+                spawnResource.gameObject.AddComponent<NetworkGarden>();
+        }
+
+        foreach (var garden in Gardens.Values)
+        {
+            if (garden.IsHibernated)
+                continue;
+
+            garden.LocallyOwned = true;
+            garden.CurrentOwnerId = Main.Server.PlayerId;
+        }
+    }
 
     [UsedImplicitly]
     public void Awake()

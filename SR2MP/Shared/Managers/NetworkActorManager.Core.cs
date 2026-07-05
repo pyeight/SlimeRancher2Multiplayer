@@ -94,7 +94,7 @@ internal sealed partial class NetworkActorManager
                 Actors.Add(model.actorId.Value, model);
             }
 
-            yield return TakeOwnershipOfNearby();
+            TakeOwnershipOfNearby();
         }
     }
 
@@ -115,50 +115,89 @@ internal sealed partial class NetworkActorManager
 
         return result;
     }
-
-    internal IEnumerator TakeOwnershipOfNearby(bool onlyUnowned = false)
+    
+    internal void TakeOwnershipOfNearby()
     {
-        const int max = 12;
-
-        var player = SceneContext.Instance.player;
-        var bounds = new Bounds(player.transform.position, new Vector3(600, 1250, 600));
+        var bounds = new Bounds(SceneContext.Instance.player.transform.position, new Vector3(600, 1250, 600));
         
-        var i = 0;
-        foreach (var actor in Actors)
+        foreach (var actor in Actors.Values.ToArray())
         {
-            if (actor.Value == null)
-                continue;
-            
-            if (!bounds.Contains(actor.Value.lastPosition))
+            if (actor == null)
                 continue;
 
-            if (!actor.Value.TryGetNetworkComponent(out var netActor))
+            if (!bounds.Contains(actor.lastPosition))
                 continue;
 
-            // todo: only if you wanna claim actors that are currently unowned, 
-            // could hook this up somewhere in the future
-            if (onlyUnowned)
-            {
-                if (!PlayerManager.CheckPlayerExists(netActor.CurrentOwnerId) || string.IsNullOrEmpty(netActor.CurrentOwnerId))
-                    continue;
-            }
-
-            netActor.LocallyOwned = true;
-            netActor.CurrentOwnerId = LocalID;
+            if (!actor.TryGetNetworkComponent(out var netActor))
+                continue;
 
             var actorId = netActor.ActorId;
             if (actorId.Value == 0)
                 continue;
 
             var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
+            ApplyOwnership(packet);
             Main.SendToAllOrServer(packet);
-            i++;
+        }
+    }
+    
+    internal void AssignOwnershipOfUnowned()
+    {
+        if (SceneContext.Instance?.player == null)
+            return;
 
-            if (i <= max)
+        var bounds = new Vector3(600, 1250, 600);
+
+        var allPlayers = new List<(string PlayerId, Vector3 Position)>
+        {
+            (LocalID, SceneContext.Instance.player.transform.position)
+        };
+
+        foreach (var (playerId, playerObject) in PlayerObjects)
+        {
+            if (playerObject)
+                allPlayers.Add((playerId, playerObject.transform.position));
+        }
+
+        foreach (var actor in Actors.Values.ToArray())
+        {
+            if (actor == null)
                 continue;
-            
-            yield return null;
-            i = 0;
+
+            if (!actor.TryGetNetworkComponent(out var netActor))
+                continue;
+
+            if (netActor.CurrentOwnerId == LocalID || PlayerManager.CheckPlayerExists(netActor.CurrentOwnerId))
+                continue;
+
+            var actorId = netActor.ActorId;
+            if (actorId.Value == 0)
+                continue;
+
+            var position = actor.lastPosition;
+            string? newOwner = null;
+            var bestDistance = float.MaxValue;
+
+            foreach (var (playerId, playerPosition) in allPlayers)
+            {
+                if (!new Bounds(playerPosition, bounds).Contains(position))
+                    continue;
+
+                var distance = (playerPosition - position).sqrMagnitude;
+
+                if (distance >= bestDistance)
+                    continue;
+
+                bestDistance = distance;
+                newOwner = playerId;
+            }
+
+            if (newOwner == null)
+                continue;
+
+            var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = newOwner };
+            ApplyOwnership(packet);
+            Main.SendToAllOrServer(packet);
         }
     }
 }

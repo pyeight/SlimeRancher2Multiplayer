@@ -38,7 +38,7 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
             ActorManager.TrySpawnInitialActor(actor, out var _);
         }
 
-        StartCoroutine(ActorManager.TakeOwnershipOfNearby());
+        ActorManager.TakeOwnershipOfNearby();
 
         return false;
     }

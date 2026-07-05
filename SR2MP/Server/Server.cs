@@ -166,6 +166,9 @@ public sealed class SR2MPServer
             $"SYSTEM_LEAVE_HOST_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
             MultiplayerUI.SystemMessageDisconnect
         );
+        
+        MainThreadDispatcher.Instance.Enqueue(() =>
+            ActorManager.AssignOwnershipOfUnowned());
     }
 
     internal void Close()

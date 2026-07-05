@@ -26,11 +26,8 @@ internal sealed class GardenOwnershipHandler : BasePacketHandler<GardenOwnership
         else
         {
             garden.CurrentOwnerId = packet.ClaimerID;
-
-            if (garden.IsHibernated)
-                garden.LocallyOwned = false;
             
-            else if (packet.ClaimerID != garden.CurrentOwnerId || !garden.LocallyOwned)
+            if (packet.ClaimerID != LocalID)
                 garden.LocallyOwned = false;
         }
 
