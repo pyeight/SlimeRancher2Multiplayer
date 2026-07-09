@@ -33,8 +33,13 @@ internal static class SpawnResourceAwakePatch
     
     private static void ResetGrowTime(SpawnResource spawnResource)
     {
-        if (Main.Server.IsRunning || Main.Client.IsConnected)
-            return;
+        //if (Main.Server.IsRunning || Main.Client.IsConnected) return;
+        
+        spawnResource.TryGetComponent<NetworkGarden>(out var networkGarden);
+
+        if (networkGarden == null) return;
+
+        if (!networkGarden.LocallyOwned) return;
 
         var model = spawnResource._model;
         if (model == null || model.nextSpawnTime < double.MaxValue)
