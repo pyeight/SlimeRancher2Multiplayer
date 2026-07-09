@@ -231,7 +231,7 @@ internal sealed partial class NetworkActor : MonoBehaviour
             HandleOwnershipChange();
             HandleCycleReleasing();
 
-            UpdatePolation();
+            UpdateInterpolation();
 
             if (LocallyOwned)
                 SendStateUpdate();

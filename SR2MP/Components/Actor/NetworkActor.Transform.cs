@@ -17,7 +17,6 @@ internal sealed partial class NetworkActor
     
     public float interpolationStart;
     public float interpolationEnd;
-    private const float MaxExtrapolationTime = 0.5f;
 
     private const int ForceSendInterval = 10;
     private int skippedUpdates;
@@ -37,11 +36,7 @@ internal sealed partial class NetworkActor
         interpolationEnd   = interpolationStart + Timers.ActorTimer;
     }
     
-    // For funsies
-    private void UpdateInterpolation() => UpdatePolation();
-    private void UpdateExtrapolation() => UpdatePolation();
-    
-    private void UpdatePolation()
+    private void UpdateInterpolation()
     {
         if (LocallyOwned || IsDestroyed || interpolationEnd <= interpolationStart)
             return;
@@ -57,9 +52,7 @@ internal sealed partial class NetworkActor
         }
         else
         {
-            var extrapolationTime = Mathf.Min(now - interpolationEnd, MaxExtrapolationTime);
-
-            transform.position = nextPosition + savedVelocity * extrapolationTime;
+            transform.position = nextPosition;
             transform.rotation = nextRotation;
         }
 
