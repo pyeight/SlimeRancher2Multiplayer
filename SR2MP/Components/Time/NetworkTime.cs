@@ -1,6 +1,5 @@
 using JetBrains.Annotations;
 using MelonLoader;
-using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;
 using SR2MP.Shared.Utils;
 using Starlight.Storage;
@@ -27,7 +26,6 @@ internal sealed class NetworkTime : MonoBehaviour
 
         var packet = new WorldTimePacket
         {
-            Type = PacketType.WorldTime,
             Time = timeDirector._worldModel.worldTime
         };
 
