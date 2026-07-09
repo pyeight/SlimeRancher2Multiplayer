@@ -35,6 +35,6 @@ internal static class OnGameLoadPatch
         }
 
         GameState._actorIdProvider._nextActorId =
-            NetworkActorManager.GetHighestActorIdInRange(0, ActorIdOffset);
+            NetworkActorManager.GetHighestActorIdInRange(0, ActorIdOffset) + 10;
     };
 }
