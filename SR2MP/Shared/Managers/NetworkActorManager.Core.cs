@@ -155,6 +155,9 @@ internal sealed partial class NetworkActorManager
 
                 if (onlyUnownedSlimes)
                 {
+                    if (!netActor.isSlime)
+                        continue;
+                    
                     if (netActor.LocallyOwned)
                         continue;
 
@@ -164,13 +167,7 @@ internal sealed partial class NetworkActorManager
                     var ownerId = netActor.CurrentOwnerId;
                     if (!string.IsNullOrEmpty(ownerId) && PlayerManager.CheckPlayerExists(ownerId))
                         continue;
-
-                    if (!netActor.isSlime)
-                        continue;
                 }
-
-                if (onlyUnownedSlimes)
-                    SrLogger.LogMessage("owning unowned slime");
 
                 var actorId = netActor.ActorId;
                 if (actorId.Value == 0)
