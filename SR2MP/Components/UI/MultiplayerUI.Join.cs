@@ -61,6 +61,11 @@ internal sealed partial class MultiplayerUI
             DrawText("Invalid port: Must be a number from 1 to 65535.");
         }
     }
+    
+    private void ConnectingScreen()
+    {
+        DrawText("Trying to connect to the server...");
+    }
 
     private void ConnectedScreen()
     {

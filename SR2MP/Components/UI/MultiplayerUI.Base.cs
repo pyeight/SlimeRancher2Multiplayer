@@ -89,6 +89,9 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
             case MenuState.DisconnectedInGame:
                 InGameScreen();
                 break;
+            case MenuState.Connecting:
+                ConnectingScreen();
+                break;
             case MenuState.ConnectedClient:
                 ConnectedScreen();
                 break;
