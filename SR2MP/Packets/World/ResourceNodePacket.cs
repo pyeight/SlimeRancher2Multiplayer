@@ -6,7 +6,6 @@ internal sealed class ResourceNodePacket : IPacket
 {
     public string NodeId = string.Empty;
     public byte State;
-    public bool RequestSpawn;
 
     public PacketType Type => PacketType.ResourceNode;
     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -16,13 +15,11 @@ internal sealed class ResourceNodePacket : IPacket
     {
         writer.WriteString(NodeId);
         writer.WriteByte(State);
-        writer.WritePackedBool(RequestSpawn);
     }
 
     public void Deserialise(PacketReader reader)
     {
         NodeId = reader.ReadPooledString()!;
         State = reader.ReadByte();
-        RequestSpawn = reader.ReadPackedBool();
     }
 }

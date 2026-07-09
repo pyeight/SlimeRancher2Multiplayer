@@ -1,5 +1,4 @@
 using HarmonyLib;
-using SR2MP.Packets.World;
 
 namespace SR2MP.Patches.ResourceNodes;
 
@@ -10,22 +9,12 @@ internal static class OnResourceNodeHarvest
     {
         if (!Main.Server.IsRunning && !Main.Client.IsConnected)
             return true;
-        
-        if (HandlingPacket)
-            return true;
 
-        var model = __instance._model;
-        if (model != null)
-        {
-            var packet = new ResourceNodePacket
-            {
-                NodeId = model.nodeId,
-                State = (byte)ResourceNode.NodeState.HARVESTING,
-                RequestSpawn = true
-            };
-            Main.SendToAllOrServer(packet);
-        }
+        if (HandlingPacket)
+            return false;
+
+        var nodeId = __instance._model?.nodeId;
         
-        return Main.Server.IsRunning;
+        return nodeId == null || !ResourceNodeManager.RemotelyHarvested.Contains(nodeId);
     }
 }

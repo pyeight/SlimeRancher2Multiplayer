@@ -64,6 +64,7 @@ internal sealed class ReSyncManager
         SendPediaPacket(endPoint);
         SendMapPacket(endPoint);
         SendAccessDoorsPacket(endPoint);
+        SendResourceNodesPacket(endPoint);
         SendTreasurePodsPacket(endPoint);
         SendUpgradesPacket(endPoint);
         SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
@@ -318,7 +319,7 @@ internal sealed class ReSyncManager
     
     private static InitialResourceNodesPacket CreateResourceNodesPacket()
     {
-        var nodesList = new List<InitialResourceNodesPacket.Node>();
+        var nodesList = new List<ResourceNodePlacement>();
 
         var spawners = Il2CppSystem.Linq.Enumerable
             .ToArray(GameState.AllResourceNodes()
@@ -329,11 +330,7 @@ internal sealed class ReSyncManager
             if (spawner == null)
                 continue;
 
-            nodesList.Add(new InitialResourceNodesPacket.Node
-            {
-                ID = spawner.nodeId,
-                State = (byte)spawner.nodeState
-            });
+            nodesList.Add(ResourceNodeManager.CreatePlacement(spawner));
         }
 
         return new InitialResourceNodesPacket { Nodes = nodesList };

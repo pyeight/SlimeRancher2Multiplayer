@@ -29,7 +29,7 @@
 |   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
 |      Plot FX      |   🟩   |                               Fully functional                                |
 |     Market FX     |   🟩   |                               Fully functional                                |
-|  Resource Nodes   |   🟥   |                                Not implemented                                |
+|  Resource Nodes   |   🟩   |                               Fully functional                                |
 |   Gordo Slimes    |   🟩   |                               Fully functional                                |
 |      Geysers      |   🟩   |                               Fully functional                                |
 |        Map        |   🟨   |     Lightning has duplicate loot, Tornados and map icons not synchronised     |

@@ -53,6 +53,7 @@ public static class GlobalVariables
 
     internal static readonly RemoteFXManager FXManager = new();
     internal static readonly NetworkActorManager ActorManager = new();
+    internal static readonly NetworkResourceNodeManager ResourceNodeManager = new();
 
     /// <summary>
     /// To prevent stuff from being stuck in an infinite sending loop

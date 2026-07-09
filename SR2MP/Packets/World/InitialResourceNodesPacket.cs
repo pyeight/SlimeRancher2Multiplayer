@@ -1,10 +1,10 @@
-﻿using SR2MP.Packets.Utils;
+using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.World;
 
 internal sealed class InitialResourceNodesPacket : IPacket
 {
-    public List<Node> Nodes = new();
+    public List<ResourceNodePlacement> Nodes = new();
 
     public PacketType Type => PacketType.InitialResourceNodes;
     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -14,10 +14,7 @@ internal sealed class InitialResourceNodesPacket : IPacket
     {
         writer.WriteInt(Nodes.Count);
         foreach (var node in Nodes)
-        {
-            writer.WriteString(node.ID);
-            writer.WriteByte(node.State);
-        }
+            node.Serialise(writer);
     }
 
     public void Deserialise(PacketReader reader)
@@ -25,17 +22,9 @@ internal sealed class InitialResourceNodesPacket : IPacket
         var count = reader.ReadInt();
         for (var i = 0; i < count; i++)
         {
-            Nodes.Add(new Node
-            {
-                ID = reader.ReadPooledString()!,
-                State = reader.ReadByte()
-            });
+            var node = new ResourceNodePlacement();
+            node.Deserialise(reader);
+            Nodes.Add(node);
         }
-    }
-
-    internal sealed class Node
-    {
-        public string ID = string.Empty;
-        public byte State;
     }
 }

@@ -71,9 +71,9 @@ internal enum PacketType : byte
     ActorTypeRegistry = 80,       // Server -> Client                             Low (depends on join)                 IdentifiableTypes on join
     DervishCyclone = 81,          // Both Ways                                    Low (depends on slime count)          On Dervish Slime Cyclone
     SloomberYawn = 82,            // Both Ways                                    Low (depends on slime count)          On Sloomber SLime Yawn
-    PlayerInventorySync = 83,
     ResourceNode = 84,
     InitialResourceNodes = 120,
+    ResourceNodePlacement = 121,
     DroneProgram = 85,
     PuzzleSlot = 86,
     InitialPuzzleSlots = 87,
