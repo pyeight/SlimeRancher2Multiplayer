@@ -59,6 +59,7 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
             }
             finally
             {
+                HandlingPacket = false;
                 PacketReader.Return(clientCache.Reader);
             }
         }
@@ -76,6 +77,7 @@ internal sealed class MainThreadDispatcher : MonoBehaviour
             }
             finally
             {
+                HandlingPacket = false;
                 PacketReader.Return(serverCache.Reader);
             }
         }
