@@ -6,7 +6,7 @@ internal struct WorldTimePacket : IPacket
 {
     public double Time;
 
-    public PacketType Type { get; init; }
+    public readonly PacketType Type => PacketType.WorldTime;
     public readonly PacketReliability Reliability => PacketReliability.Unreliable;
     public readonly NetworkChannel Channel => NetworkChannel.Weather;
 

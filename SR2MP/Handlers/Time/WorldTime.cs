@@ -10,8 +10,14 @@ internal sealed class WorldTimeHandler : BasePacketHandler<WorldTimePacket>
 {
     protected override bool Handle(WorldTimePacket packet, IPEndPoint? _)
     {
-        if (!IsInRanchHouse)
-            SceneContext.Instance.TimeDirector._worldModel.worldTime = packet.Time;
+        if (IsInRanchHouse)
+            return false;
+
+        var worldModel = SceneContext.Instance.TimeDirector._worldModel;
+        
+        if (packet.Time > worldModel.worldTime)
+            worldModel.worldTime = packet.Time;
+
         return false;
     }
 }
