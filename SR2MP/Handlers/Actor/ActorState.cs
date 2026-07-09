@@ -13,12 +13,12 @@ internal sealed class ActorStateHandler : BasePacketHandler<ActorStatePacket>
     protected override bool Handle(ActorStatePacket packet, IPEndPoint? _)
     {
         if (!ActorManager.Actors.TryGetValue(packet.ActorId.Value, out var model))
-            return false;
+            return true;
 
         var actor = model.Cast<ActorModel>();
 
         if (!actor.TryGetNetworkComponent(out var networkComponent))
-            return false;
+            return true;
 
         var actorId = packet.ActorId;
 

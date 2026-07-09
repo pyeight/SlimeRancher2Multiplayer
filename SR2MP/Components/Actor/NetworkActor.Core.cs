@@ -38,8 +38,8 @@ internal sealed partial class NetworkActor : MonoBehaviour
     private Vector3 savedVelocity;
 
     internal bool isSlime;
-    private bool isResource;
-    private bool isPlort;
+    internal bool isResource;
+    internal bool isPlort;
 
     public ActorId ActorId
     {

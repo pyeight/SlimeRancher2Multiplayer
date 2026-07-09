@@ -31,7 +31,7 @@ internal sealed partial class NetworkActorManager
     {
         while (true)
         {
-            yield return new WaitForSeconds(5f);
+            yield return new WaitForSeconds(2f);
 
             if (!Main.Server.IsRunning && !Main.Client.IsConnected)
                 continue;
@@ -138,7 +138,9 @@ internal sealed partial class NetworkActorManager
     
     internal void TakeOwnershipOfNearby(bool onlyUnownedSlimes = false)
     {
-        var bounds = new Bounds(SceneContext.Instance.player.transform.position, new Vector3(600, 1250, 600));
+        var boundsSize = new Vector3(600, 1250, 600);
+        var ownershipBoundsSize = new Vector3(200, 1250, 200);
+        var bounds = new Bounds(SceneContext.Instance.player.transform.position, boundsSize);
 
         foreach (var actor in Actors.Values.ToArray())
         {
@@ -155,9 +157,6 @@ internal sealed partial class NetworkActorManager
 
                 if (onlyUnownedSlimes)
                 {
-                    if (!netActor.isSlime)
-                        continue;
-                    
                     if (netActor.LocallyOwned)
                         continue;
 
@@ -165,7 +164,21 @@ internal sealed partial class NetworkActorManager
                         continue;
 
                     var ownerId = netActor.CurrentOwnerId;
-                    if (!string.IsNullOrEmpty(ownerId) && PlayerManager.CheckPlayerExists(ownerId))
+                    var ownerExists = !string.IsNullOrEmpty(ownerId) && PlayerManager.CheckPlayerExists(ownerId);
+
+                    if (netActor.isPlort || netActor.isResource)
+                    {
+                        if (!ownerExists)
+                        {
+                            try { Destroyer.DestroyAny(actor.GetGameObject(), "SR2MP.UnownedSlimeOwnership"); } catch { /* ignored */ }
+                            continue;
+                        }
+                    }
+
+                    if (ownerExists
+                        && PlayerObjects.TryGetValue(ownerId, out var playerObj)
+                        && playerObj
+                        && new Bounds(playerObj.transform.position, ownershipBoundsSize).Contains(actor.lastPosition))
                         continue;
                 }
 

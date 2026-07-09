@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Net;
+using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
@@ -22,23 +24,37 @@ internal sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket
             GameState.identifiablesByIdent[actor.ident].Remove(actor);
             GameState.DestroyIdentifiableModel(actor);
             ActorManager.Actors.Remove(actor.actorId.Value);
-        }
 
-        HandlingPacket = true;
-        try
-        {
-            var obj = actor.GetGameObject();
+            HandlingPacket = true;
 
-            if (obj)
-                Destroyer.DestroyAny(actor.GetGameObject(), "SR2MP.ActorDestroyHandler");
-        }
-        catch
-        {
-            // ignored
-        }
+            StartCoroutine(DestroyActor(actor));
 
-        HandlingPacket = false;
+            HandlingPacket = false;
+        }
 
         return true;
+    }
+
+    private static IEnumerator DestroyActor(IdentifiableModel actor)
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            try
+            {
+                var obj = actor.GetGameObject();
+
+                if (obj)
+                {
+                    Destroyer.DestroyAny(obj, "SR2MP.ActorDestroyHandler");
+                    yield break;
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+
+            yield return null; // wait one frame
+        }
     }
 }
