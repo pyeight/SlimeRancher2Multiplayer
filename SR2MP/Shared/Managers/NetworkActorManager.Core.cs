@@ -24,10 +24,10 @@ internal sealed partial class NetworkActorManager
         ActorTypes[-1] = null!;
 
         StartCoroutine(ZoneLoadingLoop());
-        StartCoroutine(OwnUnownedLoop());
+        StartCoroutine(OwnUnownedSlimesLoop());
     }
 
-    private IEnumerator OwnUnownedLoop()
+    private IEnumerator OwnUnownedSlimesLoop()
     {
         while (true)
         {
@@ -42,7 +42,7 @@ internal sealed partial class NetworkActorManager
             if (SceneContext.Instance?.player == null)
                 continue;
 
-            TakeOwnershipOfNearby(onlyUnowned: true);
+            TakeOwnershipOfNearby(true);
         }
     }
 
@@ -136,7 +136,7 @@ internal sealed partial class NetworkActorManager
         return result;
     }
     
-    internal void TakeOwnershipOfNearby(bool onlyUnowned = false)
+    internal void TakeOwnershipOfNearby(bool onlyUnownedSlimes = false)
     {
         var bounds = new Bounds(SceneContext.Instance.player.transform.position, new Vector3(600, 1250, 600));
 
@@ -153,7 +153,7 @@ internal sealed partial class NetworkActorManager
                 if (!actor.TryGetNetworkComponent(out var netActor))
                     continue;
 
-                if (onlyUnowned)
+                if (onlyUnownedSlimes)
                 {
                     if (netActor.LocallyOwned)
                         continue;
@@ -162,9 +162,15 @@ internal sealed partial class NetworkActorManager
                         continue;
 
                     var ownerId = netActor.CurrentOwnerId;
-                    if (!string.IsNullOrEmpty(ownerId) && ownerId != LocalID && PlayerManager.CheckPlayerExists(ownerId))
+                    if (!string.IsNullOrEmpty(ownerId) && PlayerManager.CheckPlayerExists(ownerId))
+                        continue;
+
+                    if (!netActor.isSlime)
                         continue;
                 }
+
+                if (onlyUnownedSlimes)
+                    SrLogger.LogMessage("owning unowned slime");
 
                 var actorId = netActor.ActorId;
                 if (actorId.Value == 0)

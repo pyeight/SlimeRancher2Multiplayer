@@ -6,6 +6,8 @@ namespace SR2MP.Packets.Actor;
 
 internal struct ActorSpawnPacket : IPacket
 {
+    public string OwnerId;
+    
     public ActorId ActorId;
     public Quaternion Rotation;
     public Vector3 Position;
@@ -40,6 +42,7 @@ internal struct ActorSpawnPacket : IPacket
         writer.WritePackedEnum(SecondAppearance);
         writer.WriteByte(Radiancy);
         writer.WriteByte(MaterialIndex);
+        writer.WriteStringWithoutSize(OwnerId);
     }
 
     public void Deserialise(PacketReader reader)
@@ -55,5 +58,6 @@ internal struct ActorSpawnPacket : IPacket
         SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
         Radiancy = reader.ReadByte();
         MaterialIndex = reader.ReadByte();
+        OwnerId = reader.ReadPooledStringOfSize(16)!;
     }
 }

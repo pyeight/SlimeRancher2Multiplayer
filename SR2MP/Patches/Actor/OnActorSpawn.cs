@@ -79,7 +79,8 @@ internal static class OnActorSpawn
             FirstAppearance = appearance,
             SecondAppearance = secondAppearance,
             Radiancy = (byte)radiancy,
-            MaterialIndex = (byte)material
+            MaterialIndex = (byte)material,
+            OwnerId = LocalID
         };
 
         Main.SendToAllOrServer(packet);
