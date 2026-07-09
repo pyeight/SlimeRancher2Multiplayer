@@ -13,10 +13,12 @@ internal sealed class PuzzleSlotHandler : BasePacketHandler<PuzzleSlotPacket>
         if (GameState.slots.TryGetValue(packet.ID, out var model))
         {
             HandlingPacket = true;
-            model.filled = packet.Filled;
-            model.NotifyParticipants();
+            try { model.filled = packet.Filled; } catch { /* ignored */ }
+
             if (model.gameObj)
             {
+                model.NotifyParticipants();
+
                 var slot = model.gameObj.GetComponent<PuzzleSlot>();
                 if (slot)
                     slot.OnFilledChangedFromModel();
