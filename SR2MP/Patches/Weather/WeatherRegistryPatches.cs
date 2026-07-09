@@ -51,23 +51,30 @@ internal static class WeatherRegistryPatches
 
         foreach (var forecast in forecastList)
         {
-            if (forecast.Pattern != null && forecast.Pattern.Metadata != null)
+            if (forecast.Pattern == null || forecast.Pattern.Metadata == null)
+                continue;
+            
+            var present = false;
+            foreach (var existing in mapData)
             {
-                var mapDataEntry = new ZoneWeatherMapData();
-                mapDataEntry.Metadata = forecast.Pattern.Metadata;
+                if (existing.Metadata != forecast.Pattern.Metadata)
+                    continue;
 
-                var stateDef = forecast.State.TryCast<WeatherStateDefinition>();
-                if (stateDef != null)
-                {
-                    mapDataEntry.MapTier = stateDef.MapTier;
-                }
-                else
-                {
-                    mapDataEntry.MapTier = forecast.State.GetMapTier();
-                }
-
-                mapData.Add(mapDataEntry);
+                present = true;
+                break;
             }
+
+            if (present)
+                continue;
+
+            var mapDataEntry = new ZoneWeatherMapData();
+            
+            mapDataEntry.Metadata = forecast.Pattern.Metadata;
+
+            var stateDef = forecast.State.TryCast<WeatherStateDefinition>();
+            mapDataEntry.MapTier = stateDef != null ? stateDef.MapTier : forecast.State.GetMapTier();
+
+            mapData.Add(mapDataEntry);
         }
     }
 }
