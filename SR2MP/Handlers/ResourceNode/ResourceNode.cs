@@ -16,7 +16,7 @@ internal sealed class ResourceNodeHandler : BasePacketHandler<ResourceNodePacket
         if (packet.RequestSpawn)
         {
             HandleSpawnRequest(packet, node);
-            return true;
+            return false;
         }
 
         HandleStateUpdate(packet, node);

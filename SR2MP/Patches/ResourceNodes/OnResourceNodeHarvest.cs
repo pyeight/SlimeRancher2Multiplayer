@@ -25,7 +25,7 @@ internal static class OnResourceNodeHarvest
             };
             Main.SendToAllOrServer(packet);
         }
-
-        return false;
+        
+        return Main.Server.IsRunning;
     }
 }
