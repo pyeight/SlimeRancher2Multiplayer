@@ -119,25 +119,29 @@ internal sealed partial class NetworkActorManager
     internal void TakeOwnershipOfNearby()
     {
         var bounds = new Bounds(SceneContext.Instance.player.transform.position, new Vector3(600, 1250, 600));
-        
+
         foreach (var actor in Actors.Values.ToArray())
         {
-            if (actor == null)
-                continue;
+            try
+            {
+                if (actor == null)
+                    continue;
 
-            if (!bounds.Contains(actor.lastPosition))
-                continue;
+                if (!bounds.Contains(actor.lastPosition))
+                    continue;
 
-            if (!actor.TryGetNetworkComponent(out var netActor))
-                continue;
+                if (!actor.TryGetNetworkComponent(out var netActor))
+                    continue;
 
-            var actorId = netActor.ActorId;
-            if (actorId.Value == 0)
-                continue;
+                var actorId = netActor.ActorId;
+                if (actorId.Value == 0)
+                    continue;
 
-            var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
-            ApplyOwnership(packet);
-            Main.SendToAllOrServer(packet);
+                var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = LocalID };
+                ApplyOwnership(packet);
+                Main.SendToAllOrServer(packet);
+            }
+            catch { /* ignored */ }
         }
     }
     
@@ -161,43 +165,47 @@ internal sealed partial class NetworkActorManager
 
         foreach (var actor in Actors.Values.ToArray())
         {
-            if (actor == null)
-                continue;
-
-            if (!actor.TryGetNetworkComponent(out var netActor))
-                continue;
-
-            if (netActor.CurrentOwnerId == LocalID || PlayerManager.CheckPlayerExists(netActor.CurrentOwnerId))
-                continue;
-
-            var actorId = netActor.ActorId;
-            if (actorId.Value == 0)
-                continue;
-
-            var position = actor.lastPosition;
-            string? newOwner = null;
-            var bestDistance = float.MaxValue;
-
-            foreach (var (playerId, playerPosition) in allPlayers)
+            try
             {
-                if (!new Bounds(playerPosition, bounds).Contains(position))
+                if (actor == null)
                     continue;
 
-                var distance = (playerPosition - position).sqrMagnitude;
-
-                if (distance >= bestDistance)
+                if (!actor.TryGetNetworkComponent(out var netActor))
                     continue;
 
-                bestDistance = distance;
-                newOwner = playerId;
+                if (netActor.CurrentOwnerId == LocalID || PlayerManager.CheckPlayerExists(netActor.CurrentOwnerId))
+                    continue;
+
+                var actorId = netActor.ActorId;
+                if (actorId.Value == 0)
+                    continue;
+
+                var position = actor.lastPosition;
+                string? newOwner = null;
+                var bestDistance = float.MaxValue;
+
+                foreach (var (playerId, playerPosition) in allPlayers)
+                {
+                    if (!new Bounds(playerPosition, bounds).Contains(position))
+                        continue;
+
+                    var distance = (playerPosition - position).sqrMagnitude;
+
+                    if (distance >= bestDistance)
+                        continue;
+
+                    bestDistance = distance;
+                    newOwner = playerId;
+                }
+
+                if (newOwner == null)
+                    continue;
+
+                var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = newOwner };
+                ApplyOwnership(packet);
+                Main.SendToAllOrServer(packet);
             }
-
-            if (newOwner == null)
-                continue;
-
-            var packet = new ActorTransferPacket { ActorId = actorId, OwnerId = newOwner };
-            ApplyOwnership(packet);
-            Main.SendToAllOrServer(packet);
+            catch { /* ignored */ }
         }
     }
 }

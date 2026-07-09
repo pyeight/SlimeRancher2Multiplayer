@@ -13,20 +13,28 @@ internal sealed partial class NetworkActor
     private bool lastSentInvulnerable;
     private float lastSentInvulnerablePeriod;
 
+    private const float ForceStateSyncInterval = 15f;
+    
+    private float forceStateSyncTimer = UnityEngine.Random.Range(5f, ForceStateSyncInterval);
+
     private void SendStateUpdate()
     {
         if (!isSlime && !isResource && !isPlort)
             return;
 
-        if (!ShouldUpdateState())
+        forceStateSyncTimer += UnityEngine.Time.deltaTime;
+
+        var forceSync = forceStateSyncTimer >= ForceStateSyncInterval;
+
+        if (!ShouldUpdateState() && !forceSync)
             return;
 
-        var actorId = ActorId;
+        forceStateSyncTimer = 0f;
 
-        if (actorId.Value == 0)
+        if (ActorId.Value == 0)
             return;
 
-        Main.SendToAllOrServer(BuildStatePacket(actorId));
+        Main.SendToAllOrServer(BuildStatePacket(ActorId));
     }
 
     private bool ShouldUpdateState()

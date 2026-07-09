@@ -5,12 +5,17 @@ using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
+using Unity.Mathematics;
 
 namespace SR2MP.Shared.Managers;
 
 internal sealed partial class NetworkActorManager
 {
-    public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model)
+    public bool TrySpawnNetworkActor(
+        ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model,
+        SlimeAppearance.AppearanceSaveSet firstAppearance = SlimeAppearance.AppearanceSaveSet.NONE,
+        SlimeAppearance.AppearanceSaveSet secondAppearance = SlimeAppearance.AppearanceSaveSet.NONE,
+        float4 emotions = default, bool sleeping = false)
     {
         model = null;
         
@@ -39,6 +44,15 @@ internal sealed partial class NetworkActorManager
         if (model == null)
             return false;
         
+        var slimeModel = model.TryCast<SlimeModel>();
+        if (slimeModel != null)
+        {
+            slimeModel.firstAppearanceSaveSet = firstAppearance;
+            slimeModel.secondAppearanceSaveSet = secondAppearance;
+            slimeModel.Emotions = emotions;
+            slimeModel.isSleeping = sleeping;
+        }
+
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
             actors.Add(model);

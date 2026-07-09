@@ -18,7 +18,9 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
             return false;
         }
 
-        ActorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor);
+        ActorManager.TrySpawnNetworkActor(
+            packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor,
+            packet.FirstAppearance, packet.SecondAppearance, packet.Emotions, packet.Sleeping);
 
         if (actor == null)
             return true;
@@ -33,11 +35,6 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
         var slime = actor.TryCast<SlimeModel>();
         if (slime == null)
             return true;
-
-        slime.firstAppearanceSaveSet = packet.FirstAppearance;
-        slime.secondAppearanceSaveSet = packet.SecondAppearance;
-        slime.Emotions = packet.Emotions;
-        slime.isSleeping = packet.Sleeping;
 
         if (packet.Radiancy != (byte)ActorAppearanceType.Default)
             NetworkActorManager.ApplyRadiancy(slime, (ActorAppearanceType)packet.Radiancy);
