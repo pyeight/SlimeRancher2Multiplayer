@@ -126,6 +126,9 @@ public sealed class SR2MPServer
     }
 
     private void OnClientRemoved(ClientInfo client)
+        => MainThreadDispatcher.Instance.Enqueue(() => HandleClientRemoved(client));
+
+    private void HandleClientRemoved(ClientInfo client)
     {
         var playerId = client.PlayerId;
         
