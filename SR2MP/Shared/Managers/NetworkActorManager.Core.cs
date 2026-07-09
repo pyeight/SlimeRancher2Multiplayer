@@ -24,6 +24,26 @@ internal sealed partial class NetworkActorManager
         ActorTypes[-1] = null!;
 
         StartCoroutine(ZoneLoadingLoop());
+        StartCoroutine(OwnUnownedLoop());
+    }
+
+    private IEnumerator OwnUnownedLoop()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(5f);
+
+            if (!Main.Server.IsRunning && !Main.Client.IsConnected)
+                continue;
+
+            if (!SystemContext.Instance.SceneLoader.IsCurrentSceneGroupGameplay())
+                continue;
+
+            if (SceneContext.Instance?.player == null)
+                continue;
+
+            TakeOwnershipOfNearby(onlyUnowned: true);
+        }
     }
 
     private IEnumerator ZoneLoadingLoop()
@@ -116,7 +136,7 @@ internal sealed partial class NetworkActorManager
         return result;
     }
     
-    internal void TakeOwnershipOfNearby()
+    internal void TakeOwnershipOfNearby(bool onlyUnowned = false)
     {
         var bounds = new Bounds(SceneContext.Instance.player.transform.position, new Vector3(600, 1250, 600));
 
@@ -132,6 +152,19 @@ internal sealed partial class NetworkActorManager
 
                 if (!actor.TryGetNetworkComponent(out var netActor))
                     continue;
+
+                if (onlyUnowned)
+                {
+                    if (netActor.LocallyOwned)
+                        continue;
+
+                    if (netActor.RegionMember?._hibernating == true)
+                        continue;
+
+                    var ownerId = netActor.CurrentOwnerId;
+                    if (!string.IsNullOrEmpty(ownerId) && ownerId != LocalID && PlayerManager.CheckPlayerExists(ownerId))
+                        continue;
+                }
 
                 var actorId = netActor.ActorId;
                 if (actorId.Value == 0)

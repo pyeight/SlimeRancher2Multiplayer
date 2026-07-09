@@ -100,6 +100,8 @@ internal static class OnActorSpawn
     {
         if (HandlingPacket) return;
 
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
+
         var networkActor = __result.AddComponent<NetworkActor>();
         networkActor.LocallyOwned = true;
         networkActor.CurrentOwnerId = LocalID;
