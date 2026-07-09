@@ -20,6 +20,7 @@ internal sealed class NetworkGarden : MonoBehaviour
     private double cachedNextSpawnTime;
     private float syncTimer;
     private const float SyncInterval = 5f;
+    private bool cachedLocallyOwned;
     
     internal static void OnServerStarted()
     {
@@ -50,6 +51,10 @@ internal sealed class NetworkGarden : MonoBehaviour
 
         IsHibernated = false;
         LocallyOwned = Main.Server.IsRunning;
+        cachedLocallyOwned = LocallyOwned;
+
+        if (garden != null)
+            garden.enabled = LocallyOwned;
 
         if (Main.Server.IsRunning)
             CurrentOwnerId = Main.Server.PlayerId;
@@ -92,13 +97,19 @@ internal sealed class NetworkGarden : MonoBehaviour
 
         if (hibernating)
         {
-            if (garden?._model != null)
-                cachedNextSpawnTime = garden._model.nextSpawnTime;
+            var previousOwner = LocallyOwned;
 
-            var wasOwner = LocallyOwned;
+            if (garden?._model != null)
+            {
+                cachedNextSpawnTime = garden._model.nextSpawnTime;
+                
+                if (previousOwner)
+                    SendGardenUpdate();
+            }
+
             LocallyOwned = false;
 
-            if (wasOwner)
+            if (previousOwner)
                 SendOwnershipPacket(string.Empty, CurrentOwnerId);
         }
         else
@@ -112,6 +123,14 @@ internal sealed class NetworkGarden : MonoBehaviour
 
     public void Update()
     {
+        if (cachedLocallyOwned != LocallyOwned)
+        {
+            if (garden != null)
+                garden.enabled = LocallyOwned;
+
+            cachedLocallyOwned = LocallyOwned;
+        }
+
         if (!LocallyOwned || garden?._model == null)
             return;
 
@@ -119,10 +138,19 @@ internal sealed class NetworkGarden : MonoBehaviour
         if (syncTimer < SyncInterval)
             return;
 
-        syncTimer = 0;
+        SendGardenUpdate();
+    }
+
+    private void SendGardenUpdate()
+    {
+        if (garden?._model == null)
+            return;
 
         if (!Main.Server.IsRunning && !Main.Client.IsConnected)
             return;
+
+        syncTimer = 0;
+        cachedNextSpawnTime = garden._model.nextSpawnTime;
 
         var packet = new GardenUpdatePacket
         {
@@ -158,6 +186,8 @@ internal sealed class NetworkGarden : MonoBehaviour
         LocallyOwned = true;
         CurrentOwnerId = LocalID;
         SendOwnershipPacket(LocalID, string.Empty);
+        
+        SendGardenUpdate();
     }
 
     private void SendOwnershipPacket(string claimerId, string previousOwnerId)
