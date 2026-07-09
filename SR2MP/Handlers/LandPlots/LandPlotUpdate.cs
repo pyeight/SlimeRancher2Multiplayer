@@ -14,7 +14,8 @@ internal sealed class LandPlotUpgradeHandler : LandPlotUpdateHandler<LandPlotUpg
 {
     protected override bool Handle(LandPlotUpgradePacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.PlotID];
+        if (!GameState.landPlots.TryGetValue(packet.PlotID, out var model))
+            return true;
 
         model.upgrades.Add(packet.ID);
 
@@ -41,7 +42,8 @@ internal sealed class NewLandPlotHandler : BasePacketHandler<NewLandPlotPacket>
 {
     protected override bool Handle(NewLandPlotPacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.PlotID];
+        if (!GameState.landPlots.TryGetValue(packet.PlotID, out var model))
+            return true;
 
         model.typeId = packet.ID;
 
