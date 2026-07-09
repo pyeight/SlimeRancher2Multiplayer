@@ -22,6 +22,9 @@ internal sealed partial class NetworkActor
         if (!isSlime && !isResource && !isPlort)
             return;
 
+        if (isResource && cycle?._model == null)
+            return;
+
         forceStateSyncTimer += UnityEngine.Time.deltaTime;
 
         var forceSync = forceStateSyncTimer >= ForceStateSyncInterval;
