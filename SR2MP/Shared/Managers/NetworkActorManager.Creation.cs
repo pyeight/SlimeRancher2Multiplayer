@@ -41,6 +41,8 @@ internal sealed partial class NetworkActorManager
     {
         var gameObj = model.GetGameObject();
         var radiancy = ActorAppearanceType.Default;
+        var firstSet = model.firstAppearanceSaveSet;
+        var secondSet = model.secondAppearanceSaveSet;
 
         if (gameObj)
         {
@@ -49,12 +51,17 @@ internal sealed partial class NetworkActorManager
             if (applicator && def)
             {
                 var current = applicator.Appearance;
-                if (current == def!.RadiantBase)
-                    radiancy = ActorAppearanceType.BaseRadiant;
-                else if (current == def.RadiantLargo0)
-                    radiancy = ActorAppearanceType.LargoRadiant0;
-                else if (current == def.RadiantLargo1)
-                    radiancy = ActorAppearanceType.LargoRadiant1;
+                if (current != null)
+                {
+                    if (current == def!.RadiantBase)
+                        radiancy = ActorAppearanceType.BaseRadiant;
+                    else if (current == def.RadiantLargo0)
+                        radiancy = ActorAppearanceType.LargoRadiant0;
+                    else if (current == def.RadiantLargo1)
+                        radiancy = ActorAppearanceType.LargoRadiant1;
+                    else if (firstSet == SlimeAppearance.AppearanceSaveSet.NONE)
+                        firstSet = current.SaveSet;
+                }
             }
         }
 
@@ -67,7 +74,9 @@ internal sealed partial class NetworkActorManager
             Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
             Emotions = model.Emotions,
             Sleeping = model.isSleeping,
-            Radiancy = (int)radiancy
+            Radiancy = (int)radiancy,
+            FirstAppearance = firstSet,
+            SecondAppearance = secondSet
         };
     }
 

@@ -12,18 +12,18 @@ internal struct ActorSpawnPacket : IPacket
     public Quaternion Rotation;
     public Vector3 Position;
 
-    public float4 Emotions;
-    public bool Sleeping;
-
     public int ActorType;
     public byte SceneGroup;
     
+    public float4 Emotions;
+    public bool Sleeping;
     public SlimeAppearance.AppearanceSaveSet FirstAppearance;
     public SlimeAppearance.AppearanceSaveSet SecondAppearance;
-    
     public byte Radiancy;
 
     public byte MaterialIndex;
+
+    public byte SpawnType;
 
     public readonly PacketType Type => PacketType.ActorSpawn;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
@@ -34,14 +34,25 @@ internal struct ActorSpawnPacket : IPacket
         writer.WritePackedLong(ActorId.Value);
         writer.WriteVector3(Position);
         writer.WriteQuaternion(Rotation);
-        writer.WriteFloat4(Emotions);
-        writer.WriteBool(Sleeping);
         writer.WritePackedInt(ActorType);
         writer.WriteByte(SceneGroup);
-        writer.WritePackedEnum(FirstAppearance);
-        writer.WritePackedEnum(SecondAppearance);
-        writer.WriteByte(Radiancy);
-        writer.WriteByte(MaterialIndex);
+        writer.WriteByte(SpawnType);
+
+        switch (SpawnType)
+        {
+            case (byte)ActorSpawnType.Slime:
+                writer.WriteFloat4(Emotions);
+                writer.WriteBool(Sleeping);
+                writer.WritePackedEnum(FirstAppearance);
+                writer.WritePackedEnum(SecondAppearance);
+                writer.WriteByte(Radiancy);
+                break;
+
+            case (byte)ActorSpawnType.Sprinkle:
+                writer.WriteByte(MaterialIndex);
+                break;
+        }
+
         writer.WriteStringWithoutSize(OwnerId);
     }
 
@@ -50,14 +61,25 @@ internal struct ActorSpawnPacket : IPacket
         ActorId = new ActorId(reader.ReadPackedLong());
         Position = reader.ReadVector3();
         Rotation = reader.ReadQuaternion();
-        Emotions = reader.ReadFloat4();
-        Sleeping = reader.ReadBool();
         ActorType = reader.ReadPackedInt();
         SceneGroup = reader.ReadByte();
-        FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
-        SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
-        Radiancy = reader.ReadByte();
-        MaterialIndex = reader.ReadByte();
+        SpawnType = reader.ReadByte();
+
+        switch (SpawnType)
+        {
+            case (byte)ActorSpawnType.Slime:
+                Emotions = reader.ReadFloat4();
+                Sleeping = reader.ReadBool();
+                FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
+                SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
+                Radiancy = reader.ReadByte();
+                break;
+
+            case (byte)ActorSpawnType.Sprinkle:
+                MaterialIndex = reader.ReadByte();
+                break;
+        }
+
         OwnerId = reader.ReadPooledStringOfSize(16)!;
     }
 }

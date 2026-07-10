@@ -100,23 +100,29 @@ internal partial class InitialActorsPacket
         public float4 Emotions;
         public bool Sleeping;
         public int Radiancy;
-        
+        public SlimeAppearance.AppearanceSaveSet FirstAppearance;
+        public SlimeAppearance.AppearanceSaveSet SecondAppearance;
+
         protected override ActorType Type => ActorType.Slime;
-        
+
         public override void Serialise(PacketWriter writer)
         {
             base.Serialise(writer);
             writer.WriteFloat4(Emotions);
             writer.WriteBool(Sleeping);
             writer.WritePackedInt(Radiancy);
+            writer.WritePackedEnum(FirstAppearance);
+            writer.WritePackedEnum(SecondAppearance);
         }
-        
+
         public override void Deserialise(PacketReader reader)
         {
             base.Deserialise(reader);
             Emotions = reader.ReadFloat4();
             Sleeping = reader.ReadBool();
             Radiancy = reader.ReadPackedInt();
+            FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
+            SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
         }
     }
     

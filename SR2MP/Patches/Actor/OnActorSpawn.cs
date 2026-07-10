@@ -7,7 +7,6 @@ using Il2CppMonomiPark.SlimeRancher.VFX;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Managers;
-using Unity.Mathematics;
 
 namespace SR2MP.Patches.Actor;
 
@@ -28,45 +27,6 @@ internal static class OnActorSpawn
 
         var id = actor.GetComponent<IdentifiableActor>().GetActorId();
 
-        var emotions = float4.zero;
-        var sleeping = false;
-        var slimeModel = actor.GetComponent<IdentifiableActor>()._model.TryCast<SlimeModel>();
-        if (slimeModel != null)
-        {
-            emotions = slimeModel.Emotions;
-            sleeping = slimeModel.isSleeping;
-        }
-
-        var radiancy = ActorAppearanceType.Default;
-        var slimeAppearanceApplicator = actor.GetComponent<SlimeAppearanceApplicator>();
-        if (slimeAppearanceApplicator != null)
-        {
-            var currentAppearance = slimeAppearanceApplicator.Appearance;
-            var def = actor.GetComponent<Identifiable>().identType.TryCast<SlimeDefinition>();
-            if (def != null && currentAppearance != null)
-            {
-                if (currentAppearance == def.RadiantBase)
-                    radiancy = ActorAppearanceType.BaseRadiant;
-                else if (currentAppearance == def.RadiantLargo0)
-                    radiancy = ActorAppearanceType.LargoRadiant0;
-                else if (currentAppearance == def.RadiantLargo1)
-                    radiancy = ActorAppearanceType.LargoRadiant1;
-            }
-        }
-
-        var material = SprinkleMaterialType.none;
-        var sprinkle = actor.GetComponent<RandomMaterial>();
-
-        if (sprinkle != null)
-        {
-            var materialName = sprinkle._renderers
-                .Select(r => r.sharedMaterial?.name.Replace(" (Instance)", ""))
-                .FirstOrDefault();
-
-            if (Enum.TryParse(materialName, out SprinkleMaterialType type))
-                material = type;
-        }
-
         var packet = new ActorSpawnPacket
         {
             ActorType = actorType,
@@ -74,14 +34,63 @@ internal static class OnActorSpawn
             ActorId = id,
             Position = actor.transform.position,
             Rotation = actor.transform.rotation,
-            Emotions = emotions,
-            Sleeping = sleeping,
-            FirstAppearance = appearance,
-            SecondAppearance = secondAppearance,
-            Radiancy = (byte)radiancy,
-            MaterialIndex = (byte)material,
+            SpawnType = (byte)ActorSpawnType.Actor,
+            MaterialIndex = (byte)SprinkleMaterialType.none,
             OwnerId = LocalID
         };
+
+        var slimeModel = actor.GetComponent<IdentifiableActor>()._model.TryCast<SlimeModel>();
+        if (slimeModel != null)
+        {
+            packet.SpawnType = (byte)ActorSpawnType.Slime;
+            packet.Emotions = slimeModel.Emotions;
+            packet.Sleeping = slimeModel.isSleeping;
+            
+            var firstSet = appearance != SlimeAppearance.AppearanceSaveSet.NONE
+                ? appearance
+                : slimeModel.firstAppearanceSaveSet;
+            var secondSet = secondAppearance != SlimeAppearance.AppearanceSaveSet.NONE
+                ? secondAppearance
+                : slimeModel.secondAppearanceSaveSet;
+
+            var radiancy = ActorAppearanceType.Default;
+            var slimeAppearanceApplicator = actor.GetComponent<SlimeAppearanceApplicator>();
+            var slimeDefinition = actor.GetComponent<Identifiable>().identType.TryCast<SlimeDefinition>();
+            if (slimeAppearanceApplicator != null)
+            {
+                var currentAppearance = slimeAppearanceApplicator.Appearance;
+                if (slimeDefinition != null && currentAppearance != null)
+                {
+                    if (currentAppearance == slimeDefinition.RadiantBase)
+                        radiancy = ActorAppearanceType.BaseRadiant;
+                    else if (currentAppearance == slimeDefinition.RadiantLargo0)
+                        radiancy = ActorAppearanceType.LargoRadiant0;
+                    else if (currentAppearance == slimeDefinition.RadiantLargo1)
+                        radiancy = ActorAppearanceType.LargoRadiant1;
+                    else if (firstSet == SlimeAppearance.AppearanceSaveSet.NONE)
+                        firstSet = currentAppearance.SaveSet;
+                }
+            }
+
+            packet.FirstAppearance = firstSet;
+            packet.SecondAppearance = secondSet;
+            packet.Radiancy = (byte)radiancy;
+        }
+        else
+        {
+            var sprinkle = actor.GetComponent<RandomMaterial>();
+            if (sprinkle != null)
+            {
+                packet.SpawnType = (byte)ActorSpawnType.Sprinkle;
+
+                var materialName = sprinkle._renderers
+                    .Select(r => r.sharedMaterial?.name.Replace(" (Instance)", ""))
+                    .FirstOrDefault();
+
+                if (Enum.TryParse(materialName, out SprinkleMaterialType type))
+                    packet.MaterialIndex = (byte)type;
+            }
+        }
 
         Main.SendToAllOrServer(packet);
     }

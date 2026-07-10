@@ -79,6 +79,9 @@ internal sealed partial class NetworkActorManager
         actor.transform.position = position;
         ActorManager.Actors[actorId.Value] = model;
         
+        if (slimeModel != null)
+            StartCoroutine(EnsureSlimeAppearance(slimeModel));
+
         actor.GetComponent<ResourceCycle>()?.AttachToNearest();
         
         return true;
@@ -232,6 +235,8 @@ internal sealed partial class NetworkActorManager
         var slime = model.Cast<SlimeModel>();
         slime.Emotions = emotions;
         slime.isSleeping = actorData.Sleeping;
+        slime.firstAppearanceSaveSet = actorData.FirstAppearance;
+        slime.secondAppearanceSaveSet = actorData.SecondAppearance;
         
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -264,6 +269,8 @@ internal sealed partial class NetworkActorManager
         if (actorData.Radiancy != (int)ActorAppearanceType.Default)
             ApplyRadiancy(slime, (ActorAppearanceType)actorData.Radiancy);
         
+        StartCoroutine(EnsureSlimeAppearance(slime));
+
         return true;
     }
 

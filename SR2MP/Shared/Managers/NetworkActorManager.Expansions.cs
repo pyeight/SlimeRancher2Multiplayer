@@ -98,6 +98,39 @@ internal sealed partial class NetworkActorManager
         return true;
     }
     
+    private static IEnumerator EnsureSlimeAppearance(SlimeModel slime)
+    {
+        yield return new WaitFrames(2);
+
+        if (slime == null) yield break;
+
+        var gameObj = slime.GetGameObject();
+        if (!gameObj) yield break;
+
+        var applicator = gameObj.GetComponent<SlimeAppearanceApplicator>();
+        if (!applicator || applicator.Appearance) yield break;
+
+        if (slime.IsRadiant && ApplyRadiancy(slime)) yield break;
+
+        var def = gameObj.GetComponent<Identifiable>()?.identType.TryCast<SlimeDefinition>();
+        if (!def) yield break;
+
+        var appearance = def!.IsLargo
+            ? def.GetLargoAppearance(slime.firstAppearanceSaveSet, slime.secondAppearanceSaveSet)
+            : def.GetAppearanceForSet(slime.firstAppearanceSaveSet);
+
+        if (!appearance)
+            appearance = SceneContext.Instance?.SlimeAppearanceDirector?.GetChosenSlimeAppearance(def);
+
+        if (!appearance)
+            appearance = def.GetDefaultAppearance();
+
+        if (!appearance) yield break;
+
+        applicator.Appearance = appearance;
+        applicator.ApplyAppearance();
+    }
+
     internal static IEnumerator ApplySprinkleMaterial(GameObject gameObj, SprinkleMaterialType material)
     {
         yield return new WaitFrames(2);

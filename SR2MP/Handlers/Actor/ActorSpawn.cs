@@ -33,19 +33,24 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
             networkComponent.CachedLocallyOwned = false;
         }
 
-        if (packet.MaterialIndex != (byte)SprinkleMaterialType.none)
+        switch (packet.SpawnType)
         {
-            var gameObj = actor.GetGameObject();
-            if (gameObj)
-                StartCoroutine(NetworkActorManager.ApplySprinkleMaterial(gameObj, (SprinkleMaterialType)packet.MaterialIndex));
+            case (byte)ActorSpawnType.Sprinkle when packet.MaterialIndex != (byte)SprinkleMaterialType.none:
+            {
+                var gameObj = actor.GetGameObject();
+                if (gameObj)
+                    StartCoroutine(NetworkActorManager.ApplySprinkleMaterial(gameObj, (SprinkleMaterialType)packet.MaterialIndex));
+                break;
+            }
+
+            case (byte)ActorSpawnType.Slime when packet.Radiancy != (byte)ActorAppearanceType.Default:
+            {
+                var slime = actor.TryCast<SlimeModel>();
+                if (slime != null)
+                    NetworkActorManager.ApplyRadiancy(slime, (ActorAppearanceType)packet.Radiancy);
+                break;
+            }
         }
-
-        var slime = actor.TryCast<SlimeModel>();
-        if (slime == null)
-            return true;
-
-        if (packet.Radiancy != (byte)ActorAppearanceType.Default)
-            NetworkActorManager.ApplyRadiancy(slime, (ActorAppearanceType)packet.Radiancy);
 
         return true;
     }
