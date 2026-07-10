@@ -35,7 +35,14 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
 
         foreach (var actor in packet.Actors)
         {
-            ActorManager.TrySpawnInitialActor(actor, out var _);
+            try
+            {
+                ActorManager.TrySpawnInitialActor(actor, out var _);
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogError($"Failed to spawn initial actor {actor.ActorId} (type_{actor.ActorTypeId}): {ex.Message}");
+            }
         }
 
         ActorManager.TakeOwnershipOfNearby();

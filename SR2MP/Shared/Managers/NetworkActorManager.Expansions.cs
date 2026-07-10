@@ -160,15 +160,28 @@ internal sealed partial class NetworkActorManager
         {
             foreach (var gadget in GameState.AllGadgets())
             {
-                if (gadget != null && gadget.actorId.Value == actorId.Value)
-                {
+                if (gadget == null || gadget.actorId.Value != actorId.Value)
+                    continue;
+
+                var gameObject = gadget.GetGameObject();
+
+                HandlingPacket = true;
+                if (gameObject)
+                    Destroyer.DestroyGadget(gameObject, "SR2MP.RemoveExistingGadgetModel");
+                else
                     GameState.DestroyGadgetModel(gadget);
-                    break;
-                }
+                HandlingPacket = false;
+                
+                var mapDirector = SceneContext.Instance?.MapDirector;
+                if (mapDirector != null)
+                    mapDirector.DeregisterMarker(gadget);
+
+                break;
             }
         }
         catch (Exception ex)
         {
+            HandlingPacket = false;
             SrLogger.LogWarning($"Failed to remove existing gadget model for {actorId.Value}: {ex.Message}");
         }
     }

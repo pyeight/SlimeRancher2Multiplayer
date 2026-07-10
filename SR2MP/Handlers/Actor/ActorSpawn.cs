@@ -25,10 +25,13 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
         if (actor == null)
             return true;
         
-        actor.TryGetNetworkComponent(out var networkComponent);
-        networkComponent.CurrentOwnerId = packet.OwnerId;
-        networkComponent.LocallyOwned = false;
-        networkComponent.CachedLocallyOwned = false;
+        // Gadgets have no NetworkActor component
+        if (actor.TryGetNetworkComponent(out var networkComponent))
+        {
+            networkComponent.CurrentOwnerId = packet.OwnerId;
+            networkComponent.LocallyOwned = false;
+            networkComponent.CachedLocallyOwned = false;
+        }
 
         if (packet.MaterialIndex != (byte)SprinkleMaterialType.none)
         {

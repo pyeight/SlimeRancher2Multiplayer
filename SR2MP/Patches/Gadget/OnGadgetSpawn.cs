@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
-using MelonLoader;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Managers;
 using Unity.Mathematics;
@@ -32,7 +31,8 @@ internal static class OnGadgetSpawn
             ActorType = type,
             Position = position,
             Rotation = rotation,
-            Emotions = float4.zero
+            Emotions = float4.zero,
+            OwnerId = LocalID
         };
 
         Main.SendToAllOrServer(packet);
