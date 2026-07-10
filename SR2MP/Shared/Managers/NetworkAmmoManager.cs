@@ -114,6 +114,8 @@ internal static class NetworkAmmoManager
     private static IEnumerator RegisterAmmoPointerCoroutine(SiloStorage siloStorage)
     {
         yield return new WaitFrames(3);
+        
+        if (siloStorage == null) yield break;
 
         // needs to include inactive ones, don't question why
         var plot = siloStorage.GetComponentInParent<LandPlotLocation>(true);
