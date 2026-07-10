@@ -3,6 +3,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Actor;
 
@@ -18,10 +19,13 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
         HandlingPacket = true;
-        foreach (var (_, value) in toRemove)
+        foreach (var (id, value) in toRemove)
         {
             if (value.ident.IsPlayer)
                 continue;
+
+            if (value.ident.IsGadget())
+                NetworkActorManager.RemoveExistingGadgetModel(id);
 
             var gameObject = value.GetGameObject();
 

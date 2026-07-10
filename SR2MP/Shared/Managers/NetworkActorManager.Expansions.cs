@@ -152,7 +152,7 @@ internal sealed partial class NetworkActorManager
         component.LocallyOwned = locallyOwned;
     }
     
-    private static void RemoveExistingGadgetModel(ActorId actorId)
+    internal static void RemoveExistingGadgetModel(ActorId actorId)
     {
         if (actorId.Value == 0) return;
 
