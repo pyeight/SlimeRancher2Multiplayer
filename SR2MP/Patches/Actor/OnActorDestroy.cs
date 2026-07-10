@@ -28,6 +28,9 @@ internal static class OnActorDestroy
         if (HandlingPacket || !actorObj)
             return true;
 
+        if (source is "SR2MP.ActorDestroyHandler" or "SR2MP.InitialActors" or "SR2MP.RemoveExistingGadgetModel")
+            return true;
+
         var actor = actorObj.GetComponent<IdentifiableActor>();
         if (!actor)
             return true;
