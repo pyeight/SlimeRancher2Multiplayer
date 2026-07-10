@@ -86,7 +86,7 @@ public static class Logger
     /// </summary>
     /// <inheritdoc cref="LogInternal"/>
     public static void LogError(object? message, SrLogTarget target = SrLogTarget.Both)
-        => LogInternal(message, LogLevel.Error, target, StarlightLogManager.SendError, _melonLogger.Error);
+        => LogInternal(message, LogLevel.Error, target, null, _melonLogger.Error);
 
     /// <summary>
     /// Logs a debug message, which bypasses Starlight and MelonLoader outputs.
