@@ -233,9 +233,6 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
             UpdateInterpolation();
 
-            if (LocallyOwned)
-                SendStateUpdate();
-
             SyncTimer -= UnityEngine.Time.unscaledDeltaTime;
 
             if (SyncTimer >= 0)
@@ -244,7 +241,10 @@ internal sealed partial class NetworkActor : MonoBehaviour
             SyncTimer = Timers.ActorTimer;
 
             if (LocallyOwned)
+            {
+                SendStateUpdate();
                 SendWorldUpdate();
+            }
         }
         catch (Exception ex)
         {

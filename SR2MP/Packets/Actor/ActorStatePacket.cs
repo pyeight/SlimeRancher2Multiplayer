@@ -15,6 +15,7 @@ internal struct ActorStatePacket : IPacket
 
     public double ResourceProgress;
     public ResourceCycle.State ResourceState;
+    public float ResourceScale;
 
     public bool Invulnerable;
     public float InvulnerablePeriod;
@@ -40,6 +41,7 @@ internal struct ActorStatePacket : IPacket
             case ActorUpdateType.Resource:
                 writer.WriteDouble(ResourceProgress);
                 writer.WritePackedEnum(ResourceState);
+                writer.WriteFloat(ResourceScale);
                 break;
 
             case ActorUpdateType.Plort:
@@ -64,6 +66,7 @@ internal struct ActorStatePacket : IPacket
             case ActorUpdateType.Resource:
                 ResourceProgress = reader.ReadDouble();
                 ResourceState    = reader.ReadPackedEnum<ResourceCycle.State>();
+                ResourceScale    = reader.ReadFloat();
                 break;
 
             case ActorUpdateType.Plort:

@@ -104,7 +104,12 @@ internal sealed partial class NetworkActorManager
         if (!obj) return packet;
 
         var cycle = obj.GetComponent<ResourceCycle>();
-        if (!cycle || cycle._joint == null) return packet;
+        if (!cycle) return packet;
+
+        if (cycle._defaultScale.x > 0f)
+            packet.Scale = obj.transform.localScale.x / cycle._defaultScale.x;
+
+        if (cycle._joint == null) return packet;
 
         var joint = cycle._joint.Joint;
         if (!joint) return packet;

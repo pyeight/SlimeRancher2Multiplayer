@@ -150,6 +150,7 @@ internal partial class InitialActorsPacket
         public int JointIndex = -1;
         public string PlotID = string.Empty;
         public Vector3 SpawnerPosition;
+        public float Scale = 1f;
         
         protected override ActorType Type => ActorType.Resource;
         
@@ -161,6 +162,7 @@ internal partial class InitialActorsPacket
             writer.WritePackedInt(JointIndex);
             writer.WriteString(PlotID);
             writer.WriteVector3(SpawnerPosition);
+            writer.WriteFloat(Scale);
         }
         
         public override void Deserialise(PacketReader reader)
@@ -171,6 +173,7 @@ internal partial class InitialActorsPacket
             JointIndex = reader.ReadPackedInt();
             PlotID = reader.ReadPooledString()!;
             SpawnerPosition = reader.ReadVector3();
+            Scale = reader.ReadFloat();
         }
     }
     

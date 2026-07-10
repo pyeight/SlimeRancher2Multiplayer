@@ -74,7 +74,12 @@ internal sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPa
 
         var produceModel = model.TryCast<ProduceModel>();
         if (produceModel != null)
+        {
             networkComponent.SetResourceState(produceModel._state, produceModel.progressTime, true);
+            
+            if (produceModel._state == ResourceCycle.State.UNRIPE && cycle._defaultScale.x > 0f)
+                cycle.transform.localScale = cycle._defaultScale * 0.33f;
+        }
 
         return true;
     }

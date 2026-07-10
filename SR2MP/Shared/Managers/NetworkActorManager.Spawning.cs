@@ -467,7 +467,6 @@ internal sealed partial class NetworkActorManager
         {
             if (state == ResourceCycle.State.UNRIPE)
             {
-                actor.transform.localScale = cycle._defaultScale * 0.33f;
                 if (cycle._vacuumable)
                     cycle._vacuumable.enabled = false;
             }
@@ -475,6 +474,11 @@ internal sealed partial class NetworkActorManager
             {
                 networkComponent.SetResourceState(state, progress, true);
             }
+            
+            var scale = actorData.Scale > 0f
+                ? actorData.Scale
+                : (state == ResourceCycle.State.UNRIPE ? 0.33f : 1f);
+            actor.transform.localScale = cycle._defaultScale * scale;
         }
         
         return true;

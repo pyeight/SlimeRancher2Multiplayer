@@ -31,6 +31,22 @@ internal sealed partial class NetworkActor
         cachedCycleReleasing = CycleReleasing;
     }
 
+    private float GetResourceScaleRatio()
+    {
+        if (cycle == null || cycle._defaultScale.x <= 0f)
+            return 1f;
+
+        return transform.localScale.x / cycle._defaultScale.x;
+    }
+
+    internal void ApplyResourceScale(float ratio)
+    {
+        if (cycle == null || ratio <= 0f || cycle._defaultScale.x <= 0f)
+            return;
+
+        transform.localScale = cycle._defaultScale * ratio;
+    }
+
     public void SetResourceState(ResourceCycle.State state, double progress, bool force = false)
     {
         if (cycle == null)
