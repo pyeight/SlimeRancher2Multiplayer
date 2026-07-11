@@ -13,6 +13,8 @@ namespace SR2MP.Patches.Ammo
         {
             if ((!Main.Client.IsConnected && !Main.Server.IsRunning) || HandlingPacket) return;
 
+            if (OnSiloStorageAddResource.isDroneResource) return;
+
             if (!__result)
                 return;
 

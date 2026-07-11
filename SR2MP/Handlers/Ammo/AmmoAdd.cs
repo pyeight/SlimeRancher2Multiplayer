@@ -15,9 +15,19 @@ internal sealed class AmmoAddHandler : BasePacketHandler<AmmoAddPacket>
         var ammo = NetworkAmmoManager.GetAmmo(packet.ID);
 
         if (ammo == null) return false;
-        var ident = ActorManager.ActorTypes[packet.Identifiable];
+
+        if (!ActorManager.ActorTypes.TryGetValue(packet.Identifiable, out var ident) || ident == null)
+        {
+            SrLogger.LogWarning($"AmmoAdd: unknown identifiable type {packet.Identifiable}");
+            return true;
+        }
+        
+        var slotIndex = ammo.GetNextSlot(ident);
+        if (slotIndex == -1)
+            return true;
+
         HandlingPacket = true;
-        ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ident), ammo.GetNextSlot(ident), packet.Count, false);
+        ammo.MaybeAddToSpecificSlot(new AmmoSlot.AmmoMetadata(ident), slotIndex, packet.Count, false);
         HandlingPacket = false;
 
         return true;
