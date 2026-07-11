@@ -24,7 +24,19 @@ internal abstract class BasePacketHandler<T> : IClientPacketHandler, IServerPack
     private void ProcessPacket(PacketReader reader, IPEndPoint? clientEp)
     {
         var packet = reader.ReadPacket<T>();
-        var shouldSend = Handle(packet, clientEp);
+
+        bool shouldSend;
+
+        try
+        {
+            shouldSend = Handle(packet, clientEp);
+        }
+        catch (Exception ex)
+        {
+            HandlingPacket = false;
+            SrLogger.LogError($"Packet handler for {typeof(T).Name} threw: {ex}");
+            return;
+        }
 
         if (IsServerSide && shouldSend)
             PacketSender.SendToAllExcept(packet, clientEp);
