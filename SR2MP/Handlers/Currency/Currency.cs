@@ -15,6 +15,9 @@ internal sealed class CurrencyHandler : BasePacketHandler<CurrencyPacket>
         var currency = GameContext.Instance.LookupDirector._currencyList._currencies[packet.CurrencyType - 1];
         var currencyDefinition = currency!.Cast<ICurrency>();
         var difference = packet.NewAmount - SceneContext.Instance.PlayerState.GetCurrency(currencyDefinition);
+        
+        if (difference == 0)
+            return true;
 
         IUIDisplayData? sourceOfChange = null;
         if (packet.SourceIdent != -1 && ActorManager.ActorTypes.TryGetValue(packet.SourceIdent, out var sourceType))

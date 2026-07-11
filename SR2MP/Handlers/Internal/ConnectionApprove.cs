@@ -36,8 +36,10 @@ internal sealed class ConnectionApproveHandler : BasePacketHandler<ConnectionApp
                 SpawnPlayer(id, username);
         }
 
+        HandlingPacket = true;
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>(), packet.Money);
         SceneContext.Instance.PlayerState._model.SetCurrency(GameContext.Instance.LookupDirector._currencyList[1].Cast<ICurrency>(), packet.RainbowMoney);
+        HandlingPacket = false;
 
         foreach (var data in packet.NetData)
         {
