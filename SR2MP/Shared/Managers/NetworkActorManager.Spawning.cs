@@ -111,7 +111,7 @@ internal sealed partial class NetworkActorManager
         
         var stationModel = model.TryCast<DroneStationGadgetModel>();
         if (stationModel != null)
-            StartCoroutine(NetworkDroneManager.EnsureStationDrone(stationModel));
+            StartCoroutine(NetworkDroneManager.EnsureStation(stationModel));
 
         identModel = model.TryCast<IdentifiableModel>();
         return true;
