@@ -12,7 +12,7 @@ internal sealed class InitialDroneResourcesHandler : BasePacketHandler<InitialDr
     protected override bool Handle(InitialDroneResourcesPacket packet, IPEndPoint? _)
     {
         HandlingPacket = true;
-        NetworkDroneManager.ApplyInitial(packet);
+        NetworkDroneManager.ApplyInitialResources(packet);
         HandlingPacket = false;
 
         return false;
