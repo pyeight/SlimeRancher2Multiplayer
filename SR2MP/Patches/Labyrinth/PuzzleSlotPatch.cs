@@ -11,10 +11,13 @@ internal static class OnPuzzleSlotFill
     {
         if (HandlingPacket) return;
 
+        if (__instance._model == null)
+            return;
+
         var id = "";
         foreach (var pair in GameState.slots)
         {
-            if (pair.value == __instance._model)
+            if (pair.value != null && pair.value.Pointer == __instance._model.Pointer)
             {
                 id = pair.key;
                 break;
