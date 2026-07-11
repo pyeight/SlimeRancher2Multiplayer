@@ -11,7 +11,9 @@ internal sealed partial class NetworkActor
         if (!isResource || LocallyOwned || cycle == null || cycle._model == null)
             return;
 
-        if (!ShouldUpdateResourceState)
+        if (ShouldUpdateResourceState)
+            ShouldUpdateResourceState = false;
+        else
             cycle._model.progressTime = double.MaxValue;
     }
 
