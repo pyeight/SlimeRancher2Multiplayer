@@ -11,22 +11,20 @@ internal sealed class InitialPuzzleSlotsHandler : BasePacketHandler<InitialPuzzl
 {
     protected override bool Handle(InitialPuzzleSlotsPacket packet, IPEndPoint? _)
     {
+        HandlingPacket = true;
 
         foreach (var slot in packet.Slots)
         {
             if (GameState.slots.TryGetValue(slot.ID, out var slotModel))
             {
+                slotModel.filled = slot.Filled;
+
                 if (slotModel.gameObj)
                 {
-                    slotModel.filled = slot.Filled;
-                
                     var comp = slotModel.gameObj.GetComponent<PuzzleSlot>();
-                    if (comp)
-                    {
-                        if (slot.Filled)
-                            comp.ActivateOnFill();
-                    }
-                
+                    if (comp && slot.Filled)
+                        comp!.ActivateOnFill();
+
                     slotModel.NotifyParticipants();
                 }
             }
@@ -41,6 +39,7 @@ internal sealed class InitialPuzzleSlotsHandler : BasePacketHandler<InitialPuzzl
             }
         }
 
+        HandlingPacket = false;
         return false;
     }
 }
