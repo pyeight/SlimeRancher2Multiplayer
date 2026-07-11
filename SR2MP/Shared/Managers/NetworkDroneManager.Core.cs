@@ -1,3 +1,4 @@
+using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Drone;
 using SR2MP.Components.Drone;
@@ -12,6 +13,7 @@ internal static partial class NetworkDroneManager
     internal static readonly Dictionary<long, string> CachedOwners = new();
 
     private static bool subscribedToServerStart;
+    private static bool initialized;
 
     internal static void CheckSubscribed()
     {
@@ -20,6 +22,59 @@ internal static partial class NetworkDroneManager
 
         Main.Server.OnServerStarted += OnServerStarted;
         subscribedToServerStart = true;
+    }
+    
+    internal static void Initialize()
+    {
+        if (initialized)
+            return;
+
+        initialized = true;
+
+        StartCoroutine(OwnUnownedDronesLoop());
+    }
+
+    private static IEnumerator OwnUnownedDronesLoop()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(2f);
+
+            if (!Main.Server.IsRunning && !Main.Client.IsConnected)
+                continue;
+
+            if (!SystemContext.Instance.SceneLoader.IsCurrentSceneGroupGameplay())
+                continue;
+
+            TakeOwnershipOfNearby();
+        }
+    }
+    
+    private static void TakeOwnershipOfNearby()
+    {
+        if (SceneContext.Instance?.player == null)
+            return;
+
+        var bounds = new Bounds(SceneContext.Instance.player.transform.position, new Vector3(600, 1250, 600));
+
+        foreach (var drone in NetworkDrone.Drones.Values.ToArray())
+        {
+            try
+            {
+                if (!drone || drone.IsHibernated || drone.LocallyOwned)
+                    continue;
+
+                if (!bounds.Contains(drone.transform.position))
+                    continue;
+
+                var ownerId = drone.CurrentOwnerId;
+                if (!string.IsNullOrEmpty(ownerId) && PlayerManager.CheckPlayerExists(ownerId))
+                    continue;
+
+                drone.ClaimOwnership();
+            }
+            catch { /* ignored */ }
+        }
     }
 
     private static void OnServerStarted()
