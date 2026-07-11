@@ -10,11 +10,9 @@ using SR2MP.Packets.Ammo;
 using SR2MP.Packets.Economy;
 using SR2MP.Packets.Internal;
 using SR2MP.Packets.Loading;
-using SR2MP.Packets.Player;
 using SR2MP.Packets.TreasurePod;
 using SR2MP.Packets.Utils;
 using SR2MP.Packets.World;
-using SR2MP.Server.Managers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
@@ -67,12 +65,14 @@ internal sealed class ReSyncManager
         SendResourceNodesPacket(endPoint);
         SendTreasurePodsPacket(endPoint);
         SendUpgradesPacket(endPoint);
+        SendDroneResourcesPacket(endPoint);
         SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
         SendPricesPacket(endPoint);
         SendWeatherPacket(endPoint);
         SendPuzzleSlotsPacket(endPoint);
         SendPlortDepositorsPacket(endPoint);
         SendPrismaBarriersPacket(endPoint);
+        SendDroneCloudPacket(endPoint);
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
@@ -401,6 +401,9 @@ internal sealed class ReSyncManager
         {
             if (model.TryCast<GadgetModel>(out _))
                 continue;
+            
+            if (NetworkDroneManager.IsDroneModel(model))
+                continue;
 
             actorsList.Add(NetworkActorManager.CreateInitialActor(model));
         }
@@ -416,13 +419,38 @@ internal sealed class ReSyncManager
         var actorsPacket = new InitialActorsPacket
         {
             StartingActorID =
-                (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * ActorIdOffset,
-                    (playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
+                NetworkActorManager.GetHighestActorIdInRange((long)playerIndex * ActorIdOffset,
+                    ((long)playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
             Actors = actorsList,
             WorldTime = GameState.world.worldTime
         };
 
         Main.Server.SendToClient(actorsPacket, client);
+    }
+
+    private static void SendDroneCloudPacket(IPEndPoint client)
+    {
+        var cloud = GameState.droneModel?.GetCloudModel();
+        if (cloud?._amounts == null)
+            return;
+
+        var packet = new InitialDroneCloudPacket();
+
+        foreach (var pair in cloud._amounts)
+        {
+            if (pair.Key != null)
+                packet.Amounts[NetworkActorManager.GetPersistentID(pair.Key)] = pair.Value;
+        }
+
+        Main.Server.SendToClient(packet, client);
+    }
+
+    private static void SendDroneResourcesPacket(IPEndPoint client)
+    {
+        var packet = NetworkDroneManager.CreateInitialPacket();
+
+        if (packet.Scenes.Count > 0)
+            Main.Server.SendToClient(packet, client);
     }
 
     private static void SendSwitchesPacket(IPEndPoint client)

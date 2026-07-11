@@ -16,7 +16,7 @@ internal partial class InitialActorsPacket : IPacket
     };
 
     public double WorldTime;
-    public uint StartingActorID;
+    public long StartingActorID;
     public List<ActorBase> Actors;
 
     public PacketType Type => PacketType.InitialActors;
@@ -25,14 +25,14 @@ internal partial class InitialActorsPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WritePackedUInt(StartingActorID);
+        writer.WritePackedLong(StartingActorID);
         writer.WriteDouble(WorldTime);
         writer.WriteList(Actors, PacketWriterDels.NetObject<ActorBase>.Writer);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        StartingActorID = reader.ReadPackedUInt();
+        StartingActorID = reader.ReadPackedLong();
         WorldTime = reader.ReadDouble();
         Actors = reader.ReadList(ReadFunction)!;
     }
