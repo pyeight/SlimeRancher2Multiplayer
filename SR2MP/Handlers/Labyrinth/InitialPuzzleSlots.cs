@@ -16,14 +16,18 @@ internal sealed class InitialPuzzleSlotsHandler : BasePacketHandler<InitialPuzzl
         {
             if (GameState.slots.TryGetValue(slot.ID, out var slotModel))
             {
-                slotModel.filled = slot.Filled;
                 if (slotModel.gameObj)
                 {
+                    slotModel.filled = slot.Filled;
+                
                     var comp = slotModel.gameObj.GetComponent<PuzzleSlot>();
                     if (comp)
                     {
-                        comp.OnFilledChangedFromModel();
+                        if (slot.Filled)
+                            comp.ActivateOnFill();
                     }
+                
+                    slotModel.NotifyParticipants();
                 }
             }
             else
