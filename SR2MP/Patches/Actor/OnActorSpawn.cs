@@ -111,6 +111,8 @@ internal static class OnActorSpawn
         if (HandlingPacket) return;
 
         if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
+        
+        if (NetworkDroneManager.IsDroneModel(__result.GetComponent<IdentifiableActor>()._model)) return;
 
         var networkActor = __result.AddComponent<NetworkActor>();
         networkActor.LocallyOwned = true;

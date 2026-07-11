@@ -28,11 +28,16 @@ internal static class OnActorDestroy
         if (HandlingPacket || !actorObj)
             return true;
 
-        if (source is "SR2MP.ActorDestroyHandler" or "SR2MP.InitialActors" or "SR2MP.RemoveExistingGadgetModel")
+        if (source is "SR2MP.ActorDestroyHandler" or "SR2MP.InitialActors" or "SR2MP.RemoveExistingGadgetModel" or "SR2MP.ReplaceDrone")
             return true;
 
         var actor = actorObj.GetComponent<IdentifiableActor>();
         if (!actor)
+            return true;
+        
+        // Drone destructions are handled differently
+        if (actorObj.GetComponent<Il2CppMonomiPark.SlimeRancher.Drone.RanchDrone>() ||
+            actorObj.GetComponent<Il2CppMonomiPark.SlimeRancher.Drone.ExplorerDrone>())
             return true;
 
         ActorManager.Actors.Remove(actor.GetActorId().Value);

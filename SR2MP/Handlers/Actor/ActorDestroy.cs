@@ -4,6 +4,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Actor;
 
@@ -20,6 +21,10 @@ internal sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket
 
         if (GameState.TryGetIdentifiableModel(packet.ActorId, out var actor))
         {
+            // Remove the drone station if it's a drone
+            if (actor.TryCast<DroneStationGadgetModel>() != null)
+                NetworkDroneManager.RemoveStationDrone(packet.ActorId);
+
             GameState.identifiables.Remove(packet.ActorId);
             GameState.identifiablesByIdent[actor.ident].Remove(actor);
             GameState.DestroyIdentifiableModel(actor);

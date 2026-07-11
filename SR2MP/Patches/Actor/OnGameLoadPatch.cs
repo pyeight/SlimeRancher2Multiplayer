@@ -14,6 +14,9 @@ internal static class OnGameLoadPatch
         {
             if (actor.value.TryCast<ActorModel>() == null) continue;
 
+            // Drones dont get NetworkActor
+            if (NetworkDroneManager.IsDroneModel(actor.value)) continue;
+
             var transform = actor.value.Transform;
 
             if (!transform)
