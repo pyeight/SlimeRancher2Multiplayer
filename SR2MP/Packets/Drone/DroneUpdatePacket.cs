@@ -1,3 +1,4 @@
+using SR2MP.Components.Drone;
 using SR2MP.Packets.Ammo;
 using SR2MP.Packets.Utils;
 
@@ -5,19 +6,12 @@ namespace SR2MP.Packets.Drone;
 
 internal sealed class DroneUpdatePacket : IPacket
 {
-    internal struct AnimatorParam
-    {
-        public int Hash;
-        public byte Type;
-        public float Value;
-    }
-
     public long StationId;
     public Vector3 Position;
     public Quaternion Rotation;
     public bool AtStation;
     public int AnimatorState;
-    public List<AnimatorParam> AnimatorParams = new();
+    public List<NetworkDrone.AnimatorParameter> AnimatorParams = new();
     public NetworkAmmo? Ammo;
 
     public PacketType Type => PacketType.DroneUpdate;
@@ -54,10 +48,10 @@ internal sealed class DroneUpdatePacket : IPacket
         AnimatorState = reader.ReadInt();
 
         var paramCount = reader.ReadByte();
-        AnimatorParams = new List<AnimatorParam>(paramCount);
+        AnimatorParams = new List<NetworkDrone.AnimatorParameter>(paramCount);
         for (var i = 0; i < paramCount; i++)
         {
-            AnimatorParams.Add(new AnimatorParam
+            AnimatorParams.Add(new NetworkDrone.AnimatorParameter
             {
                 Hash = reader.ReadInt(),
                 Type = reader.ReadByte(),
