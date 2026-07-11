@@ -10,7 +10,7 @@ internal sealed class DroneProgramPacket : IPacket
     public byte Sink;
     public byte Source;
 
-    public PacketType Type => PacketType.DroneProgram;
+    public PacketType Type => PacketType.DroneTask;
     public PacketReliability Reliability => PacketReliability.Reliable;
     public NetworkChannel Channel => NetworkChannel.WorldState;
 
