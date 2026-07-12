@@ -65,9 +65,28 @@ public sealed class Main : StarlightExpansionV01
     private static MelonPreferences_Category preferences;
 
     /// <summary>
-    /// Gets the configured username of the local player from the preferences.
+    /// Gets the local player's username string from preferences.
     /// </summary>
-    public static string Username => preferences.GetEntry<string>("username").Value;
+    public static string RawUsername => preferences.GetEntry<string>("username").Value;
+
+    /// <summary>
+    /// Gets the local player's username color as hex.
+    /// </summary>
+    public static string UsernameColor => preferences.GetEntry<string>("username_color").Value;
+
+    /// <summary>
+    /// Gets the local player's display name with color
+    /// </summary>
+    public static string Username
+    {
+        get
+        {
+            var name = RawUsername;
+            var color = UsernameColor;
+
+            return Extensions.IsValidHexColor(color) ? $"<color=#{color}>{name}</color>" : name;
+        }
+    }
 
     /// <summary>
     /// Gets a value indicating whether cheats are allowed based on the user's local configuration.
@@ -95,6 +114,7 @@ public sealed class Main : StarlightExpansionV01
     {
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
+        preferences.CreateEntry("username_color", "FFFFFF", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
         preferences.CreateEntry("streamer_mode", false, display_name: "Streamer Mode");
 

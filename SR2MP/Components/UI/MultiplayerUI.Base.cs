@@ -15,7 +15,8 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
     private void Awake()
     {
         firstTime = Main.SetupUI;
-        usernameInput = Main.Username;
+        usernameInput = Main.RawUsername;
+        usernameColorInput = Main.UsernameColor;
         allowCheatsInput = Main.AllowCheats;
         joinIpInput = Main.SavedConnectIP;
         joinPortInput = Main.SavedConnectPort;

@@ -5,6 +5,7 @@ internal sealed partial class MultiplayerUI
     private bool multiplayerUIHidden;
 
     private string usernameInput = "Player";
+    private string usernameColorInput = "FFFFFF";
     private bool allowCheatsInput;
 
     private void FirstTimeScreen()
@@ -15,6 +16,8 @@ internal sealed partial class MultiplayerUI
 
         DrawText("Username:", 2);
         usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
+
+        DrawUsernameColorInput();
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
@@ -28,12 +31,15 @@ internal sealed partial class MultiplayerUI
         firstTime = false;
         Main.SetConfigValue("internal_setup_ui", false);
         Main.SetConfigValue("username", usernameInput);
+        Main.SetConfigValue("username_color", usernameColorInput);
     }
 
     private void SettingsScreen()
     {
         DrawText("Username:", 2);
         usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
+
+        DrawUsernameColorInput();
 
         DrawText("Allow Cheats:", 2);
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
@@ -48,8 +54,24 @@ internal sealed partial class MultiplayerUI
         if (!GUI.Button(CalculateButtonLayout(6), "Save")) return;
 
         Main.SetConfigValue("username", usernameInput);
+        Main.SetConfigValue("username_color", usernameColorInput);
         Main.SetConfigValue("allow_cheats", allowCheatsInput);
         viewingSettings = false;
+    }
+
+    private void DrawUsernameColorInput()
+    {
+        DrawText("Username Color (hex):", 3);
+        usernameColorInput = DrawSafeTextInput("username_color", CalculateInputLayout(6, 3, 1), usernameColorInput, 6);
+
+        if (GUI.Button(CalculateButtonLayout(6, 3, 2), "Randomize"))
+            usernameColorInput = Extensions.RandomHexColor();
+
+        var preview = Extensions.IsValidHexColor(usernameColorInput)
+            ? $"<color=#{usernameColorInput}>{(string.IsNullOrWhiteSpace(usernameInput) ? "Player" : usernameInput)}</color>"
+            : "Enter a 6-digit hex color, e.g. FF8800";
+
+        DrawText(preview);
     }
 
     private void MainMenuScreen()

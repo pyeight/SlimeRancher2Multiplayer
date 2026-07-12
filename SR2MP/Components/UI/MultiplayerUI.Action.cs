@@ -216,5 +216,7 @@ internal sealed partial class MultiplayerUI
         hostIpInput = hostIpInput.WithAllWhitespaceStripped();
         hostTunnelPortInput = hostTunnelPortInput.WithAllWhitespaceStripped();
         joinCodeInput = joinCodeInput.WithAllWhitespaceStripped();
+        
+        usernameColorInput = usernameColorInput.WithAllWhitespaceStripped().TrimStart('#');
     }
 }

@@ -5,6 +5,30 @@ namespace SR2MP;
 
 internal static class Extensions
 {
+    internal static string RandomHexColor()
+    {
+        var r = UnityEngine.Random.Range(0, 256);
+        var g = UnityEngine.Random.Range(0, 256);
+        var b = UnityEngine.Random.Range(0, 256);
+
+        return $"{r:X2}{g:X2}{b:X2}";
+    }
+
+    internal static bool IsValidHexColor(string? value)
+    {
+        if (value == null || (value.Length != 6 && value.Length != 8))
+            return false;
+
+        foreach (var c in value)
+        {
+            var isHexDigit = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+            if (!isHexDigit)
+                return false;
+        }
+
+        return true;
+    }
+    
     internal static bool TryGetNetworkComponent(this IdentifiableModel actor, out NetworkActor component)
     {
         var gameObject = actor.GetGameObject();
