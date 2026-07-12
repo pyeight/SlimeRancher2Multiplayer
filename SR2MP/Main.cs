@@ -101,7 +101,7 @@ public sealed class Main : StarlightExpansionV01
     internal static string SavedConnectPort => preferences.GetEntry<string>("recent_port").Value;
     internal static string SavedConnectIP => preferences.GetEntry<string>("recent_ip").Value;
     internal static string SavedHostPort => preferences.GetEntry<string>("host_port").Value;
-    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui").Value;
+    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui_new").Value;
     internal static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     internal static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
 
@@ -128,7 +128,7 @@ public sealed class Main : StarlightExpansionV01
         preferences.CreateEntry("packet_size_log", false, display_name: "Packet Size Logging");
         preferences.CreateEntry("packet_ack_log", true, display_name: "Packet Acknowledge Logging");
 
-        preferences.CreateEntry("internal_setup_ui", true, is_hidden: true);
+        preferences.CreateEntry("internal_setup_ui_new", true, is_hidden: true);
 
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
             display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode), BREAKS SAVES!");
