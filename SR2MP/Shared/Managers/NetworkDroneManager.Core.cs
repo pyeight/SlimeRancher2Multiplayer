@@ -24,29 +24,23 @@ internal static partial class NetworkDroneManager
 
     private static void OnServerStarted()
     {
-        foreach (var drone in Object.FindObjectsOfType<RanchDrone>(true))
+        foreach (var drone in NetworkActorManager.GetAllOfType<RanchDroneModel>())
         {
-            var ranchDrone = GetNetworkComponent(drone.gameObject);
+            var ranchDrone = GetNetworkComponent(drone.GetGameObject());
             ranchDrone.LocallyOwned = true;
             ranchDrone.CurrentOwnerId = Main.Server.PlayerId;
         }
-
-        foreach (var drone in Object.FindObjectsOfType<ExplorerDrone>(true))
+        
+        foreach (var drone in NetworkActorManager.GetAllOfType<ExplorerDroneModel>())
         {
-            var explorerDrone = GetNetworkComponent(drone.gameObject);
+            var explorerDrone = GetNetworkComponent(drone.GetGameObject());
             explorerDrone.LocallyOwned = true;
             explorerDrone.CurrentOwnerId = Main.Server.PlayerId;
         }
     }
 
     internal static NetworkDrone GetNetworkComponent(GameObject droneObject)
-    {
-        var component = droneObject.GetComponent<NetworkDrone>();
-        if (component == null)
-            component = droneObject.AddComponent<NetworkDrone>();
-
-        return component;
-    }
+        => droneObject.GetOrAddComponent<NetworkDrone>();
 
     internal static bool IsDroneModel(IdentifiableModel model)
         => model.TryCast<RanchDroneModel>() != null || model.TryCast<ExplorerDroneModel>() != null;

@@ -16,6 +16,10 @@ internal static class Extensions
         return false;
     }
 
+    public static T GetOrAddComponent<T>(this GameObject obj) where T : Component
+        => obj.GetComponent<T>() ?? obj.AddComponent<T>();
+    
+    
     public static string ToStringYesOrNo(this bool value) => value ? "Yes" : "No";
 
     // https://discussions.unity.com/t/how-can-i-get-the-full-path-to-a-gameobject/412

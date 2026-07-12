@@ -257,4 +257,17 @@ internal sealed partial class NetworkActorManager
             catch { /* ignored */ }
         }
     }
+
+    public static T[] GetAllOfType<T>() where T : IdentifiableModel
+    {
+        List<T> result = new List<T>();
+        foreach (var ident in sceneContext.GameModel.identifiables)
+        {
+            var casted = ident.value.TryCast<T>(); 
+            if (casted != null)
+                result.Add(casted);
+        }
+        return result.ToArray();
+    }
+    
 }
