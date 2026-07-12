@@ -9,7 +9,7 @@ internal static partial class NetworkDroneManager
     internal static NetworkAmmo? CreateDroneAmmo(RanchDroneModel? droneModel)
     {
         var ammoModel = droneModel?.Ammo;
-        if (ammoModel == null || ammoModel.Slots == null)
+        if (ammoModel?.Slots == null)
             return null;
 
         var ammoSlots = new Dictionary<int, NetworkAmmoSlot>();

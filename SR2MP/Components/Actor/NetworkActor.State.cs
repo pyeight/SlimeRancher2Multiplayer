@@ -9,7 +9,6 @@ internal sealed partial class NetworkActor
 {
     private float4 lastSentEmotions;
     private bool lastSentSleeping;
-    private double lastSentResourceProgress;
     private ResourceCycle.State lastSentResourceState;
     private float lastSentResourceScale = 1f;
     private bool lastSentInvulnerable;
@@ -100,7 +99,6 @@ internal sealed partial class NetworkActor
             var currentScale    = GetResourceScaleRatio();
 
             lastSentResourceState    = currentState;
-            lastSentResourceProgress = currentProgress;
             lastSentResourceScale    = currentScale;
 
             return new ActorStatePacket

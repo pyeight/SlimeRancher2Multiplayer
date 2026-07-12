@@ -94,6 +94,15 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
     public bool LocallyOwned { get; set; }
 
+    private void InitializeComponents()
+    {
+        emotions     = GetComponent<SlimeEmotions>();
+        rigidbody    = GetComponent<Rigidbody>();
+        identifiable = GetComponent<Identifiable>();
+        cycle        = GetComponent<ResourceCycle>();
+        RegionMember = GetComponent<RegionMember>();
+    }
+    
     public void Start()
     {
         try
@@ -104,12 +113,8 @@ internal sealed partial class NetworkActor : MonoBehaviour
                 return;
             }
 
-            emotions     = GetComponent<SlimeEmotions>();
-            rigidbody    = GetComponent<Rigidbody>();
-            identifiable = GetComponent<Identifiable>();
-            cycle        = GetComponent<ResourceCycle>();
-            RegionMember = GetComponent<RegionMember>();
-
+            InitializeComponents();
+            
             CachedLocallyOwned = LocallyOwned;
 
             GetActorType();
