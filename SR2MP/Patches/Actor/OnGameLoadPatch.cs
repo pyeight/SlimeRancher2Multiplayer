@@ -14,20 +14,30 @@ internal static class OnGameLoadPatch
         {
             if (actor.value.TryCast<ActorModel>() == null) continue;
 
+            // Drones dont get NetworkActor
+            if (NetworkDroneManager.IsDroneModel(actor.value)) continue;
+
             var transform = actor.value.Transform;
 
             if (!transform)
                 continue;
+            
             var networkComponent = transform.GetComponent<NetworkActor>();
 
-            if (networkComponent) continue;
-
-            transform.gameObject.AddComponent<NetworkActor>().LocallyOwned = true;
+            if (networkComponent)
+            {
+                networkComponent.CurrentOwnerId = LocalID;
+                continue;
+            }
+            
+            var networkComponent2 = transform.gameObject.AddComponent<NetworkActor>();
+            networkComponent2.LocallyOwned = true;
+            networkComponent2.CurrentOwnerId = LocalID;
 
             ActorManager.Actors[actor.value.actorId.Value] = actor.value;
         }
 
         GameState._actorIdProvider._nextActorId =
-            NetworkActorManager.GetHighestActorIdInRange(0, ActorIdOffset);
+            NetworkActorManager.GetHighestActorIdInRange(0, ActorIdOffset) + 10;
     };
 }

@@ -1,16 +1,21 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Drone;
-using Il2CppMonomiPark.SlimeRancher.VFX;
+using Il2CppMonomiPark.SlimeRancher.Player;
 using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
+using Unity.Mathematics;
 
 namespace SR2MP.Shared.Managers;
 
 internal sealed partial class NetworkActorManager
 {
-    public bool TrySpawnNetworkActor(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model)
+    public bool TrySpawnNetworkActor(
+        ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model,
+        SlimeAppearance.AppearanceSaveSet firstAppearance = SlimeAppearance.AppearanceSaveSet.NONE,
+        SlimeAppearance.AppearanceSaveSet secondAppearance = SlimeAppearance.AppearanceSaveSet.NONE,
+        float4 emotions = default, bool sleeping = false)
     {
         model = null;
         
@@ -39,6 +44,15 @@ internal sealed partial class NetworkActorManager
         if (model == null)
             return false;
         
+        var slimeModel = model.TryCast<SlimeModel>();
+        if (slimeModel != null)
+        {
+            slimeModel.firstAppearanceSaveSet = firstAppearance;
+            slimeModel.secondAppearanceSaveSet = secondAppearance;
+            slimeModel.Emotions = emotions;
+            slimeModel.isSleeping = sleeping;
+        }
+
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
             actors.Add(model);
@@ -65,6 +79,9 @@ internal sealed partial class NetworkActorManager
         actor.transform.position = position;
         ActorManager.Actors[actorId.Value] = model;
         
+        if (slimeModel != null)
+            StartCoroutine(EnsureSlimeAppearance(slimeModel));
+
         actor.GetComponent<ResourceCycle>()?.AttachToNearest();
         
         return true;
@@ -80,6 +97,14 @@ internal sealed partial class NetworkActorManager
             return false;
         }
         
+        if (ActorIDAlreadyInUse(actorId))
+        {
+            SrLogger.LogWarning($"Tried to spawn gadget with an id already in use: {actorId.Value}");
+            return false;
+        }
+
+        RemoveExistingGadgetModel(actorId);
+
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
         var model = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false);
         model.eulerRotation = rotation.eulerAngles;
@@ -90,6 +115,10 @@ internal sealed partial class NetworkActorManager
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         
+        var stationModel = model.TryCast<DroneStationGadgetModel>();
+        if (stationModel != null)
+            StartCoroutine(NetworkDroneManager.EnsureStation(stationModel));
+
         identModel = model.TryCast<IdentifiableModel>();
         return true;
     }
@@ -122,10 +151,6 @@ internal sealed partial class NetworkActorManager
                 return TrySpawnInitialResource(resourceData, out model);
             case InitialActorsPacket.Sprinkle sprinkleData:
                 return TrySpawnInitialSprinkle(sprinkleData, out model);
-            case InitialActorsPacket.RanchDrone ranchDroneData:
-                return TrySpawnInitialRanchDrone(ranchDroneData, out model);
-            case InitialActorsPacket.ExplorerDrone droneData:
-                return TrySpawnInitialDrone(droneData, out model);
         }
         
         var sceneId = actorData.Scene;
@@ -216,6 +241,8 @@ internal sealed partial class NetworkActorManager
         var slime = model.Cast<SlimeModel>();
         slime.Emotions = emotions;
         slime.isSleeping = actorData.Sleeping;
+        slime.firstAppearanceSaveSet = actorData.FirstAppearance;
+        slime.secondAppearanceSaveSet = actorData.SecondAppearance;
         
         GameState.identifiables[actorId] = model;
         if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
@@ -248,6 +275,8 @@ internal sealed partial class NetworkActorManager
         if (actorData.Radiancy != (int)ActorAppearanceType.Default)
             ApplyRadiancy(slime, (ActorAppearanceType)actorData.Radiancy);
         
+        StartCoroutine(EnsureSlimeAppearance(slime));
+
         return true;
     }
 
@@ -451,7 +480,6 @@ internal sealed partial class NetworkActorManager
         {
             if (state == ResourceCycle.State.UNRIPE)
             {
-                actor.transform.localScale = cycle._defaultScale * 0.33f;
                 if (cycle._vacuumable)
                     cycle._vacuumable.enabled = false;
             }
@@ -459,6 +487,11 @@ internal sealed partial class NetworkActorManager
             {
                 networkComponent.SetResourceState(state, progress, true);
             }
+            
+            var scale = actorData.Scale > 0f
+                ? actorData.Scale
+                : (state == ResourceCycle.State.UNRIPE ? 0.33f : 1f);
+            actor.transform.localScale = cycle._defaultScale * scale;
         }
         
         return true;
@@ -533,8 +566,11 @@ internal sealed partial class NetworkActorManager
     {
         identifiableModel = null;
         
-        if (ActorIDAlreadyInUse(new ActorId(actorData.ActorId)))
+        var actorId = new ActorId(actorData.ActorId);
+        if (ActorIDAlreadyInUse(actorId))
             return false;
+        
+        RemoveExistingGadgetModel(actorId);
         
         switch (actorData)
         {
@@ -547,7 +583,6 @@ internal sealed partial class NetworkActorManager
         }
         
         var sceneId = actorData.Scene;
-        var actorId = new ActorId(actorData.ActorId);
         var position = actorData.Position;
         var rotation = actorData.Rotation;
         var typeId = actorData.ActorTypeId;
@@ -570,6 +605,9 @@ internal sealed partial class NetworkActorManager
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         
+        if (actorData is InitialActorsPacket.Gadget gadgetData)
+            model.waitForChargeupTime = gadgetData.ChargeupTime;
+
         return true;
     }
 
@@ -601,6 +639,8 @@ internal sealed partial class NetworkActorManager
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         
+        model.waitForChargeupTime = actorData.ChargeupTime;
+
         return true;
     }
     
@@ -620,12 +660,25 @@ internal sealed partial class NetworkActorManager
             return false;
         }
         
+        NetworkDroneManager.RemoveStationDrone(actorId);
+
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        var droneModel = new DroneStationGadgetModel(actorId, type, scene, position, false);
+        
+        HandlingPacket = true;
+        var droneModel = GameState.CreateGadgetModel(type.Cast<GadgetDefinition>(), actorId, scene, position, false)
+            ?.TryCast<DroneStationGadgetModel>();
+        HandlingPacket = false;
+
+        if (droneModel == null)
+        {
+            SrLogger.LogWarning($"Drone station gadget {actorId.Value} did not create a DroneStationGadgetModel!");
+            return false;
+        }
+
         droneModel.eulerRotation = rotation.eulerAngles;
+        droneModel._type = actorData.DroneType;
         droneModel.SetEnergy(SceneContext.Instance.TimeDirector, 0.8333f, actorData.Charge);
         droneModel.IsDroneAtStation._value = actorData.DroneInStation;
-        droneModel._type = actorData.DroneType;
         droneModel._taskData = new DroneTaskData()
         {
             SinkType = actorData.Task.Sink,
@@ -635,16 +688,11 @@ internal sealed partial class NetworkActorManager
         };
         
         if (droneModel._type == DroneType.RANCH_DRONE)
-        {
             droneModel.InitializeForRancher(SceneContext.Instance.DroneDirector);
-            GameState.droneModel._ranchDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<RanchDroneModel>();
-        }
         else
-        {
-            droneModel.InitializeForExplorer(SceneContext.Instance.DroneDirector, SceneContext.Instance.TimeDirector, SceneContext.Instance.DroneDirector.GetStationAreaResources(droneModel));
-            GameState.droneModel._explorerDrones[actorId] = GameState.GetIdentifiableModel(new ActorId(actorData.LinkedActorId)).Cast<ExplorerDroneModel>();
-        }
-        
+            droneModel.InitializeForExplorer(SceneContext.Instance.DroneDirector, SceneContext.Instance.TimeDirector,
+                SceneContext.Instance.DroneDirector.GetStationAreaResources(droneModel));
+
         droneModel.Initialized = true;
         
         identifiableModel = droneModel.Cast<IdentifiableModel>();
@@ -652,11 +700,14 @@ internal sealed partial class NetworkActorManager
         HandlingPacket = true;
         var gadget = GadgetDirector.InstantiateGadgetFromModel(droneModel.Cast<GadgetModel>());
         HandlingPacket = false;
-        gadget.GetComponent<DroneStation>().SetModel(droneModel.Cast<GadgetModel>());
+        gadget.GetComponent<DroneStation>()?.SetModel(droneModel.Cast<GadgetModel>());
         
         gadget.transform.SetPositionAndRotation(position, rotation);
-        SrLogger.LogWarning($"DEBUG: Spawning drone station;\n\tGadget Id: {actorId}\n\tDrone Id: {new ActorId(actorData.LinkedActorId)}\n\tBattery: {actorData.Charge}\n\tType: {actorData.DroneType}\n\tDrone Task:\n\t\tSink: {actorData.Task.Sink}\n\t\tSource: {actorData.Task.Source}\n\t\tTarget: {actorData.Task.Target}");
+
+        droneModel.waitForChargeupTime = actorData.ChargeupTime;
         
+        StartCoroutine(NetworkDroneManager.SetupInitialStation(droneModel, actorData));
+
         return true;
     }
 
@@ -691,137 +742,8 @@ internal sealed partial class NetworkActorManager
         
         gadget.transform.SetPositionAndRotation(position, rotation);
         
-        return true;
-    }
+        gadgetModel.waitForChargeupTime = actorData.ChargeupTime;
 
-    private bool TrySpawnInitialDrone(InitialActorsPacket.ExplorerDrone actorData, out IdentifiableModel? model)
-    {
-        model = null;
-        
-        var sceneId = actorData.Scene;
-        var typeId = actorData.ActorTypeId;
-        var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-        var station = actorData.Station;
-        
-        if (Main.RockPlortBug)
-            typeId = 25;
-        
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
-            return false;
-        }
-        
-        if (!type.prefab)
-            return false;
-        
-        if (ActorIDAlreadyInUse(actorId))
-            return false;
-
-        model = GameState.CreateActorModel(actorId, type, scene, position, rotation);
-
-        if (model == null)
-            return false;
-        
-        model.Cast<ExplorerDroneModel>().StationId = station;
-        
-        GameState.identifiables[actorId] = model;
-        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-            actors.Add(model);
-        else
-        {
-            actors = new CppCollections.List<IdentifiableModel>();
-            actors.Add(model);
-            GameState.identifiablesByIdent.Add(type, actors);
-        }
-        
-        HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        HandlingPacket = false;
-        
-        if (!actor)
-            return true;
-        
-        var networkComponent = actor.AddComponent<NetworkActor>();
-        networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
-        actor.transform.position = position;
-        ActorManager.Actors[actorId.Value] = model;
-        
-        return true;
-    }
-
-    private bool TrySpawnInitialRanchDrone(InitialActorsPacket.RanchDrone actorData, out IdentifiableModel? model)
-    {
-        model = null;
-        
-        var sceneId = actorData.Scene;
-        var typeId = actorData.ActorTypeId;
-        var actorId = new ActorId(actorData.ActorId);
-        var position = actorData.Position;
-        var rotation = actorData.Rotation;
-        var station = actorData.Station;
-        var ammo = actorData.Ammo;
-
-        if (Main.RockPlortBug)
-            typeId = 25;
-        
-        var scene = NetworkSceneManager.GetSceneGroup(sceneId);
-        
-        if (!ActorTypes.TryGetValue(typeId, out var type))
-        {
-            SrLogger.LogWarning($"Tried to spawn actor with an invalid type!\n\tActor {actorId.Value}: type_{typeId}");
-            return false;
-        }
-        
-        if (!type.prefab)
-            return false;
-        
-        if (ActorIDAlreadyInUse(actorId))
-            return false;
-        
-        model = GameState.CreateActorModel(actorId, type, scene, position, rotation);
-        
-        if (model == null)
-            return false;
-        
-        var droneModel = model.Cast<RanchDroneModel>();
-        droneModel.StationId = station;
-        droneModel.Ammo = ammo.ToGameAmmo()._ammoModel;
-        
-        GameState.identifiables[actorId] = model;
-        if (GameState.identifiablesByIdent.TryGetValue(type, out var actors))
-            actors.Add(model);
-        else
-        {
-            actors = new CppCollections.List<IdentifiableModel>();
-            actors.Add(model);
-            GameState.identifiablesByIdent.Add(type, actors);
-        }
-        
-        HandlingPacket = true;
-        var actor = InstantiationHelpers.InstantiateActorFromModel(model.Cast<ActorModel>());
-        HandlingPacket = false;
-        
-        if (!actor)
-            return true;
-        
-        var networkComponent = actor.AddComponent<NetworkActor>();
-        networkComponent.LocallyOwned = false;
-        networkComponent.previousPosition = position;
-        networkComponent.nextPosition = position;
-        networkComponent.previousRotation = rotation;
-        networkComponent.nextRotation = rotation;
-        actor.transform.position = position;
-        ActorManager.Actors[actorId.Value] = model;
-        
         return true;
     }
 }

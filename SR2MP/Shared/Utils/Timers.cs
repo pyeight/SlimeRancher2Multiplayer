@@ -6,8 +6,8 @@ namespace SR2MP.Shared.Utils;
 [PublicApi]
 public static class Timers
 {   // Time Sync is set to a lower value than 1 to prevent
-    public static float WeatherTimer { get; private set; } = 4.5f;
-    public static float ActorTimer { get; private set; } = 0.125f;
+    public static float WeatherTimer { get; private set; } = 7.5f;
+    public static float ActorTimer { get; private set; } = 0.175f;
     public static float PlayerTimer { get; private set; } = 0.125f;
     public static float TimeSyncTimer { get; private set; } = 0.85f;
     public static float PlayerInventoryTimer { get; private set; } = 5f;

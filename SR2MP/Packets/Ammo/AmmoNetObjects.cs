@@ -1,6 +1,7 @@
 ﻿using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Player;
+using Il2CppMonomiPark.UnitPropertySystem;
 using SR2MP.Packets.Utils;
 using SR2MP.Shared.Managers;
 
@@ -39,16 +40,14 @@ internal struct NetworkAmmoSlot : INetObject
 {
     public int Identifiable;
     public int Count;
-    // Only use for converting into actual ammo!
-    // public float MaxCount;
-
+    public int MaxCount;
     public ushort SlotDefinition;
 
     public readonly void Serialise(PacketWriter writer)
     {
         writer.WritePackedInt(Identifiable);
         writer.WritePackedInt(Count);
-        // writer.WriteFloat(MaxCount);
+        writer.WritePackedInt(MaxCount);
         writer.WriteUShort(SlotDefinition);
     }
 
@@ -56,7 +55,7 @@ internal struct NetworkAmmoSlot : INetObject
     {
         Identifiable = reader.ReadPackedInt();
         Count = reader.ReadPackedInt();
-        // MaxCount = reader.ReadFloat();
+        MaxCount = reader.ReadPackedInt();
         SlotDefinition = reader.ReadUShort();
     }
 
@@ -65,6 +64,6 @@ internal struct NetworkAmmoSlot : INetObject
         _count = Count,
         _id = ActorManager.ActorTypes[Identifiable],
         // _isUnlockedValue = new NullableFloatProperty(1),
-        // _maxCountValue = new NullableFloatProperty(MaxCount),
+        _maxCountValue = new NullableFloatProperty((float)MaxCount),
     };
 }

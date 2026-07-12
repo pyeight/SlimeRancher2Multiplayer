@@ -86,14 +86,17 @@ public static class Logger
     /// </summary>
     /// <inheritdoc cref="LogInternal"/>
     public static void LogError(object? message, SrLogTarget target = SrLogTarget.Both)
-        => LogInternal(message, LogLevel.Error, target, StarlightLogManager.SendError, _melonLogger.Error);
+        => LogInternal(message, LogLevel.Error, target, null, _melonLogger.Error);
 
     /// <summary>
     /// Logs a debug message, which bypasses Starlight and MelonLoader outputs.
     /// </summary>
     /// <inheritdoc cref="LogInternal"/>
     public static void LogDebug(object? message, SrLogTarget target = SrLogTarget.Both)
-        => LogInternal(message, LogLevel.Debug, target, null, null);
+    {
+        if (DevMode)
+            LogInternal(message, LogLevel.Debug, target, null, _melonLogger.Msg);
+    }
 
     /// <summary>
     /// Logs packet size information, if packet size logging is globally enabled.

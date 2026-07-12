@@ -12,7 +12,7 @@ internal sealed class LightningStrikeHandler : BasePacketHandler<LightningStrike
     protected override bool Handle(LightningStrikePacket packet, IPEndPoint? _)
     {
         var lightning = Object.Instantiate(NetworkWeatherManager.Lightning.gameObject);
-        lightning.name += " (Net)";
+        lightning.name += " (net)";
         lightning.transform.position = packet.Position;
         return true;
     }

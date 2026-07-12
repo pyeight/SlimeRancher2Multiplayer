@@ -1,5 +1,8 @@
-﻿using Il2CppMonomiPark.SlimeRancher.UI;
+using Il2CppMonomiPark.SlimeRancher.UI;
+using Il2CppMonomiPark.SlimeRancher.UI.Map;
+using Il2CppTMPro;
 using SR2MP.Shared.Managers;
+using UnityEngine.UI;
 
 namespace SR2MP.Components.Player;
 
@@ -20,7 +23,7 @@ internal partial class NetworkPlayer
         radarComponent._overflowMode = RadarCompassOverflowMode.CLAMP;
         radarComponent._ranchBehaviour = RadarEntryRanchHandling.SHOW_IN_RANCH_AS_WELL;
 
-        SrLogger.LogPacketSize($"Remote player marker added: {model!.PlayerId}");
+        SrLogger.LogDebug($"Remote player marker added: {model!.PlayerId}");
     }
 
     private void RefreshMarker()
@@ -35,6 +38,56 @@ internal partial class NetworkPlayer
 
         if (model != null)
             SetUsername(model.Username);
+    }
+
+    public void CreateMapMarker(MapUI mapUI)
+    {
+        if (IsLocal) return;
+
+        if (PlayerMarkerTransforms.TryGetValue(ID, out var existingMarker))
+        {
+            if (existingMarker.mainMarker != null)
+                Destroy(existingMarker.mainMarker.gameObject);
+        }
+        else
+        {
+            PlayerMarkerTransforms[ID] = new();
+        }
+
+        var marker = Instantiate(
+            mapUI._markerPrefabMapping._playerMarkerPrefab, 
+            mapUI._mapContainer.transform.parent.FindChild("Markers"), 
+            true);
+        
+        marker.transform.position = new Vector3(transform.position.x, transform.position.z, 0);
+        marker.transform.localScale = Vector3.one;
+
+        marker.GetComponent<MapFader>()._targetOpacity = 100;
+        
+        var textObject = new GameObject("PlayerName")
+        {
+            transform =
+            {
+                parent = marker.transform,
+                localPosition = new Vector3(0, 42, 0),
+                localScale = Vector3.one * 0.6f,
+            }
+        };
+        
+        var textComponent = textObject.AddComponent<TextMeshProUGUI>();
+        textComponent.SetText(model!.Username);
+        textComponent.alpha = 0.6f;
+        textComponent.alignment = TextAlignmentOptions.Center;
+        textComponent.font = usernameFont;
+        textComponent.overflowMode = TextOverflowModes.Overflow;
+        textComponent.enableWordWrapping = false;
+        
+        var facingFrame = marker.transform.FindChild("FacingFrame");
+        facingFrame.FindChild("FacingArrow").GetComponent<Image>().m_Color = RemotePlayerManager.GetPlayerColor(model);
+        
+        var markerTransformGroup = PlayerMarkerTransforms[ID];
+        markerTransformGroup.mainMarker = marker.transform;
+        markerTransformGroup.markerArrow = facingFrame.transform;
     }
 
     private void UpdateMarker()

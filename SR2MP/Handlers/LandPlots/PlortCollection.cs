@@ -10,11 +10,15 @@ internal sealed class PlortCollectionHandler : BasePacketHandler<PlortCollection
 {
     protected override bool Handle(PlortCollectionPacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
-        var collector = model.gameObj.GetComponentInChildren<PlortCollector>();
+        if (!GameState.landPlots.TryGetValue(packet.ID, out var model))
+            return true;
 
-        HandlingPacket =  true;
-        collector._endCollectAt = packet.EndTime;
+        var collector = model.gameObj ? model.gameObj.GetComponentInChildren<PlortCollector>() : null;
+        if (!collector)
+            return true;
+
+        HandlingPacket = true;
+        collector!._endCollectAt = packet.EndTime;
         collector.StartCollection();
         HandlingPacket = false;
 

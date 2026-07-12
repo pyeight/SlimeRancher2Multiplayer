@@ -14,6 +14,7 @@ internal static class OnActorVacced
             return;
 
         networkActor.LocallyOwned = true;
+        networkActor.CurrentOwnerId = LocalID;
 
         var packet = new ActorTransferPacket
         {

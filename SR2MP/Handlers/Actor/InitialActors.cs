@@ -1,9 +1,9 @@
 using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using MelonLoader;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.Actor;
 
@@ -19,10 +19,13 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
 
         HandlingPacket = true;
-        foreach (var (_, value) in toRemove)
+        foreach (var (id, value) in toRemove)
         {
             if (value.ident.IsPlayer)
                 continue;
+
+            if (value.ident.IsGadget())
+                NetworkActorManager.RemoveExistingGadgetModel(id);
 
             var gameObject = value.GetGameObject();
 
@@ -31,16 +34,22 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
         }
         HandlingPacket = false;
 
-        GameState._actorIdProvider._nextActorId =
-            packet.StartingActorID;
+        GameState._actorIdProvider._nextActorId = packet.StartingActorID;
         GameState.world.worldTime = packet.WorldTime;
 
         foreach (var actor in packet.Actors)
         {
-            ActorManager.TrySpawnInitialActor(actor, out var _);
+            try
+            {
+                ActorManager.TrySpawnInitialActor(actor, out var _);
+            }
+            catch (Exception ex)
+            {
+                SrLogger.LogError($"Failed to spawn initial actor {actor.ActorId} (type_{actor.ActorTypeId}): {ex.Message}");
+            }
         }
 
-        StartCoroutine(ActorManager.TakeOwnershipOfNearby());
+        ActorManager.TakeOwnershipOfNearby();
 
         return false;
     }

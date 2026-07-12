@@ -14,12 +14,18 @@ public sealed class RemotePlayerManager
     public event Action<string, RemotePlayer>? OnPlayerUpdated;
     public event Action<string, RemotePlayer>? OnPlayerGadgetUpdated;
 
-    public int PlayerCount => players.Count;
+    internal int PlayerCount => players.Count;
 
-    public RemotePlayer? GetPlayer(string playerId)
+    internal RemotePlayer? GetPlayer(string playerId)
     {
         players.TryGetValue(playerId, out var player);
         return player;
+    }
+    
+    internal bool CheckPlayerExists(string playerId)
+    {
+        players.TryGetValue(playerId, out var player);
+        return player != null;
     }
 
     internal RemotePlayer AddPlayer(string playerId)

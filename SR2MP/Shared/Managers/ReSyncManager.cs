@@ -3,9 +3,7 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
-using Il2CppMonomiPark.SlimeRancher.Player;
 using Il2CppMonomiPark.SlimeRancher.Weather;
-using MelonLoader;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Ammo;
@@ -64,11 +62,18 @@ internal sealed class ReSyncManager
         SendPediaPacket(endPoint);
         SendMapPacket(endPoint);
         SendAccessDoorsPacket(endPoint);
+        SendResourceNodesPacket(endPoint);
         SendTreasurePodsPacket(endPoint);
         SendUpgradesPacket(endPoint);
+        SendDroneResourcesPacket(endPoint);
         SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
         SendPricesPacket(endPoint);
         SendWeatherPacket(endPoint);
+        SendPuzzleSlotsPacket(endPoint);
+        SendPlortDepositorsPacket(endPoint);
+        SendPrismaBarriersPacket(endPoint);
+        SendDroneCloudPacket(endPoint);
+        SendComponentsPacket(endPoint);
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
@@ -102,16 +107,21 @@ internal sealed class ReSyncManager
 
         var clients = Main.Server.ClientManager.GetAllClients().ToList();
 
-        var gordosPacket       = CreateGordoSlimesPacket();
-        var switchesPacket     = CreateSwitchesPacket();
-        var plotsPacket        = CreatePlotsPacket();
-        var upgradesPacket     = CreateUpgradesPacket();
-        var refineryPacket     = CreateRefineryPacket();
-        var pediaPacket        = CreatePediaPacket();
-        var mapPacket          = CreateMapPacket();
-        var accessDoorsPacket  = CreateAccessDoorsPacket();
-        var treasurePodsPacket = CreateTreasurePodsPacket();
-        var pricesPacket       = CreatePricesPacket();
+        var gordosPacket            = CreateGordoSlimesPacket();
+        var switchesPacket          = CreateSwitchesPacket();
+        var plotsPacket             = CreatePlotsPacket();
+        var upgradesPacket          = CreateUpgradesPacket();
+        var refineryPacket          = CreateRefineryPacket();
+        var pediaPacket             = CreatePediaPacket();
+        var mapPacket               = CreateMapPacket();
+        var accessDoorsPacket       = CreateAccessDoorsPacket();
+        var resourceNodesPacket     = CreateResourceNodesPacket();
+        var treasurePodsPacket      = CreateTreasurePodsPacket();
+        var pricesPacket            = CreatePricesPacket();
+        var puzzleSlotsPacket       = CreatePuzzleSlotsPacket();
+        var plortDepositorsPacket   = CreatePlortDepositorsPacket();
+        var prismaBarriersPacket    = CreatePrismaBarriersPacket();
+        var componentsPacket        = CreateComponentsPacket();
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -132,7 +142,7 @@ internal sealed class ReSyncManager
                 RainbowMoney = rainbowMoney,
                 AllowCheats = Main.AllowCheats
             };
-            Main.Server.SendToClient(approvePacket, client.EndPoint);
+            Main.Server.SendToClient(approvePacket,         client.EndPoint);
 
             Main.Server.SendToClient(gordosPacket,          client.EndPoint);
             Main.Server.SendToClient(switchesPacket,        client.EndPoint);
@@ -142,16 +152,17 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(pediaPacket,           client.EndPoint);
             Main.Server.SendToClient(mapPacket,             client.EndPoint);
             Main.Server.SendToClient(accessDoorsPacket,     client.EndPoint);
+            Main.Server.SendToClient(resourceNodesPacket,   client.EndPoint);
             Main.Server.SendToClient(treasurePodsPacket,    client.EndPoint);
             Main.Server.SendToClient(pricesPacket,          client.EndPoint);
+            Main.Server.SendToClient(puzzleSlotsPacket,     client.EndPoint);
+            Main.Server.SendToClient(plortDepositorsPacket, client.EndPoint);
+            Main.Server.SendToClient(prismaBarriersPacket,  client.EndPoint);
+            Main.Server.SendToClient(componentsPacket,      client.EndPoint);
 
             SendWeatherPacket(client.EndPoint);
-
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
-
             SendWeatherPacket(client.EndPoint);
-
-            SrLogger.LogPacketSize($"Player {client.PlayerId} resynced!");
         }
 
         SrLogger.LogMessage($"Resynced {clients.Count} players!");
@@ -223,11 +234,11 @@ internal sealed class ReSyncManager
 
     private static InitialRefineryPacket CreateRefineryPacket()
     {
-        var refineryItems = new Dictionary<ushort, ushort>();
+        var refineryItems = new Dictionary<int, ushort>();
 
         foreach (var item in SceneContext.Instance.GadgetDirector._model._itemCounts)
         {
-            var itemId = (ushort)NetworkActorManager.GetPersistentID(item.Key);
+            var itemId = NetworkActorManager.GetPersistentID(item.Key);
             var count = (ushort)item.Value;
             refineryItems.Add(itemId, count);
         }
@@ -305,6 +316,85 @@ internal sealed class ReSyncManager
 
         return new InitialAccessDoorsPacket { Doors = accessDoorsList };
     }
+    
+    private static void SendResourceNodesPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateResourceNodesPacket(), client);
+    
+    private static InitialResourceNodesPacket CreateResourceNodesPacket()
+    {
+        var nodesList = new List<ResourceNodePlacement>();
+
+        var spawners = Il2CppSystem.Linq.Enumerable
+            .ToArray(GameState.AllResourceNodes()
+                .Cast<Il2CppSystem.Collections.Generic.IEnumerable<ResourceNodeSpawnerModel>>());
+
+        foreach (var spawner in spawners)
+        {
+            if (spawner == null)
+                continue;
+
+            nodesList.Add(ResourceNodeManager.CreatePlacement(spawner));
+        }
+
+        return new InitialResourceNodesPacket { Nodes = nodesList };
+    }
+
+    private static void SendPuzzleSlotsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePuzzleSlotsPacket(), client);
+
+    private static InitialPuzzleSlotsPacket CreatePuzzleSlotsPacket()
+    {
+        var slotsList = new List<InitialPuzzleSlotsPacket.Slot>();
+
+        foreach (var slot in GameState.slots)
+        {
+            slotsList.Add(new InitialPuzzleSlotsPacket.Slot
+            {
+                ID = slot.Key,
+                Filled = slot.Value.filled
+            });
+        }
+
+        return new InitialPuzzleSlotsPacket { Slots = slotsList };
+    }
+
+    private static void SendPlortDepositorsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePlortDepositorsPacket(), client);
+
+    private static InitialPlortDepositorsPacket CreatePlortDepositorsPacket()
+    {
+        var depositorsList = new List<InitialPlortDepositorsPacket.Depositor>();
+
+        foreach (var depositor in GameState.depositors)
+        {
+            depositorsList.Add(new InitialPlortDepositorsPacket.Depositor
+            {
+                ID = depositor.Key,
+                AmountDeposited = depositor.Value.AmountDeposited
+            });
+        }
+
+        return new InitialPlortDepositorsPacket { Depositors = depositorsList };
+    }
+
+    private static void SendPrismaBarriersPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreatePrismaBarriersPacket(), client);
+
+    private static InitialPrismaBarriersPacket CreatePrismaBarriersPacket()
+    {
+        var barriersList = new List<InitialPrismaBarriersPacket.Barrier>();
+
+        foreach (var barrier in GameState.AllPrismaBarriers())
+        {
+            barriersList.Add(new InitialPrismaBarriersPacket.Barrier
+            {
+                ID = barrier.Key,
+                ActivationTime = barrier.Value.ActivationTime
+            });
+        }
+
+        return new InitialPrismaBarriersPacket { Barriers = barriersList };
+    }
 
     private static void SendActorsPacket(IPEndPoint client, ushort playerIndex)
     {
@@ -313,6 +403,9 @@ internal sealed class ReSyncManager
         foreach (var (_, model) in ActorManager.Actors)
         {
             if (model.TryCast<GadgetModel>(out _))
+                continue;
+            
+            if (NetworkDroneManager.IsDroneModel(model))
                 continue;
 
             actorsList.Add(NetworkActorManager.CreateInitialActor(model));
@@ -329,13 +422,51 @@ internal sealed class ReSyncManager
         var actorsPacket = new InitialActorsPacket
         {
             StartingActorID =
-                (uint)NetworkActorManager.GetHighestActorIdInRange(playerIndex * ActorIdOffset,
-                    (playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
+                NetworkActorManager.GetHighestActorIdInRange((long)playerIndex * ActorIdOffset,
+                    ((long)playerIndex * ActorIdOffset) + ActorIdOffset) + 10,
             Actors = actorsList,
             WorldTime = GameState.world.worldTime
         };
 
         Main.Server.SendToClient(actorsPacket, client);
+    }
+
+    private static void SendDroneCloudPacket(IPEndPoint client)
+    {
+        var cloud = GameState.droneModel?.GetCloudModel();
+        if (cloud?._amounts == null)
+            return;
+
+        var packet = new InitialDroneCloudPacket();
+
+        foreach (var pair in cloud._amounts)
+        {
+            if (pair.Key != null)
+                packet.Amounts[NetworkActorManager.GetPersistentID(pair.Key)] = pair.Value;
+        }
+
+        Main.Server.SendToClient(packet, client);
+    }
+
+    private static void SendDroneResourcesPacket(IPEndPoint client)
+    {
+        var packet = NetworkDroneManager.CreateInitialPacket();
+
+        if (packet.Scenes.Count > 0)
+            Main.Server.SendToClient(packet, client);
+    }
+    
+    private static void SendComponentsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateComponentsPacket(), client);
+
+    private static InitialComponentsPacket CreateComponentsPacket()
+    {
+        var componentItems = new Dictionary<string, byte>();
+
+        foreach (var item in GameState.PlayerModel.UpgradeComponentsModel._ownedComponents)
+            componentItems.Add(item.Key._referenceId, (byte)item.Value);
+
+        return new InitialComponentsPacket { Items = componentItems };
     }
 
     private static void SendSwitchesPacket(IPEndPoint client)
@@ -377,7 +508,7 @@ internal sealed class ReSyncManager
                 RequiredEatCount = gordoSlime.value.targetCount,
                 GordoSlimeType = NetworkActorManager.GetPersistentID(gordoSlime.value.identifiableType),
                 WasSeen = gordoSlime.value.GordoSeen
-                // Popped = gordo.value.GordoEatenCount > gordo.value.gordoEatCount
+                // Popped = gordoSlime.value.GordoEatenCount > gordoSlime.value.gordoEatCount
             });
         }
 
@@ -399,7 +530,10 @@ internal sealed class ReSyncManager
                 {
                     Crop = plot.resourceGrowerDefinition == null
                         ? 9
-                        : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition?._primaryResourceType!)
+                        : NetworkActorManager.GetPersistentID(plot.resourceGrowerDefinition._primaryResourceType!),
+                    NextSpawnTime = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnTime ?? 0,
+                    StoredWater = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.storedWater ?? 0,
+                    NextSpawnRipens = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnRipens ?? false,
                 },
                 LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData
                 {
@@ -470,7 +604,6 @@ internal sealed class ReSyncManager
             return new NetworkAmmo { AmmoSlots = new Dictionary<int, NetworkAmmoSlot>() };
 
         var slots = siloAmmo[ammoKey].Slots;
-
         var ammoSlots = new Dictionary<int, NetworkAmmoSlot>();
 
         for (var i = 0; i < slots.Count; i++)
@@ -486,6 +619,7 @@ internal sealed class ReSyncManager
             ammoSlots[i] = new NetworkAmmoSlot
             {
                 Count = slot.Count,
+                MaxCount = slot.MaxCount,
                 Identifiable = NetworkActorManager.GetPersistentID(slot._id),
                 SlotDefinition = NetworkAmmoManager.GetId(slot.Definition)
             };

@@ -42,11 +42,11 @@ internal sealed class InitialLandPlotsPacket : IPacket
 
             if (!DataTypes.TryGetValue(Type, out var dataType))
             {
-                SrLogger.LogPacketSize($"{ID} -> (No Data)");
+                SrLogger.LogDebug($"{ID} -> (No Data)");
                 return;
             }
 
-            SrLogger.LogPacketSize($"{ID} -> {dataType.Name}");
+            SrLogger.LogDebug($"{ID} -> {dataType.Name}");
             Data = (INetObject)Activator.CreateInstance(dataType)!;
             Data.Deserialise(reader);
         }
@@ -55,10 +55,25 @@ internal sealed class InitialLandPlotsPacket : IPacket
     internal struct GardenData : INetObject
     {
         public int Crop;
+        public double NextSpawnTime;
+        public float StoredWater;
+        public bool NextSpawnRipens;
 
-        public readonly void Serialise(PacketWriter writer) => writer.WriteInt(Crop);
+        public readonly void Serialise(PacketWriter writer)
+        {
+            writer.WriteInt(Crop);
+            writer.WriteDouble(NextSpawnTime);
+            writer.WriteFloat(StoredWater);
+            writer.WriteBool(NextSpawnRipens);
+        }
 
-        public void Deserialise(PacketReader reader) => Crop = reader.ReadInt();
+        public void Deserialise(PacketReader reader)
+        {
+            Crop = reader.ReadInt();
+            NextSpawnTime = reader.ReadDouble();
+            StoredWater = reader.ReadFloat();
+            NextSpawnRipens = reader.ReadBool();
+        }
     }
 
     internal sealed class SiloData : INetObject

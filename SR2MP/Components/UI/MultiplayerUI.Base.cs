@@ -15,11 +15,12 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
     private void Awake()
     {
         firstTime = Main.SetupUI;
-        usernameInput = Main.Username;
+        usernameInput = Main.RawUsername;
+        usernameColorInput = Main.UsernameColor;
         allowCheatsInput = Main.AllowCheats;
-        ipInput = Main.SavedConnectIP;
-        portInput = Main.SavedConnectPort;
-        hostPortInput = Main.SavedHostPort;
+        joinIpInput = Main.SavedConnectIP;
+        joinPortInput = Main.SavedConnectPort;
+        hostLocalPortInput = Main.SavedHostPort;
 
         if (Instance)
         {
@@ -88,6 +89,9 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
                 break;
             case MenuState.DisconnectedInGame:
                 InGameScreen();
+                break;
+            case MenuState.Connecting:
+                ConnectingScreen();
                 break;
             case MenuState.ConnectedClient:
                 ConnectedScreen();

@@ -7,6 +7,7 @@ internal struct CurrencyPacket : IPacket
     public int NewAmount;
     public byte CurrencyType;
     public bool ShowUINotification;
+    public int SourceIdent;
 
     public readonly PacketType Type => PacketType.CurrencyAdjust;
     public readonly PacketReliability Reliability => PacketReliability.Reliable;
@@ -17,6 +18,7 @@ internal struct CurrencyPacket : IPacket
         writer.WritePackedInt(NewAmount);
         writer.WriteByte(CurrencyType);
         writer.WriteBool(ShowUINotification);
+        writer.WritePackedInt(SourceIdent);
     }
 
     public void Deserialise(PacketReader reader)
@@ -24,5 +26,6 @@ internal struct CurrencyPacket : IPacket
         NewAmount = reader.ReadPackedInt();
         CurrencyType = reader.ReadByte();
         ShowUINotification = reader.ReadBool();
+        SourceIdent = reader.ReadPackedInt();
     }
 }

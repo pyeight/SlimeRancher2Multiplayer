@@ -2,37 +2,40 @@
 
 internal sealed partial class MultiplayerUI
 {
-    private string hostPortInput = "1919";
     private string hostIpInput = string.Empty;
-
-    private string hostAutoJoinCode = string.Empty;
-    private string hostAutoError = string.Empty;
-    private string hostAutoCopyStatus = string.Empty;
+    private string hostTunnelPortInput = string.Empty;
+    private string hostLocalPortInput = string.Empty;
+    
     private bool hostAutoInProgress;
-
-    private string hostManualJoinCode = string.Empty;
+    
+    private string hostJoinCode = string.Empty;
+    private string hostJoinCodeCopyStatus = string.Empty;
+    
+    private string hostAutoError = string.Empty;
     private string hostManualError = string.Empty;
-    private string hostManualCopyStatus = string.Empty;
 
     private void DrawHostSection()
     {
         DrawText("Host a world:");
-        DrawTabRow(ref hostTab, "Automatic", "Manual Code", "Manual Simple");
+        DrawTabRow(ref hostTab, "Automatic", "Manual");
 
         if (hostTab == 0)
             DrawHostAutomatic();
         else if (hostTab == 1)
-            DrawHostManualCode();
-        else
             DrawHostManualSimple();
+        else if (hostTab == 2)
+            DrawHostManualCode();
     }
 
+    internal void TriggerManualCode() => hostTab = 2;
     private void DrawHostManualCode()
     {
         DrawText("Tunnel IP:", 2);
         hostIpInput = DrawSafeTextInput("host_ip", CalculateInputLayout(6, 2, 1), hostIpInput);
         DrawText("Tunnel Port:", 2);
-        hostPortInput = DrawSafeTextInput("host_port", CalculateInputLayout(6, 2, 1), hostPortInput);
+        hostTunnelPortInput = DrawSafeTextInput("host_tunnel_port", CalculateInputLayout(6, 2, 1), hostTunnelPortInput);
+        DrawText("Local Port:", 2);
+        hostLocalPortInput = DrawSafeTextInput("host_local_port", CalculateInputLayout(6, 2, 1), hostLocalPortInput);
 
         if (!string.IsNullOrWhiteSpace(hostManualError))
             DrawText(hostManualError);
@@ -46,23 +49,26 @@ internal sealed partial class MultiplayerUI
         if (hostIpInput.Length == 0)
             DrawText("Invalid IP. Must not be empty");
 
-        if (ushort.TryParse(hostPortInput, out var hostPort))
-        {
-            GUI.enabled = !hostAutoInProgress;
-            if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : "Start Server"))
-                TryHostManual(hostIpInput, hostPort);
-            GUI.enabled = true;
-        }
-        else
-        {
-            DrawText("Invalid port. Must be a number from 1 to 65535.");
-        }
+        var ipValid = hostIpInput.Length > 0 && (hostIpInput != "127.0.0.1" || DevMode);
+        var localPortValid = ushort.TryParse(hostLocalPortInput, out var hostPort);
+        var tunnelPortValid = ushort.TryParse(hostTunnelPortInput, out var tunnelPort);
+
+        if (!localPortValid)
+            DrawText("Invalid local port. Must be a number from 1 to 65535.");
+
+        if (!tunnelPortValid)
+            DrawText("Invalid tunnel port. Must be a number from 1 to 65535.");
+
+        GUI.enabled = ipValid && localPortValid && tunnelPortValid && !hostAutoInProgress;
+        if (GUI.Button(CalculateButtonLayout(6), hostAutoInProgress ? "Starting Server..." : "Start Server"))
+            TryHostManual(hostIpInput, tunnelPort, hostPort);
+        GUI.enabled = true;
     }
 
     private void DrawHostAutomatic()
     {
         if (hostAutoInProgress)
-            DrawText("Attempting UPnP...");
+            DrawText("Attempting Auto Host...");
 
         if (!string.IsNullOrWhiteSpace(hostAutoError))
             DrawText(hostAutoError);
@@ -76,12 +82,14 @@ internal sealed partial class MultiplayerUI
     private void DrawHostManualSimple()
     {
         DrawText("Local Port:", 2);
-        hostPortInput = DrawSafeTextInput("host_port", CalculateInputLayout(6, 2, 1), hostPortInput);
+        hostLocalPortInput = DrawSafeTextInput("host_port", CalculateInputLayout(6, 2, 1), hostLocalPortInput);
 
+        // todo: separate manual code and manual simple, if manual code errors,
+        // actually no need really, if people use manualcode command, they know what they're doing
         if (!string.IsNullOrWhiteSpace(hostManualError))
             DrawText(hostManualError);
 
-        if (ushort.TryParse(hostPortInput, out var hostPort))
+        if (ushort.TryParse(hostLocalPortInput, out var hostPort))
         {
             GUI.enabled = !hostAutoInProgress;
             if (GUI.Button(CalculateButtonLayout(6), "Start Server"))
@@ -113,11 +121,9 @@ internal sealed partial class MultiplayerUI
 
     private void DrawHostingJoinCode()
     {
-        if (hostTab == 2) return;
+        if (hostTab == 1) return;
 
-        var joinCode = !string.IsNullOrWhiteSpace(hostAutoJoinCode) ? hostAutoJoinCode : hostManualJoinCode;
-
-        if (string.IsNullOrWhiteSpace(joinCode))
+        if (string.IsNullOrWhiteSpace(hostJoinCode))
         {
             DrawText("Join code unavailable");
             return;
@@ -126,21 +132,18 @@ internal sealed partial class MultiplayerUI
         DrawText("Join code:");
 
         GUI.enabled = false;
-        DrawSafeTextInput("join_code_view", CalculateInputLayout(6, 2, 1), Main.StreamerMode ? "Streamer Mode" : joinCode);
+        DrawSafeTextInput("join_code_view", CalculateInputLayout(6, 2, 1), Main.StreamerMode ? "Streamer Mode" : hostJoinCode);
         GUI.enabled = true;
 
         if (GUI.Button(CalculateButtonLayout(6), "Copy Join Code"))
         {
-            GUIUtility.systemCopyBuffer = joinCode;
+            GUIUtility.systemCopyBuffer = hostJoinCode;
 
-            if (!string.IsNullOrWhiteSpace(hostAutoJoinCode))
-                hostAutoCopyStatus = "Join code copied.";
-            else
-                hostManualCopyStatus = "Join code copied.";
+            if (!string.IsNullOrWhiteSpace(hostJoinCode))
+                hostJoinCodeCopyStatus = "Join code copied.";
         }
-
-        var copyStatus = !string.IsNullOrWhiteSpace(hostAutoJoinCode) ? hostAutoCopyStatus : hostManualCopyStatus;
-        if (!string.IsNullOrWhiteSpace(copyStatus))
-            DrawText(copyStatus);
+        
+        if (!string.IsNullOrWhiteSpace(hostJoinCodeCopyStatus))
+            DrawText(hostJoinCodeCopyStatus);
     }
 }

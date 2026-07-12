@@ -13,7 +13,7 @@ public sealed class ClientManager
 
     public int ClientCount => clients.Count;
 
-    public bool TryGetClient(string clientInfo, out ClientInfo? client)
+    private bool TryGetClient(string clientInfo, out ClientInfo? client)
     {
         return clients.TryGetValue(clientInfo, out client);
     }
@@ -66,13 +66,20 @@ public sealed class ClientManager
         return RemoveClient(clientInfo);
     }
 
-    public void UpdateHeartbeat(string clientInfo)
+    private void UpdateHeartbeat(string clientInfo)
     {
         if (clients.TryGetValue(clientInfo, out var client))
         {
             client.UpdateHeartbeat();
         }
     }
+
+    public void UpdateHeartbeat(IPEndPoint endPoint)
+    {
+        var clientInfo = $"{endPoint.Address}:{endPoint.Port}";
+        UpdateHeartbeat(clientInfo);
+    }
+
 
     public ICollection<ClientInfo> GetAllClients()
     {

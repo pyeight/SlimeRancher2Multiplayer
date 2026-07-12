@@ -86,6 +86,7 @@ public sealed class SR2MPServer
             Application.quitting += new Action(Close);
             NetworkManager.Start(port, enableIPv6);
             Port = port;
+            timeoutTimer = new Timer(CheckClientTimeouts, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
             OnServerStarted?.Invoke();
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
@@ -99,10 +100,20 @@ public sealed class SR2MPServer
         }
     }
 
+    private void CheckClientTimeouts(object? state)
+    {
+        if (!NetworkManager.IsRunning)
+            return;
+
+        ClientManager.RemoveTimedOutClients();
+    }
+
     private void OnDataReceived(byte[] data, int receivedBytes, IPEndPoint clientEp)
     {
         SrLogger.LogPacketSize($"Received {receivedBytes} bytes from Client!",
             $"Received {receivedBytes} bytes from {clientEp}.");
+
+        ClientManager.UpdateHeartbeat(clientEp);
 
         try
         {
@@ -115,16 +126,55 @@ public sealed class SR2MPServer
     }
 
     private void OnClientRemoved(ClientInfo client)
+        => MainThreadDispatcher.Instance.Enqueue(() => HandleClientRemoved(client));
+
+    private void HandleClientRemoved(ClientInfo client)
     {
+        var playerId = client.PlayerId;
+        
+        var player = PlayerManager.GetPlayer(playerId);
+        if (player == null) return;
+
+        PlayerManager.RemovePlayer(playerId);
+
+        if (PlayerObjects.TryGetValue(playerId, out var playerObj))
+        {
+            if (playerObj)
+                Object.Destroy(playerObj);
+            
+            PlayerObjects.Remove(playerId);
+        }
+
         var leavePacket = new PlayerLeavePacket
         {
             Type = PacketType.BroadcastPlayerLeave,
-            PlayerId = client.PlayerId
+            PlayerId = playerId
         };
 
         SendToAll(leavePacket);
 
-        SrLogger.LogMessage($"Player left broadcast sent for: {client.PlayerId}");
+        SrLogger.LogMessage($"Player {playerId} left the server");
+
+        var leaveChatPacket = new ChatMessagePacket
+        {
+            Username = "SYSTEM",
+            Message = $"{player.Username} left the world!",
+            MessageID = $"SYSTEM_LEAVE_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MessageType = MultiplayerUI.SystemMessageDisconnect
+        };
+        SendToAll(leaveChatPacket);
+
+        MultiplayerUI.Instance.RegisterSystemMessage(
+            $"{player.Username} left the world!",
+            $"SYSTEM_LEAVE_HOST_{playerId}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            MultiplayerUI.SystemMessageDisconnect
+        );
+        
+        MainThreadDispatcher.Instance.Enqueue(() =>
+        {
+            ActorManager.AssignOwnershipOfUnowned();
+            NetworkDroneManager.AssignOwnershipOfUnowned();
+        });
     }
 
     internal void Close()
@@ -318,7 +368,7 @@ public sealed class SR2MPServer
 
             foreach (var client in ClientManager.GetAllClients())
             {
-                if (client.EndPoint == excludedClientInfo)
+                if (client.EndPoint.Equals(excludedClientInfo))
                     continue;
 
                 NetworkManager.Send(data, client.EndPoint, reliability, channel);

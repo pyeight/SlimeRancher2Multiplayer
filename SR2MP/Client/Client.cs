@@ -26,6 +26,7 @@ public sealed class SR2MPClient
     private ReliabilityManager? reliabilityManager;
 
     private volatile bool isConnected;
+    private volatile bool isConnecting;
     private volatile bool connectionAcknowledged;
     private Timer? connectionTimeoutTimer;
     private const int ConnectionTimeoutSeconds = 10;
@@ -38,6 +39,11 @@ public sealed class SR2MPClient
     /// Gets a value indicating the connection status of the client.
     /// </summary>
     public bool IsConnected => isConnected;
+    
+    /// <summary>
+    /// Gets a value indicating the connection status of the client.
+    /// </summary>
+    public bool IsConnecting => isConnecting;
 
     /// <summary>
     /// Gets a value indicating the client's identifier.
@@ -95,13 +101,22 @@ public sealed class SR2MPClient
             SrLogger.LogWarning("You are already connected to a Server!");
             return;
         }
+        
+        if (isConnecting)
+        {
+            SrLogger.LogWarning("You are already trying to connect to a Server!");
+            return;
+        }
 
         if (serverIp == "127.0.0.1" && !DevMode)
         {
             SrLogger.LogWarning("You can not connect to this IP!");
             SrLogger.LogWarning("If you want to connect to someone on your local network, use their local IP!");
             SrLogger.LogWarning("To get the local IP, check your routers Website or use the 'ìpconfig' command prompt command!");
+            return;
         }
+        
+        isConnecting = true;
 
         try
         {
@@ -167,7 +182,9 @@ public sealed class SR2MPClient
         catch (Exception ex)
         {
             SrLogger.LogError($"Error connecting to the Server: {ex}");
+            connectionAcknowledged = false;
             isConnected = false;
+            isConnecting = false;
             throw;
         }
     }
@@ -178,6 +195,8 @@ public sealed class SR2MPClient
             return;
 
         SrLogger.LogError("Connection timeout: Server did not respond within 10 seconds");
+
+        isConnecting = false;
         Disconnect();
     }
 
@@ -361,6 +380,7 @@ public sealed class SR2MPClient
             PacketDeduplication.Clear();
 
             isConnected = false;
+            isConnecting = false;
 
             connectionTimeoutTimer?.Dispose();
             connectionTimeoutTimer = null;
@@ -406,6 +426,8 @@ public sealed class SR2MPClient
 
     internal void NotifyConnected()
     {
+        isConnecting = false;
+        isConnected = true;
         connectionAcknowledged = true;
 
         connectionTimeoutTimer?.Dispose();
@@ -425,5 +447,5 @@ public sealed class SR2MPClient
     /// Retrieves a list of all currently connected remote players.
     /// </summary>
     /// <returns>A <see cref="List{RemotePlayer}"/> containing all active remote players in the session.</returns>
-    public static List<RemotePlayer> GetAllRemotePlayers() => PlayerManager.GetAllPlayers();
+    private static List<RemotePlayer> GetAllRemotePlayers() => PlayerManager.GetAllPlayers();
 }

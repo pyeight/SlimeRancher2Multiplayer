@@ -77,18 +77,23 @@ internal static class AutoHost
             if (!IsUsableIp(externalIp))
             {
                 SrLogger.LogWarning("UPnP: Could not determine external IP from API.");
-                return AutoHostResult.Failure("Could not determine your external IP address.");
+                return AutoHostResult.Failure("Could not determine external IP address." +
+                                              "\n(Are you connected to the internet?)");
             }
 
             SrLogger.LogMessage("UPnP: External IP determined", $"UPnP: External IP determined: {externalIp}");
 
             var device = DiscoverDevice();
             if (device == null)
-                return AutoHostResult.Failure("**THIS IS NOT A BUG! DO NOT REPORT IT!**\nUPnP is not available on this network.\nYou need to use PlayIt or port forward **IF** you aren't on the same wifi.\n**IF** you are on the same wifi, you can directly connect without tools or playit.");
+                return AutoHostResult.Failure("UPnP failed to discover a device" +
+                                              "\nAuto Host is not available on this network." +
+                                              "\nYou need to use PlayIt or port forward.");
 
             var port = TryMapPort(device);
             if (port == 0)
-                return AutoHostResult.Failure("UPnP failed to map a port.");
+                return AutoHostResult.Failure("UPnP failed to map a port" +
+                                              "\nAuto Host is not available on this network." +
+                                              "\nYou need to use PlayIt or port forward.");
 
             Firewall.AddException(port);
             var joinCode = JoinCode.Encode(externalIp!, port);
@@ -100,7 +105,9 @@ internal static class AutoHost
         catch (NatDeviceNotFoundException ex)
         {
             SrLogger.LogWarning($"UPnP: No device found: {ex.Message}");
-            return AutoHostResult.Failure("UPnP is not available on this network.");
+            return AutoHostResult.Failure("UPnP is not available on this network. " +
+                                          "\nAuto Host is not available on this network." +
+                                          "\nYou need to use PlayIt or port forward.");
         }
         catch (Exception ex)
         {

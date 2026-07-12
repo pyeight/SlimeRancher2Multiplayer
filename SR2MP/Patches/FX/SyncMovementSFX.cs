@@ -8,7 +8,8 @@ namespace SR2MP.Patches.FX;
 internal static class SyncMovementSfx
 {
     private static bool IsMovementSound(string cueName) // Jump, Run, Step and Land are specific values, do not change, they are the names used in the game
-        => cueName.Contains("Jump") || cueName.Contains("Run") || cueName.Contains("Step") || cueName.Contains("Land");
+        => cueName.Contains("Jump") || cueName.Contains("Run") || cueName.Contains("Step") || cueName.Contains("Land")
+           || cueName.Contains("Splash") || cueName.Contains("Water");
 
     public static void Postfix(SRCharacterController __instance, SECTR_AudioCue cue)
     {
@@ -22,13 +23,6 @@ internal static class SyncMovementSfx
             Position = __instance.Position
         };
 
-        if (Main.Server.IsRunning)
-        {
-            Main.Server.SendToAll(packet);
-        }
-        else if (Main.Client.IsConnected)
-        {
-            Main.Client.SendPacket(packet);
-        }
+        Main.SendToAllOrServer(packet);
     }
 }

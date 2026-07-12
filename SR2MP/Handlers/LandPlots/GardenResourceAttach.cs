@@ -24,59 +24,71 @@ internal sealed class ResourceAttachHandler : BasePacketHandler<ResourceAttachPa
             return false;
 
         Joint? targetJoint = null;
-        SpawnResource? currentGarden = null;
-
-        if (!string.IsNullOrEmpty(packet.PlotID) && GameState.landPlots.TryGetValue(packet.PlotID, out var plotModel)
+        SpawnResource? resolvedSpawner = null;
+        
+        if (!string.IsNullOrEmpty(packet.PlotID)
+            && GameState.landPlots.TryGetValue(packet.PlotID, out var plotModel)
             && plotModel.gameObj)
         {
-            currentGarden = plotModel.gameObj.GetComponentInChildren<SpawnResource>();
-            if (currentGarden != null && packet.Joint >= 0 && packet.Joint < currentGarden.SpawnJoints.Count)
-                targetJoint = currentGarden.SpawnJoints[packet.Joint];
-
-            if (currentGarden?._model != null)
+            var plotSpawner = plotModel.gameObj.GetComponentInChildren<SpawnResource>();
+            if (plotSpawner != null
+                && packet.Joint >= 0
+                && packet.Joint < plotSpawner.SpawnJoints.Count)
             {
-                currentGarden._model.nextSpawnRipens = packet.Model.nextSpawnRipens;
-                currentGarden._model.nextSpawnTime = packet.Model.nextSpawnTime;
-                currentGarden._model.storedWater = packet.Model.storedWater;
-                currentGarden._model.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
+                targetJoint     = plotSpawner.SpawnJoints[packet.Joint];
+                resolvedSpawner = plotSpawner;
             }
-        }
 
+            if (plotSpawner?._model != null)
+                ApplySpawnerModel(plotSpawner._model, packet.Model);
+        }
+        
         if (targetJoint == null)
         {
             foreach (var spawner in Object.FindObjectsOfType<SpawnResource>())
             {
-                if ((spawner.transform.position - packet.SpawnerID).sqrMagnitude >= 0.01f)
+                if ((spawner.transform.position - packet.SpawnerID).sqrMagnitude >= 1f)
                     continue;
 
                 if (packet.Joint >= 0 && packet.Joint < spawner.SpawnJoints.Count)
-                    targetJoint = spawner.SpawnJoints[packet.Joint];
+                {
+                    targetJoint     = spawner.SpawnJoints[packet.Joint];
+                    resolvedSpawner = spawner;
+                }
 
                 if (spawner._model != null)
-                {
-                    spawner._model.nextSpawnRipens = packet.Model.nextSpawnRipens;
-                    spawner._model.nextSpawnTime = packet.Model.nextSpawnTime;
-                    spawner._model.storedWater = packet.Model.storedWater;
-                    spawner._model.wasPreviouslyPlanted = packet.Model.wasPreviouslyPlanted;
-                }
+                    ApplySpawnerModel(spawner._model, packet.Model);
 
                 break;
             }
         }
 
-        if (targetJoint == null)
+        if (targetJoint == null || resolvedSpawner == null)
             return false;
 
         HandlingPacket = true;
         cycle.Attach(targetJoint);
         HandlingPacket = false;
-
-        currentGarden!._spawned.Add(cycle.gameObject);
+        
+        resolvedSpawner._spawned.Add(cycle.gameObject);
 
         var produceModel = model.TryCast<ProduceModel>();
         if (produceModel != null)
+        {
             networkComponent.SetResourceState(produceModel._state, produceModel.progressTime, true);
+            
+            if (produceModel._state == ResourceCycle.State.UNRIPE && cycle._defaultScale.x > 0f)
+                cycle.transform.localScale = cycle._defaultScale * 0.33f;
+        }
 
         return true;
+    }
+
+    private static void ApplySpawnerModel(SpawnResourceModel dest, SpawnResourceModel src)
+    {
+        dest.nextSpawnRipens        = src.nextSpawnRipens;
+        dest.nextSpawnTime          = src.nextSpawnTime;
+        dest.storedWater            = src.storedWater;
+        dest.wasPreviouslyPlanted   = src.wasPreviouslyPlanted;
     }
 }

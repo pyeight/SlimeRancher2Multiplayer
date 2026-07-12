@@ -5,116 +5,8 @@ internal sealed partial class MultiplayerUI
     private bool multiplayerUIHidden;
 
     private string usernameInput = "Player";
+    private string usernameColorInput = "FFFFFF";
     private bool allowCheatsInput;
-
-    private string activeInputId = string.Empty;
-    private bool justUnfocusedInput;
-    private bool suppressNextChar;
-
-    private string DrawSafeTextInput(string id, Rect rect, string value, int maxLength = 64, bool numbersOnly = false, bool isChat = false)
-    {
-        var current = Event.current;
-        var displayValue = string.IsNullOrEmpty(value) && activeInputId != id
-            ? (isChat ? "Enter to Chat" : "Click to Type")
-            : value;
-
-        if (activeInputId == id)
-            GUI.skin.box.normal.textColor = new Color32(255, 255, 185, 255);
-
-        GUI.Box(rect, displayValue);
-
-        GUI.skin.box.normal.textColor = Color.white;
-
-        if (current.type == EventType.MouseDown)
-        {
-            if (rect.Contains(current.mousePosition))
-            {
-                activeInputId = id;
-                suppressNextChar = true;
-                current.Use();
-            }
-            else if (activeInputId == id)
-            {
-                activeInputId = string.Empty;
-            }
-        }
-
-        if (activeInputId != id)
-            return value;
-
-        if (current.type == EventType.KeyDown)
-        {
-            switch (current.keyCode)
-            {
-                case KeyCode.Backspace:
-                    if (!string.IsNullOrEmpty(value))
-                        value = value[..^1];
-                    current.Use();
-                    return value;
-                
-                case KeyCode.Return:
-                case KeyCode.KeypadEnter:
-                    if (!isChat)
-                    {
-                        activeInputId = string.Empty;
-                        justUnfocusedInput = true;
-                        current.Use();
-                    }
-                    return value;
-
-                case KeyCode.Escape:
-                    activeInputId = string.Empty;
-                    current.Use();
-                    return value;
-
-                case KeyCode.X:
-                    if (current.control)
-                    {
-                        GUIUtility.systemCopyBuffer = value;
-                        return "";
-                    }
-
-                    break;
-
-                case KeyCode.V:
-                    if (current.control)
-                    {
-                        value += GUIUtility.systemCopyBuffer;
-                        return value;
-                    }
-
-                    break;
-
-                case KeyCode.C:
-                    if (current.control)
-                    {
-                        GUIUtility.systemCopyBuffer = value;
-                        return value;
-                    }
-
-                    break;
-            }
-
-            if (suppressNextChar)
-            {
-                suppressNextChar = false;
-                current.Use();
-                return value;
-            }
-
-            if (current.character == '\0' || char.IsControl(current.character))
-                return value;
-
-            if ((!numbersOnly || char.IsDigit(current.character)) && value.Length < maxLength)
-            {
-                value += current.character;
-            }
-
-            current.Use();
-        }
-
-        return value;
-    }
 
     private void FirstTimeScreen()
     {
@@ -124,6 +16,8 @@ internal sealed partial class MultiplayerUI
 
         DrawText("Username:", 2);
         usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
+
+        DrawUsernameColorInput();
 
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
@@ -137,12 +31,15 @@ internal sealed partial class MultiplayerUI
         firstTime = false;
         Main.SetConfigValue("internal_setup_ui", false);
         Main.SetConfigValue("username", usernameInput);
+        Main.SetConfigValue("username_color", usernameColorInput);
     }
 
     private void SettingsScreen()
     {
         DrawText("Username:", 2);
         usernameInput = DrawSafeTextInput("username", CalculateInputLayout(6, 2, 1), usernameInput, 32);
+
+        DrawUsernameColorInput();
 
         DrawText("Allow Cheats:", 2);
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
@@ -157,8 +54,24 @@ internal sealed partial class MultiplayerUI
         if (!GUI.Button(CalculateButtonLayout(6), "Save")) return;
 
         Main.SetConfigValue("username", usernameInput);
+        Main.SetConfigValue("username_color", usernameColorInput);
         Main.SetConfigValue("allow_cheats", allowCheatsInput);
         viewingSettings = false;
+    }
+
+    private void DrawUsernameColorInput()
+    {
+        DrawText("Username Color (hex):", 3);
+        usernameColorInput = DrawSafeTextInput("username_color", CalculateInputLayout(6, 3, 1), usernameColorInput, 6);
+
+        if (GUI.Button(CalculateButtonLayout(6, 3, 2), "Randomize"))
+            usernameColorInput = Extensions.RandomHexColor();
+
+        var preview = Extensions.IsValidHexColor(usernameColorInput)
+            ? $"<color=#{usernameColorInput}>{(string.IsNullOrWhiteSpace(usernameInput) ? "Player" : usernameInput)}</color>"
+            : "Enter a 6-digit hex color, e.g. FF8800";
+
+        DrawText(preview);
     }
 
     private void MainMenuScreen()

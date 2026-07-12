@@ -14,33 +14,43 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
     {
         if (ActorManager.Actors.ContainsKey(packet.ActorId.Value))
         {
-            SrLogger.LogPacketSize($"Actor {packet.ActorId.Value} already exists");
+            SrLogger.LogDebug($"Actor {packet.ActorId.Value} already exists");
             return false;
         }
 
-        ActorManager.TrySpawnNetworkActor(packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor);
+        ActorManager.TrySpawnNetworkActor(
+            packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor,
+            packet.FirstAppearance, packet.SecondAppearance, packet.Emotions, packet.Sleeping);
 
         if (actor == null)
             return true;
-
-        if (packet.MaterialIndex != (byte)SprinkleMaterialType.none)
+        
+        // Gadgets have no NetworkActor component
+        if (actor.TryGetNetworkComponent(out var networkComponent))
         {
-            var gameObj = actor.GetGameObject();
-            if (gameObj)
-                StartCoroutine(NetworkActorManager.ApplySprinkleMaterial(gameObj, (SprinkleMaterialType)packet.MaterialIndex));
+            networkComponent.CurrentOwnerId = packet.OwnerId;
+            networkComponent.LocallyOwned = false;
+            networkComponent.CachedLocallyOwned = false;
         }
 
-        var slime = actor.TryCast<SlimeModel>();
-        if (slime == null)
-            return true;
+        switch (packet.SpawnType)
+        {
+            case (byte)ActorSpawnType.Sprinkle when packet.MaterialIndex != (byte)SprinkleMaterialType.none:
+            {
+                var gameObj = actor.GetGameObject();
+                if (gameObj)
+                    StartCoroutine(NetworkActorManager.ApplySprinkleMaterial(gameObj, (SprinkleMaterialType)packet.MaterialIndex));
+                break;
+            }
 
-        slime.firstAppearanceSaveSet = packet.FirstAppearance;
-        slime.secondAppearanceSaveSet = packet.SecondAppearance;
-        slime.Emotions = packet.Emotions;
-        slime.isSleeping = packet.Sleeping;
-
-        if (packet.Radiancy != (byte)ActorAppearanceType.Default)
-            NetworkActorManager.ApplyRadiancy(slime, (ActorAppearanceType)packet.Radiancy);
+            case (byte)ActorSpawnType.Slime when packet.Radiancy != (byte)ActorAppearanceType.Default:
+            {
+                var slime = actor.TryCast<SlimeModel>();
+                if (slime != null)
+                    NetworkActorManager.ApplyRadiancy(slime, (ActorAppearanceType)packet.Radiancy);
+                break;
+            }
+        }
 
         return true;
     }

@@ -15,7 +15,7 @@ internal static class RefineryUpdate
         var packet = new RefineryUpdatePacket
         {
             ItemCount = (ushort)newCount,
-            ItemID = (ushort)GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
+            ItemID = GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
                 ._identifiableTypeToPersistenceId.GetPersistenceId(type)
         };
 

@@ -12,16 +12,14 @@ internal sealed partial class MultiplayerUI
     {
         MenuEUtil.CloseOpenMenu();
         Main.Server.Start(port, true);
-        Main.SetConfigValue("host_port", hostPortInput);
+        Main.SetConfigValue("host_port", hostLocalPortInput);
     }
 
-    private void TryHostManual(string ip, ushort port)
+    private void TryHostManual(string ip, ushort tunnelPort, ushort localPort)
     {
         hostManualError = string.Empty;
-        hostManualJoinCode = string.Empty;
-        hostManualCopyStatus = string.Empty;
-        hostAutoJoinCode = string.Empty;
-        hostAutoCopyStatus = string.Empty;
+        hostJoinCode = string.Empty;
+        hostJoinCodeCopyStatus = string.Empty;
 
         if (!IPAddress.TryParse(ip, out var address))
         {
@@ -29,8 +27,8 @@ internal sealed partial class MultiplayerUI
             return;
         }
 
-        Host(port);
-        hostManualJoinCode = JoinCode.Encode(address, port);
+        Host(localPort);
+        hostJoinCode = JoinCode.Encode(address, tunnelPort);
     }
 
     internal void StartAutoHost()
@@ -39,10 +37,8 @@ internal sealed partial class MultiplayerUI
 
         hostAutoInProgress = true;
         hostAutoError = string.Empty;
-        hostAutoJoinCode = string.Empty;
-        hostAutoCopyStatus = string.Empty;
-        hostManualJoinCode = string.Empty;
-        hostManualCopyStatus = string.Empty;
+        hostJoinCode = string.Empty;
+        hostJoinCodeCopyStatus = string.Empty;
 
         AutoHost.BeginAutoHost(OnAutoHostCompleted);
     }
@@ -57,9 +53,9 @@ internal sealed partial class MultiplayerUI
             return;
         }
 
-        hostPortInput = result.Port.ToString();
+        hostLocalPortInput = result.Port.ToString();
         Host(result.Port);
-        hostAutoJoinCode = result.JoinCode;
+        hostJoinCode = result.JoinCode;
         hostAutoInProgress = false;
     }
 
@@ -71,8 +67,8 @@ internal sealed partial class MultiplayerUI
 
         Main.Client.Connect(ip, port);
 
-        Main.SetConfigValue("recent_ip", ipInput);
-        Main.SetConfigValue("recent_port", portInput);
+        Main.SetConfigValue("recent_ip", joinIpInput);
+        Main.SetConfigValue("recent_port", joinPortInput);
     }
 
     private void TryJoinWithCode()
@@ -85,9 +81,9 @@ internal sealed partial class MultiplayerUI
             return;
         }
 
-        ipInput = address.ToString();
-        portInput = port.ToString();
-        Connect(ipInput, port);
+        joinIpInput = address.ToString();
+        joinPortInput = port.ToString();
+        Connect(joinIpInput, port);
     }
 
     private void TryJoinManual(string ip, ushort port)
@@ -214,10 +210,13 @@ internal sealed partial class MultiplayerUI
 
     private void AdjustInputValues()
     {
-        ipInput = ipInput.WithAllWhitespaceStripped();
-        portInput = portInput.WithAllWhitespaceStripped();
-        hostPortInput = hostPortInput.WithAllWhitespaceStripped();
+        joinIpInput = joinIpInput.WithAllWhitespaceStripped();
+        joinPortInput = joinPortInput.WithAllWhitespaceStripped();
+        hostLocalPortInput = hostLocalPortInput.WithAllWhitespaceStripped();
         hostIpInput = hostIpInput.WithAllWhitespaceStripped();
+        hostTunnelPortInput = hostTunnelPortInput.WithAllWhitespaceStripped();
         joinCodeInput = joinCodeInput.WithAllWhitespaceStripped();
+        
+        usernameColorInput = usernameColorInput.WithAllWhitespaceStripped().TrimStart('#');
     }
 }

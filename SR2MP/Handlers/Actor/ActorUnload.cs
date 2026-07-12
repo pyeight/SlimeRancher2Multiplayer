@@ -18,20 +18,25 @@ internal sealed class ActorUnloadHandler : BasePacketHandler<ActorUnloadPacket>
 
         if (!component.RegionMember)
             return false;
+        
+        if (!string.IsNullOrEmpty(component.CurrentOwnerId) &&
+            component.CurrentOwnerId != packet.SenderId)
+            return false;
 
         if (!component.RegionMember!._hibernating)
         {
             component.LocallyOwned = true;
+            component.CurrentOwnerId = LocalID;
 
-            var ownershipPacket = new ActorTransferPacket
+            Main.SendToAllOrServer(new ActorTransferPacket
             {
                 ActorId = packet.ActorId,
                 OwnerId = LocalID
-            };
-            Main.SendToAllOrServer(ownershipPacket);
+            });
             return false;
         }
-
+        
+        component.LocallyOwned = false;
         return true;
     }
 }

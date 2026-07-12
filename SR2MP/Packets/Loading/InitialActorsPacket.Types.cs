@@ -25,9 +25,7 @@ internal partial class InitialActorsPacket
         LinkedGadgetWithAmmo = 8,
         
         // Drones
-        RanchDrone = 9,
-        ExplorerDrone = 10,
-        DroneStation = 11,
+        DroneStation = 9,
     } 
     
     private static Dictionary<ActorType, Type> actorTypes = new(ActorTypeComparer.Instance)
@@ -39,13 +37,11 @@ internal partial class InitialActorsPacket
         { ActorType.Resource,             typeof(Resource) },
         { ActorType.Sprinkle,             typeof(Sprinkle) },
         
-        { ActorType.Gadget,               typeof(ActorBase) },
+        { ActorType.Gadget,               typeof(Gadget) },
         { ActorType.LinkedGadget,         typeof(LinkedGadget) },
         { ActorType.LinkedGadgetWithAmmo, typeof(LinkedAmmoGadget) },
         
         { ActorType.DroneStation,         typeof(DroneStation) },
-        { ActorType.RanchDrone,           typeof(RanchDrone) },
-        { ActorType.ExplorerDrone,        typeof(ExplorerDrone) },
     };
 
     internal class ActorBase : INetObject
@@ -100,23 +96,29 @@ internal partial class InitialActorsPacket
         public float4 Emotions;
         public bool Sleeping;
         public int Radiancy;
-        
+        public SlimeAppearance.AppearanceSaveSet FirstAppearance;
+        public SlimeAppearance.AppearanceSaveSet SecondAppearance;
+
         protected override ActorType Type => ActorType.Slime;
-        
+
         public override void Serialise(PacketWriter writer)
         {
             base.Serialise(writer);
             writer.WriteFloat4(Emotions);
             writer.WriteBool(Sleeping);
             writer.WritePackedInt(Radiancy);
+            writer.WritePackedEnum(FirstAppearance);
+            writer.WritePackedEnum(SecondAppearance);
         }
-        
+
         public override void Deserialise(PacketReader reader)
         {
             base.Deserialise(reader);
             Emotions = reader.ReadFloat4();
             Sleeping = reader.ReadBool();
             Radiancy = reader.ReadPackedInt();
+            FirstAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
+            SecondAppearance = reader.ReadPackedEnum<SlimeAppearance.AppearanceSaveSet>();
         }
     }
     
@@ -150,6 +152,7 @@ internal partial class InitialActorsPacket
         public int JointIndex = -1;
         public string PlotID = string.Empty;
         public Vector3 SpawnerPosition;
+        public float Scale = 1f;
         
         protected override ActorType Type => ActorType.Resource;
         
@@ -161,6 +164,7 @@ internal partial class InitialActorsPacket
             writer.WritePackedInt(JointIndex);
             writer.WriteString(PlotID);
             writer.WriteVector3(SpawnerPosition);
+            writer.WriteFloat(Scale);
         }
         
         public override void Deserialise(PacketReader reader)
@@ -171,6 +175,7 @@ internal partial class InitialActorsPacket
             JointIndex = reader.ReadPackedInt();
             PlotID = reader.ReadPooledString()!;
             SpawnerPosition = reader.ReadVector3();
+            Scale = reader.ReadFloat();
         }
     }
     
@@ -193,7 +198,26 @@ internal partial class InitialActorsPacket
         }
     }
 
-    internal class LinkedGadget : ActorBase
+    internal class Gadget : ActorBase
+    {
+        public double ChargeupTime;
+
+        protected override ActorType Type => ActorType.Gadget;
+
+        public override void Serialise(PacketWriter writer)
+        {
+            base.Serialise(writer);
+            writer.WriteDouble(ChargeupTime);
+        }
+
+        public override void Deserialise(PacketReader reader)
+        {
+            base.Deserialise(reader);
+            ChargeupTime = reader.ReadDouble();
+        }
+    }
+
+    internal class LinkedGadget : Gadget
     {
         public long LinkedActorId;
         
@@ -231,53 +255,17 @@ internal partial class InitialActorsPacket
         }
     }
     
-    internal class ExplorerDrone : ActorBase
-    {
-        public ActorId Station;
-        
-        protected override ActorType Type => ActorType.ExplorerDrone;
-        
-        public override void Serialise(PacketWriter writer)
-        {
-            base.Serialise(writer);
-            writer.WriteLong(Station.Value);
-        }
-        
-        public override void Deserialise(PacketReader reader)
-        {
-            base.Deserialise(reader);
-            Station = new ActorId(reader.ReadLong());
-        }
-    }
-    
-    internal sealed class RanchDrone : ExplorerDrone
-    {
-        public NetworkAmmo Ammo;
-
-        protected override ActorType Type => ActorType.RanchDrone;
-        
-        public override void Serialise(PacketWriter writer)
-        {
-            base.Serialise(writer);
-            writer.WriteNetObject(Ammo);
-        }
-        
-        public override void Deserialise(PacketReader reader)
-        {
-            base.Deserialise(reader);
-            Ammo = reader.ReadNetObject<NetworkAmmo>();
-        }
-    }
-    
-    internal sealed class DroneStation : LinkedGadget
+    internal sealed class DroneStation : Gadget
     {
         public float Charge;
         public DroneType DroneType;
         public bool DroneInStation;
         public DroneTask Task;
-        
+        public NetworkAmmo Ammo;
+        public string DroneOwnerId = string.Empty;
+
         protected override ActorType Type => ActorType.DroneStation;
-        
+
         public override void Serialise(PacketWriter writer)
         {
             base.Serialise(writer);
@@ -285,6 +273,8 @@ internal partial class InitialActorsPacket
             writer.WriteEnum(DroneType);
             writer.WriteBool(DroneInStation);
             writer.WriteNetObject(Task);
+            writer.WriteNetObject(Ammo);
+            writer.WriteString(DroneOwnerId);
         }
         
         public override void Deserialise(PacketReader reader)
@@ -294,6 +284,8 @@ internal partial class InitialActorsPacket
             DroneType = reader.ReadEnum<DroneType>();
             DroneInStation = reader.ReadBool();
             Task = reader.ReadNetObject<DroneTask>();
+            Ammo = reader.ReadNetObject<NetworkAmmo>();
+            DroneOwnerId = reader.ReadPooledString()!;
         }
     }
     

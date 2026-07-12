@@ -1,4 +1,5 @@
 using System.Net;
+using SR2MP.Components.Player;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.FX;
 using SR2MP.Packets.Utils;
@@ -22,29 +23,35 @@ internal sealed class PlayerFXHandler : BasePacketHandler<PlayerFXPacket>
             }
             else
             {
-                var cue = FXManager.PlayerAudioCueMap[packet.FX];
-
-                if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
-                {
-                    RemoteFXManager.PlayTransientAudio(cue, PlayerObjects[packet.Player].transform.position,
-                        PlayerSoundVolumeDictionary[packet.FX]);
-                }
-                else
-                {
-                    var playerAudio = PlayerObjects[packet.Player].GetComponent<SECTR_PointSource>();
-                    playerAudio.Cue = cue;
-                    playerAudio.Loop = DoesPlayerSoundLoopDictionary[packet.FX];
-                    playerAudio.instance.Volume = PlayerSoundVolumeDictionary[packet.FX];
-                    playerAudio.Play();
-                }
+                var remotePlayer = PlayerObjects[packet.Player];
+                PlayPlayerAudio(packet, remotePlayer);
             }
         }
-        catch { /* Errors here are typically non-serious related to scene loading */ }
-        finally
-        {
-            HandlingPacket = false;
-        }
+        catch { /* Non-critical; typically triggered during scene transitions. */ }
+        
+        HandlingPacket = false;
 
         return true;
+    }
+
+    private static void PlayPlayerAudio(PlayerFXPacket packet, GameObject remotePlayer)
+    {
+        var cue = FXManager.PlayerAudioCueMap[packet.FX];
+
+        if (ShouldPlayerSoundBeTransientDictionary[packet.FX])
+        {
+            RemoteFXManager.PlayTransientAudio(
+                cue,
+                remotePlayer.transform.position,
+                PlayerSoundVolumeDictionary[packet.FX]);
+        }
+        else
+        {
+            var playerAudio = remotePlayer.GetComponent<SECTR_PointSource>();
+            playerAudio.Cue              = cue;
+            playerAudio.Loop             = DoesPlayerSoundLoopDictionary[packet.FX];
+            playerAudio.instance.Volume  = PlayerSoundVolumeDictionary[packet.FX];
+            playerAudio.Play();
+        }
     }
 }

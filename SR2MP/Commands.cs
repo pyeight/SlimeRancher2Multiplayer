@@ -1,7 +1,4 @@
-/*
 using System.Net;
-using Starlight;
-using Starlight.Utils;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Shared.Utils;
@@ -27,8 +24,6 @@ internal sealed class HostCommand : StarlightCommand
 
 internal sealed class AutoHostCommand : StarlightCommand
 {
-    private static Server.SR2MPServer? server;
-
     public override string ID => "autohost";
     public override string Usage => "autohost";
 
@@ -37,6 +32,20 @@ internal sealed class AutoHostCommand : StarlightCommand
         MenuEUtil.CloseOpenMenu();
         MultiplayerUI.Instance.StartAutoHost();
         SrLogger.LogMessage("Autohost command executed!");
+        return true;
+    }
+}
+
+internal sealed class ManualCodeCommand : StarlightCommand
+{
+    public override string ID => "manualcode";
+    public override string Usage => "manualcode";
+
+    public override bool Execute(string[] args)
+    {
+        MenuEUtil.CloseOpenMenu();
+        MultiplayerUI.Instance.TriggerManualCode();
+        SrLogger.LogMessage("ManualCode command executed!");
         return true;
     }
 }
@@ -139,10 +148,10 @@ internal sealed class ResyncAllCommand : StarlightCommand
     public override bool Execute(string[] args)
     {
         if (Main.Client.IsConnected)
-            Main.Server.reSyncManager.RequestResync();
+            Main.Server.ReSyncManager.RequestResync();
 
         if (Main.Server.IsRunning)
-            Main.Server.reSyncManager.SynchronizeAll();
+            Main.Server.ReSyncManager.SynchronizeAll();
 
         SrLogger.LogMessage("Resync command executed!", SrLogTarget.Both);
         return true;
@@ -161,4 +170,3 @@ public sealed class RemoveExceptionsCommand : StarlightCommand
         return true;
     }
 }
-*/

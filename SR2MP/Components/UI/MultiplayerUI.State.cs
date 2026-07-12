@@ -13,6 +13,7 @@ internal sealed partial class MultiplayerUI
         Hidden,
         DisconnectedMainMenu,
         DisconnectedInGame,
+        Connecting,
         ConnectedClient,
         ConnectedHost,
         SettingsInitial,
@@ -46,7 +47,7 @@ internal sealed partial class MultiplayerUI
     private bool chatShown;
     private MenuState previousState = MenuState.Hidden;
 
-    private bool GetIsLoading()
+    private static bool GetIsLoading()
     {
         return SystemContext.Instance.SceneLoader.CurrentSceneGroup.name is
             "StandaloneStart" or "CompanyLogo" or "LoadScene";
@@ -58,6 +59,7 @@ internal sealed partial class MultiplayerUI
 
         var inGame = ContextShortcuts.inGame;
         var loading = GetIsLoading();
+        var connecting = Main.Client.IsConnecting;
         var connected = Main.Client.IsConnected;
         var hosting = Main.Server.IsRunning;
 
@@ -65,6 +67,7 @@ internal sealed partial class MultiplayerUI
         if (firstTime) return MenuState.SettingsInitial;
         if (viewingSettings) return MenuState.SettingsMain;
         if (viewingHelp) return MenuState.SettingsHelp;
+        if (connecting) return MenuState.Connecting;
         if (connected) return MenuState.ConnectedClient;
         if (hosting) return MenuState.ConnectedHost;
 

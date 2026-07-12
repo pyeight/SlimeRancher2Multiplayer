@@ -11,6 +11,8 @@ internal static class DervishSlimeSpinSelected
 {
     public static bool Prefix(DervishSlimeSpin __instance)
     {
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected) return true;
+        
         var networkActor = __instance.GetComponent<NetworkActor>();
         if (!networkActor.LocallyOwned && !HandlingPacket) return false;
 
