@@ -10,32 +10,36 @@
 |:-----------------:|:------:|:-----------------------------------------------------------------------------:|
 |  Player Movement  |   🟩   |                               Fully functional                                |
 | Player Animations |   🟩   |                               Fully functional                                |
-|  Player Sound FX  |   🟨   |                             Water splash missing                              |
-| Player Visual FX  |   🟨   |               Water splash particle + Vac suction trail missing               |
-| Player Inventory  |   🟥   |                                Not implemented                                |
+|  Player Sound FX  |   🟩   |                               Fully functional                                |
+| Player Visual FX  |   🟨   |                   Vac Shockwave + Vac suction trail missing                   |
+| Player Inventory  |   🟥   |             Not stored on the server, use the same save to rejoin             |
 | Initial Save load |   🟩   | Everything that is ___currently___ synchronised will be loaded on Player join |
-|  Map Expansions   |   🟩   |                               Fully functional                                |
-|      Slimes       |   🟩   |                               Fully functional                                |
-|  Actors (Items)   |   🟩   |                               Fully functional                                |
-|     Landplots     |   🟨   |  Gardens (🟧), Silos, Plort collectors & Auto-feeders missing functionality   |
-| Landplot upgrades |   🟩   |                               Fully functional                                |
-|    Slimepedia     |   🟩   |                               Fully functional                                |
-|      Gadgets      |   🟥   |                                Not implemented                                |
-|     Upgrades      |   🟩   |                               Fully functional                                |
-|       Money       |   🟩   |                               Fully functional                                |
-|       Time        |   🟩   |                               Fully functional                                |
-|    Decorations    |   🟥   |                                Not implemented                                |
-|  Gray Labyrinth   |   🟨   |                            Switches are functional                            |
-|   Market Prices   |   🟩   |             Fully functional (Including price change indicators)              |
-|      Plot FX      |   🟩   |                               Fully functional                                |
-|     Market FX     |   🟩   |                               Fully functional                                |
-|  Resource Nodes   |   🟩   |                               Fully functional                                |
+|      Slimes       |   🟩   |                     Fully functional (Including Radiant)                      |
+|  Slime behaviour  |   🟨   |  Partially functional (Yolky, Dervish, Gold, Lucky), Tangle & Tabby missing   |
 |   Gordo Slimes    |   🟩   |                               Fully functional                                |
-|      Geysers      |   🟩   |                               Fully functional                                |
-|        Map        |   🟨   |     Lightning has duplicate loot, Tornados and map icons not synchronised     |
+|  Actors (Items)   |   🟩   |                               Fully functional                                |
+|  Resource Nodes   |   🟩   |                               Fully functional                                |
+|     Landplots     |   🟩   |   Fully functional (Gardens, Silos, etc. + Plort collectors & Auto-feeders)   |
+| Landplot upgrades |   🟩   |                               Fully functional                                |
+|      Gadgets      |   🟩   |                               Fully functional                                |
+|      Drones       |   🟩   |                               Fully functional                                |
+|     Upgrades      |   🟩   |                               Fully functional                                |
+|     Currency      |   🟩   |                               Fully functional                                |
+|   Market Prices   |   🟩   |                               Fully functional                                |
+|     Sprinkles     |   🟩   |                               Fully functional                                |
+|     Refinery      |   🟩   |                               Fully functional                                |
+|     World FX      |   🟩   |                               Fully functional                                |
+|    Slimepedia     |   🟩   |                               Fully functional                                |
+|        Map        |   🟩   |            Fully functional (Including player icons & locator bar)            |
+|  Map Expansions   |   🟩   |                               Fully functional                                |
 |    Teleporters    |   🟩   |                               Fully functional                                |
-|      Weather      |   🟩   |                               Fully functional                                |
+|      Geysers      |   🟩   |                               Fully functional                                |
+|      Weather      |   🟨   |           Initial weather sometimes fails, updates fully functional           |
 |     Lightning     |   🟩   |                               Fully functional                                |
+|     Tornados      |   🟥   |                                Not implemented                                |
+|       Time        |   🟩   |                               Fully functional                                |
+|  Gray Labyrinth   |   🟨   |  Partially functional (Switches, Prisma Barriers, Puzzle Slots, Depositors)   |
+|  Multiplayer API  |   🟩   |                               Fully functional                                |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 # ⚠ ALL YOUR PROGRESS WILL BE ERASED ⚠
