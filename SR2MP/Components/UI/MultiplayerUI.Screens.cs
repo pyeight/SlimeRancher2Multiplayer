@@ -29,7 +29,7 @@ internal sealed partial class MultiplayerUI
         if (!GUI.Button(CalculateButtonLayout(6), "Save settings")) return;
 
         firstTime = false;
-        Main.SetConfigValue("internal_setup_ui", false);
+        Main.SetConfigValue("internal_setup_ui_new", false);
         Main.SetConfigValue("username", usernameInput);
         Main.SetConfigValue("username_color", usernameColorInput);
     }
