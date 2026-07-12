@@ -231,11 +231,11 @@ internal sealed class ReSyncManager
 
     private static InitialRefineryPacket CreateRefineryPacket()
     {
-        var refineryItems = new Dictionary<ushort, ushort>();
+        var refineryItems = new Dictionary<int, ushort>();
 
         foreach (var item in SceneContext.Instance.GadgetDirector._model._itemCounts)
         {
-            var itemId = (ushort)NetworkActorManager.GetPersistentID(item.Key);
+            var itemId = NetworkActorManager.GetPersistentID(item.Key);
             var count = (ushort)item.Value;
             refineryItems.Add(itemId, count);
         }

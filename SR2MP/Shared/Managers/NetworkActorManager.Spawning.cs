@@ -97,6 +97,12 @@ internal sealed partial class NetworkActorManager
             return false;
         }
         
+        if (ActorIDAlreadyInUse(actorId))
+        {
+            SrLogger.LogWarning($"Tried to spawn gadget with an id already in use: {actorId.Value}");
+            return false;
+        }
+
         RemoveExistingGadgetModel(actorId);
 
         var scene = NetworkSceneManager.GetSceneGroup(sceneId);

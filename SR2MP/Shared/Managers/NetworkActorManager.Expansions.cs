@@ -191,7 +191,7 @@ internal sealed partial class NetworkActorManager
 
         try
         {
-            foreach (var gadget in GameState.AllGadgets())
+            foreach (var gadget in GameState.AllGadgets().ToArray())
             {
                 if (gadget == null || gadget.actorId.Value != actorId.Value)
                     continue;
@@ -208,8 +208,6 @@ internal sealed partial class NetworkActorManager
                 var mapDirector = SceneContext.Instance?.MapDirector;
                 if (mapDirector != null)
                     mapDirector.DeregisterMarker(gadget);
-
-                break;
             }
         }
         catch (Exception ex)
