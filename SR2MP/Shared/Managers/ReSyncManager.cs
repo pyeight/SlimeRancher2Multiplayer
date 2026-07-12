@@ -73,6 +73,7 @@ internal sealed class ReSyncManager
         SendPlortDepositorsPacket(endPoint);
         SendPrismaBarriersPacket(endPoint);
         SendDroneCloudPacket(endPoint);
+        SendComponentsPacket(endPoint);
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
@@ -120,6 +121,7 @@ internal sealed class ReSyncManager
         var puzzleSlotsPacket       = CreatePuzzleSlotsPacket();
         var plortDepositorsPacket   = CreatePlortDepositorsPacket();
         var prismaBarriersPacket    = CreatePrismaBarriersPacket();
+        var componentsPacket        = CreateComponentsPacket();
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -156,6 +158,7 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(puzzleSlotsPacket,     client.EndPoint);
             Main.Server.SendToClient(plortDepositorsPacket, client.EndPoint);
             Main.Server.SendToClient(prismaBarriersPacket,  client.EndPoint);
+            Main.Server.SendToClient(componentsPacket,      client.EndPoint);
 
             SendWeatherPacket(client.EndPoint);
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
@@ -451,6 +454,19 @@ internal sealed class ReSyncManager
 
         if (packet.Scenes.Count > 0)
             Main.Server.SendToClient(packet, client);
+    }
+    
+    private static void SendComponentsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateComponentsPacket(), client);
+
+    private static InitialComponentsPacket CreateComponentsPacket()
+    {
+        var componentItems = new Dictionary<string, byte>();
+
+        foreach (var item in GameState.PlayerModel.UpgradeComponentsModel._ownedComponents)
+            componentItems.Add(item.Key._referenceId, (byte)item.Value);
+
+        return new InitialComponentsPacket { Items = componentItems };
     }
 
     private static void SendSwitchesPacket(IPEndPoint client)

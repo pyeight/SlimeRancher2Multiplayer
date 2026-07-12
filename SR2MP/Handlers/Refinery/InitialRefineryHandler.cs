@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Net;
-using MelonLoader;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;

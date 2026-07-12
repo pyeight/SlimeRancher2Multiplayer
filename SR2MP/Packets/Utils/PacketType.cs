@@ -81,6 +81,8 @@ internal enum PacketType : byte
     InitialPlortDepositors = 89,
     PrismaBarrier = 90,
     InitialPrismaBarriers = 91,
+    InitialComponents = 144,      // Server -> Client                             Low (depends on join)                 Upgrade components on join
+    ComponentAdd = 145,           // Both Ways                                    Low (manual)                          On Upgrade Component gained/lost
     DroneBattery = 92,            // Both Ways                                    Low (manual)                          On Drone Station charged with plorts
     DroneUpdate = 93,             // Both Ways                                    High (owner only)                     Drone position/state updates
     DroneOwnership = 94,          // Both Ways                                    Medium (manual)                       On Drone ownership transfer
