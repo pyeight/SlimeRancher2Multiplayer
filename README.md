@@ -1,5 +1,7 @@
 # Slime Rancher 2 Multiplayer Mod - <a href="https://discord.com/invite/a7wfBw5feU" target="_blank" rel="noopener noreferrer">Join our Discord</a>
 
+### You can also get the mod on <a href="https://www.nexusmods.com/slimerancher2/mods/118" target="_blank" rel="noopener noreferrer">NexusMods</a>
+
 **LEGEND:**
 - 🟩 fully synced
 - 🟨 partially synced
