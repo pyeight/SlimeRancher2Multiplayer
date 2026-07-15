@@ -141,6 +141,8 @@ internal partial class NetworkPlayer : MonoBehaviour
         
         if (IsLocal) return;
 
+        CleanupGadgetPreview();
+
         if (PlayerMarkerTransforms.TryGetValue(ID, out var marker))
         {
             if (marker.mainMarker != null)

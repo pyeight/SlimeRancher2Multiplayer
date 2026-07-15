@@ -1,11 +1,13 @@
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
-using Il2CppMonomiPark.SlimeRancher.Util.Extensions;
+using Il2CppMonomiPark.SlimeRancher.Rendering.Pass;
 using SR2MP.Client.Models;
 using SR2MP.Packets.Player;
 using SR2MP.Shared.Managers;
+using SR2MP.Shared.ModSupport;
 using static SR2MP.Shared.Utils.Timers;
 
 using Il2CppInterop.Runtime.Attributes;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace SR2MP.Components.Player;
 
@@ -18,7 +20,8 @@ internal partial class NetworkPlayer
 
     // private bool InGadgetMode => IsLocal ? PlayerItemController._gadgetItem.enabled : OnlineGadgetMode;
 
-    public bool OnlinePlacementValid;
+    public GadgetPlacementValidity OnlinePlacementValidity;
+    private GadgetPlacementValidity? CachedPlacementValidity;
 
     public bool OnlineGadgetMode;
     public bool CachedOnlineGadgetMode;
@@ -36,6 +39,13 @@ internal partial class NetworkPlayer
     public GameObject? FootprintPrefabInstance;
     public Renderer? FootprintRendererInstance;
     public GameObject? PlaceholderGadgetPrefabInstance;
+
+    private static readonly int OverlayValidColor = Shader.PropertyToID("_OverlayValidColor");
+    private static readonly int OverlayInvalidColor = Shader.PropertyToID("_OverlayInvalidColor");
+    private static readonly int Opacity = Shader.PropertyToID("_Opacity");
+    
+    private static readonly HashSet<int> ActiveRemoteGadgets = new();
+    private static float cachedOverlayOpacity = 0.575f;
 
     private float interpolationStartGadget;
     private float interpolationEndGadget;
@@ -118,10 +128,140 @@ internal partial class NetworkPlayer
 
         if (FootprintPrefabInstance)
         {
-            var material = GetFootprintMaterial(OnlinePlacementValid);
-            if (material != null)
-                FootprintRendererInstance!.material = material;
+            UpdateFootprintMaterial();
+            UpdateOnlineOverlay();
         }
+    }
+
+    private void UpdateOnlineOverlay()
+    {
+        var gadgetItem = GetPlayerItemController()?._gadgetItem;
+        if (gadgetItem == null)
+            return;
+
+        ActiveRemoteGadgets.Add(GetInstanceID());
+
+        var volume = gadgetItem._gadgetOverlayCustomPassVolume;
+        var overlayPass = GetOverlayPass(gadgetItem);
+        var placementMaterial = overlayPass?._gadgetPlacementMaterial;
+        if (volume == null || overlayPass == null || placementMaterial == null)
+            return;
+        
+        if (gadgetItem.enabled)
+        {
+            if (placementMaterial.HasProperty(Opacity))
+            {
+                var currentOpacity = placementMaterial.GetFloat(Opacity);
+                if (currentOpacity > 0.01f)
+                    cachedOverlayOpacity = currentOpacity;
+            }
+
+            return;
+        }
+
+        if (!volume.gameObject.activeSelf)
+            volume.gameObject.SetActive(true);
+
+        if (placementMaterial.HasProperty(Opacity))
+            placementMaterial.SetFloat(Opacity, cachedOverlayOpacity);
+
+        overlayPass.IsGadgetValid =
+            OnlinePlacementValidity != GadgetPlacementValidity.Invalid ? 1f : 0f;
+
+        ApplyPlacementImprovementsColor(overlayPass);
+    }
+
+    private void ReleaseOverlay()
+    {
+        ActiveRemoteGadgets.Remove(GetInstanceID());
+        if (ActiveRemoteGadgets.Count > 0)
+            return;
+
+        if (SceneContext.Instance?.Player == null)
+            return;
+
+        var gadgetItem = GetPlayerItemController()?._gadgetItem;
+        if (gadgetItem?.enabled != false)
+            return;
+
+        var volume = gadgetItem._gadgetOverlayCustomPassVolume;
+        if (volume?.gameObject.activeSelf == true)
+            volume.gameObject.SetActive(false);
+
+        var placementMaterial = GetOverlayPass(gadgetItem)?._gadgetPlacementMaterial;
+        if (placementMaterial?.HasProperty(Opacity) == true)
+            placementMaterial.SetFloat(Opacity, 0f);
+    }
+
+    private void ApplyPlacementImprovementsColor(GadgetsOverlayModeCustomPass overlayPass)
+    {
+        if (!PlacementImprovementsIntegration.TryGetPlacementColor(OnlinePlacementValidity, out var color))
+            return;
+
+        var placementMaterial = overlayPass._gadgetPlacementMaterial;
+        if (placementMaterial == null)
+            return;
+        
+        var colorId = OnlinePlacementValidity == GadgetPlacementValidity.Invalid
+            ? OverlayInvalidColor
+            : OverlayValidColor;
+
+        color.a = placementMaterial.GetColor(colorId).a;
+        placementMaterial.SetColor(colorId, color);
+    }
+
+    private void UpdateFootprintMaterial()
+    {
+        if (CachedPlacementValidity == OnlinePlacementValidity)
+            return;
+
+        var material = GetFootprintMaterial(OnlinePlacementValidity != GadgetPlacementValidity.Invalid);
+        if (material == null)
+            return;
+
+        CachedPlacementValidity = OnlinePlacementValidity;
+        FootprintRendererInstance!.material = material;
+
+        if (PlacementImprovementsIntegration.TryGetPlacementColor(OnlinePlacementValidity, out var color))
+        {
+            var footprintMaterial = FootprintRendererInstance.material;
+            color.a = footprintMaterial.color.a;
+            footprintMaterial.color = color;
+        }
+    }
+    
+    private static GadgetsOverlayModeCustomPass? GetOverlayPass(GadgetItem gadgetItem)
+    {
+        var customPass = gadgetItem._gadgetsOverlayCustomPass;
+        if (customPass != null)
+            return customPass;
+
+        var volume = gadgetItem._gadgetOverlayCustomPassVolume;
+        var customPasses = volume?.customPasses;
+        if (customPasses == null)
+            return null;
+
+        foreach (var pass in customPasses)
+        {
+            var overlayPass = pass?.TryCast<GadgetsOverlayModeCustomPass>();
+            if (overlayPass != null)
+                return overlayPass;
+        }
+
+        return null;
+    }
+
+    private void CleanupGadgetPreview()
+    {
+        if (FootprintPrefabInstance)
+            Destroy(FootprintPrefabInstance);
+
+        FootprintPrefabInstance = null;
+        FootprintRendererInstance = null;
+        PlaceholderGadgetPrefabInstance = null;
+        CachedPlacementValidity = null;
+
+        ReleaseOverlay();
     }
 
     private void UpdateLocalGadgetMode()
@@ -153,6 +293,15 @@ internal partial class NetworkPlayer
         if (gadgetObj)
             gadgetLocalRotation = gadgetObj.transform.localRotation;
 
+        var validity = (controller._gadgetItem._isPlacementValid &&
+                        !controller._gadgetItem._isPlacementBlocked)
+                        || gadgetID == -1
+            ? GadgetPlacementValidity.Valid
+            : GadgetPlacementValidity.Invalid;
+        
+        if (gadgetID != -1 && PlacementImprovementsIntegration.TryGetCurrentValidity(out var modValidity))
+            validity = modValidity;
+
         var packet = new PlayerGadgetUpdatePacket
         {
             Enabled = true,
@@ -161,9 +310,7 @@ internal partial class NetworkPlayer
             Rotation = FootprintPrefabInstance.transform.rotation,
             GadgetLocalRotation = gadgetLocalRotation,
             CurrentGadget = gadgetID,
-            ValidPlacement = (controller._gadgetItem._isPlacementValid &&
-                              !controller._gadgetItem._isPlacementBlocked)
-                              || gadgetID == -1,
+            Validity = validity,
         };
 
         Main.SendToAllOrServer(packet);
@@ -181,7 +328,7 @@ internal partial class NetworkPlayer
             player.OnlineGadgetLocalRotation);
 
         OnlineGadgetID = player.OnlineGadgetID;
-        OnlinePlacementValid = player.OnlineGadgetValid;
+        OnlinePlacementValidity = player.OnlineGadgetValidity;
         OnlineGadgetMode = player.OnlineGadgetMode;
     }
     
@@ -223,11 +370,11 @@ internal partial class NetworkPlayer
             PrevGadgetRotation = NextGadgetRotation;
             var renderer = Instantiate(footprintRendererPrefab, FootprintPrefabInstance.transform, false);
             FootprintRendererInstance = renderer.GetComponent<MeshRenderer>();
+            CachedPlacementValidity = null;
         }
         else
         {
-            Destroy(FootprintPrefabInstance);
-            FootprintPrefabInstance = null;
+            CleanupGadgetPreview();
         }
     }
 
@@ -257,7 +404,7 @@ internal partial class NetworkPlayer
         SetHeldGadget(controller!._gadgetItem, definition);
     }
 
-    public void SetHeldGadget(GadgetItem self, GadgetDefinition? gadgetDefinition)
+    private void SetHeldGadget(GadgetItem gadget, GadgetDefinition? gadgetDefinition)
     {
         Destroy(PlaceholderGadgetPrefabInstance);
         PlaceholderGadgetPrefabInstance = null;
@@ -265,20 +412,26 @@ internal partial class NetworkPlayer
         if (!gadgetDefinition)
             return;
 
-        var gadgetDefinitionToPlace = self.GetGadgetDefinitionToPlace(gadgetDefinition);
+        var gadgetDefinitionToPlace = gadget.GetGadgetDefinitionToPlace(gadgetDefinition);
         var prefab = gadgetDefinitionToPlace.prefab;
         var footprintTransform = FootprintPrefabInstance!.transform;
 
-        PlaceholderGadgetPrefabInstance = self.CopyPlaceholderGameObject(prefab, footprintTransform);
+        PlaceholderGadgetPrefabInstance = gadget.CopyPlaceholderGameObject(prefab, footprintTransform);
         PlaceholderGadgetPrefabInstance.SetActive(false);
 
-        self.CopyMeshComponents(prefab);
-        self.CopyGadgetComponents(prefab);
-        self.CopySpecialComponents(prefab);
+        gadget.CopyMeshComponents(prefab);
+        gadget.CopyGadgetComponents(prefab);
+        gadget.CopySpecialComponents(prefab);
 
         PlaceholderGadgetPrefabInstance.SetActive(true);
 
-        self.SetGadgetLayerRecursively(prefab.transform, prefab.SRGetComponent<Gadget>());
+        var overlayPass = GetOverlayPass(gadget);
+        var placementLayer = overlayPass != null ? GetFirstLayer(overlayPass.GadgetPlacementLayerMask.value) : -1;
+        if (overlayPass != null && placementLayer != -1)
+        {
+            var convertMask = 1 | overlayPass.GadgetLayerMask.value;
+            SetPlacementLayerRecursively(PlaceholderGadgetPrefabInstance.transform, placementLayer, convertMask);
+        }
 
         PlaceholderGadgetPrefabInstance.transform.parent = footprintTransform;
         PlaceholderGadgetPrefabInstance.transform.localPosition = Vector3.zero;
@@ -286,5 +439,26 @@ internal partial class NetworkPlayer
         ApplyGadgetLocalRotation();
 
         DontDestroyOnLoad(PlaceholderGadgetPrefabInstance);
+    }
+
+    private static int GetFirstLayer(int mask)
+    {
+        for (var layer = 0; layer < 32; layer++)
+        {
+            if ((mask & (1 << layer)) != 0)
+                return layer;
+        }
+
+        return -1;
+    }
+
+    private static void SetPlacementLayerRecursively(Transform target, int placementLayer, int convertMask)
+    {
+        var targetObject = target.gameObject;
+        if ((convertMask & (1 << targetObject.layer)) != 0)
+            targetObject.layer = placementLayer;
+
+        for (var i = 0; i < target.childCount; i++)
+            SetPlacementLayerRecursively(target.GetChild(i), placementLayer, convertMask);
     }
 }

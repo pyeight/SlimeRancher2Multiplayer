@@ -1,3 +1,5 @@
+using SR2MP.Packets.Player;
+
 namespace SR2MP.Client.Models;
 
 /// <summary>
@@ -83,7 +85,7 @@ public sealed class RemotePlayer
     public float LastLookY { get; internal set; }
     
     public bool OnlineGadgetMode { get; internal set; }
-    public bool OnlineGadgetValid { get; internal set; }
+    public GadgetPlacementValidity OnlineGadgetValidity { get; internal set; }
     public int OnlineGadgetID { get; internal set; }
     public Vector3 OnlineGadgetPosition { get; internal set; }
     public Quaternion OnlineGadgetRotation { get; internal set; }

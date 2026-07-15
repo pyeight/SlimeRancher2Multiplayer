@@ -2,6 +2,21 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Player;
 
+/// <summary>
+/// All gadget placement validity states
+/// </summary>
+public enum GadgetPlacementValidity : byte
+{
+    /// <summary>The gadget cannot be placed here.</summary>
+    Invalid,
+
+    /// <summary>PlacementImprovements mod: overrides the game's rejection (clipping).</summary>
+    AlmostValid,
+
+    /// <summary>The gadget can be placed here.</summary>
+    Valid,
+}
+
 internal sealed class PlayerGadgetUpdatePacket : IPacket
 {
     public bool Enabled;
@@ -10,7 +25,7 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
     public Quaternion Rotation;
     public Quaternion GadgetLocalRotation;
     public int CurrentGadget;
-    public bool ValidPlacement;
+    public GadgetPlacementValidity Validity;
 
     public PacketType Type => PacketType.PlayerGadgetUpdate;
     public PacketReliability Reliability => PacketReliability.Ordered;
@@ -27,7 +42,7 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
         writer.WriteQuaternion(Rotation);
         writer.WriteQuaternion(GadgetLocalRotation);
         writer.WritePackedInt(CurrentGadget);
-        writer.WritePackedBool(ValidPlacement);
+        writer.WriteByte((byte)Validity);
     }
 
     public void Deserialise(PacketReader reader)
@@ -41,6 +56,6 @@ internal sealed class PlayerGadgetUpdatePacket : IPacket
         Rotation = reader.ReadQuaternion();
         GadgetLocalRotation = reader.ReadQuaternion();
         CurrentGadget = reader.ReadPackedInt();
-        ValidPlacement = reader.ReadPackedBool();
+        Validity = (GadgetPlacementValidity)reader.ReadByte();
     }
 }
