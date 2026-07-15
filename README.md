@@ -46,7 +46,7 @@
 ## Installation
 1. Download and run the [MelonLoader Installer](https://github.com/LavaGang/MelonLoader/releases/download/v0.7.1/MelonLoader.Installer.exe) and install **MelonLoader 0.7.3** onto Slime Rancher 2.
 2. Download [Starlight 4.0.3](https://github.com/ThatFinnDev/Starlight/releases/download/v4.0.3/Starlight.dll) and put `Starlight.dll` into the `Mods` folder of your game install.
-3. Download `Ranching Together (SR2MP.dll)` from [Nexusmods](https://www.nexusmods.com/slimerancher2/mods/118) or our [Discord Server](https://discord.com/invite/a7wfBw5feU) and put it into the same `Mods` folder.
+3. Download `Ranching Together (SR2MP.dll)` from [Nexusmods](https://www.nexusmods.com/slimerancher2/mods/118) or our [Discord Server](https://discord.com/invite/a7wfBw5feU) and put it into the `Mods` folder.
 4. Launch the game, the multiplayer menu appears on the main menu screen.
 5. Configure the settings in the first time settings screen.
 
