@@ -94,8 +94,8 @@ As a community policy, we ask that forks of this project:
 - provide a clearly visible way to contact their developer (e.g. a Discord handle or e-mail) in their README,
 - are taken down if the Ranching Together developers request it.
 
-Note that we may cherry-pick content from your fork back into Ranching Together if we want to. 
--# (forks **MUST BE** GPLv3 like this project, which allows this).
+Note that we may cherry-pick content from your fork back into Ranching Together if we want to.  
+(forks **MUST BE** GPLv3 like this project, which allows this).
 
 If you want to build on this project, you can reach out to us on the [Discord Server](https://discord.com/invite/a7wfBw5feU) to discuss first.
 
