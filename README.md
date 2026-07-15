@@ -86,7 +86,7 @@ These mods have dedicated Ranching Together integration, they are fully working 
 
 |                             Mod                             |                                Nexus                                |                    Source Code                    |                         Support                         |
 |:-----------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------------:|
-| **Better Drones**: explorer drones really fly to resources  | [Nexusmods](https://www.nexusmods.com/games/slimerancher2/mods/177) | [GitHub](https://github.com/pyeight/BetterDrones) | [Discord Server](https://discord.com/invite/a7wfBw5feU) |
+| **Better Drones**: explorer drones really fly to resources  | [Nexusmods](https://www.nexusmods.com/slimerancher2/mods/177) | [GitHub](https://github.com/pyeight/BetterDrones) | [Discord Server](https://discord.com/invite/a7wfBw5feU) |
 | **Placement Improvements**: custom placement rules & colors |                         *Not yet released*                          |                *Not yet released*                 |    Discord: `lunar_snail` (ID: `426024775333314570`)    |
 
 ## Forks
