@@ -19,7 +19,7 @@ internal static class PlacementImprovementsIntegration
     private static PropertyInfo? validColorProperty;
     private static PropertyInfo? almostValidColorProperty;
     private static PropertyInfo? invalidColorProperty;
-    private static FieldInfo? currentValidityField;
+    private static MemberInfo? currentValidityMember;
 
     /// <summary>
     /// Whether the PlacementImprovements mod is loaded or not.
@@ -78,7 +78,7 @@ internal static class PlacementImprovementsIntegration
     {
         Initialize();
 
-        if (currentValidityField == null)
+        if (currentValidityMember == null)
         {
             validity = default;
             return false;
@@ -86,12 +86,18 @@ internal static class PlacementImprovementsIntegration
 
         try
         {
-            validity = (GadgetPlacementValidity)Convert.ToInt32(currentValidityField.GetValue(null));
+            var value = currentValidityMember switch
+            {
+                PropertyInfo property => property.GetValue(null),
+                FieldInfo field => field.GetValue(null),
+                _ => null,
+            };
+            validity = (GadgetPlacementValidity)Convert.ToInt32(value);
             return true;
         }
         catch (Exception e)
         {
-            currentValidityField = null;
+            currentValidityMember = null;
             SrLogger.LogWarning($"BuildImprovements validity lookup failed: {e.Message}");
             validity = default;
             return false;
@@ -123,17 +129,17 @@ internal static class PlacementImprovementsIntegration
 
             var patchHelperType = mainType.Assembly.GetType("BuildImprovements.Patches.PatchHelper");
             if (patchHelperType != null)
-                currentValidityField = FindValidityField(patchHelperType);
+                currentValidityMember = FindValidityMember(patchHelperType);
 
             if (validColorProperty == null || almostValidColorProperty == null ||
-                invalidColorProperty == null || currentValidityField == null)
+                invalidColorProperty == null || currentValidityMember == null)
             {
                 foreach (var type in AccessTools.GetTypesFromAssembly(mainType.Assembly))
                 {
                     validColorProperty ??= FindProperty(type, "ValidColor");
                     almostValidColorProperty ??= FindProperty(type, "AlmostValidColor");
                     invalidColorProperty ??= FindProperty(type, "InvalidColor");
-                    currentValidityField ??= FindValidityField(type);
+                    currentValidityMember ??= FindValidityMember(type);
                 }
             }
         }
@@ -151,9 +157,15 @@ internal static class PlacementImprovementsIntegration
             : null;
     }
 
-    private static FieldInfo? FindValidityField(Type type)
+    private static MemberInfo? FindValidityMember(Type type)
     {
-        var field = type.GetField("CurrentValidity", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+
+        var property = type.GetProperty("CurrentValidity", flags);
+        if (property?.PropertyType.IsEnum == true && property.GetMethod != null)
+            return property;
+
+        var field = type.GetField("CurrentValidity", flags);
         return field?.FieldType.IsEnum == true
             ? field
             : null;
