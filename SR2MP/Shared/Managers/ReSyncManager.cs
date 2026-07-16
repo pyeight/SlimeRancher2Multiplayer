@@ -355,6 +355,18 @@ internal sealed class ReSyncManager
             });
         }
 
+        foreach (var pending in NetworkPuzzleSlotManager.PendingSlotStates)
+        {
+            if (GameState.slots.ContainsKey(pending.Key))
+                continue;
+
+            slotsList.Add(new InitialPuzzleSlotsPacket.Slot
+            {
+                ID = pending.Key,
+                Filled = pending.Value
+            });
+        }
+
         return new InitialPuzzleSlotsPacket { Slots = slotsList };
     }
 
