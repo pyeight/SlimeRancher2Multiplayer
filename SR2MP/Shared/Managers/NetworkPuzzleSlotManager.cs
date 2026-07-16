@@ -75,7 +75,11 @@ internal static class NetworkPuzzleSlotManager
 
         var slot = model.gameObj.GetComponent<PuzzleSlot>();
         if (slot && filled)
+        {
             slot!.ActivateOnFill();
+            slot!._puzLockable?.NotifySlotChanged(false);
+            return;
+        }
 
         model.NotifyParticipants();
     }
