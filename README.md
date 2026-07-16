@@ -46,7 +46,7 @@
 ## Installation
 1. Download and run the [MelonLoader Installer](https://github.com/LavaGang/MelonLoader/releases/download/v0.7.1/MelonLoader.Installer.exe) and install **MelonLoader 0.7.3** onto Slime Rancher 2.
 2. Download [Starlight 4.0.3](https://github.com/ThatFinnDev/Starlight/releases/download/v4.0.3/Starlight.dll) and put `Starlight.dll` into the `Mods` folder of your game install.
-3. Download `Ranching Together (SR2MP.dll)` from [Nexusmods](https://www.nexusmods.com/slimerancher2/mods/118) or our [Discord Server](https://discord.com/invite/a7wfBw5feU) and put it into the same `Mods` folder.
+3. Download `Ranching Together` from [Nexusmods](https://www.nexusmods.com/slimerancher2/mods/118) or our [Discord Server](https://discord.com/invite/a7wfBw5feU) and put it into the `Mods` folder.
 4. Launch the game, the multiplayer menu appears on the main menu screen.
 5. Configure the settings in the first time settings screen.
 
@@ -86,7 +86,7 @@ These mods have dedicated Ranching Together integration, they are fully working 
 
 |                             Mod                             |                                Nexus                                |                    Source Code                    |                         Support                         |
 |:-----------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------------:|
-| **Better Drones**: explorer drones really fly to resources  | [Nexusmods](https://www.nexusmods.com/games/slimerancher2/mods/177) | [GitHub](https://github.com/pyeight/BetterDrones) | [Discord Server](https://discord.com/invite/a7wfBw5feU) |
+| **Better Drones**: explorer drones really fly to resources  | [Nexusmods](https://www.nexusmods.com/slimerancher2/mods/177) | [GitHub](https://github.com/pyeight/BetterDrones) | [Discord Server](https://discord.com/invite/a7wfBw5feU) |
 | **Placement Improvements**: custom placement rules & colors |                         *Not yet released*                          |                *Not yet released*                 |    Discord: `lunar_snail` (ID: `426024775333314570`)    |
 
 ## Forks
@@ -94,8 +94,8 @@ As a community policy, we ask that forks of this project:
 - provide a clearly visible way to contact their developer (e.g. a Discord handle or e-mail) in their README,
 - are taken down if the Ranching Together developers request it.
 
-Note that we may cherry-pick content from your fork back into Ranching Together if we want to.
--# (forks **MUST BE** GPLv3 like this project, which allows this).
+Note that we may cherry-pick content from your fork back into Ranching Together if we want to.  
+(forks **MUST BE** GPLv3 like this project, which allows this).
 
 If you want to build on this project, you can reach out to us on the [Discord Server](https://discord.com/invite/a7wfBw5feU) to discuss first.
 
