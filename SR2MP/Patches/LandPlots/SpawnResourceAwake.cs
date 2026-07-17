@@ -30,6 +30,30 @@ internal static class SpawnResourceAwakePatch
         public static void Postfix(SpawnResource __instance)
             => ResetGrowTime(__instance);
     }
+
+    [HarmonyPatch(typeof(SpawnResource), nameof(SpawnResource.Update))]
+    internal static class SpawnResourceUpdatePatch
+    {
+        private static readonly Dictionary<int, float> NextCheckTime = new();
+
+        public static void Postfix(SpawnResource __instance)
+        {
+            var now = UnityEngine.Time.time;
+            var id = __instance.GetInstanceID();
+
+            if (!NextCheckTime.TryGetValue(id, out var nextTime))
+            {
+                NextCheckTime[id] = now + UnityEngine.Random.Range(4f, 14f);
+                return;
+            }
+
+            if (now < nextTime)
+                return;
+
+            NextCheckTime[id] = now + UnityEngine.Random.Range(4f, 14f);
+            ResetGrowTime(__instance);
+        }
+    }
     
     private static void ResetGrowTime(SpawnResource spawnResource)
     {

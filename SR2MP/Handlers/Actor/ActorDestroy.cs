@@ -21,20 +21,24 @@ internal sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket
 
         if (GameState.TryGetIdentifiableModel(packet.ActorId, out var actor))
         {
-            // Remove the drone station if it's a drone
-            if (actor.TryCast<DroneStationGadgetModel>() != null)
-                NetworkDroneManager.RemoveStationDrone(packet.ActorId);
-
-            GameState.identifiables.Remove(packet.ActorId);
-            GameState.identifiablesByIdent[actor.ident].Remove(actor);
-            GameState.DestroyIdentifiableModel(actor);
-            ActorManager.Actors.Remove(actor.actorId.Value);
-
             HandlingPacket = true;
+            try
+            {
+                // Remove the drone station if it's a drone
+                if (actor.TryCast<DroneStationGadgetModel>() != null)
+                    NetworkDroneManager.RemoveStationDrone(packet.ActorId);
 
-            StartCoroutine(DestroyActor(actor));
+                GameState.identifiables.Remove(packet.ActorId);
+                GameState.identifiablesByIdent[actor.ident].Remove(actor);
+                GameState.DestroyIdentifiableModel(actor);
+                ActorManager.Actors.Remove(actor.actorId.Value);
 
-            HandlingPacket = false;
+                StartCoroutine(DestroyActor(actor));
+            }
+            finally
+            {
+                HandlingPacket = false;
+            }
         }
 
         return true;

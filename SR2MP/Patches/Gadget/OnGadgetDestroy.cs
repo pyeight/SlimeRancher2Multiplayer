@@ -16,6 +16,9 @@ internal static class OnGadgetDestroy
         if (source is "SR2MP.ActorDestroyHandler" or "SR2MP.InitialActors" or "SR2MP.RemoveExistingGadgetModel")
             return;
 
+        if (gadgetObj.name.Contains("SR2MP_RemotePreview"))
+            return;
+
         var gadget = gadgetObj.GetComponent<Il2CppMonomiPark.SlimeRancher.World.Gadget>();
         if (!gadget)
             return;

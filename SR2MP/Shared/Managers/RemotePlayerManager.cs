@@ -125,7 +125,7 @@ public sealed class RemotePlayerManager
         string playerId,
         bool enabled,
         int gadgetId = -1,
-        bool valid = false,
+        GadgetPlacementValidity validity = GadgetPlacementValidity.Invalid,
         Vector3 position = default,
         Quaternion rotation = default,
         Quaternion localRotation = default)
@@ -135,7 +135,7 @@ public sealed class RemotePlayerManager
 
         player.OnlineGadgetMode = enabled;
         player.OnlineGadgetID = gadgetId;
-        player.OnlineGadgetValid = valid;
+        player.OnlineGadgetValidity = validity;
         player.OnlineGadgetPosition = position;
         player.OnlineGadgetRotation = rotation;
         player.OnlineGadgetLocalRotation = localRotation;

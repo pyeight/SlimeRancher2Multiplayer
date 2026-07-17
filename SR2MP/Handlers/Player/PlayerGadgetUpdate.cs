@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using SR2MP.Components.Player;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Player;
 using SR2MP.Packets.Utils;
@@ -17,7 +16,7 @@ internal sealed class PlayerGadgetUpdate : BasePacketHandler<PlayerGadgetUpdateP
                 packet.PlayerId,
                 packet.Enabled,
                 packet.CurrentGadget,
-                packet.ValidPlacement,
+                packet.Validity,
                 packet.Position,
                 packet.Rotation,
                 packet.GadgetLocalRotation);

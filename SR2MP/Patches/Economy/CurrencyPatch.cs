@@ -42,6 +42,40 @@ internal static class CurrencyPatch
         Main.SendToAllOrServer(packet);
     }
     
+    // Lucky Slime coins start
+    [HarmonyPrefix, HarmonyPatch(nameof(PlayerState.AddCurrencyDisplayDelta))]
+    public static void AddCurrencyDisplayDeltaPrefix() => handlingCurrencyCall = true;
+
+    [HarmonyPostfix, HarmonyPatch(nameof(PlayerState.AddCurrencyDisplayDelta))]
+    public static void AddCurrencyDisplayDelta(
+        PlayerState __instance,
+        ICurrency currencyDefinition,
+        bool showUiNotification,
+        IUIDisplayData sourceOfChange)
+    {
+        if (HandlingPacket) return;
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (currencyDefinition == null)
+            return;
+
+        var packet = new CurrencyPacket
+        {
+            NewAmount = __instance._model.GetCurrencyAmount(currencyDefinition),
+            CurrencyType = (byte)currencyDefinition.PersistenceId,
+            ShowUINotification = showUiNotification,
+            SourceIdent = GetSourceIdent(sourceOfChange)
+        };
+
+        Main.SendToAllOrServer(packet);
+    }
+
+    [HarmonyFinalizer, HarmonyPatch(nameof(PlayerState.AddCurrencyDisplayDelta))]
+    public static Exception? AddCurrencyDisplayDeltaFinalizer(Exception? __exception)
+        => CurrencyFinalizer(__exception);
+    
+    // Lucky slime coins end
+    
     [HarmonyPrefix, HarmonyPatch(nameof(PlayerState.SpendCurrency))]
     public static void SpendCurrencyPrefix() => handlingCurrencyCall = true;
     
