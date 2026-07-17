@@ -11,6 +11,7 @@ using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
 using SR2MP.Server;
 using SR2MP.Shared.Managers;
+using SR2MP.Shared.ModSupport;
 using SR2MP.Shared.Utils;
 using Starlight.Enums;
 using Starlight.Storage;
@@ -163,6 +164,7 @@ public sealed class Main : StarlightExpansionV01
                 StartupCheck.Initialize();
                 MainThreadDispatcher.Initialize();
                 DiscordRPCManager.Initialize();
+                VacuumModificationsIntegration.Initialize();
 
                 var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
                 Object.DontDestroyOnLoad(forceTimeScale.gameObject);
