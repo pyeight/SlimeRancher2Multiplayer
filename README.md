@@ -86,10 +86,10 @@ All settings you change via the Multiplayer GUI are automatically saved.
 ## Official Mod Support
 These mods have dedicated Ranching Together integration, they are fully working in multiplayer when installed:
 
-|                             Mod                             |                                Nexus                                |                    Source Code                    |                         Support                         |
-|:-----------------------------------------------------------:|:-------------------------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------------:|
-| **Better Drones**: explorer drones really fly to resources  | [Nexusmods](https://www.nexusmods.com/slimerancher2/mods/177) | [GitHub](https://github.com/pyeight/BetterDrones) | [Discord Server](https://discord.com/invite/a7wfBw5feU) |
-| **Placement Improvements**: custom placement rules & colors |                         *Not yet released*                          |                *Not yet released*                 |    Discord: `lunar_snail` (ID: `426024775333314570`)    |
+|                             Mod                             |                             Nexus                             |                           Source Code                           |                         Support                          |
+|:-----------------------------------------------------------:|:-------------------------------------------------------------:|:---------------------------------------------------------------:|:--------------------------------------------------------:|
+| **Better Drones**: explorer drones really fly to resources  | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/177) |        [GitHub](https://github.com/pyeight/BetterDrones)        | [Discord Server](https://discord.com/invite/a7wfBw5feU)  |
+| **Placement Improvements**: custom placement rules & colors | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/179) | [GitHub](https://github.com/BlackthornZZ/PlacementImprovements) |    Discord: `lunar_snail` (ID: `426024775333314570`)     |
 
 ## Forks
 As a community policy, we ask that forks of this project:
