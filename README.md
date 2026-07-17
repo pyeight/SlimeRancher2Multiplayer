@@ -86,10 +86,22 @@ All settings you change via the Multiplayer GUI are automatically saved.
 ## Official Mod Support
 These mods have dedicated Ranching Together integration, they are fully working in multiplayer when installed:
 
-|                             Mod                             |                             Nexus                             |                           Source Code                           |                         Support                          |
-|:-----------------------------------------------------------:|:-------------------------------------------------------------:|:---------------------------------------------------------------:|:--------------------------------------------------------:|
-| **Better Drones**: explorer drones really fly to resources  | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/177) |        [GitHub](https://github.com/pyeight/BetterDrones)        | [Discord Server](https://discord.com/invite/a7wfBw5feU)  |
-| **Placement Improvements**: custom placement rules & colors | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/179) | [GitHub](https://github.com/BlackthornZZ/PlacementImprovements) |    Discord: `lunar_snail` (ID: `426024775333314570`)     |
+|                             Mod                             | Version |                             Nexus                             |                           Source Code                           |                         Support                         |
+|:-----------------------------------------------------------:|:-------:|:-------------------------------------------------------------:|:---------------------------------------------------------------:|:-------------------------------------------------------:|
+| **Better Drones**: explorer drones really fly to resources  | `0.1.1` | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/177) |        [GitHub](https://github.com/pyeight/BetterDrones)        | [Discord Server](https://discord.com/invite/a7wfBw5feU) |
+| **Placement Improvements**: custom placement rules & colors | `1.0.0` | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/179) | [GitHub](https://github.com/BlackthornZZ/PlacementImprovements) |    Discord: `lunar_snail` (ID: `426024775333314570`)    |
+| **Vacuum Modifications**: custom limits & instant transfers | `2.3.5` | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/45)  |  [GitHub](https://github.com/Bread-Ch4n/Vacuum-Modifications)   |   Discord: `.bread_chan.` (ID: `212243828831289344`)    |
+
+### Mod Integration Requirements
+If you want your mod to be supported by us, it has to meet a few requirements so we can build and maintain an integration for it:
+- **It must depend on [Starlight](https://github.com/ThatFinnDev/Starlight)**, this gives us reliable mod detection and versioning to work with.
+- **It must be somewhat structured.** Our integrations find your mod's members via reflection, 
+  so the logic has to live in stable, reasonable named classes and methods (helpers, preference entries).
+  Renaming or restructuring these breaks the integration, so let us know before you do it.
+- Your mod must be uploaded on [NexusMods](https://www.nexusmods.com/games/slimerancher2/mods)
+- The source code must be publicly available so we can review what actually needs syncing.
+
+If your mod fits (or you need help making it fit) the requirements, reach out on the [Discord Server](https://discord.com/invite/a7wfBw5feU).
 
 ## Forks
 As a community policy, we ask that forks of this project:
