@@ -104,6 +104,7 @@ public sealed class Main : StarlightExpansionV01
     internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui_new").Value;
     internal static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     internal static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
+    internal static bool RemoteGadgetPreviewShaders => preferences.GetEntry<bool>("remote_gadget_preview_shaders").Value;
 
     // Made this because of a bug in the server handler of ActorSpawnPacket where TrySpawnNetworkActor
     // was given `packet.Type` instead of `packet.ActorType` causing it to always be RockPlort (persistent id 25)
@@ -127,6 +128,7 @@ public sealed class Main : StarlightExpansionV01
 
         preferences.CreateEntry("packet_size_log", false, display_name: "Packet Size Logging");
         preferences.CreateEntry("packet_ack_log", true, display_name: "Packet Acknowledge Logging");
+        preferences.CreateEntry("remote_gadget_preview_shaders", false, display_name: "Remote Gadget Preview Hologram Shader");
 
         preferences.CreateEntry("internal_setup_ui_new", true, is_hidden: true);
 

@@ -7,16 +7,13 @@ using SR2MP.Shared.ModSupport;
 using static SR2MP.Shared.Utils.Timers;
 
 using Il2CppInterop.Runtime.Attributes;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace SR2MP.Components.Player;
 
 internal partial class NetworkPlayer
 {
-    [HideFromIl2Cpp]
-    public event Action<bool>? OnNetworkGadgetModeChanged;
-    [HideFromIl2Cpp]
-    public event Action<int>? OnNetworkGadgetIDChanged;
+    [HideFromIl2Cpp] public event Action<bool>? OnNetworkGadgetModeChanged;
+    [HideFromIl2Cpp] public event Action<int>? OnNetworkGadgetIDChanged;
 
     // private bool InGadgetMode => IsLocal ? PlayerItemController._gadgetItem.enabled : OnlineGadgetMode;
 
@@ -43,9 +40,15 @@ internal partial class NetworkPlayer
     private static readonly int OverlayValidColor = Shader.PropertyToID("_OverlayValidColor");
     private static readonly int OverlayInvalidColor = Shader.PropertyToID("_OverlayInvalidColor");
     private static readonly int Opacity = Shader.PropertyToID("_Opacity");
-    
+    private static readonly int SketchLinesOpacity = Shader.PropertyToID("_SketchLinesOpacity");
+
     private static readonly HashSet<int> ActiveRemoteGadgets = new();
     private static float cachedOverlayOpacity = 0.575f;
+
+    private static float? originalGadgetOverlayOpacity;
+    private static float? originalSketchLinesOpacity;
+
+    private Transform? PlaceholderGadgetTransform;
 
     private float interpolationStartGadget;
     private float interpolationEndGadget;
@@ -61,16 +64,15 @@ internal partial class NetworkPlayer
     {
         if (!PlayerItemController)
             PlayerItemController = SceneContext.Instance.Player.GetComponent<PlayerItemController>();
-        
+
         return PlayerItemController;
     }
 
     private void ApplyGadgetLocalRotation()
     {
         if (!PlaceholderGadgetPrefabInstance) return;
-        var gadgetObj = PlaceholderGadgetPrefabInstance!.GetComponentInChildren<Gadget>();
-        if (gadgetObj)
-            gadgetObj.transform.localRotation = OnlineGadgetLocalRotation;
+        if (PlaceholderGadgetTransform)
+            PlaceholderGadgetTransform!.localRotation = OnlineGadgetLocalRotation;
     }
 
     private void UpdateGadgetInterpolation()
@@ -118,18 +120,20 @@ internal partial class NetworkPlayer
 
         if (CachedOnlineGadgetMode != OnlineGadgetMode)
             OnNetworkGadgetModeChanged?.Invoke(OnlineGadgetMode);
-        
+
         CachedOnlineGadgetMode = OnlineGadgetMode;
 
         if (CachedOnlineGadgetID != OnlineGadgetID)
             OnNetworkGadgetIDChanged?.Invoke(OnlineGadgetID);
-        
+
         CachedOnlineGadgetID = OnlineGadgetID;
 
         if (FootprintPrefabInstance)
         {
             UpdateFootprintMaterial();
-            UpdateOnlineOverlay();
+
+            if (Main.RemoteGadgetPreviewShaders)
+                UpdateOnlineOverlay();
         }
     }
 
@@ -146,13 +150,15 @@ internal partial class NetworkPlayer
         var placementMaterial = overlayPass?._gadgetPlacementMaterial;
         if (volume == null || overlayPass == null || placementMaterial == null)
             return;
-        
-        if (gadgetItem.enabled)
+
+        if (LocalGadgetModeActive(gadgetItem))
         {
+            RestoreLocalGadgetModeVisuals(overlayPass, placementMaterial);
+
             if (placementMaterial.HasProperty(Opacity))
             {
                 var currentOpacity = placementMaterial.GetFloat(Opacity);
-                if (currentOpacity > 0.01f)
+                if (currentOpacity > 0.1f)
                     cachedOverlayOpacity = currentOpacity;
             }
 
@@ -165,11 +171,47 @@ internal partial class NetworkPlayer
         if (placementMaterial.HasProperty(Opacity))
             placementMaterial.SetFloat(Opacity, cachedOverlayOpacity);
 
+        SuppressGadgetModeScreenEffects(overlayPass, placementMaterial);
+
         overlayPass.IsGadgetValid =
             OnlinePlacementValidity != GadgetPlacementValidity.Invalid ? 1f : 0f;
 
         ApplyPlacementImprovementsColor(overlayPass);
     }
+
+    private static void SuppressGadgetModeScreenEffects(GadgetsOverlayModeCustomPass overlayPass,
+        Material placementMaterial)
+    {
+        var gadgetMaterial = overlayPass._gadgetMaterial;
+        if (gadgetMaterial != null && gadgetMaterial.HasProperty(Opacity))
+        {
+            originalGadgetOverlayOpacity ??= gadgetMaterial.GetFloat(Opacity);
+            gadgetMaterial.SetFloat(Opacity, 0f);
+        }
+
+        if (placementMaterial.HasProperty(SketchLinesOpacity))
+        {
+            originalSketchLinesOpacity ??= placementMaterial.GetFloat(SketchLinesOpacity);
+            placementMaterial.SetFloat(SketchLinesOpacity, 0f);
+        }
+    }
+
+    private static void RestoreLocalGadgetModeVisuals(GadgetsOverlayModeCustomPass overlayPass,
+        Material? placementMaterial)
+    {
+        if (originalGadgetOverlayOpacity.HasValue)
+        {
+            var gadgetMaterial = overlayPass._gadgetMaterial;
+            if (gadgetMaterial?.HasProperty(Opacity) == true)
+                gadgetMaterial.SetFloat(Opacity, originalGadgetOverlayOpacity.Value);
+        }
+
+        if (originalSketchLinesOpacity.HasValue && placementMaterial?.HasProperty(SketchLinesOpacity) == true)
+            placementMaterial.SetFloat(SketchLinesOpacity, originalSketchLinesOpacity.Value);
+    }
+
+    private static bool LocalGadgetModeActive(GadgetItem gadgetItem)
+        => gadgetItem.enabled || gadgetItem._gadgetFootprintInstance;
 
     private void ReleaseOverlay()
     {
@@ -181,14 +223,21 @@ internal partial class NetworkPlayer
             return;
 
         var gadgetItem = GetPlayerItemController()?._gadgetItem;
-        if (gadgetItem?.enabled != false)
+        if (gadgetItem == null)
+            return;
+
+        var overlayPass = GetOverlayPass(gadgetItem);
+        if (overlayPass != null)
+            RestoreLocalGadgetModeVisuals(overlayPass, overlayPass._gadgetPlacementMaterial);
+
+        if (LocalGadgetModeActive(gadgetItem))
             return;
 
         var volume = gadgetItem._gadgetOverlayCustomPassVolume;
         if (volume?.gameObject.activeSelf == true)
             volume.gameObject.SetActive(false);
 
-        var placementMaterial = GetOverlayPass(gadgetItem)?._gadgetPlacementMaterial;
+        var placementMaterial = overlayPass?._gadgetPlacementMaterial;
         if (placementMaterial?.HasProperty(Opacity) == true)
             placementMaterial.SetFloat(Opacity, 0f);
     }
@@ -201,7 +250,7 @@ internal partial class NetworkPlayer
         var placementMaterial = overlayPass._gadgetPlacementMaterial;
         if (placementMaterial == null)
             return;
-        
+
         var colorId = OnlinePlacementValidity == GadgetPlacementValidity.Invalid
             ? OverlayInvalidColor
             : OverlayValidColor;
@@ -229,13 +278,18 @@ internal partial class NetworkPlayer
             footprintMaterial.color = color;
         }
     }
-    
+
     private static GadgetsOverlayModeCustomPass? GetOverlayPass(GadgetItem gadgetItem)
     {
         var customPass = gadgetItem._gadgetsOverlayCustomPass;
         if (customPass != null)
             return customPass;
 
+        return GetOverlayPassFromVolume(gadgetItem);
+    }
+
+    private static GadgetsOverlayModeCustomPass? GetOverlayPassFromVolume(GadgetItem gadgetItem)
+    {
         var volume = gadgetItem._gadgetOverlayCustomPassVolume;
         var customPasses = volume?.customPasses;
         if (customPasses == null)
@@ -259,6 +313,7 @@ internal partial class NetworkPlayer
         FootprintPrefabInstance = null;
         FootprintRendererInstance = null;
         PlaceholderGadgetPrefabInstance = null;
+        PlaceholderGadgetTransform = null;
         CachedPlacementValidity = null;
 
         ReleaseOverlay();
@@ -272,21 +327,21 @@ internal partial class NetworkPlayer
 
         if (!FootprintPrefabInstance)
         {
-            var packet2 = new PlayerGadgetUpdatePacket
-            {
-                Enabled = false,
-                PlayerId = LocalID,
-            };
+            var packet2 = new PlayerGadgetUpdatePacket { Enabled = false, PlayerId = LocalID, };
 
             Main.SendToAllOrServer(packet2);
             return;
         }
 
+        // So it does not interpolate out of nowhere
+        if (FootprintPrefabInstance.transform.position == Vector3.zero)
+            return;
+
         var gadget = controller._gadgetItem._heldGadget;
         var gadgetID =
             gadget
-            ? NetworkActorManager.GetPersistentID(gadget.Cast<IdentifiableType>())
-            : -1;
+                ? NetworkActorManager.GetPersistentID(gadget.Cast<IdentifiableType>())
+                : -1;
 
         var gadgetLocalRotation = Quaternion.identity;
         var gadgetObj = FootprintPrefabInstance.GetComponentInChildren<Gadget>();
@@ -295,10 +350,10 @@ internal partial class NetworkPlayer
 
         var validity = (controller._gadgetItem._isPlacementValid &&
                         !controller._gadgetItem._isPlacementBlocked)
-                        || gadgetID == -1
+                       || gadgetID == -1
             ? GadgetPlacementValidity.Valid
             : GadgetPlacementValidity.Invalid;
-        
+
         if (gadgetID != -1 && PlacementImprovementsIntegration.TryGetCurrentValidity(out var modValidity))
             validity = modValidity;
 
@@ -321,17 +376,23 @@ internal partial class NetworkPlayer
     {
         if (ID != playerId)
             return;
-        
-        OnGadgetPositionReceived(
-            player.OnlineGadgetPosition,
-            player.OnlineGadgetRotation,
-            player.OnlineGadgetLocalRotation);
+
+        if (player.OnlineGadgetMode && player.OnlineGadgetPosition == Vector3.zero)
+            return;
+
+        if (player.OnlineGadgetMode)
+        {
+            OnGadgetPositionReceived(
+                player.OnlineGadgetPosition,
+                player.OnlineGadgetRotation,
+                player.OnlineGadgetLocalRotation);
+        }
 
         OnlineGadgetID = player.OnlineGadgetID;
         OnlinePlacementValidity = player.OnlineGadgetValidity;
         OnlineGadgetMode = player.OnlineGadgetMode;
     }
-    
+
     public void OnGadgetPositionReceived(Vector3 newPosition, Quaternion newRotation, Quaternion newLocalRotation)
     {
         if (FootprintPrefabInstance != null && FootprintPrefabInstance)
@@ -363,6 +424,12 @@ internal partial class NetworkPlayer
                 controller._gadgetItem._gadgetItemMetadata.GadgetFootprintRendererPrefab;
             FootprintPrefabInstance = Instantiate(footprintPrefab);
             DontDestroyOnLoad(FootprintPrefabInstance);
+
+            // So others cannot interact with the remote preview gadget
+            foreach (var component in FootprintPrefabInstance.GetComponentsInChildren<Collider>(true))
+                DestroyImmediate(component);
+            foreach (var component in FootprintPrefabInstance.GetComponentsInChildren<Rigidbody>(true))
+                DestroyImmediate(component);
 
             FootprintPrefabInstance.transform.position = NextGadgetPosition;
             FootprintPrefabInstance.transform.rotation = NextGadgetRotation;
@@ -408,37 +475,148 @@ internal partial class NetworkPlayer
     {
         Destroy(PlaceholderGadgetPrefabInstance);
         PlaceholderGadgetPrefabInstance = null;
+        PlaceholderGadgetTransform = null;
 
         if (!gadgetDefinition)
             return;
 
-        var gadgetDefinitionToPlace = gadget.GetGadgetDefinitionToPlace(gadgetDefinition);
-        var prefab = gadgetDefinitionToPlace.prefab;
+        if (!Main.RemoteGadgetPreviewShaders)
+            return;
+
+        var prefab = gadgetDefinition!.prefab;
         var footprintTransform = FootprintPrefabInstance!.transform;
 
-        PlaceholderGadgetPrefabInstance = gadget.CopyPlaceholderGameObject(prefab, footprintTransform);
-        PlaceholderGadgetPrefabInstance.SetActive(false);
+        var tempHolder = new GameObject("SR2MP_PreviewTempHolder");
+        tempHolder.SetActive(false);
 
-        gadget.CopyMeshComponents(prefab);
-        gadget.CopyGadgetComponents(prefab);
-        gadget.CopySpecialComponents(prefab);
-
-        PlaceholderGadgetPrefabInstance.SetActive(true);
-
-        var overlayPass = GetOverlayPass(gadget);
-        var placementLayer = overlayPass != null ? GetFirstLayer(overlayPass.GadgetPlacementLayerMask.value) : -1;
-        if (overlayPass != null && placementLayer != -1)
+        try
         {
-            var convertMask = 1 | overlayPass.GadgetLayerMask.value;
+            PlaceholderGadgetPrefabInstance = Instantiate(prefab, tempHolder.transform);
+            PlaceholderGadgetTransform =
+                PlaceholderGadgetPrefabInstance.GetComponentInChildren<Gadget>(true)?.transform;
+            StripToVisuals(PlaceholderGadgetPrefabInstance);
+            DisableEffectRenderers(PlaceholderGadgetPrefabInstance);
+            PlaceholderGadgetPrefabInstance.transform.SetParent(footprintTransform, false);
+        }
+        finally
+        {
+            Destroy(tempHolder);
+        }
+
+        PlaceholderGadgetPrefabInstance!.name += " (SR2MP_RemotePreview)";
+
+        var overlayPass = GetOverlayPassFromVolume(gadget) ?? GetOverlayPass(gadget);
+        var placementLayer = overlayPass != null ? GetFirstLayer(overlayPass.GadgetPlacementLayerMask.value) : -1;
+        if (placementLayer == -1)
+            placementLayer = LayerMask.NameToLayer("GadgetPlacement");
+
+        if (placementLayer != -1)
+        {
+            var convertMask = 1 | (overlayPass != null ? overlayPass.GadgetLayerMask.value : 1 << 27);
             SetPlacementLayerRecursively(PlaceholderGadgetPrefabInstance.transform, placementLayer, convertMask);
         }
 
-        PlaceholderGadgetPrefabInstance.transform.parent = footprintTransform;
         PlaceholderGadgetPrefabInstance.transform.localPosition = Vector3.zero;
 
         ApplyGadgetLocalRotation();
 
-        DontDestroyOnLoad(PlaceholderGadgetPrefabInstance);
+        // this does not work
+        var overlayVolume = gadget._gadgetOverlayCustomPassVolume;
+        if (overlayVolume?.gameObject.activeSelf == true)
+        {
+            overlayVolume.gameObject.SetActive(false);
+            overlayVolume.gameObject.SetActive(true);
+        }
+    }
+
+    private static void StripToVisuals(GameObject root)
+    {
+        foreach (var component in root.GetComponentsInChildren<Component>(true))
+        {
+            if (component == null ||
+                component.TryCast<Transform>() != null ||
+                component.TryCast<Renderer>() != null ||
+                component.TryCast<MeshFilter>() != null ||
+                component.TryCast<LODGroup>() != null ||
+                component.TryCast<Collider>() != null ||
+                component.TryCast<Rigidbody>() != null)
+                continue;
+
+            DestroyImmediate(component);
+        }
+
+        foreach (var component in root.GetComponentsInChildren<Collider>(true))
+            DestroyImmediate(component);
+
+        foreach (var component in root.GetComponentsInChildren<Rigidbody>(true))
+            DestroyImmediate(component);
+    }
+
+    // Glow/FX meshes are turned off by the gadget scripts themselves,
+    // we (hopefully) get rid of them ourselves, filtered by name/shader
+    private static void DisableEffectRenderers(GameObject root)
+    {
+        var disabled = new List<Renderer>();
+        var keptRenderers = 0;
+
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+        {
+            if (renderer == null)
+                continue;
+
+            var isEffect = IsEffectRenderer(renderer);
+            if (isEffect)
+            {
+                renderer.enabled = false;
+                disabled.Add(renderer);
+            }
+            else if (!renderer.gameObject.name.Contains("Interaction", StringComparison.OrdinalIgnoreCase))
+            {
+                keptRenderers++;
+            }
+
+            SrLogger.LogDebug($"Preview renderer '{renderer.gameObject.name}' -> {(isEffect ? "disabled" : "kept")}");
+        }
+
+        // Gadget Preview would be invisible, so we just re-enable them all
+        if (keptRenderers == 0 && disabled.Count > 0)
+        {
+            foreach (var renderer in disabled)
+                renderer.enabled = true;
+
+            SrLogger.LogDebug($"FX filter would hide all body meshes of '{root.name}', re-enabled enabled everything");
+        }
+    }
+
+    private static bool IsEffectRenderer(Renderer renderer)
+    {
+        if (ContainsAny(renderer.gameObject.name, EffectNameTokens))
+            return true;
+
+        var materials = renderer.sharedMaterials;
+        if (materials == null)
+            return false;
+
+        foreach (var material in materials)
+        {
+            var shaderName = material?.shader?.name;
+            if (shaderName != null && ContainsAny(shaderName, EffectShaderTokens))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static readonly string[] EffectNameTokens =
+    {
+        "glow", "light", "halo", "beam", "flare", "lens", "fx", "particle", "sparkle"
+    };
+
+    private static readonly string[] EffectShaderTokens = { "particle", "additive", "glow", "flare" };
+
+    private static bool ContainsAny(string value, string[] items)
+    {
+        return items.Any(item => value.Contains(item, StringComparison.OrdinalIgnoreCase));
     }
 
     private static int GetFirstLayer(int mask)
