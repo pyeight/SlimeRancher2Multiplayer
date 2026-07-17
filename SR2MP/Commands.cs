@@ -14,6 +14,12 @@ internal sealed class HostCommand : StarlightCommand
 
     public override bool Execute(string[] args)
     {
+        if (args.Length < 1)
+        {
+            SendError("You need to specify a port!");
+            return false;
+        }
+        
         MenuEUtil.CloseOpenMenu();
         server = Main.Server;
         server.Start(int.Parse(args[0]), true);
@@ -58,7 +64,10 @@ internal sealed class ChatCommand : StarlightCommand
     public override bool Execute(string[] args)
     {
         if (args.Length < 1)
-            SendError("Not enough arguments");
+        {
+            SendError("Input a chat message first!");
+            return false;
+        }
 
         var msg = string.Join(" ", args);
 
@@ -74,7 +83,7 @@ internal sealed class ChatCommand : StarlightCommand
 
         MultiplayerUI.Instance.RegisterChatMessage(msg, Main.Username, messageId);
 
-        SrLogger.LogMessage("Chat command executed!", SrLogTarget.Both);
+        SrLogger.LogMessage("Chat command executed!");
         return true;
     }
 }
@@ -89,7 +98,10 @@ internal sealed class ConnectCommand : StarlightCommand
         MenuEUtil.CloseOpenMenu();
 
         if (args.Length < 1)
+        {
+            SendError("Usage: connect <ip/domain[:port]>");
             return false;
+        }
 
         var input = args[0];
         string ip;
@@ -158,6 +170,39 @@ internal sealed class ResyncAllCommand : StarlightCommand
     }
 }
 
+internal sealed class AddSprinklesCommand : StarlightCommand
+{
+    public override string ID => "addsprinkles";
+    public override string Usage => "addsprinkles <amount>";
+
+    public override bool Execute(string[] args)
+    {
+        if (Main.Client.IsConnected || Main.Server.IsRunning)
+        {
+            if (!Main.AllowCheats)
+            {
+                SendError("Cheats are disabled on this server!");
+                return false;
+            }
+        }
+        
+        if (args.Length < 1 || !int.TryParse(args[0], out var amount))
+        {
+            SendError("Usage: addsprinkles <amount>");
+            return false;
+        }
+
+        if (!Extensions.TryAddSprinkles(amount))
+        {
+            SendError("Could not add sprinkles");
+            return false;
+        }
+
+        SrLogger.LogMessage($"Added {amount} sprinkle(s)!");
+        return true;
+    }
+}
+
 public sealed class RemoveExceptionsCommand : StarlightCommand
 {
     public override string ID => "removeexceptions";
@@ -166,7 +211,7 @@ public sealed class RemoveExceptionsCommand : StarlightCommand
     public override bool Execute(string[] args)
     {
         Firewall.RemoveAllExceptions();
-        SrLogger.LogMessage("removeexceptions command executed!", SrLogTarget.Both);
+        SrLogger.LogMessage("Removed all exceptions!", SrLogTarget.Both);
         return true;
     }
 }
