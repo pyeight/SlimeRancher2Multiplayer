@@ -74,12 +74,7 @@ internal partial class NetworkPlayer : MonoBehaviour
                 UsernamePanel.transform;
         }
         
-        if (!radarComponent) return;
-
-        var nameLabel = radarComponent!._compassRadarPrefab?
-            .transform.GetChild(0)
-            .GetComponent<TextMeshProUGUI>();
-
+        var nameLabel = GetCompassLabel(0);
         if (nameLabel != null)
             nameLabel.SetText(username);
     }
@@ -285,4 +280,11 @@ internal partial class NetworkPlayer : MonoBehaviour
 
     [UsedImplicitly]
     public void LateUpdate() => AnimateArmY();
+    
+    private bool IsInLocalSceneGroup()
+    {
+        var localSceneGroup = NetworkSceneManager.GetPersistentID(
+            SystemContext.Instance.SceneLoader._currentSceneGroup);
+        return (model?.SceneGroup ?? -1) == localSceneGroup;
+    }
 }

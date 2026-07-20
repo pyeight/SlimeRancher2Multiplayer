@@ -10,6 +10,10 @@ internal partial class NetworkPlayer
 {
     private RadarTrackedPointOfInterest? radarComponent;
     private bool markerVisible;
+    
+    private GameObject? compassRender;
+
+    internal void SetCompassRenderInstance(GameObject instance) => compassRender = instance;
 
     private void SetupMarker()
     {
@@ -33,6 +37,8 @@ internal partial class NetworkPlayer
             Destroy(radarComponent);
             radarComponent = null;
         }
+
+        compassRender = null;
 
         SetupMarker();
 
@@ -118,6 +124,8 @@ internal partial class NetworkPlayer
 
         if (!sameSceneGroup) return;
 
+        UpdateDistanceLabel();
+
         if (!PlayerMarkerTransforms.TryGetValue(ID, out var marker)) return;
         if (!marker.mainMarker || !marker.markerArrow) return;
 
@@ -126,10 +134,36 @@ internal partial class NetworkPlayer
         marker.markerArrow!.eulerAngles = new Vector3(0, 0, -transform.eulerAngles.y);
     }
 
-    private bool IsInLocalSceneGroup()
+    private TextMeshProUGUI? GetCompassLabel(int childIndex)
     {
-        var localSceneGroup = NetworkSceneManager.GetPersistentID(
-            SystemContext.Instance.SceneLoader._currentSceneGroup);
-        return (model?.SceneGroup ?? -1) == localSceneGroup;
+        var target = compassRender ? compassRender : radarComponent?._compassRadarPrefab;
+        return target ? target!.transform.GetChild(childIndex).GetComponent<TextMeshProUGUI>() : null;
+    }
+
+    private void UpdateDistanceLabel()
+    {
+        if (!SceneContext.Instance.player || model == null) return;
+
+        var distanceLabel = GetCompassLabel(1);
+        if (distanceLabel == null) return;
+
+        var distance = Vector3.Distance(transform.position, SceneContext.Instance.player.transform.position);
+        var text = $"({Mathf.RoundToInt(distance)}m)";
+        
+        // var colorHex = ColorUtility.ToHtmlStringRGB(RemotePlayerManager.GetPlayerColor(model));
+        var colorHex = ExtractUsernameColorHex(model.Username);
+
+        distanceLabel.SetText(colorHex != null ? $"<color=#{colorHex}>{text}</color>" : text);
+    }
+    
+    private static string? ExtractUsernameColorHex(string username)
+    {
+        const string tagStart = "<color=#";
+        var startIndex = username.IndexOf(tagStart, StringComparison.Ordinal);
+        if (startIndex < 0) return null;
+
+        startIndex += tagStart.Length;
+        var endIndex = username.IndexOf('>', startIndex);
+        return endIndex < 0 ? null : username[startIndex..endIndex];
     }
 }

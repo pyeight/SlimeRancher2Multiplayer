@@ -333,7 +333,25 @@ public sealed class Main : StarlightExpansionV01
         var gui = label.AddComponent<TextMeshProUGUI>();
         gui.alignment = TextAlignmentOptions.Center;
         gui.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
-        
+        gui.overflowMode = TextOverflowModes.Overflow;
+        gui.enableWordWrapping = false;
+
+        var distanceLabel = new GameObject("DistanceLabel")
+        {
+            transform =
+            {
+                parent = PlayerCompassPrefab.transform,
+                localPosition = Vector3.down * 55f,
+                localScale = Vector3.one * 0.45f
+            }
+        };
+        var distanceGui = distanceLabel.AddComponent<TextMeshProUGUI>();
+        distanceGui.alignment = TextAlignmentOptions.Center;
+        distanceGui.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
+        distanceGui.overflowMode = TextOverflowModes.Overflow;
+        distanceGui.enableWordWrapping = false;
+        distanceGui.SetText("(0m)");
+
         Object.DontDestroyOnLoad(PlayerCompassPrefab);
     }
     private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;
