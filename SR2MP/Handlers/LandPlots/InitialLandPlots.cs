@@ -82,7 +82,11 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
 
                                 var networkGarden = plantedObject.GetComponent<NetworkGarden>();
                                 if (networkGarden != null)
+                                {
                                     networkGarden.ApplyUpdate(garden.NextSpawnTime, garden.StoredWater, garden.NextSpawnRipens);
+                                    networkGarden.CurrentOwnerId = garden.OwnerId;
+                                    networkGarden.LocallyOwned = !string.IsNullOrEmpty(garden.OwnerId) && garden.OwnerId == LocalID;
+                                }
                             }
                         }
                     }
