@@ -95,6 +95,12 @@ public sealed class Main : StarlightExpansionV01
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
 
     /// <summary>
+    /// Gets a value indicating whether this player has disabled gathering achievements in total.
+    /// it does not affect what this client broadcasts, only whether achievements are locally granted.
+    /// </summary>
+    public static bool DisableAchievements => preferences.GetEntry<bool>("disable_achievements").Value;
+
+    /// <summary>
     /// Gets a value indicating whether streamer mode is enabled, which typically hides sensitive information like IP addresses.
     /// </summary>
     public static bool StreamerMode => preferences.GetEntry<bool>("streamer_mode").Value;
@@ -102,7 +108,7 @@ public sealed class Main : StarlightExpansionV01
     internal static string SavedConnectPort => preferences.GetEntry<string>("recent_port").Value;
     internal static string SavedConnectIP => preferences.GetEntry<string>("recent_ip").Value;
     internal static string SavedHostPort => preferences.GetEntry<string>("host_port").Value;
-    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui_new").Value;
+    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui_new_new").Value;
     internal static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     internal static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
     // internal static bool RemoteGadgetPreviewShaders => preferences.GetEntry<bool>("remote_gadget_preview_shaders").Value;
@@ -120,6 +126,7 @@ public sealed class Main : StarlightExpansionV01
         preferences.CreateEntry("username_color", "FFFFFF", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
         preferences.CreateEntry("streamer_mode", false, display_name: "Streamer Mode");
+        preferences.CreateEntry("disable_achievements", true, display_name: "Disable Achievements");
 
         preferences.CreateEntry("recent_port", string.Empty, is_hidden: true);
         preferences.CreateEntry("recent_ip", string.Empty, is_hidden: true);
@@ -132,7 +139,7 @@ public sealed class Main : StarlightExpansionV01
         preferences.CreateEntry("packet_ack_log", true, display_name: "Packet Acknowledge Logging");
         // preferences.CreateEntry("remote_gadget_preview_shaders", false, display_name: "Remote Gadget Preview Hologram Shader");
 
-        preferences.CreateEntry("internal_setup_ui_new", true, is_hidden: true);
+        preferences.CreateEntry("internal_setup_ui_new_new", true, is_hidden: true);
 
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
             display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode), BREAKS SAVES!");

@@ -18,6 +18,7 @@ internal sealed partial class MultiplayerUI : MonoBehaviour
         usernameInput = Main.RawUsername;
         usernameColorInput = Main.UsernameColor;
         allowCheatsInput = Main.AllowCheats;
+        disableAchievementsInput = Main.DisableAchievements;
         joinIpInput = Main.SavedConnectIP;
         joinPortInput = Main.SavedConnectPort;
         hostLocalPortInput = Main.SavedHostPort;

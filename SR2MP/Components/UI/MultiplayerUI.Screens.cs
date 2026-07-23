@@ -7,6 +7,7 @@ internal sealed partial class MultiplayerUI
     private string usernameInput = "Player";
     private string usernameColorInput = "FFFFFF";
     private bool allowCheatsInput;
+    private bool disableAchievementsInput;
 
     private void FirstTimeScreen()
     {
@@ -19,6 +20,10 @@ internal sealed partial class MultiplayerUI
 
         DrawUsernameColorInput();
 
+        DrawText("Disable Achievements:", 2);
+        if (GUI.Button(CalculateButtonLayout(6, 2, 1), disableAchievementsInput.ToStringYesOrNo()))
+            disableAchievementsInput = !disableAchievementsInput;
+
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
             DrawText("You must set an Username first.");
@@ -29,9 +34,10 @@ internal sealed partial class MultiplayerUI
         if (!GUI.Button(CalculateButtonLayout(6), "Save settings")) return;
 
         firstTime = false;
-        Main.SetConfigValue("internal_setup_ui_new", false);
+        Main.SetConfigValue("internal_setup_ui_new_new", false);
         Main.SetConfigValue("username", usernameInput);
         Main.SetConfigValue("username_color", usernameColorInput);
+        Main.SetConfigValue("disable_achievements", disableAchievementsInput);
     }
 
     private void SettingsScreen()
@@ -45,6 +51,10 @@ internal sealed partial class MultiplayerUI
         if (GUI.Button(CalculateButtonLayout(6, 2, 1), allowCheatsInput.ToStringYesOrNo()))
             allowCheatsInput = !allowCheatsInput;
 
+        DrawText("Disable Achievements:", 2);
+        if (GUI.Button(CalculateButtonLayout(6, 2, 1), disableAchievementsInput.ToStringYesOrNo()))
+            disableAchievementsInput = !disableAchievementsInput;
+
         if (string.IsNullOrWhiteSpace(usernameInput))
         {
             DrawText("You must set an Username.");
@@ -56,6 +66,7 @@ internal sealed partial class MultiplayerUI
         Main.SetConfigValue("username", usernameInput);
         Main.SetConfigValue("username_color", usernameColorInput);
         Main.SetConfigValue("allow_cheats", allowCheatsInput);
+        Main.SetConfigValue("disable_achievements", disableAchievementsInput);
         viewingSettings = false;
     }
 
