@@ -1,4 +1,5 @@
 using HarmonyLib;
+using SR2MP.Components.LandPlots;
 using SR2MP.Packets.World;
 
 namespace SR2MP.Patches.Time;
@@ -8,6 +9,8 @@ internal static class OnFastForward
 {
     public static void Postfix(double fastForwardUntil)
     {
+        NetworkGarden.RestoreAfterTimeSkip();
+
         if (HandlingPacket)
             return;
 

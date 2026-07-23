@@ -1,6 +1,7 @@
 using System.Net;
 using JetBrains.Annotations;
 using SR2MP.Api;
+using SR2MP.Components.LandPlots;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Api;
@@ -174,6 +175,7 @@ public sealed class SR2MPServer
         {
             ActorManager.AssignOwnershipOfUnowned();
             NetworkDroneManager.AssignOwnershipOfUnowned();
+            NetworkGarden.ReassignOwnership();
         });
     }
 
