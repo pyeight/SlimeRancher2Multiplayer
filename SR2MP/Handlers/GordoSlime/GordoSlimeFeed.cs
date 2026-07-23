@@ -6,7 +6,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.GordoSlime;
 
-[PacketHandler((byte)PacketType.GordoFeed)]
+[PacketHandler((byte)PacketType.GordoSlimeFeed)]
 internal sealed class GordoSlimeFeedHandler : BasePacketHandler<GordoSlimeFeedPacket>
 {
     protected override bool Handle(GordoSlimeFeedPacket packet, IPEndPoint? _)

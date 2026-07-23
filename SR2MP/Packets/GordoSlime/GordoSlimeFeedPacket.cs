@@ -11,7 +11,7 @@ internal sealed class GordoSlimeFeedPacket : IPacket
     public int RequiredFoodCount;
     public int GordoType;
 
-    public PacketType Type => PacketType.GordoFeed;
+    public PacketType Type => PacketType.GordoSlimeFeed;
     public PacketReliability Reliability => PacketReliability.Reliable;
     public NetworkChannel Channel => NetworkChannel.WorldState;
 

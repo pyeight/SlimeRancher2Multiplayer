@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.GordoSlime;
 
 [HarmonyPatch(typeof(GordoEat), nameof(GordoEat.DoEat))]
-internal static class OnGordoFed
+internal static class OnGordoSlimeFed
 {
     public static void Postfix(GordoEat __instance)
     {

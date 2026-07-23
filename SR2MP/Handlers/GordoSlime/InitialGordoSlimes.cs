@@ -3,29 +3,21 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Loading;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.GordoSlime;
 
-[PacketHandler((byte)PacketType.InitialGordos, HandlerType.Client)]
+[PacketHandler((byte)PacketType.InitialGordoSlimes, HandlerType.Client)]
 internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordosPacket>
 {
     protected override bool Handle(InitialGordosPacket packet, IPEndPoint? _)
     {
-        var gameModel = GameState;
-
         foreach (var gordoSlime in packet.GordoSlimes)
         {
-            if (gameModel.gordos.TryGetValue(gordoSlime.Id, out var gordoModel))
+            if (GameState.gordos.TryGetValue(gordoSlime.Id, out var gordoModel))
             {
                 gordoModel.GordoEatenCount = gordoSlime.EatenCount;
                 gordoModel.targetCount = gordoSlime.RequiredEatCount;
-
-                if (!gordoModel.gameObj)
-                    continue;
-
-                var gordoComponent = gordoModel.gameObj.GetComponent<GordoEat>();
-                gordoComponent.SetModel(gordoModel);
-                gordoModel.gameObj.SetActive(gordoSlime.EatenCount < gordoSlime.RequiredEatCount);
             }
             else
             {
@@ -39,8 +31,18 @@ internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGo
                     targetCount = gordoSlime.RequiredEatCount
                 };
 
-                gameModel.gordos.Add(gordoSlime.Id, gordoModel);
+                GameState.gordos.Add(gordoSlime.Id, gordoModel);
             }
+
+            if (gordoSlime.Popped)
+            {
+                NetworkGordoSlimeManager.MarkPopped(gordoSlime.Id);
+                NetworkGordoSlimeManager.MarkRewarded(gordoSlime.Id);
+            }
+            
+            gordoModel.gordoSeen = gordoSlime.WasSeen && !gordoSlime.Popped;
+
+            NetworkGordoSlimeManager.ApplyState(gordoSlime.Id, gordoModel);
         }
 
         return false;
