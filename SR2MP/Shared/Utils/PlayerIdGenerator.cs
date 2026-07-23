@@ -9,10 +9,9 @@ internal static class PlayerIdGenerator
     {
         try
         {
-            var systemInfo = Environment.MachineName + Environment.UserName;
-
-            using var sha256 = SHA256.Create();
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
+            var hashBytes = DevMode
+                ? RandomNumberGenerator.GetBytes(16)
+                : SHA256.HashData(Encoding.UTF8.GetBytes(Environment.MachineName + Environment.UserName));
 
             var hash = BitConverter.ToString(hashBytes)
                 .Replace("-", string.Empty)[..9]
