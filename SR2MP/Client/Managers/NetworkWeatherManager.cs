@@ -1,4 +1,3 @@
-using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using Il2CppMonomiPark.SlimeRancher.World;
@@ -62,144 +61,130 @@ internal static class NetworkWeatherManager
         => GameContext.Instance.AutoSaveDirector._saveReferenceTranslation
             .GetPersistenceId(state.Cast<IWeatherState>());
 
-    internal static IEnumerator Apply(WeatherPacket packet, bool immediate)
+    internal static void Apply(WeatherPacket packet, bool immediate)
     {
-        while (SceneContext.Instance.WeatherRegistry == null)
-            yield return null;
-
-        WeatherUpdateHelper.EnsureLookupInitialized();
-
-        yield return new WaitFrames(3);
-        HandlingPacket = true;
-
-        var registry = Registry;
-        var localDirector = Director;
-
-        var zoneKeys = new List<ZoneDefinition>();
-        foreach (var zone in registry._zones)
+        if (SceneContext.Instance.WeatherRegistry == null)
         {
-            zoneKeys.Add(zone.Key);
-            yield return null;
+            SrLogger.LogDebug("NetworkWeatherManager.Apply: WeatherRegistry not ready, dropping packet");
+            return;
         }
 
-        byte zoneId = 0;
-        foreach (var zoneKey in zoneKeys)
+        WeatherUpdateHelper.EnsureLookupInitialized();
+        HandlingPacket = true;
+
+        try
         {
-            if (!packet.Zones.TryGetValue(zoneId, out var data))
-                continue;
+            var registry = Registry;
+            var localDirector = Director;
 
-            var zone = registry._zones[zoneKey];
+            var zoneKeys = new List<ZoneDefinition>();
+            foreach (var zone in registry._zones)
+                zoneKeys.Add(zone.Key);
 
-            var forecastCopy = new List<WeatherModel.ForecastEntry>();
-            foreach (var forecast in zone.Forecast)
-                forecastCopy.Add(forecast);
-
-            foreach (var forecast in forecastCopy)
+            foreach (var zoneKey in zoneKeys)
             {
-                yield return null;
+                if (zoneKey == null || string.IsNullOrEmpty(zoneKey.name))
+                    continue;
+
+                if (!packet.Zones.TryGetValue(zoneKey.name, out var data))
+                    continue;
+
+                var zone = registry._zones[zoneKey];
+
+                var forecastCopy = new List<WeatherModel.ForecastEntry>();
+                foreach (var forecast in zone.Forecast)
+                    forecastCopy.Add(forecast);
+
+                foreach (var forecast in forecastCopy)
+                {
+                    var patternInstance = registry.GetWeatherPatternInstance(
+                        zoneKey,
+                        forecast.Pattern
+                    );
+
+                    if (patternInstance == null)
+                    {
+                        localDirector.StopState(
+                            forecast.State.Cast<IWeatherState>(),
+                            zone.Parameters
+                        );
+                    }
+                    else
+                    {
+                        registry.StopPatternState(
+                            zoneKey,
+                            patternInstance,
+                            forecast.State
+                        );
+                    }
+                }
+
+                zone.Forecast.Clear();
+                zone.Parameters.WindDirection = data.WindSpeed;
+
+                foreach (var forecast in data.WeatherForecasts)
+                {
+                    var pattern = WeatherUpdateHelper.GetPatternForZoneAndState(zoneKey, forecast.State.name);
+
+                    zone.Forecast.Add(new WeatherModel.ForecastEntry
+                    {
+                        State = forecast.State.Cast<IWeatherState>(),
+                        Pattern = pattern,
+                        Started = forecast.WeatherStarted,
+                        StartTime = forecast.StartTime,
+                        EndTime = forecast.EndTime
+                    });
+                }
+            }
+
+            if (!registry._zones.TryGetValue(localDirector.Zone, out var activeZone))
+                return;
+
+            var activeCopy = new List<WeatherModel.ForecastEntry>();
+            foreach (var activeForecast in activeZone.Forecast)
+                activeCopy.Add(activeForecast);
+
+            foreach (var forecast in activeCopy)
+            {
                 var patternInstance = registry.GetWeatherPatternInstance(
-                    zoneKey,
+                    localDirector.Zone,
                     forecast.Pattern
                 );
 
                 if (patternInstance == null)
                 {
-                    localDirector.StopState(
-                        forecast.State.Cast<IWeatherState>(),
-                        zone.Parameters
-                    );
+                    localDirector.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
                 }
                 else
                 {
-                    registry.StopPatternState(
-                        zoneKey,
+                    registry.RunPatternState(
+                        localDirector.Zone,
                         patternInstance,
-                        forecast.State
+                        forecast.State,
+                        immediate
                     );
                 }
-
-                yield return new WaitFrames(2);
             }
 
-            zone.Forecast.Clear();
-            zone.Parameters.WindDirection = data.WindSpeed;
-
-            foreach (var forecast in data.WeatherForecasts)
+            if (ActiveMapUI != null)
             {
-                var pattern = WeatherUpdateHelper.GetPatternForZoneAndState(zoneKey, forecast.State.name);
-                yield return null;
-
-                zone.Forecast.Add(new WeatherModel.ForecastEntry
+                var zoomedOutUI = ActiveMapUI._zoomedOutUI;
+                if (zoomedOutUI != null && zoomedOutUI._zoneMarkerUIs != null)
                 {
-                    State = forecast.State.Cast<IWeatherState>(),
-                    Pattern = pattern,
-                    Started = forecast.WeatherStarted,
-                    StartTime = forecast.StartTime,
-                    EndTime = forecast.EndTime
-                });
-
-                yield return new WaitFrames(2);
-            }
-
-            yield return null;
-            zoneId++;
-            yield return new WaitFrames(2);
-        }
-
-        if (!registry._zones.TryGetValue(localDirector.Zone, out var activeZone))
-            yield break;
-
-        var activeCopy = new List<WeatherModel.ForecastEntry>();
-        foreach (var activeForecast in activeZone.Forecast)
-        {
-            activeCopy.Add(activeForecast);
-            yield return null;
-        }
-
-        yield return null;
-
-        foreach (var forecast in activeCopy)
-        {
-            yield return null;
-            var patternInstance = registry.GetWeatherPatternInstance(
-                localDirector.Zone,
-                forecast.Pattern
-            );
-
-            yield return null;
-            if (patternInstance == null)
-            {
-                localDirector.RunState(forecast.State.Cast<IWeatherState>(), activeZone.Parameters, immediate);
-            }
-            else
-            {
-                registry.RunPatternState(
-                    localDirector.Zone,
-                    patternInstance,
-                    forecast.State,
-                    immediate
-                );
-            }
-
-            yield return new WaitFrames(3);
-        }
-
-        if (ActiveMapUI != null)
-        {
-            var zoomedOutUI = ActiveMapUI._zoomedOutUI;
-            if (zoomedOutUI != null && zoomedOutUI._zoneMarkerUIs != null)
-            {
-                foreach (var markerUI in zoomedOutUI._zoneMarkerUIs)
-                {
-                    var zoneMarkerUI = markerUI.TryCast<ZoneMarkerUI>();
-                    if (zoneMarkerUI != null)
+                    foreach (var markerUI in zoomedOutUI._zoneMarkerUIs)
                     {
-                        zoneMarkerUI.SetUpWeather();
+                        var zoneMarkerUI = markerUI.TryCast<ZoneMarkerUI>();
+                        if (zoneMarkerUI != null)
+                        {
+                            zoneMarkerUI.SetUpWeather();
+                        }
                     }
                 }
             }
         }
-
-        HandlingPacket = false;
+        finally
+        {
+            HandlingPacket = false;
+        }
     }
 }
