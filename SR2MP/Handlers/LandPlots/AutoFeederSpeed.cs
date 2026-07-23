@@ -10,8 +10,12 @@ internal sealed class AutoFeederSpeedHandler : BasePacketHandler<AutoFeederSpeed
 {
     protected override bool Handle(AutoFeederSpeedPacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
+        if (!GameState.landPlots.TryGetValue(packet.ID, out var model) || !model.gameObj)
+            return true;
+
         var feeder = model.gameObj.GetComponentInChildren<SlimeFeeder>();
+        if (!feeder)
+            return true;
 
         HandlingPacket = true;
         feeder.SetFeederSpeed(packet.Speed);
