@@ -7,6 +7,7 @@ namespace SR2MP.Patches.Events;
 [HarmonyPatch(typeof(EventDirector), nameof(EventDirector.RaiseEvent))]
 internal static class OnEventRaised
 {
+    // Todo: Causes lags under **VERY SPECIFIC CIRCUMSTANCES**
     public static void Postfix(IGameEvent gameEvent, int count)
     {
         if (gameEvent == null) return;
