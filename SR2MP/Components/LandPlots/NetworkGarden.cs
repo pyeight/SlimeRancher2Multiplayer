@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.Regions;
 using JetBrains.Annotations;
 using SR2MP.Packets.LandPlots;
@@ -65,7 +65,10 @@ internal sealed class NetworkGarden : MonoBehaviour
         cachedLocallyOwned = LocallyOwned;
 
         if (garden != null)
+        {
             garden.enabled = LocallyOwned;
+            garden._allowSpawningInFastForwarding = LocallyOwned;
+        }
 
         if (Main.Server.IsRunning)
             CurrentOwnerId = Main.Server.PlayerId;
@@ -150,7 +153,9 @@ internal sealed class NetworkGarden : MonoBehaviour
         else
         {
             RestoreCachedState();
-            ClaimOwnership();
+
+            if (IsUnowned())
+                ClaimOwnership();
         }
     }
 
@@ -159,7 +164,10 @@ internal sealed class NetworkGarden : MonoBehaviour
         if (cachedLocallyOwned != LocallyOwned)
         {
             if (garden != null)
+            {
                 garden.enabled = LocallyOwned;
+                garden._allowSpawningInFastForwarding = LocallyOwned;
+            }
 
             cachedLocallyOwned = LocallyOwned;
         }
@@ -258,9 +266,12 @@ internal sealed class NetworkGarden : MonoBehaviour
         }
     }
 
+    private bool IsUnowned()
+        => string.IsNullOrEmpty(CurrentOwnerId) || CurrentOwnerId == LocalID || !PlayerManager.CheckPlayerExists(CurrentOwnerId);
+
     private void TryOwnUnowned()
     {
-        if (!string.IsNullOrEmpty(CurrentOwnerId) && CurrentOwnerId != LocalID && PlayerManager.CheckPlayerExists(CurrentOwnerId))
+        if (!IsUnowned())
             return;
 
         SrLogger.LogDebug($"Garden '{garden?._id}' reclaimed from '{CurrentOwnerId}' (nextSpawnTime={garden?._model?.nextSpawnTime})");

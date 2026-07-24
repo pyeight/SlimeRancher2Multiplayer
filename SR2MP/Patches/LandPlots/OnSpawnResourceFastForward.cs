@@ -1,4 +1,6 @@
-using HarmonyLib;
+// Memory Access Violation, keep it here
+/*
+ using HarmonyLib;
 using SR2MP.Components.LandPlots;
 
 namespace SR2MP.Patches.LandPlots;
@@ -16,3 +18,4 @@ internal static class OnSpawnResourceFastForward
         return networkGarden.LocallyOwned;
     }
 }
+*/
