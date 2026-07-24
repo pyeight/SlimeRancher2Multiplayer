@@ -5,7 +5,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.Events;
 
 [HarmonyPatch(typeof(EventDirector), nameof(EventDirector.RaiseEvent))]
-internal static class OnGameEventRaised
+internal static class OnEventRaised
 {
     public static void Postfix(IGameEvent gameEvent, int count)
     {
