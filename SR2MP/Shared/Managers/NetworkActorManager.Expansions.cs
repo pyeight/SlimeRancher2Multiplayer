@@ -394,8 +394,27 @@ internal sealed partial class NetworkActorManager
         return true;
     }
 
+    private static readonly List<(string Source, string Destination, byte SceneGroup)> CachedTeleporterLinks = new();
+
+    private static void CacheTeleporterLink(string sourceNodeId, string destinationNodeId, byte sceneGroupId)
+    {
+        for (var i = 0; i < CachedTeleporterLinks.Count; i++)
+        {
+            var link = CachedTeleporterLinks[i];
+            if (link.Source != sourceNodeId || link.Destination != destinationNodeId)
+                continue;
+
+            CachedTeleporterLinks[i] = (sourceNodeId, destinationNodeId, sceneGroupId);
+            return;
+        }
+
+        CachedTeleporterLinks.Add((sourceNodeId, destinationNodeId, sceneGroupId));
+    }
+
     internal static IEnumerator ApplyTeleporterLink(string sourceNodeId, string destinationNodeId, byte sceneGroupId)
     {
+        CacheTeleporterLink(sourceNodeId, destinationNodeId, sceneGroupId);
+
         var attempts = 0;
         while (attempts++ < 120)
         {
@@ -422,6 +441,26 @@ internal sealed partial class NetworkActorManager
         SrLogger.LogWarning($"TeleporterLink: gave up linking {sourceNodeId} -> {destinationNodeId} (nodes never appeared).");
     }
     
+    internal static IEnumerator RelinkTeleporters()
+    {
+        foreach (var delay in RelinkRetryFrameDelays)
+        {
+            yield return new WaitFrames(delay);
+
+            foreach (var link in CachedTeleporterLinks)
+            {
+                try
+                {
+                    TryApplyTeleporterLink(link.Source, link.Destination, link.SceneGroup);
+                }
+                catch (Exception ex)
+                {
+                    SrLogger.LogWarning($"RelinkTeleporters: {ex.Message}");
+                }
+            }
+        }
+    }
+
     internal static List<InitialTeleporterLinksPacket.Link> GetAllTeleporterLinks()
     {
         var links = new List<InitialTeleporterLinksPacket.Link>();
