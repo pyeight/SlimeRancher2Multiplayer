@@ -4,6 +4,7 @@ using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
 using Il2CppMonomiPark.SlimeRancher.Weather;
+using SR2MP.Components.LandPlots;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Ammo;
@@ -67,6 +68,8 @@ internal sealed class ReSyncManager
         SendUpgradesPacket(endPoint);
         SendDroneResourcesPacket(endPoint);
         SendActorsPacket(endPoint, PlayerIdGenerator.GetPlayerIDNumber(playerId));
+        SendGadgetLinksPacket(endPoint);
+        SendTeleporterLinksPacket(endPoint);
         SendPricesPacket(endPoint);
         SendWeatherPacket(endPoint);
         SendPuzzleSlotsPacket(endPoint);
@@ -74,6 +77,9 @@ internal sealed class ReSyncManager
         SendPrismaBarriersPacket(endPoint);
         SendDroneCloudPacket(endPoint);
         SendComponentsPacket(endPoint);
+        SendConversationsPacket(endPoint);
+        SendEventsRaisedPacket(endPoint);
+        SendTornadosPacket(endPoint);
 
         SrLogger.LogMessage($"Player {playerId} resynced!", $"Player {playerId} ({endPoint}) resynced!");
     }
@@ -107,7 +113,7 @@ internal sealed class ReSyncManager
 
         var clients = Main.Server.ClientManager.GetAllClients().ToList();
 
-        var gordosPacket            = CreateGordoSlimesPacket();
+        var gordoSlimesPacket       = CreateGordoSlimesPacket();
         var switchesPacket          = CreateSwitchesPacket();
         var plotsPacket             = CreatePlotsPacket();
         var upgradesPacket          = CreateUpgradesPacket();
@@ -122,6 +128,7 @@ internal sealed class ReSyncManager
         var plortDepositorsPacket   = CreatePlortDepositorsPacket();
         var prismaBarriersPacket    = CreatePrismaBarriersPacket();
         var componentsPacket        = CreateComponentsPacket();
+        var eventsRaisedPacket      = CreateEventsRaisedPacket();
 
         var money = SceneContext.Instance.PlayerState.GetCurrency(
             GameContext.Instance.LookupDirector._currencyList[0].Cast<ICurrency>());
@@ -144,7 +151,7 @@ internal sealed class ReSyncManager
             };
             Main.Server.SendToClient(approvePacket,         client.EndPoint);
 
-            Main.Server.SendToClient(gordosPacket,          client.EndPoint);
+            Main.Server.SendToClient(gordoSlimesPacket,     client.EndPoint);
             Main.Server.SendToClient(switchesPacket,        client.EndPoint);
             Main.Server.SendToClient(plotsPacket,           client.EndPoint);
             Main.Server.SendToClient(upgradesPacket,        client.EndPoint);
@@ -159,10 +166,12 @@ internal sealed class ReSyncManager
             Main.Server.SendToClient(plortDepositorsPacket, client.EndPoint);
             Main.Server.SendToClient(prismaBarriersPacket,  client.EndPoint);
             Main.Server.SendToClient(componentsPacket,      client.EndPoint);
+            Main.Server.SendToClient(eventsRaisedPacket,  client.EndPoint);
 
             SendWeatherPacket(client.EndPoint);
             SendActorsPacket(client.EndPoint, PlayerIdGenerator.GetPlayerIDNumber(client.PlayerId));
-            SendWeatherPacket(client.EndPoint);
+            SendGadgetLinksPacket(client.EndPoint);
+            SendTeleporterLinksPacket(client.EndPoint);
         }
 
         SrLogger.LogMessage($"Resynced {clients.Count} players!");
@@ -255,13 +264,8 @@ internal sealed class ReSyncManager
             return;
         }
 
-        StartCoroutine(
-            WeatherPacket.CreateFromModel(
-                weatherRegistry._model,
-                PacketType.InitialWeather,
-                packet => Main.Server.SendToClient(packet, client)
-            )
-        );
+        var packet = WeatherPacket.CreateFromModel(weatherRegistry._model, PacketType.InitialWeather);
+        Main.Server.SendToClient(packet, client);
     }
 
     private static void SendPediaPacket(IPEndPoint client)
@@ -297,6 +301,12 @@ internal sealed class ReSyncManager
 
         return new InitialMapPacket { UnlockedNodes = mapsList };
     }
+
+    private static void SendEventsRaisedPacket(IPEndPoint client)
+        => Main.Server.SendToClient(CreateEventsRaisedPacket(), client);
+
+    private static InitialEventsRaisedPacket CreateEventsRaisedPacket()
+        => new() { Entries = NetworkEventManager.GetRaisedEvents() };
 
     private static void SendAccessDoorsPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateAccessDoorsPacket(), client);
@@ -386,6 +396,18 @@ internal sealed class ReSyncManager
             });
         }
 
+        foreach (var pending in NetworkDepositorManager.PendingDepositorStates)
+        {
+            if (GameState.depositors.ContainsKey(pending.Key))
+                continue;
+
+            depositorsList.Add(new InitialPlortDepositorsPacket.Depositor
+            {
+                ID = pending.Key,
+                AmountDeposited = pending.Value
+            });
+        }
+
         return new InitialPlortDepositorsPacket { Depositors = depositorsList };
     }
 
@@ -443,6 +465,21 @@ internal sealed class ReSyncManager
         Main.Server.SendToClient(actorsPacket, client);
     }
 
+    private static void SendGadgetLinksPacket(IPEndPoint client)
+    {
+        var packet = new InitialGadgetLinksPacket { Links = NetworkActorManager.GetAllGadgetLinks() };
+        Main.Server.SendToClient(packet, client);
+    }
+
+    private static void SendTeleporterLinksPacket(IPEndPoint client)
+    {
+        var packet = new InitialTeleporterLinksPacket { Links = NetworkActorManager.GetAllTeleporterLinks() };
+        Main.Server.SendToClient(packet, client);
+    }
+
+    private static void SendTornadosPacket(IPEndPoint client)
+        => NetworkTornadoManager.SendTornadosTo(client);
+
     private static void SendDroneCloudPacket(IPEndPoint client)
     {
         var cloud = GameState.droneModel?.GetCloudModel();
@@ -481,6 +518,11 @@ internal sealed class ReSyncManager
         return new InitialComponentsPacket { Items = componentItems };
     }
 
+    private static void SendConversationsPacket(IPEndPoint client)
+        => Main.Server.SendToClient(
+            new InitialConversationsPacket { ConversationNames = NetworkConversationManager.GetPlayedConversations() },
+            client);
+
     private static void SendSwitchesPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateSwitchesPacket(), client);
 
@@ -503,9 +545,9 @@ internal sealed class ReSyncManager
     private static void SendGordoSlimesPacket(IPEndPoint client)
         => Main.Server.SendToClient(CreateGordoSlimesPacket(), client);
 
-    private static InitialGordosPacket CreateGordoSlimesPacket()
+    private static InitialGordoSlimesPacket CreateGordoSlimesPacket()
     {
-        var gordoSlimeList = new List<InitialGordosPacket.GordoSlime>();
+        var gordoSlimeList = new List<InitialGordoSlimesPacket.GordoSlime>();
 
         foreach (var gordoSlime in GameState.gordos)
         {
@@ -513,18 +555,18 @@ internal sealed class ReSyncManager
             if (eatCount == -1)
                 eatCount = gordoSlime.value.targetCount;
 
-            gordoSlimeList.Add(new InitialGordosPacket.GordoSlime
+            gordoSlimeList.Add(new InitialGordoSlimesPacket.GordoSlime
             {
                 Id = gordoSlime.key,
                 EatenCount = eatCount,
                 RequiredEatCount = gordoSlime.value.targetCount,
                 GordoSlimeType = NetworkActorManager.GetPersistentID(gordoSlime.value.identifiableType),
-                WasSeen = gordoSlime.value.GordoSeen
-                // Popped = gordoSlime.value.GordoEatenCount > gordoSlime.value.gordoEatCount
+                WasSeen = gordoSlime.value.GordoSeen,
+                Popped = gordoSlime.value.HasPopped()
             });
         }
 
-        return new InitialGordosPacket { GordoSlimes = gordoSlimeList };
+        return new InitialGordoSlimesPacket { GordoSlimes = gordoSlimeList };
     }
 
     private static void SendPlotsPacket(IPEndPoint client)
@@ -546,6 +588,7 @@ internal sealed class ReSyncManager
                     NextSpawnTime = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnTime ?? 0,
                     StoredWater = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.storedWater ?? 0,
                     NextSpawnRipens = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnRipens ?? false,
+                    OwnerId = plot.gameObj?.GetComponentInChildren<SpawnResource>()?.GetComponent<NetworkGarden>()?.CurrentOwnerId ?? string.Empty,
                 },
                 LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData
                 {
