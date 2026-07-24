@@ -480,9 +480,6 @@ internal partial class NetworkPlayer
         if (!gadgetDefinition)
             return;
 
-        if (!Main.RemoteGadgetPreviewShaders)
-            return;
-
         var prefab = gadgetDefinition!.prefab;
         var footprintTransform = FootprintPrefabInstance!.transform;
 
