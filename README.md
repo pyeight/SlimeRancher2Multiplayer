@@ -8,40 +8,42 @@
 - 🟧 in progress
 - 🟥 not synced
 
-|      Feature      | Status |                                Details about Feature                                 |
-|:-----------------:|:------:|:------------------------------------------------------------------------------------:|
-|  Player Movement  |   🟩   |                                   Fully functional                                   |
-| Player Animations |   🟩   |                                   Fully functional                                   |
-|  Player Sound FX  |   🟩   |                                   Fully functional                                   |
-| Player Visual FX  |   🟨   |                      Vac Shockwave + Vac suction trail missing                       |
-| Player Inventory  |   🟥   |                Not stored on the server, use the same save to rejoin                 |
-| Initial Save load |   🟩   |    Everything that is ___currently___ synchronised will be loaded on Player join     |
-|      Slimes       |   🟩   |                         Fully functional (Including Radiant)                         |
-|  Slime behaviour  |   🟨   | Partially functional (Yolky, Dervish, Sloomber, Gold, Lucky), Tangle & Tabby missing |
-|   Gordo Slimes    |   🟩   |                                   Fully functional                                   |
-|  Actors (Items)   |   🟩   |                                   Fully functional                                   |
-|  Resource Nodes   |   🟩   |                                   Fully functional                                   |
-|     Landplots     |   🟩   |      Fully functional (Gardens, Silos, etc. + Plort collectors & Auto-feeders)       |
-| Landplot upgrades |   🟩   |                                   Fully functional                                   |
-|      Gadgets      |   🟩   |                                   Fully functional                                   |
-|      Drones       |   🟩   |                                   Fully functional                                   |
-|     Upgrades      |   🟩   |                                   Fully functional                                   |
-|     Currency      |   🟩   |                                   Fully functional                                   |
-|   Market Prices   |   🟩   |                                   Fully functional                                   |
-|     Sprinkles     |   🟩   |                                   Fully functional                                   |
-|     Refinery      |   🟩   |                                   Fully functional                                   |
-|     World FX      |   🟩   |                                   Fully functional                                   |
-|    Slimepedia     |   🟩   |                                   Fully functional                                   |
-|        Map        |   🟩   |               Fully functional (Including player icons & locator bar)                |
-|  Map Expansions   |   🟩   |                                   Fully functional                                   |
-|    Teleporters    |   🟩   |                                   Fully functional                                   |
-|      Geysers      |   🟩   |                                   Fully functional                                   |
-|      Weather      |   🟨   |              Initial weather sometimes fails, updates fully functional               |
-|     Lightning     |   🟩   |                                   Fully functional                                   |
-|     Tornados      |   🟥   |                                   Not implemented                                    |
-|       Time        |   🟩   |                                   Fully functional                                   |
-|  Gray Labyrinth   |   🟨   |      Partially functional (Switches, Prisma Barriers, Puzzle Slots, Depositors)      |
-|  Multiplayer API  |   🟩   |                                   Fully functional                                   |
+|      Feature      | Status |                                  Details about Feature                                  |
+|:-----------------:|:------:|:---------------------------------------------------------------------------------------:|
+|  Player Movement  |   🟩   |                                    Fully functional                                     |
+| Player Animations |   🟩   |                                    Fully functional                                     |
+|  Player Sound FX  |   🟩   |                                    Fully functional                                     |
+| Player Visual FX  |   🟨   |                        Vac Shockwave + Vac suction trail missing                        |
+| Player Inventory  |   🟥   |                  Not stored on the server, use the same save to rejoin                  |
+| Initial Save load |   🟩   |      Everything that is ___currently___ synchronised will be loaded on Player join      |
+|      Slimes       |   🟩   |                          Fully functional (Including Radiant)                           |
+|  Slime behaviour  |   🟨   |  Partially functional (Yolky, Dervish, Sloomber, Gold, Lucky), Tangle & Tabby missing   |
+|   Gordo Slimes    |   🟩   |                                    Fully functional                                     |
+|  Actors (Items)   |   🟩   |                                    Fully functional                                     |
+|  Resource Nodes   |   🟩   |                                    Fully functional                                     |
+|     Landplots     |   🟩   |        Fully functional (Gardens, Silos, etc. + Plort collectors & Auto-feeders)        |
+| Landplot upgrades |   🟩   |                                    Fully functional                                     |
+|      Gadgets      |   🟩   |                                    Fully functional                                     |
+|      Drones       |   🟩   |                                    Fully functional                                     |
+|     Upgrades      |   🟩   |                                    Fully functional                                     |
+|     Currency      |   🟩   |                                    Fully functional                                     |
+|   Market Prices   |   🟩   |                                    Fully functional                                     |
+|     Sprinkles     |   🟩   |                                    Fully functional                                     |
+|     Refinery      |   🟩   |                                    Fully functional                                     |
+|     World FX      |   🟩   |                                    Fully functional                                     |
+|    Slimepedia     |   🟩   |                                    Fully functional                                     |
+|        Map        |   🟩   |                 Fully functional (Including player icons & locator bar)                 |
+|  Map Expansions   |   🟩   |                                    Fully functional                                     |
+|    Teleporters    |   🟩   |                                    Fully functional                                     |
+|      Geysers      |   🟩   |                                    Fully functional                                     |
+|      Weather      |   🟩   |                                    Fully functional                                     |
+|     Lightning     |   🟩   |                                    Fully functional                                     |
+|     Tornados      |   🟩   |                                    Fully functional                                     |
+|       Time        |   🟩   |                                    Fully functional                                     |
+|  Gray Labyrinth   |   🟨   | Partially functional (Switches, Prisma Barriers, Shadow Plort Depositors, Prisma Gates) |
+|   The Sanctuary   |   🟨   |                   Partially functional (unlock via robot & sprinkles)                   |
+| NPC Conversations |   🟩   |                                    Fully functional                                     |
+|  Multiplayer API  |   🟩   |                                    Fully functional                                     |
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 
@@ -90,7 +92,7 @@ These mods have dedicated Ranching Together integration, they are fully working 
 |:-----------------------------------------------------------:|:-------:|:-------------------------------------------------------------:|:---------------------------------------------------------------:|:-------------------------------------------------------:|
 | **Better Drones**: explorer drones really fly to resources  | `0.1.1` | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/177) |        [GitHub](https://github.com/pyeight/BetterDrones)        | [Discord Server](https://discord.com/invite/a7wfBw5feU) |
 | **Placement Improvements**: custom placement rules & colors | `1.0.0` | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/179) | [GitHub](https://github.com/BlackthornZZ/PlacementImprovements) |    Discord: `lunar_snail` (ID: `426024775333314570`)    |
-| **Vacuum Modifications**: custom limits & instant transfers | `2.3.5` | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/45)  |  [GitHub](https://github.com/Bread-Ch4n/Vacuum-Modifications)   |   Discord: `.bread_chan.` (ID: `212243828831289344`)    |
+| **Vacuum Modifications**: custom limits & instant transfers | `2.3.7` | [NexusMods](https://www.nexusmods.com/slimerancher2/mods/45)  |  [GitHub](https://github.com/Bread-Ch4n/Vacuum-Modifications)   |   Discord: `.bread_chan.` (ID: `212243828831289344`)    |
 
 ### Mod Integration Requirements
 If you want your mod to be supported by us, it has to meet a few requirements so we can build and maintain an integration for it:
