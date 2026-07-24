@@ -8,9 +8,9 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Handlers.GordoSlime;
 
 [PacketHandler((byte)PacketType.InitialGordoSlimes, HandlerType.Client)]
-internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordosPacket>
+internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGordoSlimesPacket>
 {
-    protected override bool Handle(InitialGordosPacket packet, IPEndPoint? _)
+    protected override bool Handle(InitialGordoSlimesPacket packet, IPEndPoint? _)
     {
         foreach (var gordoSlime in packet.GordoSlimes)
         {

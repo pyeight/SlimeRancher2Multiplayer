@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.GordoSlime;
 
 [HarmonyPatch(typeof(GordoPlayerProximityCheck), nameof(GordoPlayerProximityCheck.OnTriggerEnter))]
-internal static class OnGordoProximity
+internal static class OnGordoSlimeProximity
 {
     public static void Prefix(GordoPlayerProximityCheck __instance, out bool __state)
         => __state = __instance._model != null && __instance._model.GordoSeen;

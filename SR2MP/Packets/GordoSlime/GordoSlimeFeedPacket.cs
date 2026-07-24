@@ -9,7 +9,7 @@ internal sealed class GordoSlimeFeedPacket : IPacket
 
     // Needed for unregistered gordos.
     public int RequiredFoodCount;
-    public int GordoType;
+    public int GordoSlimeType;
 
     public PacketType Type => PacketType.GordoSlimeFeed;
     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -20,7 +20,7 @@ internal sealed class GordoSlimeFeedPacket : IPacket
         writer.WriteString(ID);
         writer.WritePackedInt(NewFoodCount);
         writer.WritePackedInt(RequiredFoodCount);
-        writer.WritePackedInt(GordoType);
+        writer.WritePackedInt(GordoSlimeType);
     }
 
     public void Deserialise(PacketReader reader)
@@ -28,6 +28,6 @@ internal sealed class GordoSlimeFeedPacket : IPacket
         ID = reader.ReadPooledString()!;
         NewFoodCount = reader.ReadPackedInt();
         RequiredFoodCount = reader.ReadPackedInt();
-        GordoType = reader.ReadPackedInt();
+        GordoSlimeType = reader.ReadPackedInt();
     }
 }

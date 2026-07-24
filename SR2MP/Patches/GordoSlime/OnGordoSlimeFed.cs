@@ -15,7 +15,7 @@ internal static class OnGordoSlimeFed
             ID = __instance.Id,
             NewFoodCount = __instance.GordoModel.GordoEatenCount,
             RequiredFoodCount = __instance.GordoModel.targetCount,
-            GordoType = NetworkActorManager.GetPersistentID(__instance.GordoModel.identifiableType)
+            GordoSlimeType = NetworkActorManager.GetPersistentID(__instance.GordoModel.identifiableType)
         };
         Main.SendToAllOrServer(packet);
 

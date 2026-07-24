@@ -11,9 +11,9 @@ internal sealed class GordoSlimeSeenHandler : BasePacketHandler<GordoSlimeSeenPa
 {
     protected override bool Handle(GordoSlimeSeenPacket packet, IPEndPoint? _)
     {
-        if (!GameState.gordos.TryGetValue(packet.ID, out var gordoModel))
+        if (!GameState.gordos.TryGetValue(packet.ID, out var gordoSlimeModel))
         {
-            gordoModel = new GordoModel
+            gordoSlimeModel = new GordoModel
             {
                 fashions = new CppCollections.List<IdentifiableType>(0),
                 gordoSeen = true,
@@ -21,11 +21,11 @@ internal sealed class GordoSlimeSeenHandler : BasePacketHandler<GordoSlimeSeenPa
                 targetCount = 50
             };
 
-            GameState.gordos.Add(packet.ID, gordoModel);
+            GameState.gordos.Add(packet.ID, gordoSlimeModel);
             return true;
         }
         
-        gordoModel.gordoSeen = true;
+        gordoSlimeModel.gordoSeen = true;
 
         return true;
     }

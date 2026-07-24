@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-internal sealed class InitialGordosPacket : IPacket
+internal sealed class InitialGordoSlimesPacket : IPacket
 {
     internal sealed class GordoSlime : INetObject
     {

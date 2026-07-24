@@ -39,7 +39,7 @@ internal sealed class GordoSlimeBurstHandler : BasePacketHandler<GordoSlimeBurst
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"GordoBurst: visual burst failed for gordo {packet.ID}: {ex.Message}");
+            SrLogger.LogWarning($"GordoSlimeBurst: visual burst failed for Gordo Slime {packet.ID}: {ex.Message}");
         }
 
         HandlingPacket = false;
