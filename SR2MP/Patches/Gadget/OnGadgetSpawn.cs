@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using HarmonyLib;
+using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using SR2MP.Packets.Actor;
 using SR2MP.Shared.Managers;
@@ -36,6 +37,9 @@ internal static class OnGadgetSpawn
         };
 
         Main.SendToAllOrServer(packet);
+        
+        if (GameState.identifiables.TryGetValue(gadget.GetActorId(), out var identModel))
+            NetworkActorManager.BroadcastGadgetLink(identModel?.TryCast<GadgetModel>());
     }
 
     public static void Postfix(

@@ -169,7 +169,8 @@ internal sealed partial class NetworkActorManager
         if (gadget.TryCast<DroneStationGadgetModel>(out _))
             return CreateInitialDroneStation(gadget.Cast<DroneStationGadgetModel>());
 
-        if (GetLinkedGadget(gadget) != null)
+        // Teleporters are synced differently
+        if (!gadget.TryCast<TeleporterGadgetModel>(out _) && GetLinkedGadget(gadget) != null)
         {
             if (GetAmmoFromGadget(gadget) != null)
                 return CreateInitialAmmoGadget(gadget);

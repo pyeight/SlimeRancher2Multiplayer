@@ -119,6 +119,9 @@ internal sealed partial class NetworkActorManager
         if (stationModel != null)
             StartCoroutine(NetworkDroneManager.EnsureStation(stationModel));
 
+        EnsureGadgetLinked(model);
+        CheckPendingGadgetLink(model);
+
         identModel = model.TryCast<IdentifiableModel>();
         return true;
     }
@@ -608,6 +611,9 @@ internal sealed partial class NetworkActorManager
         if (actorData is InitialActorsPacket.Gadget gadgetData)
             model.waitForChargeupTime = gadgetData.ChargeupTime;
 
+        EnsureGadgetLinked(model);
+        CheckPendingGadgetLink(model);
+
         return true;
     }
 
@@ -640,6 +646,9 @@ internal sealed partial class NetworkActorManager
         gadget.transform.SetPositionAndRotation(position, rotation);
         
         model.waitForChargeupTime = actorData.ChargeupTime;
+
+        EnsureGadgetLinked(model);
+        CheckPendingGadgetLink(model);
 
         return true;
     }

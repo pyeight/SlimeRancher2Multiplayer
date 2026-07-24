@@ -14,6 +14,8 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
     {
         ActorManager.Actors.Clear();
 
+        NetworkActorManager.CacheTeleporterState();
+
         var toRemove = new CppCollections.Dictionary<ActorId, IdentifiableModel>(
             GameState.identifiables
                 .Cast<CppCollections.IDictionary<ActorId, IdentifiableModel>>());
@@ -50,6 +52,7 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
         }
 
         ActorManager.TakeOwnershipOfNearby();
+        StartCoroutine(NetworkActorManager.RelinkGadgets());
 
         return false;
     }
