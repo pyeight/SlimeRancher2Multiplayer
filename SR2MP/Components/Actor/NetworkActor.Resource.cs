@@ -6,6 +6,10 @@ internal sealed partial class NetworkActor
 {
     private ResourceCycle.State? prevResourceState;
 
+    private bool hasKnownResourceState;
+    private double knownProgressTime;
+    private ResourceCycle.State knownResourceState;
+
     private void UpdateResourceState()
     {
         if (!isResource || LocallyOwned || cycle == null || cycle._model == null)
@@ -15,6 +19,15 @@ internal sealed partial class NetworkActor
             ShouldUpdateResourceState = false;
         else
             cycle._model.progressTime = double.MaxValue;
+    }
+
+    private void RestoreStateOnOwnership()
+    {
+        if (!isResource || !hasKnownResourceState || cycle?._model == null)
+            return;
+
+        SrLogger.LogDebug($"Resource {ActorId.Value}: resuming ripening on ownership (state={knownResourceState}, progressTime={knownProgressTime})");
+        SetResourceState(knownResourceState, knownProgressTime, force: true);
     }
 
     private void HandleCycleReleasing()
@@ -55,6 +68,10 @@ internal sealed partial class NetworkActor
             return;
 
         ShouldUpdateResourceState = true;
+
+        knownProgressTime = progress;
+        knownResourceState = state;
+        hasKnownResourceState = true;
 
         if (cycle._model != null)
             cycle._model.progressTime = progress;

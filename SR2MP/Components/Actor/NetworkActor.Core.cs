@@ -266,6 +266,9 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
             if (LocallyOwned && rigidbody)
                 rigidbody.velocity = savedVelocity;
+
+            if (LocallyOwned)
+                RestoreStateOnOwnership();
         }
 
         CachedLocallyOwned = LocallyOwned;

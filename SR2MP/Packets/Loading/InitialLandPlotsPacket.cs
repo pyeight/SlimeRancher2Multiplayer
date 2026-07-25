@@ -58,7 +58,6 @@ internal sealed class InitialLandPlotsPacket : IPacket
         public double NextSpawnTime;
         public float StoredWater;
         public bool NextSpawnRipens;
-        public string OwnerId;
 
         public readonly void Serialise(PacketWriter writer)
         {
@@ -66,7 +65,6 @@ internal sealed class InitialLandPlotsPacket : IPacket
             writer.WriteDouble(NextSpawnTime);
             writer.WriteFloat(StoredWater);
             writer.WriteBool(NextSpawnRipens);
-            writer.WriteString(OwnerId);
         }
 
         public void Deserialise(PacketReader reader)
@@ -75,7 +73,6 @@ internal sealed class InitialLandPlotsPacket : IPacket
             NextSpawnTime = reader.ReadDouble();
             StoredWater = reader.ReadFloat();
             NextSpawnRipens = reader.ReadBool();
-            OwnerId = reader.ReadPooledString() ?? string.Empty;
         }
     }
 

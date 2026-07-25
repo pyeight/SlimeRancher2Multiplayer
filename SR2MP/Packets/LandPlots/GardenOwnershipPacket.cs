@@ -4,25 +4,33 @@ namespace SR2MP.Packets.LandPlots;
 
 internal sealed class GardenOwnershipPacket : IPacket
 {
-    public string GardenID;
-    public string ClaimerID;
-    public string PreviousOwnerID;
+    internal struct Entry : INetObject
+    {
+        public string GardenId;
+        public string OwnerId;
+
+        public readonly void Serialise(PacketWriter writer)
+        {
+            writer.WriteString(GardenId);
+            writer.WriteString(OwnerId);
+        }
+
+        public void Deserialise(PacketReader reader)
+        {
+            GardenId = reader.ReadPooledString()!;
+            OwnerId = reader.ReadPooledString() ?? string.Empty;
+        }
+    }
+
+    public List<Entry> Entries;
 
     public PacketType Type => PacketType.GardenOwnership;
     public PacketReliability Reliability => PacketReliability.Reliable;
     public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
-    {
-        writer.WriteString(GardenID);
-        writer.WriteString(ClaimerID);
-        writer.WriteString(PreviousOwnerID);
-    }
+        => writer.WriteList(Entries, PacketWriterDels.NetObject<Entry>.Writer);
 
     public void Deserialise(PacketReader reader)
-    {
-        GardenID        = reader.ReadPooledString()!;
-        ClaimerID       = reader.ReadPooledString() ?? string.Empty;
-        PreviousOwnerID = reader.ReadPooledString() ?? string.Empty;
-    }
+        => Entries = reader.ReadList(PacketReaderDels.NetObject<Entry>.Reader)!;
 }

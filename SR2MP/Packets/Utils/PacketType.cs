@@ -41,8 +41,8 @@ internal enum PacketType : byte
     LandPlotUpgrade = 35,         // Both Ways                                    Low (manual)                          Land plot upgrade
     InitialLandPlots = 36,        // Server -> Client                             Low                                   Plots on Load
     GardenPlant = 37,             // Both Ways                                    Medium (manual)                       On Food Planted
-    GardenUpdate = 38,            // Both Ways                                    High                                  On Garden update
-    GardenOwnership = 39,         // Both Ways                                    Medium (manual)                       On Garden ownership transfer
+    GardenUpdate = 38,            // Both Ways                                    Medium                                Owned garden states
+    GardenOwnership = 39,         // Both Ways                                    Low                                   Garden ownership claims
     AutoFeederSpeed = 40,         // Both Ways                                    Low (manual)                          On Auto Feeder speed switch
     AutoFeederDispense = 41,      // Both Ways                                    Medium                                On Auto Feeder food dispense
     PlortCollection = 42,         // Both Ways                                    Medium (can be manual)                On Plorts collected

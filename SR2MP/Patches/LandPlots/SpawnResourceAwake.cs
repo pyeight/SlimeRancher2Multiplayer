@@ -1,5 +1,6 @@
 using HarmonyLib;
 using SR2MP.Components.LandPlots;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.LandPlots;
 
@@ -14,8 +15,8 @@ internal static class SpawnResourceAwakePatch
 
         if (!subscribedToServerStart)
         {
-            Main.Server.OnServerStarted += NetworkGarden.OnServerStarted;
-            Main.Client.OnDisconnected += NetworkGarden.OnDisconnected;
+            Main.Server.OnServerStarted += NetworkGardenManager.OnServerStarted;
+            Main.Client.OnDisconnected += NetworkGardenManager.OnDisconnected;
             subscribedToServerStart = true;
         }
 

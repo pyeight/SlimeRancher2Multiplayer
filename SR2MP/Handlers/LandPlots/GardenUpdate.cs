@@ -1,8 +1,8 @@
 ﻿using System.Net;
-using SR2MP.Components.LandPlots;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.LandPlots;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.LandPlots;
 
@@ -11,8 +11,8 @@ internal sealed class GardenUpdateHandler : BasePacketHandler<GardenUpdatePacket
 {
     protected override bool Handle(GardenUpdatePacket packet, IPEndPoint? _)
     {
-        if (NetworkGarden.Gardens.TryGetValue(packet.GardenID, out var garden))
-            garden.ApplyUpdate(packet.NextSpawnTime, packet.StoredWater, packet.NextSpawnRipens);
+        foreach (var entry in packet.Entries)
+            NetworkGardenManager.ApplyState(entry);
 
         return true;
     }

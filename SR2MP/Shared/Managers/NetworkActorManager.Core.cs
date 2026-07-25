@@ -166,13 +166,10 @@ internal sealed partial class NetworkActorManager
                     var ownerId = netActor.CurrentOwnerId;
                     var ownerExists = !string.IsNullOrEmpty(ownerId) && PlayerManager.CheckPlayerExists(ownerId);
 
-                    if (netActor.isPlort || netActor.isResource)
+                    if (netActor.isPlort && !ownerExists)
                     {
-                        if (!ownerExists)
-                        {
-                            try { Destroyer.DestroyAny(actor.GetGameObject(), "SR2MP.UnownedSlimeOwnership"); } catch { /* ignored */ }
-                            continue;
-                        }
+                        try { Destroyer.DestroyAny(actor.GetGameObject(), "SR2MP.UnownedSlimeOwnership"); } catch { /* ignored */ }
+                        continue;
                     }
 
                     if (ownerExists
