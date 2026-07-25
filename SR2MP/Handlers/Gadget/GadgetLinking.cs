@@ -11,7 +11,7 @@ internal sealed class GadgetLinkingHandler : BasePacketHandler<GadgetLinkingPack
 {
     protected override bool Handle(GadgetLinkingPacket packet, IPEndPoint? _)
     {
-        NetworkActorManager.ApplyGadgetLink(packet.GadgetId, packet.PartnerId);
+        NetworkGadgetManager.ApplyGadgetLink(packet.GadgetId, packet.PartnerId);
         return true;
     }
 }

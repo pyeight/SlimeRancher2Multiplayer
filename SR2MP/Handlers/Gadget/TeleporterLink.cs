@@ -11,7 +11,7 @@ internal sealed class TeleporterLinkHandler : BasePacketHandler<TeleporterLinkPa
 {
     protected override bool Handle(TeleporterLinkPacket packet, IPEndPoint? _)
     {
-        StartCoroutine(NetworkActorManager.ApplyTeleporterLink(
+        StartCoroutine(NetworkGadgetManager.ApplyTeleporterLink(
             packet.SourceNodeId, packet.DestinationNodeId, packet.DestinationSceneGroup));
         
         return true;

@@ -4,7 +4,6 @@ using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Event;
 using Il2CppMonomiPark.SlimeRancher.Pedia;
 using Il2CppMonomiPark.SlimeRancher.Weather;
-using SR2MP.Components.LandPlots;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
 using SR2MP.Packets.Ammo;
@@ -467,13 +466,13 @@ internal sealed class ReSyncManager
 
     private static void SendGadgetLinksPacket(IPEndPoint client)
     {
-        var packet = new InitialGadgetLinksPacket { Links = NetworkActorManager.GetAllGadgetLinks() };
+        var packet = new InitialGadgetLinksPacket { Links = NetworkGadgetManager.GetAllGadgetLinks() };
         Main.Server.SendToClient(packet, client);
     }
 
     private static void SendTeleporterLinksPacket(IPEndPoint client)
     {
-        var packet = new InitialTeleporterLinksPacket { Links = NetworkActorManager.GetAllTeleporterLinks() };
+        var packet = new InitialTeleporterLinksPacket { Links = NetworkGadgetManager.GetAllTeleporterLinks() };
         Main.Server.SendToClient(packet, client);
     }
 
@@ -588,7 +587,6 @@ internal sealed class ReSyncManager
                     NextSpawnTime = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnTime ?? 0,
                     StoredWater = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.storedWater ?? 0,
                     NextSpawnRipens = plot.gameObj?.GetComponentInChildren<SpawnResource>()?._model?.nextSpawnRipens ?? false,
-                    OwnerId = plot.gameObj?.GetComponentInChildren<SpawnResource>()?.GetComponent<NetworkGarden>()?.CurrentOwnerId ?? string.Empty,
                 },
                 LandPlot.Id.POND => new InitialLandPlotsPacket.CoopPondData
                 {

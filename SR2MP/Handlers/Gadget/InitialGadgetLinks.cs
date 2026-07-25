@@ -12,7 +12,7 @@ internal sealed class InitialGadgetLinksHandler : BasePacketHandler<InitialGadge
     protected override bool Handle(InitialGadgetLinksPacket packet, IPEndPoint? _)
     {
         foreach (var link in packet.Links)
-            NetworkActorManager.ApplyGadgetLink(link.GadgetId, link.PartnerId);
+            NetworkGadgetManager.ApplyGadgetLink(link.GadgetId, link.PartnerId);
 
         return false;
     }

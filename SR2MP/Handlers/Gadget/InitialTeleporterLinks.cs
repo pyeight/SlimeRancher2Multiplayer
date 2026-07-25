@@ -13,7 +13,7 @@ internal sealed class InitialTeleporterLinksHandler : BasePacketHandler<InitialT
     {
         foreach (var link in packet.Links)
         {
-            StartCoroutine(NetworkActorManager.ApplyTeleporterLink(
+            StartCoroutine(NetworkGadgetManager.ApplyTeleporterLink(
                 link.SourceNodeId, link.DestinationNodeId, link.DestinationSceneGroup));
         }
 

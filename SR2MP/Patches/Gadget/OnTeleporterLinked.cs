@@ -18,9 +18,6 @@ internal static class OnTeleporterLinked
         {
             var sourceNode = __instance.source?.TeleporterNodeModel;
             if (sourceNode == null || nodeModel == null) return;
-            
-            NetworkActorManager.CacheTeleporterNode(sourceNode);
-            NetworkActorManager.CacheTeleporterNode(nodeModel);
 
             SrLogger.LogDebug($"OnTeleporterLinked: broadcasting {sourceNode.NodeId} -> {nodeModel.NodeId}.");
 

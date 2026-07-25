@@ -20,7 +20,8 @@ internal sealed class ActorSpawnHandler : BasePacketHandler<ActorSpawnPacket>
 
         ActorManager.TrySpawnNetworkActor(
             packet.ActorId, packet.Position, packet.Rotation, packet.ActorType, packet.SceneGroup, out var actor,
-            packet.FirstAppearance, packet.SecondAppearance, packet.Emotions, packet.Sleeping);
+            packet.FirstAppearance, packet.SecondAppearance, packet.Emotions, packet.Sleeping,
+            packet.SpawnType == (byte)ActorSpawnType.Gadget ? packet.ChargeupTime : 0);
 
         if (actor == null)
             return true;
