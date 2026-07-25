@@ -39,7 +39,13 @@ internal static class OnActorDestroy
         // Prevents clients that dont own it from destroying it yia 'ResourceCycle.RegistryUpdate#1'
         var netActor = actorObj.GetComponent<NetworkActor>();
         if (netActor != null && netActor.isResource && !netActor.LocallyOwned)
-            return false;
+        {
+            if (!netActor.IsRotten)
+                return false;
+
+            ActorManager.Actors.Remove(actor.GetActorId().Value);
+            return true;
+        }
 
         // Drone destructions are handled differently
         if (actorObj.GetComponent<Il2CppMonomiPark.SlimeRancher.Drone.RanchDrone>() ||

@@ -9,6 +9,8 @@ internal sealed partial class NetworkActor
     private bool hasKnownResourceState;
     private double knownProgressTime;
     private ResourceCycle.State knownResourceState;
+    
+    internal bool IsRotten => isResource && cycle?._model != null && cycle._model.state == ResourceCycle.State.ROTTEN;
 
     private void UpdateResourceState()
     {
