@@ -14,7 +14,7 @@ internal sealed class InitialPlortDepositorsHandler : BasePacketHandler<InitialP
         HandlingPacket = true;
 
         foreach (var depositor in packet.Depositors)
-            NetworkDepositorManager.ApplyState(depositor.ID, depositor.AmountDeposited);
+            NetworkPlortDepositorManager.ApplyState(depositor.ID, depositor.AmountDeposited);
 
         HandlingPacket = false;
 

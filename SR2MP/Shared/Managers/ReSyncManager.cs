@@ -395,7 +395,7 @@ internal sealed class ReSyncManager
             });
         }
 
-        foreach (var pending in NetworkDepositorManager.PendingDepositorStates)
+        foreach (var pending in NetworkPlortDepositorManager.PendingDepositorStates)
         {
             if (GameState.depositors.ContainsKey(pending.Key))
                 continue;

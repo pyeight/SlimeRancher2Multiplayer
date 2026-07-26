@@ -12,7 +12,7 @@ internal sealed class PlortDepositorHandler : BasePacketHandler<PlortDepositorPa
     protected override bool Handle(PlortDepositorPacket packet, IPEndPoint? _)
     {
         HandlingPacket = true;
-        NetworkDepositorManager.ApplyState(packet.ID, packet.AmountDeposited);
+        NetworkPlortDepositorManager.ApplyState(packet.ID, packet.AmountDeposited);
         HandlingPacket = false;
 
         return true;

@@ -2,11 +2,11 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 
 namespace SR2MP.Shared.Managers;
 
-internal static class NetworkDepositorManager
+internal static class NetworkPlortDepositorManager
 {
     private static readonly Dictionary<string, int> PendingStates = new();
 
-    static NetworkDepositorManager()
+    static NetworkPlortDepositorManager()
     {
         Main.Server.OnServerStarted +=      PendingStates.Clear;
         Main.Client.OnConnected     += _ => PendingStates.Clear();

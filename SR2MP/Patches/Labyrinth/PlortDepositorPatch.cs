@@ -37,19 +37,19 @@ internal static class OnPlortDepositorDeposit
 internal static class OnPlortDepositorAwake
 {
     public static void Postfix(PlortDepositor __instance)
-        => NetworkDepositorManager.ApplyPendingState(__instance, __instance._model);
+        => NetworkPlortDepositorManager.ApplyPendingState(__instance, __instance._model);
 }
 
 [HarmonyPatch(typeof(PlortDepositor), nameof(PlortDepositor.InitModel))]
 internal static class OnPlortDepositorModelInit
 {
     public static void Postfix(PlortDepositor __instance, PlortDepositorModel model)
-        => NetworkDepositorManager.ApplyPendingState(__instance, model);
+        => NetworkPlortDepositorManager.ApplyPendingState(__instance, model);
 }
 
 [HarmonyPatch(typeof(PlortDepositor), nameof(PlortDepositor.SetModel))]
 internal static class OnPlortDepositorModelSet
 {
     public static void Postfix(PlortDepositor __instance, PlortDepositorModel model)
-        => NetworkDepositorManager.ApplyPendingState(__instance, model);
+        => NetworkPlortDepositorManager.ApplyPendingState(__instance, model);
 }
