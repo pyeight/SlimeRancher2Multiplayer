@@ -138,6 +138,8 @@ internal partial class NetworkPlayer : MonoBehaviour
 
         CleanupGadgetPreview();
 
+        DestroyMapMarker();
+
         if (PlayerMarkerTransforms.TryGetValue(ID, out var marker))
         {
             if (marker.mainMarker != null)
