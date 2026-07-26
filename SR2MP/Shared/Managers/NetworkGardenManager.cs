@@ -60,12 +60,14 @@ internal static class NetworkGardenManager
     {
         var id = garden.Id!;
         Gardens[id] = garden;
+        SrLogger.LogGarden($"Garden registered in manager: id='{id}', total={Gardens.Count}");
 
         if (Main.Server.IsRunning &&
             KnownOwners.TryGetValue(id, out var owner) &&
             owner != LocalID &&
             PlayerManager.CheckPlayerExists(owner))
         {
+            SrLogger.LogGarden($"Garden '{id}' restoring known owner '{owner}' on register");
             garden.SetOwner(owner);
         }
     }
@@ -97,15 +99,23 @@ internal static class NetworkGardenManager
         // An empty owner is a release (the owner hibernated)
         // Others are free to take over
         if (string.IsNullOrEmpty(ownerId))
+        {
+            SrLogger.LogGarden($"Garden '{gardenId}' ownership release received");
             garden.OnOwnerReleased();
+        }
         else
+        {
+            SrLogger.LogGarden($"Garden '{gardenId}' ownership claim received from '{ownerId}'");
             garden.SetOwner(ownerId);
+        }
     }
     
     internal static void BroadcastRelease(string gardenId)
     {
         if (Main.Server.IsRunning)
             KnownOwners[gardenId] = string.Empty;
+
+        SrLogger.LogGarden($"Broadcasting garden release: id='{gardenId}'");
 
         Main.SendToAllOrServer(new GardenOwnershipPacket
         {
@@ -116,6 +126,7 @@ internal static class NetworkGardenManager
     internal static void ApplyState(GardenUpdatePacket.Entry entry)
     {
         var found = Gardens.TryGetValue(entry.GardenId, out var garden) && garden;
+        SrLogger.LogGarden($"Garden update received: id='{entry.GardenId}', found={found}, nextSpawnTime={entry.NextSpawnTime}, storedWater={entry.StoredWater}");
         if (found)
             garden!.ApplyUpdate(entry.NextSpawnTime, entry.StoredWater, entry.NextSpawnRipens);
     }
@@ -159,6 +170,7 @@ internal static class NetworkGardenManager
         }
         PendingClaims.Clear();
 
+        SrLogger.LogGarden($"Broadcasting {entries.Count} garden claim(s)");
         Main.SendToAllOrServer(new GardenOwnershipPacket { Entries = entries });
     }
 
@@ -184,7 +196,10 @@ internal static class NetworkGardenManager
         }
 
         if (entries != null)
+        {
+            SrLogger.LogGarden($"Broadcasting {entries.Count} garden state(s)");
             Main.SendToAllOrServer(new GardenUpdatePacket { Entries = entries });
+        }
     }
     
     internal static void AssignOwnershipOfUnowned()
@@ -236,6 +251,8 @@ internal static class NetworkGardenManager
 
             KnownOwners[gardenId] = newOwner;
 
+            SrLogger.LogGarden($"Garden '{gardenId}' reassigned from missing owner '{owner}' to '{newOwner}'");
+
             if (garden)
                 garden!.SetOwner(newOwner);
 
@@ -243,7 +260,10 @@ internal static class NetworkGardenManager
         }
 
         if (entries != null)
+        {
+            SrLogger.LogGarden($"Broadcasting {entries.Count} garden reassignment(s) after owner left");
             Main.SendToAllOrServer(new GardenOwnershipPacket { Entries = entries });
+        }
     }
 
     internal static void RestoreAfterTimeSkip()

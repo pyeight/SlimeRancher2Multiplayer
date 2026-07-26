@@ -82,6 +82,6 @@ internal static class SpawnResourceAwakePatch
         var interval = definition._minSpawnIntervalGameHours;
         model.nextSpawnTime = timeDirector.HoursFromNow(interval);
 
-        SrLogger.LogDebug($"Reset grow time on spawner '{spawnResource._id}', next spawn in {interval} hours.");
+        SrLogger.LogGarden($"Reset grow time on spawner '{spawnResource._id}', next spawn in {interval} hours.");
     }
 }

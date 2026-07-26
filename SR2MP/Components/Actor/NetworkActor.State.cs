@@ -97,6 +97,9 @@ internal sealed partial class NetworkActor
             var currentState    = cycle!._model!.state;
             var currentProgress = cycle._model.progressTime;
             var currentScale    = GetResourceScaleRatio();
+            
+            if (IsResourceFrozen(currentProgress))
+                currentProgress = knownProgressTime;
 
             lastSentResourceState    = currentState;
             lastSentResourceScale    = currentScale;

@@ -126,6 +126,7 @@ internal sealed class NetworkGarden : MonoBehaviour
         if (UnityEngine.Time.time - lastActivityTime < takeoverDelay)
             return;
         
+        SrLogger.LogGarden($"Garden '{Id}' silent for {takeoverDelay:F0}s, taking over");
         TakeOwnership();
     }
     private void TryRegister()
@@ -133,13 +134,15 @@ internal sealed class NetworkGarden : MonoBehaviour
         if (garden == null || string.IsNullOrEmpty(Id) || garden._model == null)
         {
             if (++registerAttempts == 60)
-                SrLogger.LogDebug($"Garden register STUCK: name='{name}', id='{Id ?? "<null>"}', modelNull={garden?._model == null}");
+                SrLogger.LogGarden($"Garden register STUCK: name='{name}', id='{Id ?? "<null>"}', modelNull={garden?._model == null}");
             return;
         }
 
         registered = true;
         NetworkGardenManager.Register(this);
         ApplySimulationGate();
+
+        SrLogger.LogGarden($"Garden registered: name='{name}', id='{Id}', locallyOwned={LocallyOwned}");
 
         if (claimOnReady)
         {
@@ -154,6 +157,8 @@ internal sealed class NetworkGarden : MonoBehaviour
         LocallyOwned = true;
         lastActivityTime = UnityEngine.Time.time;
 
+        SrLogger.LogGarden($"Garden '{Id}' claimed by '{LocalID}' (broadcast={broadcast}, nextSpawnTime={garden?._model?.nextSpawnTime})");
+
         if (!broadcast)
             return;
 
@@ -165,6 +170,8 @@ internal sealed class NetworkGarden : MonoBehaviour
         CurrentOwnerId = ownerId;
         LocallyOwned = ownerId == LocalID && !IsHibernated;
         lastActivityTime = UnityEngine.Time.time;
+
+        SrLogger.LogGarden($"Garden '{Id}' owner set to '{ownerId}' (locallyOwned={LocallyOwned})");
     }
 
     internal void ClaimOnReady()
@@ -183,7 +190,14 @@ internal sealed class NetworkGarden : MonoBehaviour
         CurrentOwnerId = string.Empty;
 
         if (!IsHibernated && registered)
+        {
+            SrLogger.LogGarden($"Garden '{Id}' released by owner, taking over");
             TakeOwnership();
+        }
+        else
+        {
+            SrLogger.LogGarden($"Garden '{Id}' released by owner, not taking over (hibernated={IsHibernated}, registered={registered})");
+        }
     }
 
     internal void ResetToVanilla()
@@ -202,7 +216,8 @@ internal sealed class NetworkGarden : MonoBehaviour
     {
         if (regionMember == null)
         {
-            SrLogger.LogWarning($"Garden '{Id}' has no RegionMember");
+            if (GardenLogging)
+                SrLogger.LogWarning($"Garden '{Id}' has no RegionMember");
             return;
         }
 
@@ -227,6 +242,7 @@ internal sealed class NetworkGarden : MonoBehaviour
     public void OnHibernationChanged(bool hibernating)
     {
         IsHibernated = hibernating;
+        SrLogger.LogGarden($"Garden '{Id}' hibernation changed: hibernating={hibernating}, locallyOwned={LocallyOwned}");
 
         if (hibernating)
         {
@@ -238,9 +254,10 @@ internal sealed class NetworkGarden : MonoBehaviour
 
             NetworkGardenManager.QueueFinalState(this);
             LocallyOwned = false;
-           
+
             // So others can take over immediately without having to wait the delay
             NetworkGardenManager.BroadcastRelease(Id!);
+            SrLogger.LogGarden($"Garden '{Id}' released on hibernation");
             // CurrentOwnerId stays ours, if nobody claims it while we're away,
             // we resume simulation once its loaded again.
         }
@@ -252,7 +269,7 @@ internal sealed class NetworkGarden : MonoBehaviour
             if (CurrentOwnerId == LocalID)
             {
                 LocallyOwned = true;
-                SrLogger.LogDebug($"Garden '{Id}' ownership resumed on wake");
+                SrLogger.LogGarden($"Garden '{Id}' ownership resumed on wake");
             }
         }
     }

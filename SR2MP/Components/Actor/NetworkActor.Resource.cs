@@ -10,6 +10,10 @@ internal sealed partial class NetworkActor
     private double knownProgressTime;
     private ResourceCycle.State knownResourceState;
     
+    // Non-owners should not cache double.MaxValue as progress time,
+    // causes problems on gaining ownership if the cache does not update
+    internal static bool IsResourceFrozen(double progress) => progress > 1e300 || double.IsInfinity(progress);
+
     internal bool IsRotten => isResource && cycle?._model != null && cycle._model.state == ResourceCycle.State.ROTTEN;
 
     private void UpdateResourceState()
@@ -18,18 +22,44 @@ internal sealed partial class NetworkActor
             return;
 
         if (ShouldUpdateResourceState)
+        {
             ShouldUpdateResourceState = false;
+        }
         else
+        {
+            // Cache the real progress before freezing
+            var current = cycle._model.progressTime;
+            if (!IsResourceFrozen(current))
+            {
+                knownProgressTime = current;
+                knownResourceState = cycle._model.state;
+                hasKnownResourceState = true;
+            }
+
             cycle._model.progressTime = double.MaxValue;
+        }
     }
 
     private void RestoreStateOnOwnership()
     {
-        if (!isResource || !hasKnownResourceState || cycle?._model == null)
+        if (!isResource || cycle?._model == null)
             return;
 
-        SrLogger.LogDebug($"Resource {ActorId.Value}: resuming ripening on ownership (state={knownResourceState}, progressTime={knownProgressTime})");
-        SetResourceState(knownResourceState, knownProgressTime, force: true);
+        if (hasKnownResourceState && !IsResourceFrozen(knownProgressTime))
+        {
+            SrLogger.LogGarden($"Resource {ActorId.Value}: resuming ripening on ownership (state={knownResourceState}, progressTime={knownProgressTime})");
+            SetResourceState(knownResourceState, knownProgressTime, force: true);
+            return;
+        }
+        
+        // Invalid cache, reset it to the current time
+        if (IsResourceFrozen(cycle._model.progressTime))
+        {
+            var now = SceneContext.Instance.TimeDirector.WorldTime();
+            if (GardenLogging)
+                SrLogger.LogWarning($"Resource {ActorId.Value}: no cached progress on ownership, resetting time (worldTime={now})");
+            cycle._model.progressTime = now;
+        }
     }
 
     private void HandleCycleReleasing()
@@ -71,12 +101,17 @@ internal sealed partial class NetworkActor
 
         ShouldUpdateResourceState = true;
 
-        knownProgressTime = progress;
         knownResourceState = state;
-        hasKnownResourceState = true;
+        
+        // Do not cache the frozen state
+        if (!IsResourceFrozen(progress))
+        {
+            knownProgressTime = progress;
+            hasKnownResourceState = true;
 
-        if (cycle._model != null)
-            cycle._model.progressTime = progress;
+            if (cycle._model != null)
+                cycle._model.progressTime = progress;
+        }
 
         if (!force && prevResourceState == state)
             return;
