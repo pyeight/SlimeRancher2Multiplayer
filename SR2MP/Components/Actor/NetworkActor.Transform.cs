@@ -27,6 +27,8 @@ internal sealed partial class NetworkActor
         if (LocallyOwned || IsDestroyed)
             return;
 
+        UpdateOwnerValidity();
+
         previousPosition   = transform.position;
         previousRotation   = transform.rotation;
         nextPosition       = packet.Position;

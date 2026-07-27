@@ -32,6 +32,21 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
     public string CurrentOwnerId = string.Empty;
 
+    private float lastOwnerHeardTime;
+    private float ownerSilenceThreshold;
+    private const float OwnerSilenceMin = 5f;
+    private const float OwnerSilenceMax = 11f;
+
+    internal bool OwnerRecentlyHeard => UnityEngine.Time.time - lastOwnerHeardTime < ownerSilenceThreshold;
+
+    private void UpdateOwnerValidity() => lastOwnerHeardTime = UnityEngine.Time.time;
+
+    private void ResetOwnerValidityTime()
+    {
+        lastOwnerHeardTime = UnityEngine.Time.time;
+        ownerSilenceThreshold = UnityEngine.Random.Range(OwnerSilenceMin, OwnerSilenceMax);
+    }
+
     private bool? CycleReleasing => cycle?._preparingToRelease;
     private bool? cachedCycleReleasing;
 
@@ -114,8 +129,9 @@ internal sealed partial class NetworkActor : MonoBehaviour
             }
 
             InitializeComponents();
-            
+
             CachedLocallyOwned = LocallyOwned;
+            ResetOwnerValidityTime();
 
             GetActorType();
             
@@ -269,6 +285,10 @@ internal sealed partial class NetworkActor : MonoBehaviour
 
             if (LocallyOwned)
                 RestoreStateOnOwnership();
+            else
+                // Just lost ownership: give the new owner a fresh (jittered) grace period
+                // before we'd consider a silence-takeover.
+                ResetOwnerValidityTime();
         }
 
         CachedLocallyOwned = LocallyOwned;

@@ -173,6 +173,7 @@ internal sealed partial class NetworkActorManager
                     }
 
                     if (ownerExists
+                        && netActor.OwnerRecentlyHeard
                         && PlayerObjects.TryGetValue(ownerId, out var playerObj)
                         && playerObj
                         && new Bounds(playerObj.transform.position, ownershipBoundsSize).Contains(actor.lastPosition))
