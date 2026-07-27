@@ -16,7 +16,7 @@ public static class GlobalVariables
     /// <summary>
     /// Gets or sets a value indicating whether development mode is currently active.
     /// </summary>
-    public static bool DevMode { get; } = true;
+    public static bool DevMode { get; } = false;
 
     /// <summary>
     /// Gets a value indicating whether verbose garden logging is enabled.
