@@ -207,6 +207,7 @@ public sealed class Main : StarlightExpansionV01
         NetworkSceneManager.Initialize(gameContext);
         NetworkAmmoManager.Initialize();
         NetworkDroneManager.Initialize();
+        NetworkEventManager.Initialize();
     }
 
     internal static void SetConfigValue<T>(string key, T value)
