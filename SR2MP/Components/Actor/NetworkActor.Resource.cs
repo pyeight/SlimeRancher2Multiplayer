@@ -21,6 +21,12 @@ internal sealed partial class NetworkActor
         if (!isResource || LocallyOwned || cycle == null || cycle._model == null)
             return;
 
+        if (cycle._model.state == ResourceCycle.State.ROTTEN)
+        {
+            DespawnRottenResource();
+            return;
+        }
+
         if (ShouldUpdateResourceState)
         {
             ShouldUpdateResourceState = false;
@@ -37,6 +43,26 @@ internal sealed partial class NetworkActor
             }
 
             cycle._model.progressTime = double.MaxValue;
+        }
+    }
+
+    private void DespawnRottenResource()
+    {
+        if (IsDestroyed)
+            return;
+
+        try
+        {
+            var actorId = ActorId;
+            if (actorId.Value != 0)
+                ActorManager.Actors.Remove(actorId.Value);
+
+            IsDestroyed = true;
+            Destroyer.DestroyAny(gameObject, "SR2MP.RottenCleanup");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"KillRottenResource error: {ex.Message}");
         }
     }
 
