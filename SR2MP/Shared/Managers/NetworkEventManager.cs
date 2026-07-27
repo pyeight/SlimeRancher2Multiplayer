@@ -13,6 +13,11 @@ internal enum FilterType
 
 internal static class NetworkEventManager
 {
+    internal static void Initialize()
+    {
+        _ = ProducersByKey;
+    }
+    
     private const FilterType EventKeyFilter = FilterType.Whitelist;
     private const FilterType DataKeyFilter = FilterType.Unfiltered;
 
@@ -83,12 +88,19 @@ internal static class NetworkEventManager
                 return producersByKey;
 
             producersByKey = new Dictionary<string, StringEventProducer>();
+            
             foreach (var producer in Resources.FindObjectsOfTypeAll<StringEventProducer>())
-                producersByKey[producer.KeyPrefix] = producer;
+            {
+                if (!string.IsNullOrEmpty(producer.KeyPrefix))
+                    producersByKey[producer.KeyPrefix] = producer;
+            }
 
             return producersByKey;
         }
     }
+
+    internal static bool HasProducer(string eventKey)
+        => ProducersByKey.ContainsKey(eventKey);
 
     private static bool ShouldSyncEventKey(string eventKey) => EventKeyFilter switch
     {

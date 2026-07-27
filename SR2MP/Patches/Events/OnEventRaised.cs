@@ -21,9 +21,8 @@ internal static class OnEventRaised
         var eventKey = gameEvent.EventKey;
         if (string.IsNullOrEmpty(eventKey)) return;
 
-        var isStringEvent = Resources.FindObjectsOfTypeAll<StringEventProducer>()
-            .Any(producer => producer.KeyPrefix == eventKey);
-        if (!isStringEvent) return;
+        if (!NetworkEventManager.HasProducer(eventKey))
+            return;
 
         if (!NetworkEventManager.ShouldSync(eventKey, gameEvent.DataKey)) return;
 
