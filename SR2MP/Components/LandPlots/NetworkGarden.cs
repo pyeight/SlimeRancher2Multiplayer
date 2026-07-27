@@ -1,6 +1,7 @@
-﻿using Il2CppMonomiPark.SlimeRancher.Regions;
+using Il2CppMonomiPark.SlimeRancher.Regions;
 using JetBrains.Annotations;
 using SR2MP.Packets.LandPlots;
+using SR2MP.Shared.Managers;
 using Starlight.Storage;
 
 namespace SR2MP.Components.LandPlots;
@@ -11,67 +12,214 @@ internal sealed class NetworkGarden : MonoBehaviour
     private SpawnResource? garden;
     private RegionMember regionMember;
 
-    public static readonly Dictionary<string, NetworkGarden> Gardens = new();
+    private bool registered;
+    private int registerAttempts;
+    private bool claimOnReady;
+    private bool locallyOwned;
+    private bool vanillaAllowSpawningInFastForwarding;
+    private float lastActivityTime;
 
-    public bool LocallyOwned { get; set; }
-    public bool IsHibernated { get; private set; }
-    public string CurrentOwnerId { get; set; } = string.Empty;
+    private const float TakeoverDelayMin = 12f;
+    private const float TakeoverDelayMax = 16f;
+    private readonly float takeoverDelay = UnityEngine.Random.Range(TakeoverDelayMin, TakeoverDelayMax);
 
     private double cachedNextSpawnTime;
-    private float syncTimer;
-    private const float SyncInterval = 5f;
-    private bool cachedLocallyOwned;
+    private float cachedStoredWater;
+    private bool cachedNextSpawnRipens;
+    private bool hasCachedState;
     
-    internal static void OnServerStarted()
+    private string? resolvedId;
+    internal string? Id
     {
-        foreach (var spawnResource in FindObjectsOfType<SpawnResource>(true))
+        get
         {
-            if (spawnResource.GetComponent<NetworkGarden>() == null)
-                spawnResource.gameObject.AddComponent<NetworkGarden>();
-        }
+            if (!string.IsNullOrEmpty(resolvedId))
+                return resolvedId;
 
-        foreach (var garden in Gardens.Values)
+            var landPlot = GetComponentInParent<LandPlotLocation>();
+            if (landPlot != null && !string.IsNullOrEmpty(landPlot._id) && garden != null)
+            {
+                var siblings = landPlot.GetComponentsInChildren<SpawnResource>(true);
+                var gardenInstanceId = garden.GetInstanceID();
+                var index = 0;
+                for (var i = 0; i < siblings.Length; i++)
+                {
+                    if (siblings[i] != null && siblings[i].GetInstanceID() == gardenInstanceId)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+                resolvedId = $"{landPlot._id}_{index}";
+            }
+            else if (!string.IsNullOrEmpty(garden?._id))
+                resolvedId = garden!._id;
+
+            return resolvedId;
+        }
+    }
+
+    public bool IsHibernated { get; private set; }
+    private string CurrentOwnerId { get; set; } = string.Empty;
+
+    public bool LocallyOwned
+    {
+        get => locallyOwned;
+        private set
         {
-            if (garden.IsHibernated)
-                continue;
-
-            garden.LocallyOwned = true;
-            garden.CurrentOwnerId = Main.Server.PlayerId;
+            locallyOwned = value;
+            ApplySimulationGate();
         }
+    }
+
+    private void ApplySimulationGate()
+    {
+        if (garden == null)
+            return;
+
+        garden.enabled = locallyOwned;
+        garden._allowSpawningInFastForwarding = locallyOwned;
     }
 
     [UsedImplicitly]
     public void Awake()
     {
         garden = GetComponent<SpawnResource>();
-        regionMember = GetComponent<RegionMember>();
-
-        if (garden != null && !string.IsNullOrEmpty(garden._id))
-            Gardens[garden._id] = this;
-
-        IsHibernated = false;
-        LocallyOwned = Main.Server.IsRunning;
-        cachedLocallyOwned = LocallyOwned;
+        regionMember = GetComponentInParent<RegionMember>(true) ?? GetComponentInChildren<RegionMember>(true);
 
         if (garden != null)
-            garden.enabled = LocallyOwned;
+            vanillaAllowSpawningInFastForwarding = garden._allowSpawningInFastForwarding;
+
+        IsHibernated = false;
+        lastActivityTime = UnityEngine.Time.time;
 
         if (Main.Server.IsRunning)
-            CurrentOwnerId = Main.Server.PlayerId;
+        {
+            CurrentOwnerId = LocalID;
+            LocallyOwned = true;
+        }
+        else
+        {
+            LocallyOwned = false;
+        }
     }
 
     public void Start()
-    {
-        SetupHibernationEvent();
+        => SetupHibernationEvent();
 
-        if (Main.Client.IsConnected && !LocallyOwned && !IsHibernated)
-            ClaimOwnership();
+    public void Update()
+    {
+        NetworkGardenManager.Tick();
+
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
+            return;
+
+        if (!registered)
+        {
+            TryRegister();
+            return;
+        }
+
+        if (LocallyOwned || IsHibernated)
+            return;
+
+        if (UnityEngine.Time.time - lastActivityTime < takeoverDelay)
+            return;
+        
+        SrLogger.LogGarden($"Garden '{Id}' silent for {takeoverDelay:F0}s, taking over");
+        TakeOwnership();
+    }
+    private void TryRegister()
+    {
+        if (garden == null || string.IsNullOrEmpty(Id) || garden._model == null)
+        {
+            if (++registerAttempts == 60)
+                SrLogger.LogGarden($"Garden register STUCK: name='{name}', id='{Id ?? "<null>"}', modelNull={garden?._model == null}");
+            return;
+        }
+
+        registered = true;
+        NetworkGardenManager.Register(this);
+        ApplySimulationGate();
+
+        SrLogger.LogGarden($"Garden registered: name='{name}', id='{Id}', locallyOwned={LocallyOwned}");
+
+        if (claimOnReady)
+        {
+            claimOnReady = false;
+            TakeOwnership();
+        }
+    }
+
+    internal void TakeOwnership(bool broadcast = true)
+    {
+        CurrentOwnerId = LocalID;
+        LocallyOwned = true;
+        lastActivityTime = UnityEngine.Time.time;
+
+        SrLogger.LogGarden($"Garden '{Id}' claimed by '{LocalID}' (broadcast={broadcast}, nextSpawnTime={garden?._model?.nextSpawnTime})");
+
+        if (!broadcast)
+            return;
+
+        NetworkGardenManager.QueueClaim(Id!);
+    }
+    
+    internal void SetOwner(string ownerId)
+    {
+        CurrentOwnerId = ownerId;
+        LocallyOwned = ownerId == LocalID && !IsHibernated;
+        lastActivityTime = UnityEngine.Time.time;
+
+        SrLogger.LogGarden($"Garden '{Id}' owner set to '{ownerId}' (locallyOwned={LocallyOwned})");
+    }
+
+    internal void ClaimOnReady()
+    {
+        if (registered)
+        {
+            TakeOwnership();
+            return;
+        }
+
+        claimOnReady = true;
+    }
+    
+    internal void OnOwnerReleased()
+    {
+        CurrentOwnerId = string.Empty;
+
+        if (!IsHibernated && registered)
+        {
+            SrLogger.LogGarden($"Garden '{Id}' released by owner, taking over");
+            TakeOwnership();
+        }
+        else
+        {
+            SrLogger.LogGarden($"Garden '{Id}' released by owner, not taking over (hibernated={IsHibernated}, registered={registered})");
+        }
+    }
+
+    internal void ResetToVanilla()
+    {
+        locallyOwned = false;
+        CurrentOwnerId = string.Empty;
+
+        if (garden != null)
+        {
+            garden.enabled = true;
+            garden._allowSpawningInFastForwarding = vanillaAllowSpawningInFastForwarding;
+        }
     }
 
     private void SetupHibernationEvent()
     {
         if (regionMember == null)
+        {
+            if (GardenLogging)
+                SrLogger.LogWarning($"Garden '{Id}' has no RegionMember");
             return;
+        }
 
         try
         {
@@ -87,121 +235,97 @@ internal sealed class NetworkGarden : MonoBehaviour
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"Failed to add hibernation event: {ex.Message}");
+            SrLogger.LogWarning($"NetworkGarden: Failed to add hibernation event: {ex.Message}");
         }
     }
 
     public void OnHibernationChanged(bool hibernating)
     {
         IsHibernated = hibernating;
+        SrLogger.LogGarden($"Garden '{Id}' hibernation changed: hibernating={hibernating}, locallyOwned={LocallyOwned}");
 
         if (hibernating)
         {
-            var previousOwner = LocallyOwned;
-
             if (garden?._model != null)
-            {
-                cachedNextSpawnTime = garden._model.nextSpawnTime;
-                
-                if (previousOwner)
-                    SendGardenUpdate();
-            }
+                CacheState(garden._model.nextSpawnTime, garden._model.storedWater, garden._model.nextSpawnRipens);
 
+            if (!LocallyOwned)
+                return;
+
+            NetworkGardenManager.QueueFinalState(this);
             LocallyOwned = false;
 
-            if (previousOwner)
-                SendOwnershipPacket(string.Empty, CurrentOwnerId);
+            // So others can take over immediately without having to wait the delay
+            NetworkGardenManager.BroadcastRelease(Id!);
+            SrLogger.LogGarden($"Garden '{Id}' released on hibernation");
+            // CurrentOwnerId stays ours, if nobody claims it while we're away,
+            // we resume simulation once its loaded again.
         }
         else
         {
-            if (garden?._model != null)
-                garden._model.nextSpawnTime = cachedNextSpawnTime;
+            RestoreCachedState();
+            lastActivityTime = UnityEngine.Time.time;
 
-            ClaimOwnership();
+            if (CurrentOwnerId == LocalID)
+            {
+                LocallyOwned = true;
+                SrLogger.LogGarden($"Garden '{Id}' ownership resumed on wake");
+            }
         }
-    }
-
-    public void Update()
-    {
-        if (cachedLocallyOwned != LocallyOwned)
-        {
-            if (garden != null)
-                garden.enabled = LocallyOwned;
-
-            cachedLocallyOwned = LocallyOwned;
-        }
-
-        if (!LocallyOwned || garden?._model == null)
-            return;
-
-        syncTimer += UnityEngine.Time.deltaTime;
-        if (syncTimer < SyncInterval)
-            return;
-
-        SendGardenUpdate();
-    }
-
-    private void SendGardenUpdate()
-    {
-        if (garden?._model == null)
-            return;
-
-        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
-            return;
-
-        syncTimer = 0;
-        cachedNextSpawnTime = garden._model.nextSpawnTime;
-
-        var packet = new GardenUpdatePacket
-        {
-            GardenID       = garden._id,
-            NextSpawnTime  = garden._model.nextSpawnTime,
-            StoredWater    = garden._model.storedWater,
-            NextSpawnRipens = garden._model.nextSpawnRipens
-        };
-        Main.SendToAllOrServer(packet);
-    }
-
-    [UsedImplicitly]
-    public void OnDestroy()
-    {
-        if (garden != null && !string.IsNullOrEmpty(garden._id))
-            Gardens.Remove(garden._id);
     }
 
     public void ApplyUpdate(double nextSpawnTime, float storedWater, bool nextSpawnRipens)
     {
+        lastActivityTime = UnityEngine.Time.time;
+
+        if (LocallyOwned)
+            return;
+
+        CacheState(nextSpawnTime, storedWater, nextSpawnRipens);
+
         if (garden?._model == null)
             return;
 
-        cachedNextSpawnTime = nextSpawnTime;
-        
-        garden._model.nextSpawnTime  = nextSpawnTime;
-        garden._model.storedWater    = storedWater;
+        garden._model.nextSpawnTime = nextSpawnTime;
+        garden._model.storedWater = storedWater;
         garden._model.nextSpawnRipens = nextSpawnRipens;
     }
 
-    public void ClaimOwnership()
+    internal GardenUpdatePacket.Entry? CaptureState()
     {
-        LocallyOwned = true;
-        CurrentOwnerId = LocalID;
-        SendOwnershipPacket(LocalID, string.Empty);
-        
-        SendGardenUpdate();
-    }
+        if (garden?._model == null || string.IsNullOrEmpty(Id))
+            return null;
 
-    private void SendOwnershipPacket(string claimerId, string previousOwnerId)
-    {
-        if (garden == null || string.IsNullOrEmpty(garden._id))
-            return;
-        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
-            return;
+        CacheState(garden._model.nextSpawnTime, garden._model.storedWater, garden._model.nextSpawnRipens);
 
-        Main.SendToAllOrServer(new GardenOwnershipPacket
+        return new GardenUpdatePacket.Entry
         {
-            GardenID        = garden._id,
-            ClaimerID       = claimerId,
-            PreviousOwnerID = previousOwnerId
-        });
+            GardenId = Id!,
+            NextSpawnTime = garden._model.nextSpawnTime,
+            StoredWater = garden._model.storedWater,
+            NextSpawnRipens = garden._model.nextSpawnRipens
+        };
     }
+
+    private void CacheState(double nextSpawnTime, float storedWater, bool nextSpawnRipens)
+    {
+        cachedNextSpawnTime = nextSpawnTime;
+        cachedStoredWater = storedWater;
+        cachedNextSpawnRipens = nextSpawnRipens;
+        hasCachedState = true;
+    }
+
+    public void RestoreCachedState()
+    {
+        if (!hasCachedState || garden?._model == null)
+            return;
+
+        garden._model.nextSpawnTime = cachedNextSpawnTime;
+        garden._model.storedWater = cachedStoredWater;
+        garden._model.nextSpawnRipens = cachedNextSpawnRipens;
+    }
+
+    [UsedImplicitly]
+    public void OnDestroy()
+        => NetworkGardenManager.Unregister(this);
 }

@@ -4,30 +4,54 @@ using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using Il2CppMonomiPark.SlimeRancher.VFX;
+using SR2MP.Components.Actor;
 using SR2MP.Packets.Actor;
-using SR2MP.Shared.Utils;
 
 namespace SR2MP.Shared.Managers;
 
 internal sealed partial class NetworkActorManager
 {
-    private static GadgetModel? GetLinkedGadget(GadgetModel model)
-        => GameState.identifiables._entries.FirstOrDefault(x =>
-                x.value != null &&
-                model != null &&
-                x.value.ident == model?.ident
-                && model != x.value
-                && (model.ident.Cast<GadgetDefinition>().BuyInPairs
-                    || model.ident.Cast<GadgetDefinition>().LinkedDefinition
-                    || Math.Abs(model.ident.Cast<GadgetDefinition>().LinkedGadgetRange) > 0.0001f))?
-            .value.Cast<GadgetModel>()!;
-    
-    private static AmmoModel? GetAmmoFromGadget(GadgetModel model)
+    public void RegisterSpawnOverNetwork(GameObject actor)
     {
-        if (model.TryCast(out WarpDepotModel? warp))
-            return warp.ammo;
-        
-        return null!;
+        if (!actor) return;
+        if (actor.GetComponent<NetworkActor>() != null) return;
+
+        var identifiableActor = actor.GetComponent<IdentifiableActor>();
+        if (!identifiableActor) return;
+
+        var model = identifiableActor._model;
+        if (model == null) return;
+        if (NetworkDroneManager.IsDroneModel(model)) return;
+
+        var networkActor = actor.AddComponent<NetworkActor>();
+        networkActor.LocallyOwned = true;
+        networkActor.CurrentOwnerId = LocalID;
+
+        Actors[model.actorId.Value] = model;
+
+        var packet = new ActorSpawnPacket
+        {
+            ActorId = identifiableActor.GetActorId(),
+            ActorType = GetPersistentID(actor.GetComponent<Identifiable>().identType),
+            SceneGroup = (byte)NetworkSceneManager.GetPersistentID(model.sceneGroup),
+            Position = actor.transform.position,
+            Rotation = actor.transform.rotation,
+            SpawnType = (byte)ActorSpawnType.Actor,
+            OwnerId = LocalID
+        };
+
+        var slimeModel = model.TryCast<SlimeModel>();
+        if (slimeModel != null)
+        {
+            packet.SpawnType = (byte)ActorSpawnType.Slime;
+            packet.Emotions = slimeModel.Emotions;
+            packet.Sleeping = slimeModel.isSleeping;
+            packet.FirstAppearance = slimeModel.firstAppearanceSaveSet;
+            packet.SecondAppearance = slimeModel.secondAppearanceSaveSet;
+            packet.Radiancy = (byte)ActorAppearanceType.Default;
+        }
+
+        Main.SendToAllOrServer(packet);
     }
     
     internal void SendActorTypeRegistry(IPEndPoint clientEndPoint)

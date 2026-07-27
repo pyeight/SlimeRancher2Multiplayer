@@ -6,28 +6,28 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Handlers.GordoSlime;
 
-[PacketHandler((byte)PacketType.GordoFeed)]
+[PacketHandler((byte)PacketType.GordoSlimeFeed)]
 internal sealed class GordoSlimeFeedHandler : BasePacketHandler<GordoSlimeFeedPacket>
 {
     protected override bool Handle(GordoSlimeFeedPacket packet, IPEndPoint? _)
     {
-        if (GameState.gordos.TryGetValue(packet.ID, out var gordo))
+        if (GameState.gordos.TryGetValue(packet.ID, out var gordoSlime))
         {
-            gordo.GordoEatenCount = packet.NewFoodCount;
+            gordoSlime.GordoEatenCount = packet.NewFoodCount;
         }
         else
         {
-            gordo = new GordoModel
+            gordoSlime = new GordoModel
             {
                 fashions = new CppCollections.List<IdentifiableType>(0),
                 gordoEatCount = packet.NewFoodCount,
                 gordoSeen = false,
                 gameObj = null,
                 targetCount = packet.RequiredFoodCount,
-                identifiableType = ActorManager.ActorTypes[packet.GordoType]
+                identifiableType = ActorManager.ActorTypes[packet.GordoSlimeType]
             };
 
-            GameState.gordos.Add(packet.ID, gordo);
+            GameState.gordos.Add(packet.ID, gordoSlime);
         }
 
         return true;

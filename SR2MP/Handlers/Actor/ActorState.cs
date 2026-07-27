@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Slime;
+using SR2MP.Components.Actor;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.Actor;
 using SR2MP.Packets.Utils;
@@ -49,8 +50,10 @@ internal sealed class ActorStateHandler : BasePacketHandler<ActorStatePacket>
 
             case ActorUpdateType.Resource when resource != null:
             {
-                resource.state        = packet.ResourceState;
-                resource.progressTime = packet.ResourceProgress;
+                resource.state = packet.ResourceState;
+                
+                if (!NetworkActor.IsResourceFrozen(packet.ResourceProgress))
+                    resource.progressTime = packet.ResourceProgress;
 
                 networkComponent.SetResourceState(packet.ResourceState, packet.ResourceProgress, true);
                 networkComponent.ApplyResourceScale(packet.ResourceScale);

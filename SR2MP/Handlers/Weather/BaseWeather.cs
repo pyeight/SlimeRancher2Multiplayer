@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using MelonLoader;
 using SR2MP.Client.Managers;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.World;
@@ -14,7 +13,7 @@ internal abstract class BaseWeatherHandler : BasePacketHandler<WeatherPacket>
 
     protected sealed override bool Handle(WeatherPacket packet, IPEndPoint? _)
     {
-        StartCoroutine(NetworkWeatherManager.Apply(packet, _immediate));
+        NetworkWeatherManager.Apply(packet, _immediate);
         return false;
     }
 }

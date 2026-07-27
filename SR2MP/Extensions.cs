@@ -1,4 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Economy;
 using SR2MP.Components.Actor;
 
 namespace SR2MP;
@@ -45,6 +46,27 @@ internal static class Extensions
     
     
     public static string ToStringYesOrNo(this bool value) => value ? "Yes" : "No";
+
+    private static CurrencyDefinition? sprinkleCurrency;
+
+    internal static bool TryAddSprinkles(int amount, bool showUINotification = true)
+    {
+        if (sprinkleCurrency == null)
+        {
+            sprinkleCurrency = Resources.FindObjectsOfTypeAll<CurrencyDefinition>()
+                .FirstOrDefault(def => def.name.Contains("sprinkle", StringComparison.OrdinalIgnoreCase)
+                    || def._identifier?.Contains("sprinkle", StringComparison.OrdinalIgnoreCase) == true);
+
+            if (sprinkleCurrency == null)
+            {
+                SrLogger.LogDebug("No sprinkle currency found");
+                return false;
+            }
+        }
+
+        SceneContext.Instance.PlayerState.AddCurrency(sprinkleCurrency.Cast<ICurrency>(), amount, showUINotification, null!);
+        return true;
+    }
 
     // https://discussions.unity.com/t/how-can-i-get-the-full-path-to-a-gameobject/412
     public static string GetGameObjectPath(this GameObject obj)

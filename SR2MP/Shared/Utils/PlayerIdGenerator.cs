@@ -5,23 +5,27 @@ namespace SR2MP.Shared.Utils;
 
 internal static class PlayerIdGenerator
 {
+    private static string? cachedPlayerId;
+
     public static string GeneratePersistentPlayerId()
     {
+        if (cachedPlayerId != null)
+            return cachedPlayerId;
+
         try
         {
-            var systemInfo = Environment.MachineName + Environment.UserName;
-
-            using var sha256 = SHA256.Create();
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(systemInfo));
+            var hashBytes = DevMode
+                ? RandomNumberGenerator.GetBytes(16)
+                : SHA256.HashData(Encoding.UTF8.GetBytes(Environment.MachineName + Environment.UserName));
 
             var hash = BitConverter.ToString(hashBytes)
                 .Replace("-", string.Empty)[..9]
                 .ToUpperInvariant();
 
-            var playerId = $"PLAYER_{hash}";
+            cachedPlayerId = $"PLAYER_{hash}";
 
-            SrLogger.LogMessage($"Generated persistent player ID: {playerId}");
-            return playerId;
+            SrLogger.LogMessage($"Generated persistent player ID: {cachedPlayerId}");
+            return cachedPlayerId;
         }
         catch (Exception ex)
         {

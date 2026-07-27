@@ -99,6 +99,16 @@ public static class Logger
     }
 
     /// <summary>
+    /// Logs a garden-related message, if garden logging is globally enabled.
+    /// </summary>
+    /// <inheritdoc cref="LogInternal"/>
+    public static void LogGarden(object? message, SrLogTarget target = SrLogTarget.Both)
+    {
+        if (GardenLogging)
+            LogInternal(message, LogLevel.Debug, target, null, _melonLogger.Msg);
+    }
+
+    /// <summary>
     /// Logs packet size information, if packet size logging is globally enabled.
     /// </summary>
     /// <inheritdoc cref="LogInternal"/>

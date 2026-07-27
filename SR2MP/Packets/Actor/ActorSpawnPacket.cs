@@ -23,6 +23,8 @@ internal struct ActorSpawnPacket : IPacket
 
     public byte MaterialIndex;
 
+    public double ChargeupTime;
+
     public byte SpawnType;
 
     public readonly PacketType Type => PacketType.ActorSpawn;
@@ -51,6 +53,10 @@ internal struct ActorSpawnPacket : IPacket
             case (byte)ActorSpawnType.Sprinkle:
                 writer.WriteByte(MaterialIndex);
                 break;
+
+            case (byte)ActorSpawnType.Gadget:
+                writer.WriteDouble(ChargeupTime);
+                break;
         }
 
         writer.WriteStringWithoutSize(OwnerId);
@@ -77,6 +83,10 @@ internal struct ActorSpawnPacket : IPacket
 
             case (byte)ActorSpawnType.Sprinkle:
                 MaterialIndex = reader.ReadByte();
+                break;
+
+            case (byte)ActorSpawnType.Gadget:
+                ChargeupTime = reader.ReadDouble();
                 break;
         }
 

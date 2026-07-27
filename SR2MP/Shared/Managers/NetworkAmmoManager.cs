@@ -66,6 +66,8 @@ internal static class NetworkAmmoManager
     private static readonly Dictionary<string, AmmoSlotManager> IDToAmmo = new();
     private static readonly Dictionary<IntPtr, (AmmoSlotManager ammo, int index)> slotToAmmo = new();
 
+    private static readonly Dictionary<long, AmmoSlotManager> warpDepotAmmoByActorId = new();
+
     public static string? GetPlotID(this AmmoSlotManager ammo) => ammoToID.GetValueOrDefault(ammo.Pointer);
 
     public static string? GetPlotID(this AmmoSlot slot)
@@ -89,6 +91,7 @@ internal static class NetworkAmmoManager
         ammoToID.Clear();
         IDToAmmo.Clear();
         slotToAmmo.Clear();
+        warpDepotAmmoByActorId.Clear();
     }
 
     private static void RegisterAmmoPointer(this AmmoSlotManager ammo, string id)
@@ -102,9 +105,6 @@ internal static class NetworkAmmoManager
             slotToAmmo[slot!.Pointer] = (ammo, i);
         }
     }
-
-    // todo: review
-    // not sure about the whole coroutine and inactive stuff
 
     public static void RegisterAmmoPointer(this SiloStorage siloStorage)
     {
@@ -122,25 +122,83 @@ internal static class NetworkAmmoManager
         var gadget = siloStorage.GetComponentInParent<Gadget>(true);
         var sprinkle = siloStorage.GetComponentInParent<SprinkleCanister>(true);
 
+        if (plot == null && gadget == null && sprinkle == null)
+        {
+            SrLogger.LogWarning($"SiloStorage has no known parent type: {siloStorage.name}");
+            yield break;
+        }
+
+        var ammo = siloStorage.GetRelevantAmmo();
+        if (ammo == null)
+        {
+            SrLogger.LogWarning($"SiloStorage has no ammo to register yet: {siloStorage.name}");
+            yield break;
+        }
+
         if (plot != null)
         {
-            siloStorage.Ammo.RegisterAmmoPointer($"{plot._id}_{siloStorage.AmmoSetReference.name}");
+            ammo.RegisterAmmoPointer($"{plot._id}_{siloStorage.AmmoSetReference.name}");
             yield break;
         }
 
         if (gadget != null)
         {
-            siloStorage.Ammo.RegisterAmmoPointer($"gadget{gadget.GetActorId()}_{siloStorage.AmmoSetReference.name}");
+            var actorId = gadget.GetActorId().Value;
+            
+            if (siloStorage.TryCast<LinkedSiloStorage>() != null)
+            {
+                RegisterWarpDepotAmmo(ammo, actorId);
+                yield break;
+            }
+
+            if (siloStorage.AmmoSetReference == null)
+            {
+                SrLogger.LogWarning($"SiloStorage has no AmmoSetReference yet: {siloStorage.name}");
+                yield break;
+            }
+
+            ammo.RegisterAmmoPointer($"gadget{actorId}_{siloStorage.AmmoSetReference.name}");
             yield break;
         }
 
         if (sprinkle != null)
         {
-            siloStorage.Ammo.RegisterAmmoPointer($"{sprinkle.GetComponent<IdHandler>().Id}_{siloStorage.AmmoSetReference.name}");
-            yield break;
+            ammo.RegisterAmmoPointer($"{sprinkle!.GetComponent<IdHandler>().Id}_{siloStorage.AmmoSetReference.name}");
+        }
+    }
+
+    private static void RegisterWarpDepotAmmo(AmmoSlotManager ammo, long actorId)
+    {
+        warpDepotAmmoByActorId[actorId] = ammo;
+
+        var ammoId = NetworkGadgetManager.TryGetLinkedGadgetId(actorId, out var partnerId)
+            ? Math.Min(actorId, partnerId)
+            : actorId;
+
+        ammo.RegisterAmmoPointer($"gadget{ammoId}_warpdepot");
+    }
+    
+    internal static void OnGadgetLinkResolved(long gadgetId, long partnerId)
+    {
+        var ammoId = Math.Min(gadgetId, partnerId);
+        ReKeyWarpDepotAmmo(gadgetId, ammoId);
+        ReKeyWarpDepotAmmo(partnerId, ammoId);
+    }
+
+    private static void ReKeyWarpDepotAmmo(long actorId, long ammoId)
+    {
+        if (!warpDepotAmmoByActorId.TryGetValue(actorId, out var ammo) || ammo == null)
+            return;
+
+        var newId = $"gadget{ammoId}_warpdepot";
+
+        if (ammoToID.TryGetValue(ammo.Pointer, out var currentId))
+        {
+            if (currentId == newId) return;
+            IDToAmmo.Remove(currentId);
         }
 
-        SrLogger.LogWarning($"SiloStorage has no known parent type: {siloStorage.name}");
+        ammo.RegisterAmmoPointer(newId);
     }
 
     public static AmmoSlotDefinition GetSlotDefinition(ushort id) => slotDefinitions[id];

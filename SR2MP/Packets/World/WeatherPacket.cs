@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Il2CppMonomiPark.SlimeRancher.DataModel;
+﻿using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.Weather;
 using SR2MP.Client.Managers;
 using SR2MP.Packets.Utils;
@@ -8,7 +7,7 @@ namespace SR2MP.Packets.World;
 
 internal sealed class WeatherPacket : IPacket
 {
-    public Dictionary<byte, WeatherZoneData> Zones;
+    public Dictionary<string, WeatherZoneData> Zones;
 
     public PacketType Type { get; private init; }
     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -16,7 +15,7 @@ internal sealed class WeatherPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WriteDictionary(Zones, PacketWriterDels.Byte, (w, zone) =>
+        writer.WriteDictionary(Zones, PacketWriterDels.String, (w, zone) =>
         {
             w.WriteList(zone.WeatherForecasts, (fw, forecast) =>
             {
@@ -35,33 +34,30 @@ internal sealed class WeatherPacket : IPacket
     public void Deserialise(PacketReader reader)
     {
         NetworkWeatherManager.CheckInitialized();
-        Zones = reader.ReadDictionary(PacketReaderDels.Byte, PacketReaderDels.NetObject<WeatherZoneData>.Reader)!;
+        Zones = reader.ReadDictionary(PacketReaderDels.String, PacketReaderDels.NetObject<WeatherZoneData>.Reader)!;
     }
 
-    public static IEnumerator CreateFromModel(
-        WeatherModel model,
-        PacketType type,
-        Action<WeatherPacket>? onComplete)
+    public static WeatherPacket CreateFromModel(WeatherModel model, PacketType type)
     {
         var packet = new WeatherPacket
         {
             Type = type,
-            Zones = new Dictionary<byte, WeatherZoneData>()
+            Zones = new Dictionary<string, WeatherZoneData>()
         };
-
-        byte zoneId = 0;
 
         foreach (var zone in model._zoneDatas)
         {
-            yield return null;
+            if (zone.Key == null || string.IsNullOrEmpty(zone.Key.name))
+                continue;
+
             var zoneData = new WeatherZoneData
             {
                 WeatherForecasts = new List<WeatherForecast>(),
                 WindSpeed = zone.Value.Parameters.WindDirection
             };
+            
             foreach (var forecast in zone.Value.Forecast)
             {
-                yield return null;
                 if (!forecast.Started)
                     continue;
 
@@ -74,12 +70,10 @@ internal sealed class WeatherPacket : IPacket
                 });
             }
 
-            packet.Zones.Add(zoneId++, zoneData);
-
-            yield return new WaitFrames(3);
+            packet.Zones[zone.Key.name] = zoneData;
         }
 
-        onComplete?.Invoke(packet);
+        return packet;
     }
 }
 

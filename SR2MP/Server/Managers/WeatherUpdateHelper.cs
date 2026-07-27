@@ -165,13 +165,8 @@ internal static class WeatherUpdateHelper
                 return;
             }
 
-            StartCoroutine(
-                WeatherPacket.CreateFromModel(
-                    weatherRegistry._model,
-                    PacketType.WeatherUpdate,
-                    packet => Main.Server.SendToAll(packet)
-                )
-            );
+            var packet = WeatherPacket.CreateFromModel(weatherRegistry._model, PacketType.WeatherUpdate);
+            Main.Server.SendToAll(packet);
         }
         catch (Exception ex)
         {

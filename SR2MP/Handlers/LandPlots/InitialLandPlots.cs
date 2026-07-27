@@ -79,14 +79,15 @@ internal sealed class InitialLandPlotsHandler : BasePacketHandler<InitialLandPlo
                                     var connectedObj = joint.connectedBody.gameObject;
                                     Destroyer.Destroy(connectedObj, "InitialLandPlotsHandler.OnDestroy");
                                 }
-
-                                var networkGarden = plantedObject.GetComponent<NetworkGarden>();
-                                if (networkGarden != null)
-                                    networkGarden.ApplyUpdate(garden.NextSpawnTime, garden.StoredWater, garden.NextSpawnRipens);
                             }
                         }
                     }
                     HandlingPacket = false;
+                    
+                    var existingNetworkGarden = model.gameObj.GetComponentInChildren<NetworkGarden>(true);
+                    if (existingNetworkGarden != null)
+                        existingNetworkGarden.ApplyUpdate(garden.NextSpawnTime, garden.StoredWater, garden.NextSpawnRipens);
+
                     break;
                 }
 

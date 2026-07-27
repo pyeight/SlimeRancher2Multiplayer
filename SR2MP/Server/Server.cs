@@ -174,6 +174,7 @@ public sealed class SR2MPServer
         {
             ActorManager.AssignOwnershipOfUnowned();
             NetworkDroneManager.AssignOwnershipOfUnowned();
+            NetworkGardenManager.AssignOwnershipOfUnowned();
         });
     }
 

@@ -10,8 +10,12 @@ internal sealed class AutoFeederDispenseHandler : BasePacketHandler<AutoFeederDi
 {
     protected override bool Handle(AutoFeederDispensePacket packet, IPEndPoint? _)
     {
-        var model = GameState.landPlots[packet.ID];
+        if (!GameState.landPlots.TryGetValue(packet.ID, out var model) || !model.gameObj)
+            return true;
+
         var feeder = model.gameObj.GetComponentInChildren<SlimeFeeder>();
+        if (!feeder)
+            return true;
 
         feeder._nextEject = packet.NextTime;
         return true;

@@ -18,6 +18,15 @@ internal static class WeatherRegistryPatches
         return !Main.Client.IsConnected || Main.Server.IsRunning || HandlingPacket;
     }
 
+    [HarmonyPatch(nameof(WeatherRegistry.RunPatternState)), HarmonyPostfix]
+    public static void RunPatternStatePostfix()
+    {
+        if (Main.Server.IsRunning && !HandlingPacket)
+        {
+            WeatherUpdateHelper.SendWeatherUpdate();
+        }
+    }
+
     [HarmonyPatch(nameof(WeatherRegistry.StopPatternState)), HarmonyPrefix]
     public static bool StopPatternStatePrefix(WeatherRegistry __instance, ZoneDefinition zone)
     {
@@ -27,6 +36,15 @@ internal static class WeatherRegistryPatches
             return false;
 
         return !Main.Client.IsConnected || Main.Server.IsRunning || HandlingPacket;
+    }
+
+    [HarmonyPatch(nameof(WeatherRegistry.StopPatternState)), HarmonyPostfix]
+    public static void StopPatternStatePostfix()
+    {
+        if (Main.Server.IsRunning && !HandlingPacket)
+        {
+            WeatherUpdateHelper.SendWeatherUpdate();
+        }
     }
 
     [HarmonyPatch(nameof(WeatherRegistry.CalculateZoneMapData)), HarmonyPostfix]

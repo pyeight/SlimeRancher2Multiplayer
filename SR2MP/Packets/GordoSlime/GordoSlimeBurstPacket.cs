@@ -6,7 +6,7 @@ internal sealed class GordoSlimeBurstPacket : IPacket
 {
     public string ID;
 
-    public PacketType Type => PacketType.GordoBurst;
+    public PacketType Type => PacketType.GordoSlimeBurst;
     public PacketReliability Reliability => PacketReliability.Reliable;
     public NetworkChannel Channel => NetworkChannel.WorldState;
 

@@ -6,7 +6,7 @@ using SR2MP.Shared.Managers;
 namespace SR2MP.Patches.GordoSlime;
 
 [HarmonyPatch(typeof(GordoEat), nameof(GordoEat.DoEat))]
-internal static class OnGordoFed
+internal static class OnGordoSlimeFed
 {
     public static void Postfix(GordoEat __instance)
     {
@@ -15,7 +15,7 @@ internal static class OnGordoFed
             ID = __instance.Id,
             NewFoodCount = __instance.GordoModel.GordoEatenCount,
             RequiredFoodCount = __instance.GordoModel.targetCount,
-            GordoType = NetworkActorManager.GetPersistentID(__instance.GordoModel.identifiableType)
+            GordoSlimeType = NetworkActorManager.GetPersistentID(__instance.GordoModel.identifiableType)
         };
         Main.SendToAllOrServer(packet);
 

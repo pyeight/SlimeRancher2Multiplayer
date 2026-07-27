@@ -11,6 +11,7 @@ using SR2MP.Components.UI;
 using SR2MP.Packets.Utils;
 using SR2MP.Server;
 using SR2MP.Shared.Managers;
+using SR2MP.Shared.ModSupport;
 using SR2MP.Shared.Utils;
 using Starlight.Enums;
 using Starlight.Storage;
@@ -94,6 +95,12 @@ public sealed class Main : StarlightExpansionV01
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
 
     /// <summary>
+    /// Gets a value indicating whether this player has disabled gathering achievements in total.
+    /// it does not affect what this client broadcasts, only whether achievements are locally granted.
+    /// </summary>
+    public static bool DisableAchievements => preferences.GetEntry<bool>("disable_achievements").Value;
+
+    /// <summary>
     /// Gets a value indicating whether streamer mode is enabled, which typically hides sensitive information like IP addresses.
     /// </summary>
     public static bool StreamerMode => preferences.GetEntry<bool>("streamer_mode").Value;
@@ -101,7 +108,7 @@ public sealed class Main : StarlightExpansionV01
     internal static string SavedConnectPort => preferences.GetEntry<string>("recent_port").Value;
     internal static string SavedConnectIP => preferences.GetEntry<string>("recent_ip").Value;
     internal static string SavedHostPort => preferences.GetEntry<string>("host_port").Value;
-    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui_new").Value;
+    internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui_new_new").Value;
     internal static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     internal static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
     // internal static bool RemoteGadgetPreviewShaders => preferences.GetEntry<bool>("remote_gadget_preview_shaders").Value;
@@ -119,6 +126,7 @@ public sealed class Main : StarlightExpansionV01
         preferences.CreateEntry("username_color", "FFFFFF", is_hidden: true);
         preferences.CreateEntry("allow_cheats", false, is_hidden: true);
         preferences.CreateEntry("streamer_mode", false, display_name: "Streamer Mode");
+        preferences.CreateEntry("disable_achievements", true, display_name: "Disable Achievements");
 
         preferences.CreateEntry("recent_port", string.Empty, is_hidden: true);
         preferences.CreateEntry("recent_ip", string.Empty, is_hidden: true);
@@ -131,7 +139,7 @@ public sealed class Main : StarlightExpansionV01
         preferences.CreateEntry("packet_ack_log", true, display_name: "Packet Acknowledge Logging");
         // preferences.CreateEntry("remote_gadget_preview_shaders", false, display_name: "Remote Gadget Preview Hologram Shader");
 
-        preferences.CreateEntry("internal_setup_ui_new", true, is_hidden: true);
+        preferences.CreateEntry("internal_setup_ui_new_new", true, is_hidden: true);
 
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
             display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode), BREAKS SAVES!");
@@ -163,6 +171,7 @@ public sealed class Main : StarlightExpansionV01
                 StartupCheck.Initialize();
                 MainThreadDispatcher.Initialize();
                 DiscordRPCManager.Initialize();
+                VacuumModificationsIntegration.Initialize();
 
                 var forceTimeScale = new GameObject("SR2MP_TimeScale").AddComponent<ForceTimeScale>();
                 Object.DontDestroyOnLoad(forceTimeScale.gameObject);
@@ -331,7 +340,25 @@ public sealed class Main : StarlightExpansionV01
         var gui = label.AddComponent<TextMeshProUGUI>();
         gui.alignment = TextAlignmentOptions.Center;
         gui.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
-        
+        gui.overflowMode = TextOverflowModes.Overflow;
+        gui.enableWordWrapping = false;
+
+        var distanceLabel = new GameObject("DistanceLabel")
+        {
+            transform =
+            {
+                parent = PlayerCompassPrefab.transform,
+                localPosition = Vector3.down * 55f,
+                localScale = Vector3.one * 0.45f
+            }
+        };
+        var distanceGui = distanceLabel.AddComponent<TextMeshProUGUI>();
+        distanceGui.alignment = TextAlignmentOptions.Center;
+        distanceGui.font = GetFont("Runsell Type - HemispheresCaps2 (Latin)");
+        distanceGui.overflowMode = TextOverflowModes.Overflow;
+        distanceGui.enableWordWrapping = false;
+        distanceGui.SetText("(0m)");
+
         Object.DontDestroyOnLoad(PlayerCompassPrefab);
     }
     private static TMP_FontAsset GetFont(string fontName) => Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(x => x.name == fontName)!;

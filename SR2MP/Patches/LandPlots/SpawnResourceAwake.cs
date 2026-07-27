@@ -1,5 +1,6 @@
 using HarmonyLib;
 using SR2MP.Components.LandPlots;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.LandPlots;
 
@@ -14,7 +15,8 @@ internal static class SpawnResourceAwakePatch
 
         if (!subscribedToServerStart)
         {
-            Main.Server.OnServerStarted += NetworkGarden.OnServerStarted;
+            Main.Server.OnServerStarted += NetworkGardenManager.OnServerStarted;
+            Main.Client.OnDisconnected += NetworkGardenManager.OnDisconnected;
             subscribedToServerStart = true;
         }
 
@@ -69,13 +71,17 @@ internal static class SpawnResourceAwakePatch
         if (model == null || model.nextSpawnTime < double.MaxValue)
             return;
 
+        var definition = spawnResource._resourceGrowerDefinition;
+        if (definition == null)
+            return;
+
         var timeDirector = SceneContext.Instance?.TimeDirector;
         if (timeDirector == null)
             return;
 
-        var interval = spawnResource._resourceGrowerDefinition?.MinSpawnIntervalGameHours ?? 12f;
+        var interval = definition._minSpawnIntervalGameHours;
         model.nextSpawnTime = timeDirector.HoursFromNow(interval);
 
-        SrLogger.LogDebug($"Reset grow time on spawner '{spawnResource._id}', next spawn in {interval} hours.");
+        SrLogger.LogGarden($"Reset grow time on spawner '{spawnResource._id}', next spawn in {interval} hours.");
     }
 }

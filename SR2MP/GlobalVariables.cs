@@ -18,6 +18,11 @@ public static class GlobalVariables
     /// </summary>
     public static bool DevMode { get; } = false;
 
+    /// <summary>
+    /// Gets a value indicating whether verbose garden logging is enabled.
+    /// </summary>
+    public static bool GardenLogging { get; } = false;
+
     internal static readonly string[] CheatCommands = {
         "actortype", "clearinv", "delwarp", "emotions", "fastforward", "flatlook", "fling", "floaty", "freeze",
         "fxplayer", "gadget", "give", "gordo", "gravity", "infenergy", "infhealth", "kill", "killall", "newbucks",

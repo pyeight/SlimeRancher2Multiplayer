@@ -2,7 +2,7 @@ using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.Loading;
 
-internal sealed class InitialGordosPacket : IPacket
+internal sealed class InitialGordoSlimesPacket : IPacket
 {
     internal sealed class GordoSlime : INetObject
     {
@@ -11,7 +11,7 @@ internal sealed class InitialGordosPacket : IPacket
         public int RequiredEatCount;
         public int GordoSlimeType;
         public bool WasSeen;
-        // public bool Popped;
+        public bool Popped;
 
         public void Serialise(PacketWriter writer)
         {
@@ -20,7 +20,7 @@ internal sealed class InitialGordosPacket : IPacket
             writer.WritePackedInt(RequiredEatCount);
             writer.WritePackedInt(GordoSlimeType);
             writer.WritePackedBool(WasSeen);
-            // writer.WritePackedBool(Popped);
+            writer.WritePackedBool(Popped);
         }
 
         public void Deserialise(PacketReader reader)
@@ -30,13 +30,13 @@ internal sealed class InitialGordosPacket : IPacket
             RequiredEatCount = reader.ReadPackedInt();
             GordoSlimeType = reader.ReadPackedInt();
             WasSeen = reader.ReadPackedBool();
-            // Popped = reader.ReadPackedBool();
+            Popped = reader.ReadPackedBool();
         }
     }
 
     public List<GordoSlime> GordoSlimes;
 
-    public PacketType Type => PacketType.InitialGordos;
+    public PacketType Type => PacketType.InitialGordoSlimes;
     public PacketReliability Reliability => PacketReliability.Reliable;
     public NetworkChannel Channel => NetworkChannel.WorldState;
 

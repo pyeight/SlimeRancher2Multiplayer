@@ -15,7 +15,7 @@ internal sealed partial class NetworkActorManager
         ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? model,
         SlimeAppearance.AppearanceSaveSet firstAppearance = SlimeAppearance.AppearanceSaveSet.NONE,
         SlimeAppearance.AppearanceSaveSet secondAppearance = SlimeAppearance.AppearanceSaveSet.NONE,
-        float4 emotions = default, bool sleeping = false)
+        float4 emotions = default, bool sleeping = false, double chargeupTime = 0)
     {
         model = null;
         
@@ -34,8 +34,8 @@ internal sealed partial class NetworkActorManager
             return false;
         
         if (type.IsGadget())
-            return TrySpawnNetworkGadget(actorId, position, rotation, typeId, sceneId, out model);
-        
+            return TrySpawnNetworkGadget(actorId, position, rotation, typeId, sceneId, out model, chargeupTime);
+
         if (ActorIDAlreadyInUse(actorId))
             return false;
         
@@ -87,7 +87,7 @@ internal sealed partial class NetworkActorManager
         return true;
     }
     
-    private bool TrySpawnNetworkGadget(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? identModel)
+    private bool TrySpawnNetworkGadget(ActorId actorId, Vector3 position, Quaternion rotation, int typeId, int sceneId, out IdentifiableModel? identModel, double chargeupTime = 0)
     {
         identModel = null;
         
@@ -114,10 +114,19 @@ internal sealed partial class NetworkActorManager
         HandlingPacket = false;
         
         gadget.transform.SetPositionAndRotation(position, rotation);
-        
+
+        if (chargeupTime > 0)
+        {
+            model.waitForChargeupTime = chargeupTime;
+            NetworkGadgetManager.ReSetChargeup(model, chargeupTime);
+        }
+
         var stationModel = model.TryCast<DroneStationGadgetModel>();
         if (stationModel != null)
             StartCoroutine(NetworkDroneManager.EnsureStation(stationModel));
+
+        NetworkGadgetManager.EnsureGadgetLinked(model);
+        NetworkGadgetManager.CheckPendingGadgetLink(model);
 
         identModel = model.TryCast<IdentifiableModel>();
         return true;
@@ -606,7 +615,13 @@ internal sealed partial class NetworkActorManager
         gadget.transform.SetPositionAndRotation(position, rotation);
         
         if (actorData is InitialActorsPacket.Gadget gadgetData)
+        {
             model.waitForChargeupTime = gadgetData.ChargeupTime;
+            NetworkGadgetManager.ReSetChargeup(model, gadgetData.ChargeupTime);
+        }
+
+        NetworkGadgetManager.EnsureGadgetLinked(model);
+        NetworkGadgetManager.CheckPendingGadgetLink(model);
 
         return true;
     }
@@ -640,6 +655,10 @@ internal sealed partial class NetworkActorManager
         gadget.transform.SetPositionAndRotation(position, rotation);
         
         model.waitForChargeupTime = actorData.ChargeupTime;
+        NetworkGadgetManager.ReSetChargeup(model, actorData.ChargeupTime);
+
+        NetworkGadgetManager.EnsureGadgetLinked(model);
+        NetworkGadgetManager.CheckPendingGadgetLink(model);
 
         return true;
     }
@@ -705,7 +724,8 @@ internal sealed partial class NetworkActorManager
         gadget.transform.SetPositionAndRotation(position, rotation);
 
         droneModel.waitForChargeupTime = actorData.ChargeupTime;
-        
+        NetworkGadgetManager.ReSetChargeup(droneModel.TryCast<GadgetModel>(), actorData.ChargeupTime);
+
         StartCoroutine(NetworkDroneManager.SetupInitialStation(droneModel, actorData));
 
         return true;
@@ -743,6 +763,7 @@ internal sealed partial class NetworkActorManager
         gadget.transform.SetPositionAndRotation(position, rotation);
         
         gadgetModel.waitForChargeupTime = actorData.ChargeupTime;
+        NetworkGadgetManager.ReSetChargeup(gadgetModel, actorData.ChargeupTime);
 
         return true;
     }

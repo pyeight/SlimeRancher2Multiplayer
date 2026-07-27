@@ -4,28 +4,39 @@ namespace SR2MP.Packets.LandPlots;
 
 internal sealed class GardenUpdatePacket : IPacket
 {
-    public string GardenID;
-    public double NextSpawnTime;
-    public float StoredWater;
-    public bool NextSpawnRipens;
+    internal struct Entry : INetObject
+    {
+        public string GardenId;
+        public double NextSpawnTime;
+        public float StoredWater;
+        public bool NextSpawnRipens;
+
+        public readonly void Serialise(PacketWriter writer)
+        {
+            writer.WriteString(GardenId);
+            writer.WriteDouble(NextSpawnTime);
+            writer.WriteFloat(StoredWater);
+            writer.WriteBool(NextSpawnRipens);
+        }
+
+        public void Deserialise(PacketReader reader)
+        {
+            GardenId = reader.ReadPooledString()!;
+            NextSpawnTime = reader.ReadDouble();
+            StoredWater = reader.ReadFloat();
+            NextSpawnRipens = reader.ReadBool();
+        }
+    }
+
+    public List<Entry> Entries;
 
     public PacketType Type => PacketType.GardenUpdate;
     public PacketReliability Reliability => PacketReliability.Reliable;
     public NetworkChannel Channel => NetworkChannel.Landplots;
 
     public void Serialise(PacketWriter writer)
-    {
-        writer.WriteString(GardenID);
-        writer.WriteDouble(NextSpawnTime);
-        writer.WriteFloat(StoredWater);
-        writer.WriteBool(NextSpawnRipens);
-    }
+        => writer.WriteList(Entries, PacketWriterDels.NetObject<Entry>.Writer);
 
     public void Deserialise(PacketReader reader)
-    {
-        GardenID = reader.ReadPooledString()!;
-        NextSpawnTime = reader.ReadDouble();
-        StoredWater = reader.ReadFloat();
-        NextSpawnRipens = reader.ReadBool();
-    }
+        => Entries = reader.ReadList(PacketReaderDels.NetObject<Entry>.Reader)!;
 }
