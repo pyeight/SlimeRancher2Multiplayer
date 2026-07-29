@@ -39,6 +39,8 @@ internal static class StartupCheck
             {
                 SrLogger.LogWarning("DEV BUILD!");
             }
+
+            Task.Run(async () => await CheckDevBuildVersionAsync());
             return;
         }
 
@@ -92,6 +94,48 @@ internal static class StartupCheck
         {
             Application.Quit();
         }
+    }
+
+    private static async Task CheckDevBuildVersionAsync()
+    {
+        try
+        {
+            // ReSharper disable once ShortLivedHttpClient
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(5);
+
+            var currentModVersion = StripPreReleaseSuffix(BuildInfo.Version);
+            var latestVersion = (await client.GetStringAsync(VersionUrl)).Trim();
+
+            if (CompareVersions(currentModVersion, latestVersion) != 0)
+                return;
+
+            ShowMessageBox(
+                "There is a released build with this version number.\n\n" +
+                $"This is a dev build with version: {latestVersion}, " +
+                "which is already publicly released as a real update.\n\n",
+                "SR2MP – Dev Build On A Released Version",
+                MB_OK | MB_ICON_WARNING, false
+            );
+        }
+        catch (TaskCanceledException)
+        {
+            SrLogger.LogWarning("SR2MP dev build version check timed out");
+        }
+        catch (HttpRequestException ex)
+        {
+            SrLogger.LogWarning($"SR2MP dev build version check failed: Network error\n{ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to check SR2MP dev build version\n{ex}");
+        }
+    }
+
+    private static string StripPreReleaseSuffix(string version)
+    {
+        var separator = version.IndexOf('-');
+        return separator < 0 ? version : version[..separator];
     }
 
     private static async Task CheckModVersionAsync()
