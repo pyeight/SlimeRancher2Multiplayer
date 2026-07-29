@@ -215,3 +215,29 @@ public sealed class RemoveExceptionsCommand : StarlightCommand
         return true;
     }
 }
+
+public sealed class ToggleGuiCommand : StarlightCommand
+{
+    public override string ID => "togglegui";
+    public override string Usage => "togglegui";
+
+    public override bool Execute(string[] args)
+    {
+        MultiplayerUI.Instance.HandleUIToggle(true);
+        SrLogger.LogMessage("toggled the gui (if the chat was not focussed)!");
+        return true;
+    }
+}
+
+public sealed class ToggleChatCommand : StarlightCommand
+{
+    public override string ID => "togglechat";
+    public override string Usage => "togglechat";
+
+    public override bool Execute(string[] args)
+    {
+        MultiplayerUI.Instance.HandleChatToggle(true);
+        SrLogger.LogMessage("toggled the chat!");
+        return true;
+    }
+}
