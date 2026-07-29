@@ -116,6 +116,8 @@ internal sealed partial class NetworkActor : MonoBehaviour
         identifiable = GetComponent<Identifiable>();
         cycle        = GetComponent<ResourceCycle>();
         RegionMember = GetComponent<RegionMember>();
+
+        InitializeLabyrinthComponents();
     }
     
     public void Start()
@@ -134,8 +136,9 @@ internal sealed partial class NetworkActor : MonoBehaviour
             ResetOwnerValidityTime();
 
             GetActorType();
-            
+
             SetRigidbodyState(LocallyOwned);
+            ApplyLabyrinthSimulationGate();
 
             if (RegionMember != null)
                 SetupHibernationEvent();
@@ -279,6 +282,7 @@ internal sealed partial class NetworkActor : MonoBehaviour
         if (CachedLocallyOwned != LocallyOwned)
         {
             SetRigidbodyState(LocallyOwned);
+            ApplyLabyrinthSimulationGate();
 
             if (LocallyOwned && rigidbody)
                 rigidbody.velocity = savedVelocity;
@@ -286,8 +290,6 @@ internal sealed partial class NetworkActor : MonoBehaviour
             if (LocallyOwned)
                 RestoreStateOnOwnership();
             else
-                // Just lost ownership: give the new owner a fresh (jittered) grace period
-                // before we'd consider a silence-takeover.
                 ResetOwnerValidityTime();
         }
 
@@ -316,6 +318,8 @@ internal sealed partial class NetworkActor : MonoBehaviour
     {
         IsDestroyed = true;
         IsValid     = false;
+
+        ResetLabyrinthToVanilla();
 
         if (LocallyOwned)
         {
