@@ -287,6 +287,6 @@ internal partial class NetworkPlayer : MonoBehaviour
     {
         var localSceneGroup = NetworkSceneManager.GetPersistentID(
             SystemContext.Instance.SceneLoader._currentSceneGroup);
-        return (model?.SceneGroup ?? -1) == localSceneGroup;
+        return localSceneGroup >= 0 && (model?.SceneGroup ?? -1) == localSceneGroup;
     }
 }

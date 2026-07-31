@@ -1,6 +1,7 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
 using Il2CppMonomiPark.SlimeRancher.SceneManagement;
+using Il2CppMonomiPark.SlimeRancher.World.Teleportation;
 using SR2MP.Packets.Loading;
 using SR2MP.Shared.Utils;
 
@@ -8,13 +9,7 @@ namespace SR2MP.Shared.Managers;
 
 internal static partial class NetworkGadgetManager
 {
-    private sealed class CachedTeleporterNode
-    {
-        public TeleporterNodeModel? Node;
-        public SceneGroup? Scene;
-    }
-
-    private static readonly Dictionary<string, CachedTeleporterNode> KnownTeleporterNodes = new();
+    private static readonly Dictionary<string, SceneGroup?> KnownTeleporterNodes = new();
     
     private static readonly List<(string Source, string Destination)> CachedTeleporterLinks = new();
     
@@ -27,6 +22,8 @@ internal static partial class NetworkGadgetManager
 
         try
         {
+            var gadgetNodes = GetTeleporterNodeIds();
+
             foreach (var pair in GameState.teleporters)
             {
                 var model = pair.Value;
@@ -51,7 +48,7 @@ internal static partial class NetworkGadgetManager
 
                     CacheTeleporterNode(info.TeleporterNodeModel, info.SceneGroup);
 
-                    if (sourceNodeId != null)
+                    if (sourceNodeId != null && !gadgetNodes.Contains(sourceNodeId))
                         CachedTeleporterLinks.Add((sourceNodeId, info.TeleporterNodeModel.NodeId));
                 }
             }
@@ -68,15 +65,31 @@ internal static partial class NetworkGadgetManager
     {
         if (node.NodeId is not { Length: > 0 } nodeId) return;
 
-        if (!KnownTeleporterNodes.TryGetValue(nodeId, out var cached))
+        if (scene != null || !KnownTeleporterNodes.ContainsKey(nodeId))
+            KnownTeleporterNodes[nodeId] = scene;
+    }
+
+    private static HashSet<string> GetTeleporterNodeIds()
+    {
+        var nodeIds = new HashSet<string>();
+
+        try
         {
-            cached = new CachedTeleporterNode();
-            KnownTeleporterNodes[nodeId] = cached;
+            foreach (var model in GameState.AllGadgets())
+            {
+                if (model.TryCast<TeleporterGadgetModel>(out var teleporter)
+                    && teleporter.teleporterModel?.source?.TeleporterNodeModel?.NodeId is { Length: > 0 } nodeId)
+                {
+                    nodeIds.Add(nodeId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogDebug($"GetGadgetTeleporterNodeIds: {ex.Message}");
         }
 
-        cached.Node = node;
-        if (scene != null)
-            cached.Scene = scene;
+        return nodeIds;
     }
 
     private static TeleporterModel? FindTeleporterSourceModel(string sourceNodeId)
@@ -113,7 +126,7 @@ internal static partial class NetworkGadgetManager
                     node = sourceNode;
                     
                     if (KnownTeleporterNodes.TryGetValue(nodeId, out var known))
-                        scene = known.Scene;
+                        scene = known;
 
                     return true;
                 }
@@ -137,13 +150,6 @@ internal static partial class NetworkGadgetManager
         catch (Exception ex)
         {
             SrLogger.LogDebug($"TryResolveTeleporterNode: {ex.Message}");
-        }
-
-        if (KnownTeleporterNodes.TryGetValue(nodeId, out var cached) && cached.Node != null)
-        {
-            node = cached.Node;
-            scene = cached.Scene;
-            return true;
         }
 
         return false;
@@ -220,25 +226,81 @@ internal static partial class NetworkGadgetManager
         }
     }
     
+    private static void ResolveDestinationConflicts(TeleporterModel sourceModel, string keepNodeId)
+    {
+        var destinations = sourceModel.destinations;
+        if (destinations == null)
+            return;
+
+        var conflicting = new List<TeleporterNodeModel>();
+        foreach (var pair in destinations)
+        {
+            if (pair.Key == keepNodeId || pair.Value?.TeleporterNodeModel == null)
+                continue;
+
+            conflicting.Add(pair.Value.TeleporterNodeModel);
+        }
+
+        foreach (var node in conflicting)
+            sourceModel.RemoveDestination(node);
+
+        if (conflicting.Count > 0)
+            SrLogger.LogDebug($"TeleporterLink: dropped {conflicting.Count} conflicting destination(s) from {sourceModel.source?.TeleporterNodeModel?.NodeId}.");
+    }
+
+    private static bool HasTeleporterDestination(TeleporterModel sourceModel, string destinationNodeId, SceneGroup sceneGroup)
+    {
+        try
+        {
+            var destinations = sourceModel.destinations;
+            if (destinations == null || !destinations.TryGetValue(destinationNodeId, out var info))
+                return false;
+
+            return info?.TeleporterNodeModel != null && info.SceneGroup == sceneGroup;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     private static bool ForceApplyTeleporterLink(TeleporterModel sourceModel, TeleporterNodeModel destinationNode, SceneGroup sceneGroup)
     {
-        var sourceGadget = FindTeleporterGadgetModel(sourceModel.source?.TeleporterNodeModel?.NodeId);
-        var destinationGadget = FindTeleporterGadgetModel(destinationNode.NodeId);
+        var sourceNodeId = sourceModel.source?.TeleporterNodeModel?.NodeId;
+        var destinationNodeId = destinationNode.NodeId;
+        
+        if (HasTeleporterDestination(sourceModel, destinationNodeId, sceneGroup))
+        {
+            SceneContext.Instance?.TeleportNetwork?.OnLinkRegistered(sourceModel);
+            RefreshTeleporterNode(sourceNodeId);
+            RefreshTeleporterNode(destinationNodeId);
+            return true;
+        }
+
+        var sourceGadget = FindTeleporterGadgetModel(sourceNodeId);
+        var destinationGadget = FindTeleporterGadgetModel(destinationNodeId);
         var sourceChargeup = sourceGadget?.waitForChargeupTime;
         var destinationChargeup = destinationGadget?.waitForChargeupTime;
+        
+        var nodeId = GameState.GetOrCreateTeleporterNodeModel(destinationNodeId);
+        if (nodeId != null)
+            destinationNode = nodeId;
 
         HandlingPacket = true;
         try
         {
             var destinations = sourceModel.destinations;
-            if (destinations?.ContainsKey(destinationNode.NodeId) == true)
-                destinations.Remove(destinationNode.NodeId);
+            if (destinations?.ContainsKey(destinationNodeId) == true)
+                destinations.Remove(destinationNodeId);
+
+            if (sourceGadget != null)
+                ResolveDestinationConflicts(sourceModel, destinationNodeId);
 
             sourceModel.AddDestination(destinationNode, sceneGroup);
         }
         catch (Exception ex)
         {
-            SrLogger.LogWarning($"ForceApplyTeleporterLink ({destinationNode.NodeId}): {ex.Message}");
+            SrLogger.LogWarning($"ForceApplyTeleporterLink ({destinationNodeId}): {ex.Message}");
             return false;
         }
         finally
@@ -247,10 +309,38 @@ internal static partial class NetworkGadgetManager
         }
 
         SceneContext.Instance?.TeleportNetwork?.OnLinkRegistered(sourceModel);
+        
+        // Refresh, if it was already present, it doesn't know about anything yet
+        RefreshTeleporterNode(sourceNodeId);
+        RefreshTeleporterNode(destinationNodeId);
 
         RestoreTeleporterChargeup(sourceGadget, sourceChargeup);
         RestoreTeleporterChargeup(destinationGadget, destinationChargeup);
         return true;
+    }
+
+    private static void RefreshTeleporterNode(string? nodeId)
+    {
+        if (nodeId is not { Length: > 0 })
+            return;
+
+        foreach (var node in Resources.FindObjectsOfTypeAll<GadgetTeleporterNode>())
+        {
+            try
+            {
+                if (node == null || node.NodeId != nodeId)
+                    continue;
+
+                node.OnLinkRegistered();
+                return;
+            }
+            catch
+            {
+                // If anything is broken here,
+                // it was already caught before,
+                // we can silence it
+            }
+        }
     }
 
     private static bool TryApplyTeleporterLink(string sourceNodeId, string destinationNodeId, byte sceneGroupId, bool logRetry)
@@ -308,15 +398,71 @@ internal static partial class NetworkGadgetManager
         KnownTeleporterLinks.Add((sourceNodeId, destinationNodeId, sceneGroupId));
     }
     
+    private static void ForgetTeleporterLink(string sourceNodeId, string destinationNodeId)
+        => KnownTeleporterLinks.RemoveAll(link => link.Source == sourceNodeId && link.Destination == destinationNodeId);
+
+    private static void ForgetTeleporterLinksFor(string? nodeId)
+    {
+        if (nodeId is not { Length: > 0 })
+            return;
+
+        KnownTeleporterLinks.RemoveAll(link => link.Source == nodeId || link.Destination == nodeId);
+    }
+    
+    internal static void RemoveTeleporterGadget(IdentifiableModel? model)
+    {
+        if (model == null)
+            return;
+
+        try
+        {
+            if (!model.TryCast<TeleporterGadgetModel>(out var teleporter) || teleporter == null)
+                return;
+
+            var definition = teleporter.ident?.TryCast<GadgetDefinition>();
+            if (definition == null)
+                return;
+
+            var teleporterModel = teleporter.teleporterModel;
+            var nodeId = teleporterModel?.source?.TeleporterNodeModel?.NodeId;
+            var actorId = teleporter.actorId;
+
+            GameState.DestroyGadgetTeleporterModel(definition, actorId);
+            teleporterModel?.UnregisterGadget(definition);
+            
+            ForgetTeleporterLinksFor(nodeId);
+
+            SrLogger.LogDebug($"Teleporter {actorId.Value} ({nodeId}) unregistered from the teleport network.");
+        }
+        catch (Exception ex)
+        {
+            SrLogger.LogWarning($"Failed to unregister teleporter: {ex.Message}");
+        }
+    }
+
+    private static bool IsTeleporterLinkKnown(string sourceNodeId, string destinationNodeId)
+        => KnownTeleporterLinks.Exists(link => link.Source == sourceNodeId && link.Destination == destinationNodeId);
+
     internal static IEnumerator ApplyTeleporterLink(string sourceNodeId, string destinationNodeId, byte sceneGroupId)
     {
         RememberTeleporterLink(sourceNodeId, destinationNodeId, sceneGroupId);
 
         var attempts = 0;
-        while (attempts++ < 120)
+        while (attempts < 120)
         {
             if (!Main.Client.IsConnected && !Main.Server.IsRunning)
                 yield break;
+
+            if (!IsTeleporterLinkKnown(sourceNodeId, destinationNodeId))
+                yield break;
+            
+            if (SystemContext.Instance.SceneLoader.IsSceneLoadInProgress)
+            {
+                yield return new WaitForSeconds(0.5f);
+                continue;
+            }
+
+            attempts++;
 
             bool applied;
             try
@@ -335,6 +481,7 @@ internal static partial class NetworkGadgetManager
             yield return new WaitForSeconds(0.5f);
         }
 
+        ForgetTeleporterLink(sourceNodeId, destinationNodeId);
         SrLogger.LogWarning($"TeleporterLink: could not link {sourceNodeId} -> {destinationNodeId} (nodes never found)");
     }
 
@@ -437,6 +584,10 @@ internal static partial class NetworkGadgetManager
             SrLogger.LogWarning($"GetAllTeleporterLinks: {ex.Message}");
         }
         
+        KnownTeleporterLinks.RemoveAll(link => 
+            FindTeleporterSourceModel(link.Source) == null ||
+            FindTeleporterSourceModel(link.Destination) == null);
+
         foreach (var link in KnownTeleporterLinks)
         {
             if (seen.Add((link.Source, link.Destination)))

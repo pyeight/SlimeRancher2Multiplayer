@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using SR2MP.Packets.Actor;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Gadget;
 
@@ -25,8 +26,11 @@ internal static class OnGadgetDestroy
 
         try
         {
-            var packet = new ActorDestroyPacket { ActorId = gadget.GetActorId() };
-            Main.SendToAllOrServer(packet);
+            var actorId = gadget.GetActorId();
+
+            Main.SendToAllOrServer(new ActorDestroyPacket { ActorId = actorId });
+            
+            NetworkGadgetManager.BroadcastLinkedPairDestroy(actorId);
         }
         catch (Exception ex)
         {

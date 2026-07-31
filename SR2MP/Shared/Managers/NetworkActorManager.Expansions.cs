@@ -209,6 +209,40 @@ internal sealed partial class NetworkActorManager
         component.LocallyOwned = locallyOwned;
     }
     
+    private static bool FreeActorIdForGadget(ActorId actorId, IdentifiableType incomingType)
+    {
+        try
+        {
+            if (GameState.TryGetIdentifiableModel(actorId, out var existing) && existing != null)
+            {
+                // Same gadget on the same id, not a collision.
+                // Respawning would drop links, we don't want that
+                if (existing.ident == incomingType || existing.ident?.IsPlayer == true)
+                    return false;
+
+                var gameObject = existing.GetGameObject();
+
+                NetworkGadgetManager.RemoveTeleporterGadget(existing);
+                NetworkGadgetManager.ForgetGadgetLink(actorId);
+
+                HandlingPacket = true;
+                if (gameObject)
+                    Destroyer.DestroyAny(gameObject, "SR2MP.RemoveExistingGadgetModel");
+                else
+                    GameState.DestroyIdentifiableModel(existing);
+                HandlingPacket = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            HandlingPacket = false;
+            SrLogger.LogWarning($"Failed to free actor id {actorId.Value} for an incoming gadget: {ex.Message}");
+        }
+
+        RemoveExistingGadgetModel(actorId);
+        return true;
+    }
+
     internal static void RemoveExistingGadgetModel(ActorId actorId)
     {
         if (actorId.Value == 0) return;
@@ -221,6 +255,9 @@ internal sealed partial class NetworkActorManager
                     continue;
 
                 var gameObject = gadget.GetGameObject();
+
+                NetworkGadgetManager.RemoveTeleporterGadget(gadget);
+                NetworkGadgetManager.ForgetGadgetLink(gadget.actorId);
 
                 HandlingPacket = true;
                 if (gameObject)
