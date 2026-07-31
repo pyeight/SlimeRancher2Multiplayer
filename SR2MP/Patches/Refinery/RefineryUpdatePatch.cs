@@ -12,6 +12,12 @@ internal static class RefineryUpdate
         if (HandlingPacket)
             return;
 
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected)
+            return;
+        
+        if (SystemContext.Instance.SceneLoader.IsSceneLoadInProgress)
+            return;
+
         var packet = new RefineryUpdatePacket
         {
             ItemCount = (ushort)newCount,
