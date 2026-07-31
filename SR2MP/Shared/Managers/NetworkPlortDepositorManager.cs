@@ -1,4 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using SR2MP.Packets.World;
 
 namespace SR2MP.Shared.Managers;
 
@@ -39,6 +40,26 @@ internal static class NetworkPlortDepositorManager
 
         return null;
     }
+    
+    /// <summary>
+    /// Broadcasts a slot's fill state
+    /// </summary>
+    internal static void Broadcast(PlortDepositor depositor)
+    {
+        var model = depositor._model;
+        if (model == null)
+            return;
+
+        var id = ResolveId(depositor, model);
+        if (string.IsNullOrEmpty(id))
+            return;
+
+        Main.SendToAllOrServer(new PlortDepositorPacket
+        {
+            ID = id,
+            AmountDeposited = model.AmountDeposited
+        });
+    }
 
     /// <summary>
     /// Applies a received fill amount
@@ -65,8 +86,14 @@ internal static class NetworkPlortDepositorManager
             return;
 
         var depositor = model._gameObject.GetComponent<PlortDepositor>();
-        if (depositor)
-            depositor.OnFilledChangedFromModel();
+        if (!depositor)
+            return;
+
+        depositor.OnFilledChangedFromModel();
+
+        // the lock only re-evaluates when told to,
+        // it requires an extra invitation
+        depositor._puzLockable?.NotifySlotChanged(false);
     }
 
     /// <summary>

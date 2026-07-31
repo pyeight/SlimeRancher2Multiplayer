@@ -1,4 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using SR2MP.Packets.World;
 
 namespace SR2MP.Shared.Managers;
 
@@ -50,6 +51,22 @@ internal static class NetworkPuzzleSlotManager
     }
 
     /// <summary>
+    /// Broadcasts a slot's fill state
+    /// </summary>
+    internal static void Broadcast(PuzzleSlot slot, bool filled)
+    {
+        var id = ResolveId(slot, slot._model);
+        if (string.IsNullOrEmpty(id))
+            return;
+
+        Main.SendToAllOrServer(new PuzzleSlotPacket
+        {
+            ID = id,
+            Filled = filled
+        });
+    }
+
+    /// <summary>
     /// Applies a received fill state,
     /// or remembers it when the slots model does not exist yet.
     /// </summary>
@@ -78,7 +95,6 @@ internal static class NetworkPuzzleSlotManager
         {
             slot!.ActivateOnFill();
             slot!._puzLockable?.NotifySlotChanged(false);
-            return;
         }
 
         model.NotifyParticipants();
