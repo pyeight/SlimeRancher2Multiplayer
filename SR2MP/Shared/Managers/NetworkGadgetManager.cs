@@ -63,9 +63,9 @@ internal static partial class NetworkGadgetManager
             .FirstOrDefault();
     }
 
-    // Every GadgetModel.LinkDestroyer resolves its own partner off the gadget registry. The proximity
-    // fallback below picks an arbitrary gadget of the same type once a second pair exists, which for warp
-    // depots means picking one up deletes someone else's depot, ammo and all.
+    // Every GadgetModel.LinkDestroyer resolves its own partner off the gadget registry.
+    // The proximity fallback below picks an arbitrary gadget of the same type once a second pair exists,
+    // which for warp depots means picking one up deletes someone else's depot, ammo and all.
     internal static GadgetModel? ResolveLinkedGadget(GadgetModel gadget)
         => gadget.TryCast<TeleporterGadgetModel>(out var teleporter) ? teleporter.GetLinkedGadget()
             : gadget.TryCast<WarpDepotModel>(out var depot) ? depot.GetLinkedGadget()
@@ -90,30 +90,6 @@ internal static partial class NetworkGadgetManager
 
         if (model.TryCast(out WarpDepotModel? warpDepotModel))
             EnsureWarpDepotLinked(warpDepotModel);
-    }
-
-    private static void EnsureWarpDepotLinked(WarpDepotModel? warpDepotModel)
-    {
-        if (warpDepotModel == null || warpDepotModel.linkedModel != null)
-            return;
-
-        try
-        {
-            var partnerModel = warpDepotModel.GetLinkedGadget()?.TryCast<WarpDepotModel>();
-            if (partnerModel != null)
-                LinkWarpDepotModels(warpDepotModel, partnerModel);
-        }
-        catch (Exception ex)
-        {
-            SrLogger.LogWarning($"Failed to link warp depot {warpDepotModel.actorId.Value}: {ex.Message}");
-        }
-    }
-
-    private static void LinkWarpDepotModels(WarpDepotModel a, WarpDepotModel b)
-    {
-        // Fancy, I know
-        a.linkedModel = b;
-        b.linkedModel ??= a;
     }
 
     // Patching TeleporterModel.RemoveDestination to sync the unlink causes a memory access violation.
@@ -175,52 +151,8 @@ internal static partial class NetworkGadgetManager
         NetworkAmmoManager.OnGadgetLinkResolved(gadgetId, partnerId);
     }
 
-    private static readonly Dictionary<long, double> CannonFireTimes = new();
-
-    /// <summary>
-    /// Records a cannon's next fire time and reports whether it moved since we last saw it.
-    /// </summary>
-    /// <remarks>
-    /// A cannon first seen is adopted silently: broadcasting it would have every player announce their
-    /// own timer the moment the gadget loads.
-    /// </remarks>
-    internal static bool TryRecordCannonFireTime(long gadgetId, double nextFireTime)
-    {
-        if (!CannonFireTimes.TryGetValue(gadgetId, out var previous))
-        {
-            CannonFireTimes[gadgetId] = nextFireTime;
-            return false;
-        }
-
-        if (Math.Abs(previous - nextFireTime) < 0.0001)
-            return false;
-
-        CannonFireTimes[gadgetId] = nextFireTime;
-        return true;
-    }
-
-    // Whoever fires first pushes everyone else's timer past the trigger, so the shot only happens once.
-    internal static void ApplyCannonFireTime(long gadgetId, double nextFireTime)
-    {
-        // Recorded before it is applied, so the Update patch reads it back as its own value and stays quiet.
-        CannonFireTimes[gadgetId] = nextFireTime;
-
-        if (!TryGetGadgetModel(gadgetId, out var model) || model == null)
-            return;
-
-        var gameObject = model.GetGameObject();
-        if (!gameObject)
-            return;
-
-        var cannon = gameObject.GetComponentInChildren<LinkedCannonInput>(true);
-        if (!cannon)
-            return;
-
-        cannon._nextFireTime = nextFireTime;
-    }
-
-    // Both maps are keyed by actor id and nothing else prunes them, so a destroyed gadget would keep
-    // handing NetworkAmmoManager a partner that no longer exists.
+    // Both are keyed by actor id and nothing else prunes them,
+    // so a destroyed gadget would keep handing NetworkAmmoManager a partner that no longer exists
     internal static void ForgetGadgetLink(ActorId actorId)
     {
         var id = actorId.Value;
