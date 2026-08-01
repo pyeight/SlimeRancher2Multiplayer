@@ -25,6 +25,7 @@ public sealed class SR2MPServer
     private readonly ServerPacketManager packetManager;
 
     private Timer? timeoutTimer;
+    private bool subscribedToQuitting;
 
     // Just here so that the port is viewable.
 
@@ -83,7 +84,13 @@ public sealed class SR2MPServer
             PlayerId = DevMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
 
             packetManager.RegisterHandlers(Main.Core);
-            Application.quitting += new Action(Close);
+            
+            if (!subscribedToQuitting)
+            {
+                subscribedToQuitting = true;
+                Application.quitting += new Action(Close);
+            }
+
             NetworkManager.Start(port, enableIPv6);
             Port = port;
             timeoutTimer = new Timer(CheckClientTimeouts, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));

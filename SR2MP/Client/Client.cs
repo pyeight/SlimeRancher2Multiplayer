@@ -32,6 +32,7 @@ public sealed class SR2MPClient
     private const int ConnectionTimeoutSeconds = 10;
 
     private bool shownConnectionError;
+    private bool subscribedToQuitting;
 
     private readonly ClientPacketManager packetManager;
 
@@ -44,6 +45,11 @@ public sealed class SR2MPClient
     /// Gets a value indicating the connection status of the client.
     /// </summary>
     public bool IsConnecting => isConnecting;
+
+    /// <summary>
+    /// Gets a value indicating whether the client is currently fully in a world
+    /// </summary>
+    internal bool IsJoined => isConnected && connectionAcknowledged;
 
     /// <summary>
     /// Gets a value indicating the client's identifier.
@@ -166,7 +172,11 @@ public sealed class SR2MPClient
             connectionTimeoutTimer = new Timer(CheckConnectionTimeout, null,
                 TimeSpan.FromSeconds(ConnectionTimeoutSeconds), Timeout.InfiniteTimeSpan);
 
-            Application.quitting += new Action(Disconnect);
+            if (!subscribedToQuitting)
+            {
+                subscribedToQuitting = true;
+                Application.quitting += new Action(Disconnect);
+            }
 
             var connectPacket = new ConnectPacket
             {
@@ -381,6 +391,7 @@ public sealed class SR2MPClient
 
             isConnected = false;
             isConnecting = false;
+            connectionAcknowledged = false;
 
             connectionTimeoutTimer?.Dispose();
             connectionTimeoutTimer = null;
@@ -416,7 +427,7 @@ public sealed class SR2MPClient
             ApiHandlers.ClearNetIds();
 
             SrLogger.LogMessage("Disconnected from server");
-            OnDisconnected?.Invoke();
+            InvokeDisconnected();
         }
         catch (Exception ex)
         {
@@ -433,7 +444,49 @@ public sealed class SR2MPClient
         connectionTimeoutTimer?.Dispose();
         connectionTimeoutTimer = null;
 
-        OnConnected?.Invoke(PlayerId);
+        InvokeConnected();
+    }
+    
+    private void InvokeConnected()
+    {
+        var subscribers = OnConnected;
+
+        if (subscribers == null)
+            return;
+
+        foreach (var subscriber in subscribers.GetInvocationList())
+        {
+            try
+            {
+                ((Action<string>)subscriber).Invoke(PlayerId);
+            }
+            catch (Exception ex)
+            {
+                var method = subscriber.Method;
+                SrLogger.LogError($"OnConnected subscriber {method.DeclaringType?.FullName}.{method.Name} failed: {ex}");
+            }
+        }
+    }
+    
+    private void InvokeDisconnected()
+    {
+        var subscribers = OnDisconnected;
+
+        if (subscribers == null)
+            return;
+
+        foreach (var subscriber in subscribers.GetInvocationList())
+        {
+            try
+            {
+                ((Action)subscriber).Invoke();
+            }
+            catch (Exception ex)
+            {
+                var method = subscriber.Method;
+                SrLogger.LogError($"OnDisconnected subscriber {method.DeclaringType?.FullName}.{method.Name} failed: {ex}");
+            }
+        }
     }
 
     /// <summary>
