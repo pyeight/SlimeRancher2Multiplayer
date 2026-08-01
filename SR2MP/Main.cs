@@ -111,6 +111,10 @@ public sealed class Main : StarlightExpansionV01
     internal static bool SetupUI => preferences.GetEntry<bool>("internal_setup_ui_new_new").Value;
     internal static bool PacketSizeLogging => preferences.GetEntry<bool>("packet_size_log").Value;
     internal static bool PacketAcknowledgeLogging => preferences.GetEntry<bool>("packet_ack_log").Value;
+    internal static bool SaveBackups => preferences.GetEntry<bool>("save_backups").Value;
+    internal static bool SaveBackupPruning => preferences.GetEntry<bool>("save_backup_pruning").Value;
+    internal static int SaveBackupCount => Math.Max(1, preferences.GetEntry<int>("save_backup_count").Value);
+    internal static bool SaveBackupDisableForced => preferences.GetEntry<bool>("save_backup_disable_forced").Value;
     // internal static bool RemoteGadgetPreviewShaders => preferences.GetEntry<bool>("remote_gadget_preview_shaders").Value;
     internal static bool RemoteGadgetPreviewShaders = false;
 
@@ -138,6 +142,11 @@ public sealed class Main : StarlightExpansionV01
         preferences.CreateEntry("packet_size_log", false, display_name: "Packet Size Logging");
         preferences.CreateEntry("packet_ack_log", true, display_name: "Packet Acknowledge Logging");
         // preferences.CreateEntry("remote_gadget_preview_shaders", false, display_name: "Remote Gadget Preview Hologram Shader");
+
+        preferences.CreateEntry("save_backups", true, display_name: "Automatic Save Backups");
+        preferences.CreateEntry("save_backup_pruning", false, display_name: "Delete Old Save Backups");
+        preferences.CreateEntry("save_backup_count", 10, display_name: "Save Backups To Keep (per save)");
+        preferences.CreateEntry("save_backup_disable_forced", false, display_name: "Also Skip Host & Connect Backups (not recommended)");
 
         preferences.CreateEntry("internal_setup_ui_new_new", true, is_hidden: true);
 

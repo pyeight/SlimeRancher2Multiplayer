@@ -47,6 +47,54 @@
 
 # ⚠ MAKE SURE TO BACK UP YOUR SAVES ⚠
 
+The mod does this for you as a safety net, but it is no substitute for your own backups.
+
+## Save Backups
+Just before the game writes an autosave, the mod copies the loaded save's autosaves 
+(including your profile and settings files) into `UserData/SR2MP/SaveBackups/`:
+
+```
+SaveBackups/
+  2026-07-30_08-36-59/              <- when the backup was taken
+    20260722122725_36/              <- the save
+      beforehost/                   <- what you were doing at the time
+        Steam/76561199228048027/    <- copy this folder into AppData/LocalLow/MonomiPark/SlimeRancher2/
+          20260722122725_36_0.sav
+          ...
+          slimerancher.prf
+          slimerancher.cfg
+```
+
+The top level is a list of every backup, 
+and the inner folders mirror the actual game's structure, 
+so you can easily drag and drop them in.
+The backup phase is one of the following:
+
+| Phase             | Taken when                                                 |
+|-------------------|------------------------------------------------------------|
+| `offline`         | autosave in singleplayer                                   |
+| `beforehost`      | the moment you open your world to others                   |
+| `whilehost`       | autosaves while you are hosting a world                    |
+| `beforeconnect`   | the moment before you connect, before anything is replaced |
+| `whileconnect`    | autosaves while you are connected to a world               |
+| `afterdisconnect` | you left a host's session                                  |
+| `manual`          | you ran the `backupsave` console command                   |
+
+The `beforehost`, `beforeconnect` and `afterdisconnect` backups always run,
+even with `save_backups` off so joining with the wrong save can always be undone.
+Turning on `save_backup_disable_forced` skips those three as well, leaving you with no safety net at all.
+The autosave phases are skipped when the files are identical to the newest backup already stored for that save,
+
+Backups are **never deleted** unless you turn on `save_backup_pruning`,
+which then keeps the newest `save_backup_count` (10) backups **per phase** and deletes the rest.
+Loading a save and quitting without playing does not create a redundant backup.
+Run `backupsave` in the console (F11 -> backupsave) to back up your save on demand,
+or turn the whole thing off with the `save_backups` option.
+
+To restore a backup, close the game and copy the store folder inside it (`Steam/...`) back into
+`AppData/LocalLow/MonomiPark/SlimeRancher2` on Windows, overwriting when asked.
+Only the backed up save's files are overwritten, your other saves are left alone.
+
 ## Installation
 1. Download and run the [MelonLoader Installer](https://github.com/LavaGang/MelonLoader/releases/download/v0.7.1/MelonLoader.Installer.exe) and install **MelonLoader 0.7.3** onto Slime Rancher 2.
 2. Download [Starlight 4.0.3](https://github.com/ThatFinnDev/Starlight/releases/download/v4.0.3/Starlight.dll) and put `Starlight.dll` into the `Mods` folder of your game install.
@@ -71,19 +119,23 @@ All settings are in MelonPreferences (`UserData/MelonPreferences.cfg`) under the
 They are also editable via the *Mod Settings* screen (`ESC -> Mods -> Mods Settings -> Scroll down`).
 All settings you change via the Multiplayer GUI are automatically saved.
 
-|            Setting            | Default  |                       Description                        |
-|:-----------------------------:|:--------:|:--------------------------------------------------------:|
-|          `username`           | `Player` |           Your name as shown to other players            |
-|       `username_color`        | `FFFFFF` |             Hex color of your username label             |
-|         `allow_cheats`        | `false`  |          Allows cheats in multiplayer sessions           |
-|        `streamer_mode`        | `false`  |      Hides IPs and join codes in the multiplayer UI      |
-|          `host_port`          |  `1919`  |                UDP port used when hosting                |
-|   `recent_ip` / `recent_port` | *empty*  |        Last used connection, saved automatically         |
-|     `firewall_exceptions`     | *empty*  | Firewall rules created by the mod, managed automatically |
-|       `packet_size_log`       | `false`  |            Logs packet sizes (debug setting)             |
-|        `packet_ack_log`       |  `true`  |  Logs reliable-packet acknowledgements (debug setting)   |
-|    `internal_setup_ui_new`    |  `true`  |         Internal first time settings screen flag         |
-| `the_rock_plorts_are_coming`  | `false`  |  Rock Plort Mode, a troll mode, **FULLY BREAKS SAVES!**  |
+|            Setting            | Default  |                                      Description                                       |
+|:-----------------------------:|:--------:|:--------------------------------------------------------------------------------------:|
+|          `username`           | `Player` |                          Your name as shown to other players                           |
+|       `username_color`        | `FFFFFF` |                            Hex color of your username label                            |
+|         `allow_cheats`        | `false`  |                         Allows cheats in multiplayer sessions                          |
+|        `streamer_mode`        | `false`  |                     Hides IPs and join codes in the multiplayer UI                     |
+|          `host_port`          |  `1919`  |                               UDP port used when hosting                               |
+|   `recent_ip` / `recent_port` | *empty*  |                       Last used connection, saved automatically                        |
+|     `firewall_exceptions`     | *empty*  |                Firewall rules created by the mod, managed automatically                |
+|       `packet_size_log`       | `false`  |                           Logs packet sizes (debug setting)                            |
+|        `packet_ack_log`       |  `true`  |                 Logs reliable-packet acknowledgements (debug setting)                  |
+|        `save_backups`         |  `true`  | Backs up your save files once per play session (hosting and connecting always back up) |
+|     `save_backup_pruning`     | `false`  |                    Deletes old backups instead of keeping them all                     |
+|      `save_backup_count`      |   `10`   |                    Backups kept per save (when pruning is enabled)                     |
+| `save_backup_disable_forced`  | `false`  | Also skips the host, connect and disconnect backups, **leaves you with no safety net** |
+|    `internal_setup_ui_new`    |  `true`  |                        Internal first time settings screen flag                        |
+| `the_rock_plorts_are_coming`  | `false`  |               Rock Plort Mode, a troll mode, **FULLY BREAKS SAVES!**                   |
 
 ## Official Mod Support
 These mods have dedicated Ranching Together integration, they are fully working in multiplayer when installed:

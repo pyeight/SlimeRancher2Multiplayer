@@ -99,11 +99,12 @@ internal enum PacketType : byte
     InitialConversations = 105,   // Server -> Client                             Low (depends on join                  NPC Conversations on join
     GadgetTeleporterFX = 106,     // Both Ways                                    Low (manual)                          On gadget Teleporter depart/arrive FX
     EventRaised = 107,            // Both Ways                                    Low (manual)                          On event raised (e.g. Sanctuary unlock robot)
-    InitialEventsRaised = 108,    // Server -> Client                             Low (depends on join)                 Event-interactable states on Load
+    InitialEventsRaised = 108,    // Server -> Client                             Low (depends on join)                 Raised Events on Load
     GordoSlimeSeen = 109,         // Both Ways                                    Low (manual)                          On Gordo Slime first seen (for map marker)
-    GadgetLinking = 110,          // Both Ways                                    Low (manual)                          On a linked-pair gadget (Warp Depot) establishing its partner
+    GadgetLinking = 110,          // Both Ways                                    Low (manual)                          On linked-gadget (Warp Depot) establishing its partner
     InitialGadgetLinks = 111,     // Server -> Client                             Low (depends on join)                 Initial gadget links on join
     TeleporterLink = 112,         // Both Ways                                    Low (manual)                          On a teleporter node establishing a destination link
+    CannonFire = 116,             // Both Ways                                    Low (manual)                          On linked cannon firing
     InitialTeleporterLinks = 113, // Server -> Client                             Low (depends on join)                 Initial teleporter links on join
     TornadoSpawn = 114,           // Server -> All Clients                        Low (depends on tornado count)        Host tornado spawn/despawn broadcast
     GordoSlimeReward = 115,       // Both Ways                                    Low                                   On a Gordo Slime's reward spawn
