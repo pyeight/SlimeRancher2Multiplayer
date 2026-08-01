@@ -258,8 +258,14 @@ internal sealed partial class NetworkActorManager
 
     public static T[] GetAllOfType<T>() where T : IdentifiableModel
     {
-        List<T> result = new List<T>();
-        foreach (var ident in sceneContext.GameModel.identifiables)
+        var result = new List<T>();
+
+        var identifiables = sceneContext?.GameModel?.identifiables;
+
+        if (identifiables == null)
+            return result.ToArray();
+
+        foreach (var ident in identifiables)
         {
             var casted = ident.value.TryCast<T>(); 
             if (casted != null)
