@@ -1,6 +1,5 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2MP.Packets.World;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Labyrinth;
@@ -13,15 +12,22 @@ internal static class OnPuzzleSlotFill
         if (HandlingPacket) return;
         if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
 
-        var id = NetworkPuzzleSlotManager.ResolveId(__instance, __instance._model);
-        if (string.IsNullOrEmpty(id))
-            return;
+        NetworkPuzzleSlotManager.Broadcast(__instance, true);
+    }
+}
 
-        Main.SendToAllOrServer(new PuzzleSlotPacket
-        {
-            ID = id!,
-            Filled = true
-        });
+[HarmonyPatch(typeof(PuzzleSlot), nameof(PuzzleSlot.OnFilledChanged))]
+internal static class OnPuzzleSlotFilledChanged
+{
+    public static void Postfix(PuzzleSlot __instance)
+    {
+        if (HandlingPacket) return;
+        if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
+
+        var model = __instance._model;
+        if (model == null) return;
+
+        NetworkPuzzleSlotManager.Broadcast(__instance, model.filled);
     }
 }
 

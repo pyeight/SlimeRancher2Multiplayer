@@ -1,6 +1,7 @@
 using System.Net;
 using SR2MP.Components.UI;
 using SR2MP.Packets;
+using SR2MP.Shared.Managers;
 using SR2MP.Shared.Utils;
 
 namespace SR2MP;
@@ -212,6 +213,50 @@ public sealed class RemoveExceptionsCommand : StarlightCommand
     {
         Firewall.RemoveAllExceptions();
         SrLogger.LogMessage("Removed all exceptions!", SrLogTarget.Both);
+        return true;
+    }
+}
+
+public sealed class ToggleGuiCommand : StarlightCommand
+{
+    public override string ID => "togglegui";
+    public override string Usage => "togglegui";
+
+    public override bool Execute(string[] args)
+    {
+        MultiplayerUI.Instance.HandleUIToggle(true);
+        SrLogger.LogMessage("toggled the gui (if the chat was not focussed)!");
+        return true;
+    }
+}
+
+public sealed class ToggleChatCommand : StarlightCommand
+{
+    public override string ID => "togglechat";
+    public override string Usage => "togglechat";
+
+    public override bool Execute(string[] args)
+    {
+        MultiplayerUI.Instance.HandleChatToggle(true);
+        SrLogger.LogMessage("toggled the chat!");
+        return true;
+    }
+}
+
+internal sealed class BackupSaveCommand : StarlightCommand
+{
+    public override string ID => "backupsave";
+    public override string Usage => "backupsave";
+
+    public override bool Execute(string[] args)
+    {
+        if (!SaveBackupManager.BackupNow())
+        {
+            SendError("Could not back up the save, see melonloader console for details.");
+            return false;
+        }
+
+        SrLogger.LogMessage($"Save backed up to {SaveBackupManager.BackupRoot}");
         return true;
     }
 }

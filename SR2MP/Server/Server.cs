@@ -25,6 +25,7 @@ public sealed class SR2MPServer
     private readonly ServerPacketManager packetManager;
 
     private Timer? timeoutTimer;
+    private bool subscribedToQuitting;
 
     // Just here so that the port is viewable.
 
@@ -83,11 +84,17 @@ public sealed class SR2MPServer
             PlayerId = DevMode ? "PLAYER_TEST_MODE" : PlayerIdGenerator.GeneratePersistentPlayerId();
 
             packetManager.RegisterHandlers(Main.Core);
-            Application.quitting += new Action(Close);
+            
+            if (!subscribedToQuitting)
+            {
+                subscribedToQuitting = true;
+                Application.quitting += new Action(Close);
+            }
+
             NetworkManager.Start(port, enableIPv6);
             Port = port;
             timeoutTimer = new Timer(CheckClientTimeouts, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
-            OnServerStarted?.Invoke();
+            InvokeServerStarted();
             MultiplayerUI.Instance.RegisterSystemMessage(
                 "The world is now open to others!",
                 $"SYSTEM_HOST_START_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
@@ -97,6 +104,27 @@ public sealed class SR2MPServer
         catch (Exception ex)
         {
             SrLogger.LogError($"Failed to start server: {ex}");
+        }
+    }
+    
+    private void InvokeServerStarted()
+    {
+        var subscribers = OnServerStarted;
+
+        if (subscribers == null)
+            return;
+
+        foreach (var subscriber in subscribers.GetInvocationList())
+        {
+            try
+            {
+                ((Action)subscriber).Invoke();
+            }
+            catch (Exception ex)
+            {
+                var method = subscriber.Method;
+                SrLogger.LogError($"OnServerStarted subscriber {method.DeclaringType?.FullName}.{method.Name} failed: {ex}");
+            }
         }
     }
 

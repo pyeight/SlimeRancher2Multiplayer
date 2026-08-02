@@ -28,6 +28,9 @@ internal sealed class ActorDestroyHandler : BasePacketHandler<ActorDestroyPacket
                 if (actor.TryCast<DroneStationGadgetModel>() != null)
                     NetworkDroneManager.RemoveStationDrone(packet.ActorId);
 
+                NetworkGadgetManager.RemoveTeleporterGadget(actor);
+                NetworkGadgetManager.ForgetGadgetLink(packet.ActorId);
+
                 GameState.identifiables.Remove(packet.ActorId);
                 GameState.identifiablesByIdent[actor.ident].Remove(actor);
                 GameState.DestroyIdentifiableModel(actor);

@@ -141,15 +141,18 @@ internal sealed partial class MultiplayerUI
     private static void EnableInput() =>
         GameContext.Instance.InputDirector._mainGame.Map.Enable();
 
-    private void HandleUIToggle()
+    internal void HandleUIToggle(bool hide = false)
     {
         if (KeyCode.F4.OnKeyDown() && !isChatFocused)
             multiplayerUIHidden = !multiplayerUIHidden;
+
+        if (hide && !isChatFocused)
+            multiplayerUIHidden = !multiplayerUIHidden;
     }
 
-    private void HandleChatToggle()
+    internal void HandleChatToggle(bool hide = false)
     {
-        if (!KeyCode.F5.OnKeyDown()) return;
+        if (!KeyCode.F5.OnKeyDown() && !hide) return;
 
         if (isChatFocused)
             UnfocusChat();

@@ -170,7 +170,7 @@ internal sealed partial class NetworkActorManager
             return CreateInitialDroneStation(gadget.Cast<DroneStationGadgetModel>());
 
         // Teleporters are synced differently
-        if (!gadget.TryCast<TeleporterGadgetModel>(out _) && NetworkGadgetManager.GetLinkedGadget(gadget) != null)
+        if (!gadget.TryCast<TeleporterGadgetModel>(out _) && NetworkGadgetManager.ResolveLinkedGadget(gadget) != null)
         {
             if (NetworkGadgetManager.GetAmmoFromGadget(gadget) != null)
                 return CreateInitialAmmoGadget(gadget);
@@ -198,7 +198,7 @@ internal sealed partial class NetworkActorManager
         Position = model.lastPosition,
         Rotation = model.GetRot(),
         Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-        LinkedActorId = NetworkGadgetManager.GetLinkedGadget(model)!.actorId.Value,
+        LinkedActorId = NetworkGadgetManager.ResolveLinkedGadget(model)!.actorId.Value,
         ChargeupTime = model.waitForChargeupTime
     };
 
@@ -233,7 +233,7 @@ internal sealed partial class NetworkActorManager
             Position = model.lastPosition,
             Rotation = model.GetRot(),
             Scene = NetworkSceneManager.GetPersistentID(model.sceneGroup),
-            LinkedActorId = NetworkGadgetManager.GetLinkedGadget(model)!.actorId.Value,
+            LinkedActorId = NetworkGadgetManager.ResolveLinkedGadget(model)!.actorId.Value,
             Ammo = new NetworkAmmo { AmmoSlots = ammoSlots },
             ChargeupTime = model.waitForChargeupTime
         };

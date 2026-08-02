@@ -1,6 +1,5 @@
 using HarmonyLib;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using SR2MP.Packets.World;
 using SR2MP.Shared.Managers;
 
 namespace SR2MP.Patches.Labyrinth;
@@ -12,24 +11,18 @@ internal static class OnPlortDepositorDeposit
     {
         if (HandlingPacket) return;
 
-        var id = "";
-        foreach (var pair in GameState.depositors)
-        {
-            if (pair.value == __instance._model)
-            {
-                id = pair.key;
-                break;
-            }
-        }
+        NetworkPlortDepositorManager.Broadcast(__instance);
+    }
+}
 
-        if (!string.IsNullOrEmpty(id))
-        {
-            Main.SendToAllOrServer(new PlortDepositorPacket
-            {
-                ID = id,
-                AmountDeposited = __instance._model.AmountDeposited
-            });
-        }
+[HarmonyPatch(typeof(PlortDepositor), nameof(PlortDepositor.OnFilledChanged))]
+internal static class OnPlortDepositorFilledChanged
+{
+    public static void Postfix(PlortDepositor __instance)
+    {
+        if (HandlingPacket) return;
+
+        NetworkPlortDepositorManager.Broadcast(__instance);
     }
 }
 

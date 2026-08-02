@@ -110,6 +110,12 @@ internal sealed class ActorsLoadHandler : BasePacketHandler<InitialActorsPacket>
                     Destroyer.DestroyAny(gameObject, "SR2MP.InitialActors");
                     destroyed = true;
                 }
+                else if (!value.ident.IsGadget())
+                {
+                    // Hibernation caused problems, no gameObj
+                    GameState.DestroyIdentifiableModel(value);
+                    destroyed = true;
+                }
             }
         }
         finally

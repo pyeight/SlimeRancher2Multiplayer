@@ -1,6 +1,5 @@
 using System.Collections;
 using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.Drone;
 using SR2MP.Components.Drone;
 
 namespace SR2MP.Shared.Managers;
@@ -79,18 +78,29 @@ internal static partial class NetworkDroneManager
 
     private static void OnServerStarted()
     {
-        foreach (var drone in NetworkActorManager.GetAllOfType<RanchDroneModel>())
+        ClaimLoadedDrones(NetworkActorManager.GetAllOfType<RanchDroneModel>());
+        ClaimLoadedDrones(NetworkActorManager.GetAllOfType<ExplorerDroneModel>());
+    }
+
+    private static void ClaimLoadedDrones(IEnumerable<IdentifiableModel> drones)
+    {
+        foreach (var drone in drones)
         {
-            var ranchDrone = GetNetworkComponent(drone.GetGameObject());
-            ranchDrone.LocallyOwned = true;
-            ranchDrone.CurrentOwnerId = Main.Server.PlayerId;
-        }
-        
-        foreach (var drone in NetworkActorManager.GetAllOfType<ExplorerDroneModel>())
-        {
-            var explorerDrone = GetNetworkComponent(drone.GetGameObject());
-            explorerDrone.LocallyOwned = true;
-            explorerDrone.CurrentOwnerId = Main.Server.PlayerId;
+            try
+            {
+                var droneObject = drone.GetGameObject();
+
+                if (!droneObject)
+                    continue;
+
+                var networkDrone = GetNetworkComponent(droneObject);
+                networkDrone.LocallyOwned = true;
+                networkDrone.CurrentOwnerId = Main.Server.PlayerId;
+
+                if (networkDrone.StationId != 0)
+                    CachedOwners[networkDrone.StationId] = Main.Server.PlayerId;
+            }
+            catch { /* ignored */ }
         }
     }
 

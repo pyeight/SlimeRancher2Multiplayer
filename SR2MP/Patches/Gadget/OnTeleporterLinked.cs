@@ -19,13 +19,20 @@ internal static class OnTeleporterLinked
             var sourceNode = __instance.source?.TeleporterNodeModel;
             if (sourceNode == null || nodeModel == null) return;
 
+            var sceneGroupId = NetworkSceneManager.GetPersistentID(sceneGroup);
+            if (sceneGroupId is < 0 or > byte.MaxValue)
+            {
+                SrLogger.LogWarning($"OnTeleporterLinked: {sourceNode.NodeId} has an unroutable destination scene group ({sceneGroupId}).");
+                return;
+            }
+
             SrLogger.LogDebug($"OnTeleporterLinked: broadcasting {sourceNode.NodeId} -> {nodeModel.NodeId}.");
 
             Main.SendToAllOrServer(new TeleporterLinkPacket
             {
                 SourceNodeId = sourceNode.NodeId,
                 DestinationNodeId = nodeModel.NodeId,
-                DestinationSceneGroup = (byte)NetworkSceneManager.GetPersistentID(sceneGroup)
+                DestinationSceneGroup = (byte)sceneGroupId
             });
         }
         catch (Exception ex)
