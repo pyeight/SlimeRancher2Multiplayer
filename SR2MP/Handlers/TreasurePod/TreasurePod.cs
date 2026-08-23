@@ -1,7 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using SR2MP.Handlers.Internal;
 using SR2MP.Packets.TreasurePod;
 using SR2MP.Packets.Utils;
+using SR2MP.Shared.Managers;
 
 namespace SR2MP.Handlers.TreasurePod;
 
@@ -10,15 +11,7 @@ internal sealed class TreasurePodHandler : BasePacketHandler<TreasurePodPacket>
 {
     protected override bool Handle(TreasurePodPacket packet, IPEndPoint? _)
     {
-        if (!GameState.pods.TryGetValue("pod" + packet.ID, out var model)) return true;
-
-        HandlingPacket = true;
-        model.gameObj?.GetComponent<Il2Cpp.TreasurePod>().Activate();
-        HandlingPacket = false;
-
-        model.state = new ObservableValue<Il2Cpp.TreasurePod.State>(
-            Il2Cpp.TreasurePod.State.OPEN
-        );
+        NetworkTreasurePodManager.ApplyState(packet.ID, packet.State);
 
         return true;
     }

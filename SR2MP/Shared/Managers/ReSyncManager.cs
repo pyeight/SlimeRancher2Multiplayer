@@ -638,15 +638,30 @@ internal sealed class ReSyncManager
 
     private static InitialTreasurePodsPacket CreateTreasurePodsPacket()
     {
-        var treasurePods = new Dictionary<int, TreasurePod.State>();
+        var treasurePods = new List<InitialTreasurePodsPacket.Pod>();
 
         foreach (var treasurePod in GameState.pods)
         {
-            if (int.TryParse(treasurePod.key.Replace("pod", string.Empty), out var podId))
-                treasurePods.Add(podId, treasurePod.value.state);
+            treasurePods.Add(new InitialTreasurePodsPacket.Pod
+            {
+                ID = treasurePod.key,
+                State = treasurePod.value.state
+            });
         }
 
-        return new InitialTreasurePodsPacket() { TreasurePods = treasurePods };
+        foreach (var pending in NetworkTreasurePodManager.PendingPodStates)
+        {
+            if (GameState.pods.ContainsKey(pending.Key))
+                continue;
+
+            treasurePods.Add(new InitialTreasurePodsPacket.Pod
+            {
+                ID = pending.Key,
+                State = pending.Value
+            });
+        }
+
+        return new InitialTreasurePodsPacket { TreasurePods = treasurePods };
     }
     
     private static NetworkAmmo SerializeAmmo(

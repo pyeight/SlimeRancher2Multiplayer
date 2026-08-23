@@ -1,10 +1,11 @@
-﻿using SR2MP.Packets.Utils;
+using SR2MP.Packets.Utils;
 
 namespace SR2MP.Packets.TreasurePod;
 
 internal sealed class TreasurePodPacket : IPacket
 {
-    public int ID;
+    public string ID;
+    public Il2Cpp.TreasurePod.State State;
 
     public PacketType Type => PacketType.TreasurePod;
     public PacketReliability Reliability => PacketReliability.Reliable;
@@ -12,11 +13,13 @@ internal sealed class TreasurePodPacket : IPacket
 
     public void Serialise(PacketWriter writer)
     {
-        writer.WritePackedInt(ID);
+        writer.WriteString(ID);
+        writer.WritePackedEnum(State);
     }
 
     public void Deserialise(PacketReader reader)
     {
-        ID = reader.ReadPackedInt();
+        ID = reader.ReadPooledString()!;
+        State = reader.ReadPackedEnum<Il2Cpp.TreasurePod.State>();
     }
 }
