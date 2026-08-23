@@ -93,6 +93,11 @@ public sealed class Main : StarlightExpansionV01
     /// Gets a value indicating whether cheats are allowed based on the user's local configuration.
     /// </summary>
     public static bool AllowCheats => preferences.GetEntry<bool>("allow_cheats").Value;
+    
+    /// <summary>
+    /// Gets a value indicating whether ringtail statuing is enabled or not.
+    /// </summary>
+    public static bool AllowRingtail => preferences.GetEntry<bool>("allow_ringtail").Value;
 
     /// <summary>
     /// Gets a value indicating whether this player has disabled gathering achievements in total.
@@ -152,6 +157,8 @@ public sealed class Main : StarlightExpansionV01
 
         preferences.CreateEntry("the_rock_plorts_are_coming", false,
             display_name: "<color=#ff0000>The rock plorts are coming</color> <alpha=#66>(Rock Plort Mode), BREAKS SAVES!");
+        
+        preferences.CreateEntry("allow_ringtail", false);
 
         InsertLicenseFiles();
 
