@@ -128,7 +128,7 @@ public sealed class Main : StarlightExpansionV01
     internal static bool RockPlortBug => preferences.GetEntry<bool>("the_rock_plorts_are_coming").Value;
 
     /// <inheritdoc/>
-    public override void OnLateInitializeMelon()
+    public override void OnLateInitialize()
     {
         preferences = MelonPreferences.CreateCategory("SR2MP");
         preferences.CreateEntry("username", "Player", is_hidden: true);
@@ -302,8 +302,12 @@ public sealed class Main : StarlightExpansionV01
         }
     }
 
+    private static bool instantiatedPlayer;
     private static void InitializePlayer(string objName, float scale)
     {
+        if (instantiatedPlayer) return;
+        instantiatedPlayer = true;
+        
         PlayerPrefab = new GameObject("PLAYER");
         PlayerPrefab.SetActive(false);
         PlayerPrefab.transform.localScale = Vector3.one * scale;

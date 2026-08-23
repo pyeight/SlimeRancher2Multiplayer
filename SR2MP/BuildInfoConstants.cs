@@ -8,7 +8,7 @@ internal static class BuildInfo
     internal const string Description = "Adds Multiplayer to Slime Rancher 2";
     internal const string Author = "Shark";
     internal static readonly string[] CoAuthors = null;
-    internal static readonly string[] Contributors = new[] { "AlchlcSystm, PinkTarr" };
+    internal static readonly string[] Contributors = new[] { "AlchlcSystm", "PinkTarr" };
     // MelonVersion is shown by ML on startup
     // Version is shown by Starlight
     // Version automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
