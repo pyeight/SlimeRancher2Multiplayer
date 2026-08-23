@@ -38,6 +38,8 @@ internal sealed class InitialGordoSlimeLoadHandler : BasePacketHandler<InitialGo
             {
                 NetworkGordoSlimeManager.MarkPopped(gordoSlime.Id);
                 NetworkGordoSlimeManager.MarkRewarded(gordoSlime.Id);
+                NetworkGordoSlimeManager.RaiseBurstEvent(gordoSlime.Id);
+                NetworkGordoSlimeManager.MarkPoppedInModel(gordoModel);
             }
             
             gordoModel.gordoSeen = gordoSlime.WasSeen && !gordoSlime.Popped;

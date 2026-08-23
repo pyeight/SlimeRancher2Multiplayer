@@ -32,7 +32,7 @@ internal static class NetworkEventManager
     private static readonly HashSet<string> EventKeyBlacklist = new()
     {
         MapEventKey,                // already synced
-        "gordoBurst",               // already synced
+        GordoBurstEventKey,         // already synced
         "puzzleSlotUnlocked",       // already synced
         "teleported",               // already synced
         "jump",                     // no need to sync
@@ -141,6 +141,22 @@ internal static class NetworkEventManager
         HandlingPacket = true;
         producer.RaiseEventForData(dataKey);
         HandlingPacket = false;
+    }
+
+    private static bool HasRaised(string eventKey, string dataKey)
+    {
+        var model = sceneContext.eventDirector._model;
+        if (model == null) return false;
+
+        return model.table.TryGetValue(eventKey, out var dataEntries) && dataEntries.ContainsKey(dataKey);
+    }
+
+    internal static void RaiseLocallyOnce(string eventKey, string dataKey)
+    {
+        if (string.IsNullOrEmpty(eventKey) || string.IsNullOrEmpty(dataKey)) return;
+        if (HasRaised(eventKey, dataKey)) return;
+
+        ApplyEventRaised(eventKey, dataKey);
     }
 
     internal static List<InitialEventsRaisedPacket.Entry> GetRaisedEvents()

@@ -98,12 +98,15 @@ public static class GlobalVariables
     /// The dictionary key representing the event of fog being revealed on the map.
     /// </summary>
     public const string MapEventKey = "fogRevealed";
+    
+    /// <summary>
+    /// The dictionary key representing the event of a gordo slime bursting.
+    /// </summary>
+    public const string GordoBurstEventKey = "gordoBurst";
 
     internal const byte HeaderSize = 13;
 
     internal const int ActorIdOffset = 1000000;
-
-    // Constants for ammo types
 
     /// <summary>
     /// The definition ID for silo storage ammo.

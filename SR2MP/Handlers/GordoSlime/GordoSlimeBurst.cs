@@ -44,6 +44,9 @@ internal sealed class GordoSlimeBurstHandler : BasePacketHandler<GordoSlimeBurst
 
         HandlingPacket = false;
         
+        NetworkGordoSlimeManager.RaiseBurstEvent(packet.ID);
+        NetworkGordoSlimeManager.MarkPoppedInModel(gordoSlime);
+
         gordoSlime.gordoSeen = false;
 
         return true;

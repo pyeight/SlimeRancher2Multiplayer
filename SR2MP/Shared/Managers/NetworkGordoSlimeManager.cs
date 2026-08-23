@@ -1,4 +1,5 @@
 using Il2CppMonomiPark.SlimeRancher.DataModel;
+using Il2CppMonomiPark.SlimeRancher.Event;
 
 namespace SR2MP.Shared.Managers;
 
@@ -6,6 +7,8 @@ internal static class NetworkGordoSlimeManager
 {
     private static readonly HashSet<string> PoppedGordoSlimeIds = new();
     private static readonly HashSet<string> RewardsGivenIds = new();
+
+    private static StringEventProducer? burstEventProducer;
 
     internal static void MarkPopped(string id) => PoppedGordoSlimeIds.Add(id);
 
@@ -22,16 +25,32 @@ internal static class NetworkGordoSlimeManager
 
         gordoSlimeComponent.SetModel(model);
 
-        if (PoppedGordoSlimeIds.Contains(id))
-            model.gameObj.SetActive(false);
+        if (!PoppedGordoSlimeIds.Contains(id)) return;
+
+        RaiseBurstEvent(id);
+        model.gameObj.SetActive(false);
     }
     
     internal static void ReapplyOnSpawn(GordoEat gordoSlime)
     {
         if (!Main.Server.IsRunning && !Main.Client.IsConnected) return;
 
-        if (PoppedGordoSlimeIds.Contains(gordoSlime.Id))
-            gordoSlime.gameObject.SetActive(false);
+        burstEventProducer ??= gordoSlime._onBurstEvent;
+
+        if (!PoppedGordoSlimeIds.Contains(gordoSlime.Id)) return;
+        
+        RaiseBurstEvent(gordoSlime.Id);
+        gordoSlime.gameObject.SetActive(false);
+    }
+    
+    internal static void RaiseBurstEvent(string id)
+        => NetworkEventManager.RaiseLocallyOnce(burstEventProducer?.KeyPrefix ?? GordoBurstEventKey, id);
+    
+    internal static void MarkPoppedInModel(GordoModel model)
+    {
+        if (model == null || model.HasPopped()) return;
+
+        model.GordoEatenCount = GordoEat.ALREADY_BURST_FLAG;
     }
     
     internal static string? ResolveGordoSlimeId(GordoModel model)
