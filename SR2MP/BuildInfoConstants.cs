@@ -6,13 +6,13 @@ internal static class BuildInfo
     internal const string ID = "de.pyeight.ranchingtogether";
     internal const string Name = "Ranching Together";
     internal const string Description = "Adds Multiplayer to Slime Rancher 2";
-    internal const string Author = "Shark";
+    internal const string Author = "Shark (py8)";
     internal static readonly string[] CoAuthors = null;
     internal static readonly string[] Contributors = new[] { "AlchlcSystm, PinkTarr" };
     // MelonVersion is shown by ML on startup
     // Version is shown by Starlight
     // Version automatically gets a -dev at the end if SR2MP is compiled by GitHub Action
-    internal const string MelonVersion = "0.3.9"; 
+    internal const string MelonVersion = "0.3.9";
     internal const string Version = "0.3.9"; // Auto-Dev_Do_not_remove
     internal const string Discord = "https://discord.com/invite/a7wfBw5feU";
     internal const string SourceCode = "https://github.com/pyeight/SlimeRancher2Multiplayer";
