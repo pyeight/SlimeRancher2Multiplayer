@@ -1,16 +1,16 @@
 ﻿using HarmonyLib;
-using Il2CppMonomiPark.SlimeRancher.UI.RanchHouse;
+using Il2CppMonomiPark.SlimeRancher.UI;
 
 namespace SR2MP.Patches.UI;
 
 [HarmonyPatch]
 internal static class RanchHouseUIPatch
 {
-    [HarmonyPatch(typeof(RanchHouseMenuRoot), nameof(RanchHouseMenuRoot.Awake))]
+    [HarmonyPatch(typeof(RanchHouseUI), nameof(RanchHouseUI.Awake))]
     [HarmonyPostfix]
     private static void OnOpen() => IsInRanchHouse = true;
 
-    [HarmonyPatch(typeof(RanchHouseMenuItemModel), nameof(RanchHouseMenuItemModel.CloseMenu))]
+    [HarmonyPatch(typeof(RanchHouseUI), nameof(RanchHouseUI.OnDestroy))]
     [HarmonyPostfix]
     private static void OnClose() => IsInRanchHouse = false;
 }
